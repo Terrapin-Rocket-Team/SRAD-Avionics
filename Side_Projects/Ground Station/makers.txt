@@ -1,0 +1,23 @@
+{
+  "name": "@electron-forge/maker-zip"
+}
+
+// Windows
+{
+    "name": "@electron-forge/maker-squirrel",
+    "config":{
+    "loadingGif": "assets/loading.gif",
+    "setupIcon": "assets/icon.ico"
+    }
+}
+
+// MacOS
+{
+  "name": "@electron-forge/maker-dmg",
+  "config": {
+    "background": "./assets/dmg-background.png",
+    "format": "ULFO",
+    "icon": "assets/icon.icns",
+    "name": "Terp Rockets Ground Station"
+  }
+}
