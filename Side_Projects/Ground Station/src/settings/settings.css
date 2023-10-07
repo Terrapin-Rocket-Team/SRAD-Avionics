@@ -1,0 +1,86 @@
+* {
+  font-size: calc(1.5vh + 3px);
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.settings-box {
+  width: 100%;
+  height: 12%;
+  padding: 0 2vw;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.settings-box > * {
+  width: 50%;
+  margin-left: 5vw;
+}
+
+.settings-box input {
+  padding: 1vh 1vw;
+}
+
+.dropdown {
+  color: var(--top-text);
+}
+
+.options {
+  width: 100%;
+}
+
+.settings-selector {
+  position: absolute !important;
+  right: 7vw;
+  width: 30%;
+}
+
+.toggle {
+  height: 5vh;
+  width: 7vw;
+  border-radius: 5px;
+  background-color: lightgray;
+  border: 1px solid black;
+  display: flex;
+  align-items: center;
+  position: relative;
+  --toggle-pos: 0.1vw;
+}
+
+.toggle:hover {
+  cursor: pointer;
+}
+
+/*the button on the toggle*/
+.toggle::after {
+  background-color: white;
+  border: 2px solid black;
+  position: absolute;
+  left: var(--toggle-pos);
+  display: block;
+  content: "";
+  width: 40%;
+  height: 85%;
+  border-radius: 5px;
+  transition: 0.2s left ease-in-out;
+}
+
+#reset-box button {
+  border: none;
+  background-color: var(--top-bg);
+  color: var(--top-text);
+  border-radius: 4px;
+  padding: 1vh 1vw;
+  width: 40%;
+  transition: 0.2s background-color linear;
+}
+
+#reset-box button:hover {
+  background-color: var(--top-hover);
+  cursor: pointer;
+}
