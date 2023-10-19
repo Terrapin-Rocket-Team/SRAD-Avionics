@@ -1,16 +1,19 @@
 
 
 
-double BNO055::get_pressure() {
-    pressure = bmp.readPressure() / 100.0; // hPa
-    return pressure;
+
+
+
+virtual imu::Quaternion get_orientation() {
+return getQuat();
 }
 
-double BNO055::get_temp() {
-    temp = bmp.readTemperature(); // C
-    return temp;
+virtual imu::Vector<3> get_acceleration() {
+return getVector(VECTOR_ACCELEROMETER);
 }
 
-double BNO055::get_temp_f() {
-    return (get_temp() * 9.0 / 5.0) + 32.0;
+virtual imu::Vector<3> get_orientation_euler() {
+return getVector(EULER);
 }
+
+
