@@ -6,19 +6,21 @@
 #ifndef RTC_H
 #define RTC_H
 #include <RTClib.h>
+#include <imumaths.h>
 
 class RTC {
 public:
     virtual ~RTC() {}; // virtual destructor
     virtual String getcsvHeader() = 0; // these functions set to 0 are like abstract functions
-    virtual String getdataString() = 0;
+    virtual String getdataString() = 0; // don't include static values here or in csvHeader
     virtual void initialize() = 0; 
-    virtual double getTimeOn() = 0; // ms
-    virtual double getTimeSinceLaunch() = 0; // ms
+    virtual imu::Vector<2> getTimeOn() = 0; // ms
+    virtual imu::Vector<2> getTimeSinceLaunch() = 0; // ms
     virtual DateTime getLaunchTime() = 0; 
     virtual DateTime setLaunchTime() = 0;
     virtual DateTime getPowerOnTime() = 0;
     virtual DateTime getCurrentTime() = 0;
+    virtual String getStaticValues() = 0; // returns a string with just the static variables and the values
 };
 
 #endif 
