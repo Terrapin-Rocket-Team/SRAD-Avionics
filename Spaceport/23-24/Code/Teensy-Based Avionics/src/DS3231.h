@@ -10,15 +10,15 @@ private:
     RTC_DS3231 rtc;
     DateTime powerOnTime;
     DateTime launchTime;
+    int millisAtStart;
 
 public:
     DS3231(); // constructor
     void initialize(); 
     void onLaunch();
-    double getTimeOn(); // ms
-    double getTimeSinceLaunch(); // ms
+    imu::Vector<2> getTimeOn(); // ms
+    imu::Vector<2> getTimeSinceLaunch(); // ms
     DateTime getLaunchTime(); 
-    DateTime setLaunchTime();
     DateTime getPowerOnTime();
     DateTime getCurrentTime();
 };
