@@ -15,9 +15,9 @@ public:
     virtual double get_alt() = 0;
     virtual imu::Vector<3> get_velocity() = 0;
     virtual imu::Vector<2> get_pos() = 0;
-    virtual imu::Vector<3> get_pos_m() = 0;
+    virtual imu::Vector<3> get_displacement() = 0;
     virtual double get_gps_time() = 0;
-    virtual double get_fix_qual() = 0;
+    virtual int get_fix_qual() = 0;
     virtual String getcsvHeader() = 0;
     virtual String getdataString() = 0;
 };
