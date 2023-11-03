@@ -8,13 +8,15 @@
 
 class MAX_M10S : public GPS {
 private:
-    double altitude;
-    imu::Vector<3> velocity;
-    imu::Vector<2> pos_lat_long;
-    imu::Vector<3> displacement;
-    int fix_qual;
-    double gps_time;
-
+    SFE_UBLOX_GNSS m10s;
+    double altitude;                // alti in mm 
+    imu::Vector<3> velocity;        // meters per second
+    imu::Vector<2> pos;             // latitude and longitude
+    imu::Vector<3> displacement;    // meters from starting location
+    double gps_time;                // time since start of program in seconds
+    int fix_qual;                   // num of connections to satellites
+    // consider adding current time
+    // mean sea level
 public:
     MAX_M10S();
     void calibrate(); 
@@ -22,7 +24,7 @@ public:
     double get_alt();
     imu::Vector<3> get_velocity();
     imu::Vector<2> get_pos();
-    imu::Vector<3> get_displacement();
+    imu::Vector<3> get_displace();
     double get_gps_time();
     int get_fix_qual();
     String getcsvHeader();
