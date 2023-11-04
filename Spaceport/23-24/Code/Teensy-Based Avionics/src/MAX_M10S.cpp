@@ -4,9 +4,10 @@
 Constructor for Max-M10s 
 */
 MAX_M10S::MAX_M10S() {
-    displacement.x() = 0;
-    displacement.y() = 0;
-    displacement.z() = 0;
+    orgin.x() = m10s.getLatitude();
+    orgin.y() = m10s.getLongitude();
+    orgin.z() = m10s.getAltitude() * 1000;
+    read_gps();
 }
 
 void MAX_M10S::calibrate() {
@@ -34,9 +35,9 @@ return the velocity (meters per second)
 there probably issues with floating points
 */
 imu::Vector<3> MAX_M10S::get_velocity() {
-    velocity.x() = (m10s.getLatitude() - (displacement.x() * 111139.0 )) / (millis() - gps_time);
-    velocity.y() = (m10s.getLatitude() - (displacement.y() * 111139.0 )) / (millis() - gps_time);
-    velocity.z() = (m10s.getLatitude() - (displacement.z() * 111139.0 )) / (millis() - gps_time);
+    velocity.x() = ((m10s.getLatitude() * 111139.0) - displacement.x()) / (millis() - gps_time);
+    velocity.y() = ((m10s.getLongitude() * 111139.0) - displacement.y()) / (millis() - gps_time);
+    velocity.z() = ((m10s.getAltitude() * 1000.0) - displacement.z()) / (millis() - gps_time);
     return velocity;
 }
 
@@ -54,9 +55,9 @@ retern the displacement since the origin
 there is probably issues with floating point arithmetic 
 */
 imu::Vector<3> MAX_M10S::get_displace() {
-    displacement.x() = (m10s.getLatitude() + (displacement.x() / 111139.0 )) * 111139.0;
-    displacement.y() = (m10s.getLongitude() + (displacement.y() / 111139.0 )) * 111139.0;
-    displacement.z() = (m10s.getAltitude() + (displacement.z() / 111139.0 )) * 111139.0;
+    displacement.x() = (m10s.getLatitude() - orgin.x()) * 111139.0;
+    displacement.y() = (m10s.getLongitude() - orgin.y()) * 111139.0;
+    displacement.z() = ((m10s.getAltitude() * 1000) - orgin.z());
     return displacement;
 }
 
@@ -65,6 +66,15 @@ time since in initialization in seconds
 */
 double MAX_M10S::get_gps_time() {
     return gps_time = (millis() * 1000);
+}
+/*
+returns the current hour, min, and sec 
+*/
+imu::Vector<3> MAX_M10S::get_time() {
+    time.x() = m10s.getHour();
+    time.y() = m10s.getMinute();
+    time.z() = m10s.getSecond();
+    return time;
 }
 
 /*
