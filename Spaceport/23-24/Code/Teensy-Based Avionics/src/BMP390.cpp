@@ -64,3 +64,19 @@ double BMP390::get_rel_alt_m() {
 double BMP390::get_rel_alt_ft() {
     return get_rel_alt_m() * 3.28084;
 }
+
+void * BMP390::get_data() {
+    return (void *) &altitude;
+}
+
+String BMP390::getcsvHeader() {
+    return "Pressure (hPa),Temperature (C),Altitude (m)";
+}
+
+String BMP390::getdataString() {
+    return String(pressure) + "," + String(temp) + "," + String(altitude);
+}
+
+String BMP390::getStaticDataString() {
+    return "Ground Pressure (hPa):" + String(groundPressure) + "\n";
+}
