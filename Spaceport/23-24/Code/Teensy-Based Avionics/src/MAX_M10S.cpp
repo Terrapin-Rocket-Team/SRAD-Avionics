@@ -26,9 +26,9 @@ void MAX_M10S::read_gps() {
     velocity.y() = ((pos.y() * 111139) - displacement.y()) / (millis() * 1000 - gps_time);
     velocity.z() = ((altitude * 1000) - displacement.z()) / (millis() * 1000 - gps_time); 
 
-    displacement.x() = (m10s.getLatitude() - orgin.x()) * 111139.0;
-    displacement.y() = (m10s.getLongitude() - orgin.y()) * 111139.0;
-    displacement.z() = ((m10s.getAltitude() * 1000) - orgin.z());
+    displacement.x() = (m10s.getLatitude() - origin.x()) * 111139.0;
+    displacement.y() = (m10s.getLongitude() - origin.y()) * 111139.0;
+    displacement.z() = ((m10s.getAltitude() * 1000) - origin.z());
 
     gps_time = (millis() * 1000);
 
@@ -90,14 +90,32 @@ int MAX_M10S::get_fix_qual() {
     return fix_qual;
 }   
 
-String getcsvHeader() {
-    
+String MAX_M10S::getcsvHeader() {
+    return "Latitude (deg), Longitude (deg), "
+        "Altitude (mm), "
+        "Velocity (m/s), "
+        "Displacement X (m), Displacement Y (m), Displacement Z (m), "
+        "gps time (s), "
+        "quality of data (satellites), "
+        "real time (hr/min/s)";
 
 }
 
-String getdataString() {
+String MAX_M10S::getdataString() {
+    return String(pos.x()) + ", " + String(pos.y()) + ", " + 
+        String(altitude) + ", " +
+        String(sqrt(pow(velocity.x(), 2) + pow(velocity.y(), 2) + pow(velocity.z(), 2))) + ", " + 
+        String(displacement.x()) + ", " + String(displacement.y()) + ", " + String(displacement.z()) + ", " + 
+        String(gps_time) + ", " +
+        String(fix_qual) + ", " + 
+        String(real_time.x()) + ":" + String(real_time.y()) + ":" + String(real_time.z());
+    
+}
 
-
+String MAX_M10S::getStaticDataString() {
+    return "Original Latitude (m): " + String(origin.x()) + "\n" +
+        "Original Longitude (m): " + String(origin.y()) + "\n" +
+        "Original Altitude (m): " +  String(origin.z()) + "\n";
 }
 
 // Danny S.
