@@ -21,7 +21,7 @@ void MAX_M10S::read_gps() {
         first_fix = true;
         origin.x() = m10s.getLatitude();
         origin.y() = m10s.getLongitude();
-        origin.z() = m10s.getAltitude() * 1000;
+        origin.z() = m10s.getAltitude() * 1000.0;
     }
     altitude = m10s.getAltitude(); 
 
@@ -30,15 +30,15 @@ void MAX_M10S::read_gps() {
 
     // updated before displacement and gps as the old values and new values are needed to get a 
     // significant of a velocity
-    velocity.x() = ((pos.x() * 111139) - displacement.x()) / (millis() * 1000 - gps_time);
-    velocity.y() = ((pos.y() * 111139) - displacement.y()) / (millis() * 1000 - gps_time);
-    velocity.z() = ((altitude * 1000) - displacement.z()) / (millis() * 1000 - gps_time); 
+    velocity.x() = ((pos.x() * 111139.0) - displacement.x()) / (millis() * 1000.0- gps_time);
+    velocity.y() = ((pos.y() * 111139.0) - displacement.y()) / (millis() * 1000.0 - gps_time);
+    velocity.z() = ((altitude * 1000.0) - displacement.z()) / (millis() * 1000.0 - gps_time); 
 
     displacement.x() = (m10s.getLatitude() - origin.x()) * 111139.0;
     displacement.y() = (m10s.getLongitude() - origin.y()) * 111139.0;
-    displacement.z() = ((m10s.getAltitude() * 1000) - origin.z());
+    displacement.z() = ((m10s.getAltitude() * 1000.0) - origin.z());
 
-    gps_time = (millis() * 1000);
+    gps_time = (millis() * 1000.0);
     
     irl_time.x() = m10s.getHour();
     irl_time.y() = m10s.getMinute();
@@ -92,7 +92,7 @@ bool MAX_M10S::get_first_fix() {
 time since in initialization in seconds
 */
 double MAX_M10S::get_gps_time() {
-    return gps_time ;
+    return gps_time;
 }
 
 /*
