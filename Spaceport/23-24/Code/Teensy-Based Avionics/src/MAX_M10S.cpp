@@ -5,12 +5,30 @@ Constructor for Max-M10s
 */
 MAX_M10S::MAX_M10S() {
     first_fix = false;
+    origin.x() = -1;
+    origin.y() = -1;
+    origin.z() = -1;
+    altitude = -1;
+    pos.x() = -1;
+    pos.y() = -1;
+    velocity.x() = -1;
+    velocity.y() = -1;
+    velocity.z() = -1;
+    displacement.x() = -1;
+    displacement.y() = -1;
+    displacement.z() = -1;
+    gps_time = -1;
+    irl_time.x() = -1;
+    irl_time.y() = -1;
+    irl_time.z() = -1;
+    fix_qual = -1;
 }
 
 //need to update origin some how
 
 void MAX_M10S::initialize() {
     Serial.println("Max-M10s");
+    
 }
 
 /*
