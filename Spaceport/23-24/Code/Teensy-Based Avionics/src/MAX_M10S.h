@@ -13,21 +13,24 @@ private:
     double altitude;                // alti in mm 
     imu::Vector<3> velocity;        // m per s
     imu::Vector<3> displacement;    // m from starting location
-    imu::Vector<3> origin;           // lat, long, alti of the original location in m
+    imu::Vector<3> origin;          // lat(deg), long(deg), alti(m) of the original location
     double gps_time;                // time since start of program in seconds
     int fix_qual;                   // num of connections to satellites
-    imu::Vector<3> real_time;            // returns the current hour, min, and sec 
+    imu::Vector<3> irl_time;        // returns the current hour, min, and sec 
+    bool first_fix;                 // whether or not gps has recieved first fix
 
 public:
     MAX_M10S();
-    void calibrate(); 
+    void initialize(); 
     void read_gps();
     double get_alt();
     imu::Vector<3> get_velocity();
     imu::Vector<2> get_pos();
     imu::Vector<3> get_displace();
     double get_gps_time();
-    imu::Vector<3> get_time();
+    bool get_first_fix();
+    imu::Vector<3> get_irl_time();
+    imu::Vector<3> get_origin_pos();
     int get_fix_qual();
     String getcsvHeader();
     String getdataString();

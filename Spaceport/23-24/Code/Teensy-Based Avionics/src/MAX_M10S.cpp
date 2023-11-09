@@ -4,12 +4,12 @@
 Constructor for Max-M10s 
 */
 MAX_M10S::MAX_M10S() {
-
+    first_fix = false;
 }
 
 //need to update origin some how
 
-void MAX_M10S::calibrate() {
+void MAX_M10S::initialize() {
     Serial.println("Max-M10s");
 }
 
@@ -17,11 +17,19 @@ void MAX_M10S::calibrate() {
 used to update all instance variables 
 */
 void MAX_M10S::read_gps() {
-    altitude = m10s.getAltitude();
+    if (!first_fix && m10s.getSIV() > 0) {
+        first_fix = true;
+        origin.x() = m10s.getLatitude();
+        origin.y() = m10s.getLongitude();
+        origin.z() = m10s.getAltitude() * 1000;
+    }
+    altitude = m10s.getAltitude(); 
 
     pos.x() = m10s.getLatitude();
     pos.y() = m10s.getLongitude();
 
+    // updated before displacement and gps as the old values and new values are needed to get a 
+    // significant of a velocity
     velocity.x() = ((pos.x() * 111139) - displacement.x()) / (millis() * 1000 - gps_time);
     velocity.y() = ((pos.y() * 111139) - displacement.y()) / (millis() * 1000 - gps_time);
     velocity.z() = ((altitude * 1000) - displacement.z()) / (millis() * 1000 - gps_time); 
@@ -31,16 +39,16 @@ void MAX_M10S::read_gps() {
     displacement.z() = ((m10s.getAltitude() * 1000) - origin.z());
 
     gps_time = (millis() * 1000);
-
-    real_time.x() = m10s.getHour();
-    real_time.y() = m10s.getMinute();
-    real_time.z() = m10s.getSecond();
+    
+    irl_time.x() = m10s.getHour();
+    irl_time.y() = m10s.getMinute();
+    irl_time.z() = m10s.getSecond();
 
     fix_qual = m10s.getSIV();
 }
 
 /*
-return altitude in mm
+return altitude in m
 */
 double MAX_M10S::get_alt() {
     return altitude;
@@ -70,6 +78,17 @@ imu::Vector<3> MAX_M10S::get_displace() {
 }
 
 /*
+returns vector of orginal position in lat(deg), lat(deg), and alti(m)
+*/
+imu::Vector<3> MAX_M10S::get_origin_pos() {
+    return origin;
+}
+
+bool MAX_M10S::get_first_fix() {
+    return first_fix;
+}
+
+/*
 time since in initialization in seconds
 */
 double MAX_M10S::get_gps_time() {
@@ -79,8 +98,8 @@ double MAX_M10S::get_gps_time() {
 /*
 returns the current hour, min, and sec 
 */
-imu::Vector<3> MAX_M10S::get_time() {   
-    return real_time;
+imu::Vector<3> MAX_M10S::get_irl_time() {   
+    return irl_time;
 }
 
 /*
@@ -108,7 +127,7 @@ String MAX_M10S::getdataString() {
         String(displacement.x()) + ", " + String(displacement.y()) + ", " + String(displacement.z()) + ", " + 
         String(gps_time) + ", " +
         String(fix_qual) + ", " + 
-        String(real_time.x()) + ":" + String(real_time.y()) + ":" + String(real_time.z());
+        String(irl_time.x()) + ":" + String(irl_time.y()) + ":" + String(irl_time.z());
     
 }
 
