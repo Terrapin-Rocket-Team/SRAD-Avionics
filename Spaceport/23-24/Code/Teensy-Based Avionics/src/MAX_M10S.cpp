@@ -4,6 +4,13 @@
 Constructor for Max-M10s 
 */
 MAX_M10S::MAX_M10S() {
+   
+}
+
+//need to update origin some how
+
+void MAX_M10S::initialize() {
+    Serial.println("Max-M10s");
     first_fix = false;
     origin.x() = -1;
     origin.y() = -1;
@@ -22,13 +29,6 @@ MAX_M10S::MAX_M10S() {
     irl_time.y() = -1;
     irl_time.z() = -1;
     fix_qual = -1;
-}
-
-//need to update origin some how
-
-void MAX_M10S::initialize() {
-    Serial.println("Max-M10s");
-    
 }
 
 /*
