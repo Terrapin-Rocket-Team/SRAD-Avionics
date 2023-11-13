@@ -1,0 +1,5 @@
+#include "RFM69HCW.h"
+
+RFM69HCW::RFM69HCW()
+{
+}
