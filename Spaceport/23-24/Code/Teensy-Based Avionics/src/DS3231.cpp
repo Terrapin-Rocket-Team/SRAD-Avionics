@@ -1,5 +1,5 @@
 # include <RTC.h>
-#include "DS3231.h"
+# include <DS3231.h>
 
 
 // constructor for the DS3231 class
@@ -43,3 +43,28 @@ DateTime DS3231::getLaunchTime() {
 DateTime DS3231::getCurrentTime() {
     return rtc.now();
 }
+
+void * DS3231::getData() { //sec since launch, cast to void pointer
+    imu::Vector<2> timeSinceLaunch = getTimeSinceLaunch();
+    return ((void *)(&timeSinceLaunch));
+}
+
+String DS3231::getcsvHeader() { //all dynamic data
+    return "current_time, time_since_launch";
+}
+
+String DS3231::getdataString() { 
+    String curTime =  getCurrentTime().timestamp();
+    imu::Vector<2> timeSinceLaunch = getTimeSinceLaunch();
+    return curTime + ", " + String(timeSinceLaunch[0]) + "sec " + String(timeSinceLaunch[1]) + "ms";
+
+}
+
+String DS3231::getStaticDataString() {
+    return "millis_at_start:" + String(millisAtStart) + ",\n"
+        + "power_on_time:" + powerOnTime.timestamp() + ",\n"
+        + "launch_time:" + launchTime.timestamp();
+}
+
+
+

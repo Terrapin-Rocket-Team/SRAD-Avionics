@@ -21,6 +21,8 @@ public:
     virtual DateTime getPowerOnTime() = 0;
     virtual DateTime getCurrentTime() = 0;
     virtual String getStaticValues() = 0; // returns a string with just the static variables and the values
+    virtual void * getData() = 0;
+    virtual String getStaticDataString() = 0;
 };
 
 #endif 
