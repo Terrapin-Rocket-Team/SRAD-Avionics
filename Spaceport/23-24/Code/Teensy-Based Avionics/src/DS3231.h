@@ -21,6 +21,10 @@ public:
     DateTime getLaunchTime(); 
     DateTime getPowerOnTime();
     DateTime getCurrentTime();
+    void * getData();
+    String getdataString();
+    String getStaticDataString();
+    String getcsvHeader();
 };
 
 # endif
