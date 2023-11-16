@@ -27,8 +27,10 @@ public:
     double get_pressure_atm();
     double get_rel_alt_ft();
     double get_rel_alt_m();
+    void * get_data();
     String getcsvHeader();
     String getdataString();
+    String getStaticDataString();
 };
 
 
