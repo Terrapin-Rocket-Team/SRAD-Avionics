@@ -10,6 +10,7 @@ imu::Vector<3> euler_vec;
 
 
 public:
+BNO055(); 
 virtual void setupBno();
 virtual void calibrate();
 virtual imu::Quaternion get_orientation();
