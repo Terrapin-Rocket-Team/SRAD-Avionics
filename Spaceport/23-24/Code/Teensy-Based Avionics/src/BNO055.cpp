@@ -1,7 +1,8 @@
 include "BNO055.h"
 
 
-
+BNO055::BNO055() {
+}
 
 
 virtual imu::Quaternion get_orientation() {
