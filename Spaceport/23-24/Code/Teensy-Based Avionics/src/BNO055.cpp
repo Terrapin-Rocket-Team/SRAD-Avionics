@@ -4,7 +4,7 @@ include "BNO055.h"
 BNO055::BNO055() {
 }
 
-void setupbno()
+void setup_bno()
 {
   if (!bno.begin())
   {
