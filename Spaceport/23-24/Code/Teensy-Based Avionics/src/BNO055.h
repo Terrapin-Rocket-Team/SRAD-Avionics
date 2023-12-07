@@ -5,6 +5,8 @@
 
 class BNO055: public IMU {
 private:
+imu::Vector<3> acceleration_vec;
+imu::Vector<3> euler_vec;
 
 
 public:
