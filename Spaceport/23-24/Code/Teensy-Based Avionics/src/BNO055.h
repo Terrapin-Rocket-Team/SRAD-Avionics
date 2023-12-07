@@ -11,8 +11,8 @@ imu::Vector<3> euler_vec;
 
 public:
 BNO055(); 
-virtual void setupBno();
-virtual void calibrate();
+virtual void setup_bno();
+virtual void calibrate_bno();
 virtual imu::Quaternion get_orientation();
 virtual imu::Vector<3> get_acceleration();
 virtual imu::Vector<3> get_orientation_euler();
