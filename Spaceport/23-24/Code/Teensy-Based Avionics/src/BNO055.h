@@ -5,19 +5,31 @@
 
 class BNO055: public IMU {
 private:
-imu::Vector<3> acceleration_vec;
-imu::Vector<3> euler_vec;
-
+    Adafruit_BNO055 bno;
+    uint8_t SCK_pin;
+    uint8_t SDA_pin;
+    imu::Vector<3> acceleration_vec;
+    imu::Vector<3> orientation_euler;
+    imu::Quaternion orientation;
+    imu::Vector<3> magnetometer;
+    imu::Vector<3> initial_mag_field;
 
 public:
-BNO055(); 
-virtual void setup_bno();
-virtual void calibrate_bno();
-virtual imu::Quaternion get_orientation();
-virtual imu::Vector<3> get_acceleration();
-virtual imu::Vector<3> get_orientation_euler();
-virtual String getcsvHeader();
-virtual String getdataString();
+    BNO055(uint8_t SCK, uint8_t SDA); 
+    void calibrate_bno();
+    void initialize();
+    imu::Quaternion get_orientation();
+    // gives linear_acceleration in m/s/s, which excludes gravity
+    imu::Vector<3> get_acceleration();
+    imu::Vector<3> get_orientation_euler();
+    // values in uT, micro Teslas
+    imu::Vector<3> get_magnetometer();
+    // gives it in rotations about the x, y, z (yaw, pitch, roll) axes
+    imu::Vector<3> convert_to_euler(imu::Quaternion orientation);
+    void * get_data();
+    String getcsvHeader();
+    String getdataString();
+    String getStaticDataString();
 
 };
 
