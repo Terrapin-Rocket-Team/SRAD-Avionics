@@ -20,15 +20,17 @@ private:
 
 public:
     BMP390(uint8_t SCK, uint8_t SDA); 
-    void calibrate(); 
+    void initialize(); 
     double get_pressure();
     double get_temp();
     double get_temp_f();
     double get_pressure_atm();
     double get_rel_alt_ft();
     double get_rel_alt_m();
+    void * get_data();
     String getcsvHeader();
     String getdataString();
+    String getStaticDataString();
 };
 
 
