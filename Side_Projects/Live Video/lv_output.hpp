@@ -3,7 +3,7 @@
 
 #include "output/output.hpp"
 
-#include <unistd.h>
+#include <stdio.h>
 
 class LVOutput : Output
 {
@@ -15,10 +15,8 @@ protected:
     void outputBuffer(void *mem, size_t size, int64_t timestamp_us, uint32_t flags) override;
 
 private:
-    int pidLocal;
-    int pidLive;
-    int pipeLocal[2];
-    int pipeLive[2];
+    FILE *pipeLocal;
+    FILE *pipeLive;
 };
 
 #endif

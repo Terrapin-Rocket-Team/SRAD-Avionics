@@ -73,6 +73,12 @@ else
     echo "Found"
 fi
 
+echo -n "Checking for Boost 1.74..."
+if [ ! -d /usr/include/boost || ! -f /usr/lib/aarch64-linux-gnu/libboost_program_options.so ]
+then
+    echo "Not Found"
+    echo "Installing Boost 1.74"
+    apt install libboost1.74-all-dev
 echo "Getting AV1 encoder..."
 sleep 1
 
@@ -115,6 +121,6 @@ chmod +x tests/localsave.sh
 chmod +x tests/networkstream.sh
 
 cd ~
-mkdir -p fvideo
+mkdir -p video
 
 echo "Setup complete"
