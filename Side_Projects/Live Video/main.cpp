@@ -10,6 +10,7 @@ using namespace std::placeholders;
 
 static void eventLoop(LibcameraEncoder &app)
 {
+
     VideoOptions const *options = app.GetOptions();
     std::unique_ptr<Output> output = std::unique_ptr<Output>((Output *)(new LVOutput(options)));
     app.SetEncodeOutputReadyCallback(std::bind(&Output::OutputReady, output.get(), _1, _2, _3, _4));
