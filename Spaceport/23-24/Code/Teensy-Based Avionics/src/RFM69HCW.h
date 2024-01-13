@@ -16,10 +16,10 @@ public:
     void begin(SPIClass *s, uint8_t cs, uint8_t irq, int frqBand);
     bool tx(String message);
     String rx();
-    bool encode(String &message, int type);
-    bool decode(String &message, int type);
-    bool send(String message, int type);
-    String receive(int type);
+    bool encode(String &message, EncodingType type);
+    bool decode(String &message, EncodingType type);
+    bool send(String message, EncodingType type);
+    String receive(EncodingType type);
     bool available();
     int RSSI();
 

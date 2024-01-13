@@ -111,14 +111,14 @@ Multi-purpose encoder function
 Encodes the message into a format selected by type
 - Telemetry:
     message - input: latitude,longitude,altitude,speed,heading,precision,stage,t0 -> output: APRS message
-    type - 0
 - Video: TODO
     message - input: Base 64 string -> output: ?
-    type - 1
+- Ground Station: TODO
+    message - input: Source:Value,Destination:Value,Path:Value,Type:Value,Body:Value -> output: APRS message
 */
-bool RFM69HCW::encode(String &message, int type)
+bool RFM69HCW::encode(String &message, EncodingType type)
 {
-    if (type == 0)
+    if (type == ENCT_TELEMETRY)
     {
         APRSMessage aprs;
         // store the message in a char array so it is easier to manipulate
@@ -130,18 +130,8 @@ bool RFM69HCW::encode(String &message, int type)
         aprs.setPath(this->cfg.PATH);
         aprs.setDestination(this->cfg.TOCALL);
 
-        /* holds the data to be assembled into the aprs body
-        0 - latitude
-        1 - longitude
-        2 - altitude
-        3 - speed
-        4 - heading
-        5 - precision
-        6 - stage
-        7 - t0
-        8 - dao
-        */
-        String APRSData[9];
+        // holds the data to be assembled into the aprs body
+        APRSData data;
 
         // find each value separated in order by a comma and put in the APRSData array
         char *currentVal = new char[msgLen];
@@ -158,7 +148,22 @@ bool RFM69HCW::encode(String &message, int type)
             {
                 currentVal[currentValIndex] = '\0';
 
-                APRSData[currentValCount] = currentVal;
+                if (currentValCount == 0 && strlen(currentVal) < 16)
+                    strcpy(data.lat, currentVal);
+                if (currentValCount == 1 && strlen(currentVal) < 16)
+                    strcpy(data.lng, currentVal);
+                if (currentValCount == 2 && strlen(currentVal) < 10)
+                    strcpy(data.alt, currentVal);
+                if (currentValCount == 3 && strlen(currentVal) < 4)
+                    strcpy(data.spd, currentVal);
+                if (currentValCount == 4 && strlen(currentVal) < 4)
+                    strcpy(data.hdg, currentVal);
+                if (currentValCount == 5)
+                    data.precision = currentVal[0];
+                if (currentValCount == 6 && strlen(currentVal) < 3)
+                    strcpy(data.stage, currentVal);
+                if (currentValCount == 7 && strlen(currentVal) < 9)
+                    strcpy(data.t0, currentVal);
 
                 currentValIndex = 0;
                 currentValCount++;
@@ -168,42 +173,46 @@ bool RFM69HCW::encode(String &message, int type)
         delete currentVal;
 
         // get lat and long string for low or high precision
-        if (APRSData[5] == "LOW")
+        if (data.precision == 'L')
         {
-            APRSData[0] = create_lat_aprs(APRSData[0], 0);
-            APRSData[1] = create_long_aprs(APRSData[1], 0);
+            strcpy(data.dao, "");
+            create_lat_aprs(&data.lat, 0);
+            create_long_aprs(&data.lng, 0);
         }
-        else if (APRSData[5] == "HIGH")
+        else if (data.precision == 'H')
         {
-            APRSData[8] = create_dao_aprs(APRSData[0], APRSData[1]);
-            APRSData[0] = create_lat_aprs(APRSData[0], 1);
-            APRSData[1] = create_long_aprs(APRSData[1], 1);
+            strcpy(data.dao, create_dao_aprs(data.lat, data.lng));
+            create_lat_aprs(&data.lat, 1);
+            create_long_aprs(&data.lng, 1);
         }
 
         // get alt string
-        int alt_int = max(-99999, min(999999, APRSData[2].toInt()));
+        int alt_int = max(-99999, min(999999, (int)data.alt));
         if (alt_int < 0)
         {
-            APRSData[2] = "/A=-" + padding(alt_int * -1, 5);
+            strcpy(data.alt, "/A=-");
+            padding(alt_int * -1, 5, &data.alt, 4);
         }
         else
         {
-            APRSData[2] = "/A=" + padding(alt_int, 6);
+            strcpy(data.alt, "/A=");
+            padding(alt_int, 6, &data.alt, 3);
         }
 
         // get course/speed strings
-        int spd_int = max(0, min(999, APRSData[3].toInt()));
-        int hdg_int = max(0, min(360, APRSData[4].toInt()));
+        int spd_int = max(0, min(999, (int)data.spd));
+        int hdg_int = max(0, min(360, (int)data.hdg));
         if (hdg_int == 0)
             hdg_int = 360;
-        APRSData[3] = padding(spd_int, 3);
-        APRSData[4] = padding(hdg_int, 3);
+        padding(spd_int, 3, &data.spd);
+        padding(hdg_int, 3, &data.hdg);
 
         // generate the aprs message
-        aprs.getBody()->setData("!" + APRSData[0] + (String)this->cfg.OVERLAY + APRSData[1] +
-                                (String)this->cfg.SYMBOL + APRSData[4] + "/" + APRSData[3] +
-                                APRSData[2] + "/S" + APRSData[6] + "/" + APRSData[7] +
-                                " " + APRSData[8]);
+        char body[100] = {0};
+        sprintf(body, "%c%s%c%s%c%s%c%s%s%s%s%c%s%c%s", '!', data.lat, this->cfg.OVERLAY, data.lng, this->cfg.SYMBOL,
+                data.hdg, '/', data.spd, data.alt, "/S", data.stage, '/',
+                data.t0, ' ', data.dao);
+        aprs.getBody()->setData(body);
         message = aprs.encode();
         return true;
     }
@@ -215,24 +224,21 @@ Multi-purpose encoder function
 Decodes the message into a format selected by type
 - Telemetry: TODO
     message - input: APRS message -> output: latitude,longitude,altitude,speed,heading,precision,stage,t0
-    type - 0
 - Video: TODO
     message - input: Base 64 string -> output: ?
-    type - 1
-- Telemetry to Ground Station:
+- Ground Station:
     message - input: APRS message -> output: Source:Value,Destination:Value,Path:Value,Type:Value,Body:Value
-    type - 2
 */
-bool RFM69HCW::decode(String &message, int type)
+bool RFM69HCW::decode(String &message, EncodingType type)
 {
-    if (type == 0)
+    if (type == ENCT_TELEMETRY)
     {
         APRSMessage aprs;
         aprs.decode(message);
         String body = aprs.getBody()->getData();
         // TODO
     }
-    if (type == 2)
+    if (type == ENCT_GROUNDSTATION)
     {
         // put the message into a APRSMessage object to decode it
         APRSMessage aprs;
@@ -251,7 +257,7 @@ Encodes the message into the selected type, then sends it
     - message is the message to be sent
     - type is the encoding type
 */
-bool RFM69HCW::send(String message, int type)
+bool RFM69HCW::send(String message, EncodingType type)
 {
     return encode(message, type) && tx(message);
 }
@@ -262,7 +268,7 @@ Should be called after verifying there is an available message by calling availa
 Decodes the last received message according to the type
     - type is the decoding type
 */
-String RFM69HCW::receive(int type)
+String RFM69HCW::receive(EncodingType type)
 {
     if (this->avail)
     {
