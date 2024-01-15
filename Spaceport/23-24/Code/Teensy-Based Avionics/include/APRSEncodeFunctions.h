@@ -24,7 +24,18 @@ SOFTWARE.
 
 #ifndef APRS_ENCODE_FUNCTIONS_H
 #define APRS_ENCODE_FUNCTIONS_H
+
+#if defined(ARDUINO)
 #include <Arduino.h>
+#elif defined(_WIN32) || defined(_WIN64) // Windows
+#include <cstdint>
+#include <string>
+#include <cstring>
+#elif defined(__unix__)  // Linux
+// TODO
+#elif defined(__APPLE__) // OSX
+// TODO
+#endif
 
 char *s_min_nn(uint32_t min_nnnnn, int high_precision);
 void create_lat_aprs(char (*lat)[], bool hp);

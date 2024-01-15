@@ -28,6 +28,7 @@ RFM69HCW::RFM69HCW(uint32_t frquency, bool transmitter, bool highBitrate, APRSCo
     this->isHighBitrate = highBitrate;
 
     this->cfg = config;
+    // TODO intialize lastMsg maybe in custom APRS class
 }
 
 /*
@@ -60,20 +61,19 @@ Transmit function
 Most basic transmission method, simply transmits the string without modification
     - message is the message to be transmitted
 */
-bool RFM69HCW::tx(String message)
+bool RFM69HCW::tx(char *message)
 {
+    // TODO may need to append start and end byte to each message so we know when it ends
     // create a temporary buffer with the full string, which may (possibly?) be too long to transmit at one time
-    int templen = message.length();
-    char *tempbuf = new char[templen];
-    message.toCharArray(tempbuf, templen);
+    int len = strlen(message);
 
     int pos = 0;
     int i = 0;
     // fill the buffer repeatedly until the entire message has been looped over
     // note i will always be 1 more than the last index after i++
-    while (pos < templen)
+    while (pos < len)
     {
-        this->buf[i] = tempbuf[pos];
+        this->buf[i] = message[pos];
         i++;
         pos++;
         // send a transmission each time the buffer is filled
@@ -86,7 +86,6 @@ bool RFM69HCW::tx(String message)
     // send any remaining data
     if (i > 0)
         radio.send(this->toAddr, (void *)buf, i, false);
-    delete tempbuf;
     return true;
 }
 
@@ -94,14 +93,15 @@ bool RFM69HCW::tx(String message)
 Receive function
 Most basic receiving method, simply checks for a message and returns it
 */
-String RFM69HCW::rx()
+const char *RFM69HCW::rx()
 {
+    // TODO may need to check for start and end byte for each message
     if (radio.receiveDone())
     {
         this->avail = true;
         this->lastMsg = (char *)radio.DATA;
         this->lastRSSI = radio.readRSSI();
-        return String(this->lastMsg);
+        return this->lastMsg;
     }
     return "";
 }
@@ -116,15 +116,12 @@ Encodes the message into a format selected by type
 - Ground Station: TODO
     message - input: Source:Value,Destination:Value,Path:Value,Type:Value,Body:Value -> output: APRS message
 */
-bool RFM69HCW::encode(String &message, EncodingType type)
+bool RFM69HCW::encode(char **message, EncodingType type)
 {
     if (type == ENCT_TELEMETRY)
     {
-        APRSMessage aprs;
-        // store the message in a char array so it is easier to manipulate
-        int msgLen = message.length() + 1;
-        char *msg = new char[msgLen];
-        message.toCharArray(msg, msgLen);
+        APRSMsg aprs;
+        int msgLen = strlen(*message);
 
         aprs.setSource(this->cfg.CALLSIGN);
         aprs.setPath(this->cfg.PATH);
@@ -139,12 +136,12 @@ bool RFM69HCW::encode(String &message, EncodingType type)
         int currentValCount = 0;
         for (int i = 0; i < msgLen; i++)
         {
-            if (msg[i] != ',')
+            if ((*message)[i] != ',')
             {
-                currentVal[currentValIndex] = msg[i];
+                currentVal[currentValIndex] = (*message)[i];
                 currentValIndex++;
             }
-            if (msg[i] == ',')
+            if ((*message)[i] == ',')
             {
                 currentVal[currentValIndex] = '\0';
 
@@ -169,8 +166,7 @@ bool RFM69HCW::encode(String &message, EncodingType type)
                 currentValCount++;
             }
         }
-        delete msg;
-        delete currentVal;
+        delete[] currentVal;
 
         // get lat and long string for low or high precision
         if (data.precision == 'L')
@@ -187,7 +183,7 @@ bool RFM69HCW::encode(String &message, EncodingType type)
         }
 
         // get alt string
-        int alt_int = max(-99999, min(999999, (int)data.alt));
+        int alt_int = max(-99999, min(999999, atoi(data.alt)));
         if (alt_int < 0)
         {
             strcpy(data.alt, "/A=-");
@@ -200,20 +196,20 @@ bool RFM69HCW::encode(String &message, EncodingType type)
         }
 
         // get course/speed strings
-        int spd_int = max(0, min(999, (int)data.spd));
-        int hdg_int = max(0, min(360, (int)data.hdg));
+        int spd_int = max(0, min(999, atoi(data.spd)));
+        int hdg_int = max(0, min(360, atoi(data.hdg)));
         if (hdg_int == 0)
             hdg_int = 360;
         padding(spd_int, 3, &data.spd);
         padding(hdg_int, 3, &data.hdg);
 
         // generate the aprs message
-        char body[100] = {0};
+        char body[60];
         sprintf(body, "%c%s%c%s%c%s%c%s%s%s%s%c%s%c%s", '!', data.lat, this->cfg.OVERLAY, data.lng, this->cfg.SYMBOL,
                 data.hdg, '/', data.spd, data.alt, "/S", data.stage, '/',
                 data.t0, ' ', data.dao);
         aprs.getBody()->setData(body);
-        message = aprs.encode();
+        aprs.encode(message);
         return true;
     }
     return false;
@@ -229,23 +225,24 @@ Decodes the message into a format selected by type
 - Ground Station:
     message - input: APRS message -> output: Source:Value,Destination:Value,Path:Value,Type:Value,Body:Value
 */
-bool RFM69HCW::decode(String &message, EncodingType type)
+bool RFM69HCW::decode(char **message, EncodingType type)
 {
     if (type == ENCT_TELEMETRY)
     {
-        APRSMessage aprs;
-        aprs.decode(message);
-        String body = aprs.getBody()->getData();
-        // TODO
+        APRSMsg aprs;
+        aprs.decode(*message);
+        // String body = aprs.getBody()->getData();
+        //  TODO
     }
     if (type == ENCT_GROUNDSTATION)
     {
+        // TODO will be fixed by custom aprs decoder/encoder
         // put the message into a APRSMessage object to decode it
-        APRSMessage aprs;
-        aprs.decode(message);
-        message = aprs.toString().replace(" ", "");
-        // add RSSI
-        message += ",RSSI:" + this->lastRSSI;
+        APRSMsg aprs;
+        aprs.decode(*message);
+        // message = aprs.toString().replace(" ", "");
+        //  add RSSI to the end of message
+        sprintf(*message + strlen(*message), "%s%d", ",RSSI:", this->lastRSSI);
         return true;
     }
     return false;
@@ -257,9 +254,9 @@ Encodes the message into the selected type, then sends it
     - message is the message to be sent
     - type is the encoding type
 */
-bool RFM69HCW::send(String message, EncodingType type)
+bool RFM69HCW::send(char *message, EncodingType type)
 {
-    return encode(message, type) && tx(message);
+    return encode(&message, type) && tx(message);
 }
 
 /*
@@ -268,14 +265,13 @@ Should be called after verifying there is an available message by calling availa
 Decodes the last received message according to the type
     - type is the decoding type
 */
-String RFM69HCW::receive(EncodingType type)
+const char *RFM69HCW::receive(EncodingType type)
 {
     if (this->avail)
     {
         this->avail = false;
-        String message = String(this->lastMsg);
-        decode(message, type);
-        return message;
+        decode(&(this->lastMsg), type);
+        return this->lastMsg;
     }
     return "";
 }
