@@ -152,8 +152,8 @@ void APRSMsg::toString(char **str)
 {
     char *body = new char[87];
     _body->toString(&body);
-    sprintf(*str, "%s%s%s%s%s%s%s%s%s%s", "Source: ", _source, ", Destination: ", _destination, ", Path: ", _path,
-            ", Type: ", _type.toString(), ", ", body);
+    sprintf(*str, "%s%s%s%s%s%s%s%s%s%s", "Source:", _source, ",Destination:", _destination, ",Path:", _path,
+            ",Type:", _type.toString(), ",", body);
     delete[] body;
 }
 
@@ -188,5 +188,5 @@ const char *APRSBody::encode()
 
 void APRSBody::toString(char **str)
 {
-    sprintf(*str, "%s%s", "Data: ", _data);
+    sprintf(*str, "%s%s", "Data:", _data);
 }

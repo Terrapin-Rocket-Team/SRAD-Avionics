@@ -40,7 +40,7 @@ private:
     APRSConfig cfg;
     bool avail;
     int lastRSSI;
-    char *lastMsg;
+    char lastMsg[62];
 };
 
 #endif // RFM69HCW_H
