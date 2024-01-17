@@ -28,7 +28,6 @@ RFM69HCW::RFM69HCW(uint32_t frquency, bool transmitter, bool highBitrate, APRSCo
     this->isHighBitrate = highBitrate;
 
     this->cfg = config;
-    // TODO intialize lastMsg maybe in custom APRS class
 }
 
 /*
@@ -99,7 +98,7 @@ const char *RFM69HCW::rx()
     if (radio.receiveDone())
     {
         this->avail = true;
-        this->lastMsg = (char *)radio.DATA;
+        strcpy(this->lastMsg, (char *)radio.DATA);
         this->lastRSSI = radio.readRSSI();
         return this->lastMsg;
     }
@@ -232,16 +231,15 @@ bool RFM69HCW::decode(char **message, EncodingType type)
         APRSMsg aprs;
         aprs.decode(*message);
         // String body = aprs.getBody()->getData();
-        //  TODO
+        // TODO
     }
     if (type == ENCT_GROUNDSTATION)
     {
-        // TODO will be fixed by custom aprs decoder/encoder
         // put the message into a APRSMessage object to decode it
         APRSMsg aprs;
         aprs.decode(*message);
-        // message = aprs.toString().replace(" ", "");
-        //  add RSSI to the end of message
+        aprs.toString(message);
+        // add RSSI to the end of message
         sprintf(*message + strlen(*message), "%s%d", ",RSSI:", this->lastRSSI);
         return true;
     }
@@ -270,7 +268,9 @@ const char *RFM69HCW::receive(EncodingType type)
     if (this->avail)
     {
         this->avail = false;
-        decode(&(this->lastMsg), type);
+        char *msg = this->lastMsg;
+        decode(&msg, type);
+        strcpy(this->lastMsg, msg);
         return this->lastMsg;
     }
     return "";
