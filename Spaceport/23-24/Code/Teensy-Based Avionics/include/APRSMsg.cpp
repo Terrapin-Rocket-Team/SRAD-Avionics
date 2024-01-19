@@ -106,30 +106,37 @@ APRSBody *const APRSMsg::getBody()
 bool APRSMsg::decode(char *message)
 {
     int len = strlen(message);
-    int pos_src, pos_dest, pos_path = -1;
+    int pos_src = -1, pos_dest = -1, pos_path = -1;
     for (int i = 0; i < len; i++)
     {
-        if (message[i] == '>')
+        if (message[i] == '>' && pos_src == -1)
             pos_src = i;
-        if (message[i] == ',')
+        if (message[i] == ',' && pos_dest == -1)
             pos_dest = i;
-        if (message[i] == ':')
+        if (message[i] == ':' && pos_path == -1)
             pos_path = i;
     }
+    if (pos_src >= 8)
+        return false;
+    if (pos_dest - (pos_src + 1) >= 8)
+        return false;
+    if (pos_path - (pos_dest + 1) >= 10)
+        return false;
+
     strncpy(_source, message, pos_src);
     _source[pos_src] = '\0';
     if (pos_dest != -1 && pos_dest < pos_path)
     {
-        strncpy(_path, message + pos_dest + 1, pos_path);
-        strncpy(_destination, message + pos_src + 1, pos_dest);
-        _path[pos_path] = '\0';
-        _destination[pos_dest] = '\0';
+        strncpy(_path, message + pos_dest + 1, pos_path - (pos_dest + 1));
+        strncpy(_destination, message + pos_src + 1, pos_dest - (pos_src + 1));
+        _path[pos_path - (pos_dest + 1)] = '\0';
+        _destination[pos_dest - (pos_src + 1)] = '\0';
     }
     else
     {
         _path[0] = '\0';
-        strncpy(_destination, message + pos_src + 1, pos_path);
-        _destination[pos_path] = '\0';
+        strncpy(_destination, message + pos_src + 1, pos_path - (pos_src + 1));
+        _destination[pos_path - (pos_src + 1)] = '\0';
     }
     strcpy(_rawBody, message + pos_path + 1);
     _rawBody[strlen(message + pos_path + 1)] = '\0';
@@ -138,23 +145,21 @@ bool APRSMsg::decode(char *message)
     return bool(_type);
 }
 
-void APRSMsg::encode(char **message)
+void APRSMsg::encode(char *message)
 {
-    sprintf(*message, "%s%c%s", _source, '>', _destination);
+    sprintf(message, "%s>%s", _source, _destination);
     if (strlen(_path) > 0)
     {
-        sprintf(*message + strlen(*message), "%c%s", ',', _path);
+        sprintf(message + strlen(message), ",%s", _path);
     }
-    sprintf(*message + strlen(*message), "%c%s", ':', _body->encode());
+    sprintf(message + strlen(message), ":%s", _body->encode());
 }
 
-void APRSMsg::toString(char **str)
+void APRSMsg::toString(char *str)
 {
-    char *body = new char[87];
-    _body->toString(&body);
-    sprintf(*str, "%s%s%s%s%s%s%s%s%s%s", "Source:", _source, ",Destination:", _destination, ",Path:", _path,
-            ",Type:", _type.toString(), ",", body);
-    delete[] body;
+    char body[87];
+    _body->toString(body);
+    sprintf(str, "Source:%s,Destination:%s,Path:%s,Type:%s,%s", _source, _destination, _path, _type.toString(), body);
 }
 
 APRSBody::APRSBody()
@@ -186,7 +191,7 @@ const char *APRSBody::encode()
     return _data;
 }
 
-void APRSBody::toString(char **str)
+void APRSBody::toString(char *str)
 {
-    sprintf(*str, "%s%s", "Data:", _data);
+    sprintf(str, "Data:%s", _data);
 }

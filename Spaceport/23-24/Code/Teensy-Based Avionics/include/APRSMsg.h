@@ -136,7 +136,7 @@ public:
 
     virtual bool decode(char *message);
     virtual const char *encode();
-    virtual void toString(char **);
+    virtual void toString(char *str);
 
 private:
     char _data[80];
@@ -165,8 +165,8 @@ public:
     APRSBody *const getBody();
 
     virtual bool decode(char *message);
-    virtual void encode(char **message);
-    virtual void toString(char **str);
+    virtual void encode(char *message);
+    virtual void toString(char *str);
 
 private:
     char _source[8];
@@ -177,6 +177,14 @@ private:
     APRSBody *const _body;
 };
 
+/*
+APRS Configuration
+- CALLSIGN
+- TOCALL
+- PATH
+- SYMBOL
+- OVERLAY
+*/
 struct APRSConfig
 {
     char CALLSIGN[8];
@@ -186,6 +194,18 @@ struct APRSConfig
     char OVERLAY;
 };
 
+/*
+APRS Telemetry Data
+- lat
+- lng
+- alt
+- spd
+- hdg
+- precision
+- stage
+- t0
+- dao
+*/
 struct APRSData
 {
     char lat[16];

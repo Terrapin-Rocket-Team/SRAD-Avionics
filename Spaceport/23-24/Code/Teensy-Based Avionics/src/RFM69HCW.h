@@ -12,11 +12,12 @@ class RFM69HCW : public Radio
 {
 public:
     RFM69HCW(uint32_t frequency, bool transmitter, bool highBitrate, APRSConfig config);
-    void begin(SPIClass *s, uint8_t cs, uint8_t irq, int frqBand);
+    void begin();
+    void begin(SPIClass *s, uint8_t cs, uint8_t irq);
     bool tx(char *message);
     const char *rx();
-    bool encode(char **message, EncodingType type);
-    bool decode(char **message, EncodingType type);
+    bool encode(char *message, EncodingType type);
+    bool decode(char *message, EncodingType type);
     bool send(char *message, EncodingType type);
     const char *receive(EncodingType type);
     bool available();
@@ -40,6 +41,7 @@ private:
     APRSConfig cfg;
     bool avail;
     int lastRSSI;
+    // TODO this is not right
     char lastMsg[62];
 };
 
