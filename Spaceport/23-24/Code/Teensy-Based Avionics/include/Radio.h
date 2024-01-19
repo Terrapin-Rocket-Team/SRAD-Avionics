@@ -13,7 +13,7 @@ class Radio
 {
 public:
     virtual ~Radio(){}; // Virtual descructor. Very important
-    virtual void begin() = 0;
+    virtual void begin(SPIClass *s, uint8_t cs, uint8_t irq, int frqBand) = 0;
     virtual bool tx(String message) = 0;
     virtual String rx() = 0;
     virtual bool encode(String &message, int type) = 0;
