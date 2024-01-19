@@ -12,6 +12,7 @@ class RFM69HCW : public Radio
 {
 public:
     RFM69HCW(uint32_t frequency, bool transmitter, bool highBitrate, APRSConfig config);
+    ~RFM69HCW();
     void begin();
     void begin(SPIClass *s, uint8_t cs, uint8_t irq);
     bool tx(char *message);
@@ -36,13 +37,13 @@ private:
     bool isTransmitter;
     bool isHighBitrate;
     // for sending/receiving data
-    char *buf;
+    char buf[RF69_MAX_DATA_LEN];
     uint8_t bufSize = RF69_MAX_DATA_LEN;
     APRSConfig cfg;
     bool avail;
-    int lastRSSI;
-    // TODO this is not right
-    char lastMsg[62];
+    int avgRSSI;
+    int incomingMsgLen;
+    char *lastMsg;
 };
 
 #endif // RFM69HCW_H
