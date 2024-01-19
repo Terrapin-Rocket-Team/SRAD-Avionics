@@ -27,8 +27,8 @@ public:
     virtual void begin() = 0;
     virtual bool tx(char *message) = 0;
     virtual const char *rx() = 0;
-    virtual bool encode(char **message, EncodingType type) = 0;
-    virtual bool decode(char **message, EncodingType type) = 0;
+    virtual bool encode(char *message, EncodingType type) = 0;
+    virtual bool decode(char *message, EncodingType type) = 0;
     virtual bool send(char *message, EncodingType type) = 0;
     virtual const char *receive(EncodingType type) = 0;
     virtual int RSSI() = 0;

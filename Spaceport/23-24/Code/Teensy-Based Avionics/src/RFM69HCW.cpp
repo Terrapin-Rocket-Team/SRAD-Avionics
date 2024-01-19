@@ -31,20 +31,43 @@ RFM69HCW::RFM69HCW(uint32_t frquency, bool transmitter, bool highBitrate, APRSCo
 }
 
 /*
+Use the other begin function
+*/
+void RFM69HCW::begin()
+{
+#if defined(TEENSYDUINO)
+    // default SPI for teensy 4.1 uses pin 10 for CS and can use pin 9 for interrupt
+    this->radio = RFM69(10, digitalPinToInterrupt(9), true, &SPI);
+#endif
+
+    // the frequency the initialize function uses is kinda useless, it only lets you choose from preselected frequencies
+    // so set the frequency to the right band 433 or 915 Mhz at first
+    radio.initialize(this->frq < 915e6 ? RF69_433MHZ : RF69_915MHZ, this->addr, this->networkID);
+    // then use this to actually set the frequency
+    radio.setFrequency(this->frq);
+    radio.setHighPower(true);
+    radio.setPowerDBm(this->txPower);
+    radio.encrypt(0);
+    // the default bitrate of 4.8kbps should be fine unless we want high bitrate for video
+    if (this->isHighBitrate)
+        radio.set300KBPS();
+}
+
+/*
 Initializer to call in setup
     - s is the spi interface that should be used
     - cs is the chip select pin
     - irq is the interrupt pin
     - frqBand is 915 or 433 depending on radio
 */
-void RFM69HCW::begin(SPIClass *s, uint8_t cs, uint8_t irq, int frqBand)
+void RFM69HCW::begin(SPIClass *s, uint8_t cs, uint8_t irq)
 {
 
     this->radio = RFM69(cs, irq, true, s);
 
     // the frequency the initialize function uses is kinda useless, it only lets you choose from preselected frequencies
     // so set the frequency to the right band 433 or 915 Mhz at first
-    radio.initialize(frqBand, this->addr, this->networkID);
+    radio.initialize(this->frq < 914e6 ? RF69_433MHZ : RF69_915MHZ, this->addr, this->networkID);
     // then use this to actually set the frequency
     radio.setFrequency(this->frq);
     radio.setHighPower(true);
@@ -115,12 +138,12 @@ Encodes the message into a format selected by type
 - Ground Station: TODO
     message - input: Source:Value,Destination:Value,Path:Value,Type:Value,Body:Value -> output: APRS message
 */
-bool RFM69HCW::encode(char **message, EncodingType type)
+bool RFM69HCW::encode(char *message, EncodingType type)
 {
     if (type == ENCT_TELEMETRY)
     {
         APRSMsg aprs;
-        int msgLen = strlen(*message);
+        int msgLen = strlen(message);
 
         aprs.setSource(this->cfg.CALLSIGN);
         aprs.setPath(this->cfg.PATH);
@@ -135,12 +158,12 @@ bool RFM69HCW::encode(char **message, EncodingType type)
         int currentValCount = 0;
         for (int i = 0; i < msgLen; i++)
         {
-            if ((*message)[i] != ',')
+            if (message[i] != ',')
             {
-                currentVal[currentValIndex] = (*message)[i];
+                currentVal[currentValIndex] = message[i];
                 currentValIndex++;
             }
-            if ((*message)[i] == ',')
+            if (message[i] == ',')
             {
                 currentVal[currentValIndex] = '\0';
 
@@ -195,6 +218,7 @@ bool RFM69HCW::encode(char **message, EncodingType type)
         }
 
         // get course/speed strings
+        // TODO add speed zero counter (makes decoding more complex)
         int spd_int = max(0, min(999, atoi(data.spd)));
         int hdg_int = max(0, min(360, atoi(data.hdg)));
         if (hdg_int == 0)
@@ -203,7 +227,7 @@ bool RFM69HCW::encode(char **message, EncodingType type)
         padding(hdg_int, 3, &data.hdg);
 
         // generate the aprs message
-        char body[60];
+        char body[80];
         sprintf(body, "%c%s%c%s%c%s%c%s%s%s%s%c%s%c%s", '!', data.lat, this->cfg.OVERLAY, data.lng, this->cfg.SYMBOL,
                 data.hdg, '/', data.spd, data.alt, "/S", data.stage, '/',
                 data.t0, ' ', data.dao);
@@ -224,23 +248,121 @@ Decodes the message into a format selected by type
 - Ground Station:
     message - input: APRS message -> output: Source:Value,Destination:Value,Path:Value,Type:Value,Body:Value
 */
-bool RFM69HCW::decode(char **message, EncodingType type)
+bool RFM69HCW::decode(char *message, EncodingType type)
 {
     if (type == ENCT_TELEMETRY)
     {
         APRSMsg aprs;
-        aprs.decode(*message);
-        // String body = aprs.getBody()->getData();
-        // TODO
+        aprs.decode(message);
+        char body[80];
+        char *bodyptr = body;
+        strcpy(body, aprs.getBody()->getData());
+        // decode body
+        APRSData data;
+        int i = 0;
+        int len = strlen(body);
+
+        // TODO this could probably be shortened
+        // body should start with '!'
+        if (body[0] != '!')
+            return false;
+        i++;
+        bodyptr = body + i;
+
+        // find latitude
+        while (body[i] != '/' && i != len)
+            i++;
+        if (i == len)
+            return false;
+        strncpy(data.lat, bodyptr, i - (bodyptr - body));
+        data.lat[i - (bodyptr - body)] = '\0';
+        i++;
+        bodyptr = body + i;
+
+        // find longitude
+        while (body[i] != '[' && i != len)
+            i++;
+        if (i == len)
+            return false;
+        strncpy(data.lng, bodyptr, i - (bodyptr - body));
+        data.lng[i - (bodyptr - body)] = '\0';
+        i++;
+        bodyptr = body + i;
+
+        // find heading
+        while (body[i] != '/' && i != len)
+            i++;
+        if (i == len)
+            return false;
+        strncpy(data.hdg, bodyptr, i - (bodyptr - body));
+        data.hdg[i - (bodyptr - body)] = '\0';
+        i++;
+        bodyptr = body + i;
+
+        // find speed
+        while (body[i] != '/' && i != len)
+            i++;
+        if (i == len)
+            return false;
+        strncpy(data.spd, bodyptr, i - (bodyptr - body));
+        data.spd[i - (bodyptr - body)] = '\0';
+        i++;
+        bodyptr = body + i;
+
+        // find altitude
+        if (body[i] != 'A' && body[i + 1] != '=')
+            return false;
+        i += 2;
+        bodyptr = body + i;
+        while (body[i] != '/' && i != len)
+            i++;
+        if (i == len)
+            return false;
+        strncpy(data.alt, bodyptr, i - (bodyptr - body));
+        data.alt[i - (bodyptr - body)] = '\0';
+        i++;
+        bodyptr = body + i;
+
+        // find stage
+        if (body[i] != 'S')
+            return false;
+        i++;
+        bodyptr = body + i;
+        while (body[i] != '/' && i != len)
+            i++;
+        if (i == len)
+            return false;
+        strncpy(data.stage, bodyptr, i - (bodyptr - body));
+        data.stage[i - (bodyptr - body)] = '\0';
+        i++;
+        bodyptr = body + i;
+
+        // find t0
+        while (body[i] != ' ' && i != len)
+            i++;
+        if (i == len)
+            return false;
+        strncpy(data.t0, bodyptr, i - (bodyptr - body));
+        data.t0[i - (bodyptr - body)] = '\0';
+        i++;
+        bodyptr = body + i;
+
+        // find dao
+        strncpy(data.dao, bodyptr, len - (bodyptr - body));
+        data.dao[len - (bodyptr - body)] = '\0';
+
+        sprintf(message, "%s,%s,%s,%s,%s,%s,%s,%s", data.lat, data.lng, data.alt, data.spd, data.hdg, strlen(data.dao) > 0 ? 'H' : 'L', data.stage, data.t0);
+
+        return true;
     }
     if (type == ENCT_GROUNDSTATION)
     {
         // put the message into a APRSMessage object to decode it
         APRSMsg aprs;
-        aprs.decode(*message);
+        aprs.decode(message);
         aprs.toString(message);
         // add RSSI to the end of message
-        sprintf(*message + strlen(*message), "%s%d", ",RSSI:", this->lastRSSI);
+        sprintf(message + strlen(message), "%s%d", ",RSSI:", this->lastRSSI);
         return true;
     }
     return false;
@@ -254,7 +376,7 @@ Encodes the message into the selected type, then sends it
 */
 bool RFM69HCW::send(char *message, EncodingType type)
 {
-    return encode(&message, type) && tx(message);
+    return encode(message, type) && tx(message);
 }
 
 /*
@@ -268,9 +390,8 @@ const char *RFM69HCW::receive(EncodingType type)
     if (this->avail)
     {
         this->avail = false;
-        char *msg = this->lastMsg;
-        decode(&msg, type);
-        strcpy(this->lastMsg, msg);
+        // TODO lastMessage probably wont be long enough to fit this
+        decode(this->lastMsg, type);
         return this->lastMsg;
     }
     return "";
