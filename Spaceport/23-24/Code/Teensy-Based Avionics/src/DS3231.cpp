@@ -44,6 +44,11 @@ DateTime DS3231::getCurrentTime() {
     return rtc.now();
 }
 
+DateTime DS3231::setLaunchTime() {
+    launchTime = rtc.now();
+    return launchTime;
+}
+
 void * DS3231::getData() { //sec since launch, cast to void pointer
     imu::Vector<2> timeSinceLaunch = getTimeSinceLaunch();
     return ((void *)(&timeSinceLaunch));
