@@ -21,6 +21,7 @@ public:
     DateTime getLaunchTime(); 
     DateTime getPowerOnTime();
     DateTime getCurrentTime();
+    DateTime setLaunchTime();
     void * getData();
     String getdataString();
     String getStaticDataString();
