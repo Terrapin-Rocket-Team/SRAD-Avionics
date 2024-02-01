@@ -74,22 +74,22 @@ bool setupSDCard(String csvHeader){
             sdReady = true;
         }else{
             Serial.println(F("SD Card reader found, but file was unable to be created"));
-            buzz(9, 100);
+            // buzz(9, 100);
             delay(100);
-            buzz(9, 100);
-            buzz(17, 100);
+            // buzz(9, 100);
+            // buzz(17, 100);
             delay(100);
-            buzz(17, 100);
+            // buzz(17, 100);
             return false;
         }
     }else{
         Serial.println(F("SD Card Reader NOT found! Data will not be logged!"));
-        buzz(9, 100);
+        // buzz(9, 100);
         delay(100);
-        buzz(9, 100);
-        buzz(17, 100);
+        // buzz(9, 100);
+        // buzz(17, 100);
         delay(100);
-        buzz(17, 100);
+        // buzz(17, 100);
         return false;
     }
 
