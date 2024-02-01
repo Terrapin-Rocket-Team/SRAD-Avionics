@@ -10,17 +10,19 @@ BMP390::BMP390(uint8_t SCK, uint8_t SDA) {
 
 }
 
-void BMP390::calibrate() {
+void BMP390::initialize() {
 
-    Serial.begin(115200);
-    while (!Serial);
-    Serial.println("BMP390 on.");
+    // Serial.begin(115200);
+    // while (!Serial);
+    // Serial.println("BMP390 on.");
 
     if (!bmp.begin_I2C()) {   // hardware I2C mode, can pass in address & alt Wire
     //if (! bmp.begin_SPI(BMP_CS)) {  // hardware SPI mode  
     //if (! bmp.begin_SPI(BMP_CS, BMP_SCK, BMP_MISO, BMP_MOSI)) {  // software SPI mode
+        Serial.begin(115200);
+        // while (!Serial);
         Serial.println("Could not find a valid BMP390 sensor, check wiring!");
-        while (1);
+        delay(1000);
     }
 
     // Set up oversampling and filter initialization
@@ -63,4 +65,20 @@ double BMP390::get_rel_alt_m() {
 
 double BMP390::get_rel_alt_ft() {
     return get_rel_alt_m() * 3.28084;
+}
+
+void * BMP390::get_data() {
+    return (void *) &altitude;
+}
+
+String BMP390::getcsvHeader() {
+    return "Pressure (hPa),Temperature (C),Altitude (m)";
+}
+
+String BMP390::getdataString() {
+    return String(pressure) + "," + String(temp) + "," + String(altitude);
+}
+
+String BMP390::getStaticDataString() {
+    return "Ground Pressure (hPa):" + String(groundPressure) + "\n";
 }
