@@ -9,6 +9,9 @@
 class MAX_M10S : public GPS {
 private:
     SFE_UBLOX_GNSS m10s;
+    uint8_t SCK_pin;
+    uint8_t SDA_pin;
+    u_int8_t i2c_address;
     imu::Vector<2> pos;             // latitude and longitude
     double altitude;                // alti in mm 
     imu::Vector<3> velocity;        // m per s
@@ -20,7 +23,7 @@ private:
     bool first_fix;                 // whether or not gps has recieved first fix
 
 public:
-    MAX_M10S();
+    MAX_M10S(uint8_t SCK, uint8_t SDA, uint8_t address);
     void initialize(); 
     void read_gps();
     double get_alt();

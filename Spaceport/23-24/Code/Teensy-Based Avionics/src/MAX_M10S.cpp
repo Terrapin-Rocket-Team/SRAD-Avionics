@@ -3,60 +3,76 @@
 /*
 Constructor for Max-M10s 
 */
-MAX_M10S::MAX_M10S() {
-   
-}
+MAX_M10S::MAX_M10S(uint8_t SCK, uint8_t SDA, uint8_t address) {
+    SCK_pin = SCK;
+    SDA_pin = SDA; 
 
-//need to update origin some how
-
-void MAX_M10S::initialize() {
-    Serial.println("Max-M10s");
     first_fix = false;
-    origin.x() = -1;
-    origin.y() = -1;
-    origin.z() = -1;
-    altitude = -1;
-    pos.x() = -1;
-    pos.y() = -1;
+    origin.x() = 38.987202;
+    origin.y() = -76.945999;
+    origin.z() = 0;
+    altitude = 0;
+    pos.x() = 0;
+    pos.y() = 0;
     velocity.x() = -1;
     velocity.y() = -1;
     velocity.z() = -1;
     displacement.x() = -1;
     displacement.y() = -1;
     displacement.z() = -1;
-    gps_time = -1;
+    gps_time = 0;
     irl_time.x() = -1;
     irl_time.y() = -1;
     irl_time.z() = -1;
     fix_qual = -1;
 }
 
+//need to update origin some how
+
+void MAX_M10S::initialize() {
+    // Serial.println("Max-M10s");
+
+    Wire.begin(); // Start I2C
+
+    //myGNSS.enableDebugging(); // Uncomment this line to enable helpful debug messages on Serial
+    delay(25); // Wait for the serial port to initialize
+    while (m10s.begin() == false) //Connect to the u-blox module using Wire port
+    {
+        Serial.println(F("u-blox GNSS not detected at default I2C address. Retrying..."));
+        delay (1000);
+    }
+
+    m10s.setI2COutput(COM_TYPE_UBX); //Set the I2C port to output UBX only (turn off NMEA noise)
+    
+    //myGNSS.saveConfigSelective(VAL_CFG_SUBSEC_IOPORT); //Optional: save (only) the communications port settings to flash and BBR
+}
+
 /*
 used to update all instance variables 
 */
 void MAX_M10S::read_gps() {
-    if (!first_fix && m10s.getSIV() > 0) {
+    if (!first_fix && m10s.getPVT() == true) {
         first_fix = true;
-        origin.x() = m10s.getLatitude();
-        origin.y() = m10s.getLongitude();
-        origin.z() = m10s.getAltitude() * 1000.0;
+        origin.x() = m10s.getLatitude() / 10000000.0;
+        origin.y() = m10s.getLongitude() / 10000000.0;
+        origin.z() = m10s.getAltitude() / 1000.0;
     }
-    altitude = m10s.getAltitude(); 
+    altitude = m10s.getAltitude() / 1000.0; 
 
-    pos.x() = m10s.getLatitude();
-    pos.y() = m10s.getLongitude();
+    pos.x() = m10s.getLatitude() / 10000000.0;
+    pos.y() = m10s.getLongitude() / 10000000.0;
 
     // updated before displacement and gps as the old values and new values are needed to get a 
     // significant of a velocity
-    velocity.x() = ((pos.x() * 111139.0) - displacement.x()) / (millis() * 1000.0- gps_time);
-    velocity.y() = ((pos.y() * 111139.0) - displacement.y()) / (millis() * 1000.0 - gps_time);
-    velocity.z() = ((altitude * 1000.0) - displacement.z()) / (millis() * 1000.0 - gps_time); 
+    velocity.x() = ((pos.x() * 111139.0) - displacement.x()) / (millis() / 1000.0- gps_time);
+    velocity.y() = ((pos.y() * 111139.0) - displacement.y()) / (millis() / 1000.0 - gps_time);
+    velocity.z() = ((altitude / 1000.0) - displacement.z()) / (millis() / 1000.0 - gps_time); 
 
-    displacement.x() = (m10s.getLatitude() - origin.x()) * 111139.0;
-    displacement.y() = (m10s.getLongitude() - origin.y()) * 111139.0;
-    displacement.z() = ((m10s.getAltitude() * 1000.0) - origin.z());
+    displacement.x() = (m10s.getLatitude() / 10000000.0 - origin.x()) * 111139.0;
+    displacement.y() = (m10s.getLongitude() / 10000000.0- origin.y()) * 111139.0;
+    displacement.z() = ((m10s.getAltitude() / 1000.0) - origin.z());
 
-    gps_time = (millis() * 1000.0);
+    gps_time = (millis() / 1000.0);
     
     irl_time.x() = m10s.getHour();
     irl_time.y() = m10s.getMinute();
