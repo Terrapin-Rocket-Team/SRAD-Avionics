@@ -25,6 +25,7 @@ private:
 public:
     MAX_M10S(uint8_t SCK, uint8_t SDA, uint8_t address);
     void initialize(); 
+    virtual void * get_data() = 0;
     void read_gps();
     double get_alt();
     imu::Vector<3> get_velocity();

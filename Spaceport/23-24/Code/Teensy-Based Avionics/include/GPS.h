@@ -5,12 +5,14 @@
 
 #include <Arduino.h>
 #include <imumaths.h>
+#include "Sensor.h"
 
 
-class GPS {
+class GPS : public Sensor{
 public:
     virtual ~GPS() {}; //Virtual descructor. Very important
     virtual void initialize() = 0; //Virtual functions set equal to zero are "pure virtual functions". (like abstract functions in Java)
+    virtual void * get_data() = 0;
     virtual void read_gps() = 0;
     virtual double get_alt() = 0;
     virtual imu::Vector<3> get_velocity() = 0;

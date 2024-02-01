@@ -143,6 +143,11 @@ int MAX_M10S::get_fix_qual() {
     return fix_qual;
 }   
 
+void * MAX_M10S::get_data() {
+    return (void *) &pos;
+
+}
+
 String MAX_M10S::getcsvHeader() {
     return "Latitude (deg), Longitude (deg), "
         "Altitude (mm), "
