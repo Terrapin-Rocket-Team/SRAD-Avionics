@@ -33,6 +33,11 @@ void State::addLightSensor(LightSensor* LightSensor){
     lightSensorFlag = true;
 }
 
+void State::addRTC(RTC* rtc){
+    stateRTC = rtc;
+    rtcFlag = true;
+}
+
 void State::settimeAbsolute(){
     timeAbsolute = millis();
 }
@@ -74,6 +79,9 @@ void State::setcsvHeader(){
     if(lightSensorFlag){
         csvHeader += stateLightSensor -> getcsvHeader();
     }
+    if (rtcFlag){
+        csvHeader += stateRTC -> getcsvHeader();
+    }
 }
 
 void State::setdataString(){
@@ -100,6 +108,9 @@ void State::setdataString(){
     }
     if(lightSensorFlag){
         dataString += stateLightSensor -> getdataString();
+    }
+    if (rtcFlag){
+        dataString += stateRTC -> getdataString();
     }
 }
 
