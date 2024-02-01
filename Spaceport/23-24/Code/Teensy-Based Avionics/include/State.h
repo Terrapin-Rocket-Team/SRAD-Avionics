@@ -7,6 +7,7 @@
 #include "IMU.h"
 #include "LightSensor.h"
 #include "Radio.h"
+#include "RTC.h"
 
 class State
 {
@@ -21,6 +22,7 @@ public:
     GPS *stateGPS;
     IMU *stateIMU;
     LightSensor *stateLightSensor;
+    RTC *stateRTC;
     String csvHeader;
 
     State(); // constructor
@@ -35,6 +37,7 @@ public:
     void addGPS(GPS *gps);
     void addIMU(IMU *imu);
     void addLightSensor(LightSensor *LightSensor);
+    void addRTC(RTC *rtc);
 
 protected:                         // able to be accesses by the child classes
     double apogee;                 // in m above start position
@@ -48,6 +51,7 @@ protected:                         // able to be accesses by the child classes
     bool gpsFlag;
     bool imuFlag;
     bool lightSensorFlag;
+    bool rtcFlag;
 
     String recordDataStage;
 

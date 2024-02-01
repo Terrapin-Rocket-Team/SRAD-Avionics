@@ -72,11 +72,11 @@ void * BMP390::get_data() {
 }
 
 String BMP390::getcsvHeader() {
-    return "Pressure (hPa),Temperature (C),Altitude (m)";
+    return "Pressure (hPa),Temperature (C),Altitude (ft)";
 }
 
 String BMP390::getdataString() {
-    return String(pressure) + "," + String(temp) + "," + String(altitude);
+    return String(get_pressure()) + "," + String(get_temp()) + "," + String(get_rel_alt_ft());
 }
 
 String BMP390::getStaticDataString() {
