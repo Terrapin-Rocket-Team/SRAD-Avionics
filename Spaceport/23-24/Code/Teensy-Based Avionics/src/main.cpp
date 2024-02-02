@@ -4,7 +4,7 @@
 #include "BNO055.h"
 #include "MAX_M10S.h"
 #include "DS3231.h"
-#include "RecordData.h"
+#include <RecordData.h>
 
 BNO055 bno(13, 12);   //I2C Address 0x29
 BMP390 bmp(13, 12);   //I2C Address 0x77
@@ -60,6 +60,6 @@ void loop() {
 
     computer.setdataString();
     Serial.println(computer.getdataString());
-    // recordData(computer.getdataString(), computer.getrecordDataState());
+    recordData(computer.getdataString(), computer.getrecordDataState());
     delay(100);
 }
