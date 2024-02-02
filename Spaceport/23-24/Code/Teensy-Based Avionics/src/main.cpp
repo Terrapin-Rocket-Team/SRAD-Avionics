@@ -10,32 +10,55 @@ BNO055 bno(13, 12);   //I2C Address 0x29
 BMP390 bmp(13, 12);   //I2C Address 0x77
 MAX_M10S gps(13, 12, 0x42); //I2C Address 0x42  
 DS3231 rtc();   //I2C Address 0x68
+AvionicsState computer;
+
+#define BUZZER 33
 
 void setup() {
     Serial.begin(9600);
     while (!Serial);
-    Serial.println("BNO055 test");
+
+    pinMode(BUZZER, OUTPUT);
     
-    bno.initialize();
-    Serial.println("BNO055 initialized");
-    delay(1000);
-    Serial.println(bno.getStaticDataString());
+    computer.addBarometer(&bmp);
+    computer.addGPS(&gps);
+    // computer.addRTC(&rtc);
+    computer.addIMU(&bno);
+
+    computer.stateBarometer->initialize();
+    computer.stateGPS->initialize();
+    computer.stateIMU->initialize();
+    // computer.stateRTC->initialize();
+
+    computer.setcsvHeader();
+    setupPSRAM(computer.csvHeader);
+    bool sdSuccess = setupSDCard(computer.csvHeader);
+
+    if (sdSuccess) {
+        Serial.println("SD Card initialized");
+        digitalWrite(BUZZER, HIGH);
+        delay(1000);
+        digitalWrite(BUZZER, LOW);
+    } else {
+        Serial.println("SD Card failed to initialize");
+        digitalWrite(BUZZER, HIGH);
+        delay(200);
+        digitalWrite(BUZZER, LOW);
+        delay(200);
+        digitalWrite(BUZZER, HIGH);
+        delay(200);
+        digitalWrite(BUZZER, LOW);
+
+    }
+
 }
 
 void loop() {
-    delay(200);
-    Serial.print("Acceleration: ");
-    Serial.print(bno.get_acceleration().x());
-    Serial.print(", ");
-    Serial.print(bno.get_acceleration().y());
-    Serial.print(", ");
-    Serial.println(bno.get_acceleration().z());
+    
+    computer.updateSensors();
+    computer.updateState();
 
-    Serial.print("Orientation: ");
-    Serial.print(bno.get_orientation_euler().x());
-    Serial.print(", ");
-    Serial.print(bno.get_orientation_euler().y());
-    Serial.print(", ");
-    Serial.println(bno.get_orientation_euler().z());
+    computer.setdataString();
+    recordData(computer.getdataString(), computer.getrecordDataState());
 
 }

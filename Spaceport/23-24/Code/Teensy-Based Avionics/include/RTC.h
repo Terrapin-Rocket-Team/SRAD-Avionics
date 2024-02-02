@@ -8,7 +8,7 @@
 #include <RTClib.h>
 #include <imumaths.h>
 
-class RTC {
+class RTC : public Sensor{
 public:
     virtual ~RTC() {}; // virtual destructor
     virtual String getcsvHeader() = 0; // these functions set to 0 are like abstract functions
