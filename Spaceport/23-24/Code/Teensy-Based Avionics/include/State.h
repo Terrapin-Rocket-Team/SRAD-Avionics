@@ -26,6 +26,7 @@ public:
     String csvHeader;
 
     State(); // constructor
+    void setup();
     void settimeAbsolute();
     void setcsvHeader();
     void setdataString();
