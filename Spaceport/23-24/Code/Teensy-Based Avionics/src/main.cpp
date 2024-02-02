@@ -1,16 +1,16 @@
 #include <Arduino.h>
-#include "AvionicsState.cpp"
+#include "State.h"
 #include "BMP390.h"
 #include "BNO055.h"
 #include "MAX_M10S.h"
 #include "DS3231.h"
-#include "Storage/recordData.h"
+#include "RecordData.h"
 
 BNO055 bno(13, 12);   //I2C Address 0x29
 BMP390 bmp(13, 12);   //I2C Address 0x77
 MAX_M10S gps(13, 12, 0x42); //I2C Address 0x42  
 DS3231 rtc();   //I2C Address 0x68
-AvionicsState computer;
+State computer;
 
 #define BUZZER 33
 
@@ -59,6 +59,7 @@ void loop() {
     computer.updateState();
 
     computer.setdataString();
-    recordData(computer.getdataString(), computer.getrecordDataState());
-
+    Serial.println(computer.getdataString());
+    // recordData(computer.getdataString(), computer.getrecordDataState());
+    delay(100);
 }

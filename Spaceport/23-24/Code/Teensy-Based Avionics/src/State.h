@@ -24,12 +24,16 @@ public:
     LightSensor *stateLightSensor;
     RTC *stateRTC;
     String csvHeader;
+    int stageNumber;
+    int lastGPSUpdate;
 
     State(); // constructor
     void setup();
     void settimeAbsolute();
     void setcsvHeader();
     void setdataString();
+    void updateSensors();
+    void updateState();
     String getdataString();
     String getrecordDataState();
 
@@ -40,7 +44,6 @@ public:
     void addLightSensor(LightSensor *LightSensor);
     void addRTC(RTC *rtc);
 
-protected:                         // able to be accesses by the child classes
     double apogee;                 // in m above start position
     double accelerationMagnitude;  // in m/s^2
     double timeLaunch;             // in s

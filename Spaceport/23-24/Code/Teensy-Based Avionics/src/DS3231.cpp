@@ -50,8 +50,7 @@ DateTime DS3231::setLaunchTime() {
 }
 
 void * DS3231::getData() { //sec since launch, cast to void pointer
-    imu::Vector<2> timeSinceLaunch = getTimeSinceLaunch();
-    return ((void *)(&timeSinceLaunch));
+    return ((void *)(millis()));
 }
 
 String DS3231::getcsvHeader() { //all dynamic data

@@ -7,6 +7,7 @@
 #define RTC_H
 #include <RTClib.h>
 #include <imumaths.h>
+#include "Sensor.h"
 
 class RTC : public Sensor{
 public:
