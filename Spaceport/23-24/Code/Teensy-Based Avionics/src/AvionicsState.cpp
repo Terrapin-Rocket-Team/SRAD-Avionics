@@ -6,8 +6,9 @@
 
 class AvionicsState : public State
 {
-
+public:
     int stageNumber = 0;
+    int lastGPSUpdate = millis();
 
     void updateSensors() {
         if (barometerFlag) {
@@ -17,6 +18,9 @@ class AvionicsState : public State
             stateIMU->get_data();
             stateIMU->get_orientation();
             stateIMU->get_orientation_euler();
+        }
+        if (gpsFlag && millis() - lastGPSUpdate > 1000){
+            stateGPS->read_gps();
         }
     }
 
@@ -41,6 +45,7 @@ class AvionicsState : public State
             timeLaunch = timeAbsolute;
             timePreviousStage = timeAbsolute;
             stage = "Ascent";
+            recordDataStage = "Flight";
         }
         else if (stageNumber == 1 && acceleration.z() < 5) {
             stageNumber = 2;
@@ -57,6 +62,7 @@ class AvionicsState : public State
         else if (stageNumber == 4 && velocity.z() > -0.5 && accelerationMagnitude < 5 && stateBarometer->get_rel_alt_ft() < 200) {
             stageNumber = 5;
             stage = "Landed";
+            recordDataStage = "PostFlight";
         }
 
         // backup case to dump data (25 minutes)
