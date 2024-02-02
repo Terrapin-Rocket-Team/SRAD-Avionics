@@ -26,7 +26,7 @@ class AvionicsState : public State
             velocity = stateGPS->get_velocity();
         }
         if (barometerFlag) {
-            velocity.z() = (stateBarometer->get_rel_alt_ft() - position.z()) / (millis() / 1000.0 - timeAbsolute);
+            velocity.z() = (stateBarometer->get_rel_alt_ft() - position.z()) / (millis() - timeAbsolute);
             position.z() = stateBarometer->get_rel_alt_ft();
         }
         if (imuFlag)
@@ -34,7 +34,7 @@ class AvionicsState : public State
             acceleration = stateIMU->get_acceleration();
             orientation = stateIMU->get_orientation();
         }
-        timeAbsolute = millis() / 1000.0;
+        settimeAbsolute();
 
         if (stageNumber == 0 && acceleration.z() > 20 && position.z() > 75) {
             stageNumber = 1;
