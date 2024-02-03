@@ -19,6 +19,12 @@ void setup() {
     while (!Serial);
 
     pinMode(BUZZER, OUTPUT);
+    delay(1000);
+    Serial.println("Buzzer on");
+    digitalWrite(BUZZER, HIGH);
+    delay(1000);
+    digitalWrite(BUZZER, LOW);
+    Serial.println("Buzzer off");
     
     computer.addBarometer(&bmp);
     computer.addGPS(&gps);
