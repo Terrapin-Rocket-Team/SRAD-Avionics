@@ -46,10 +46,10 @@ public:
 
     double apogee;                 // in m above start position
     double accelerationMagnitude;  // in m/s^2
-    double timeLaunch;             // in s
-    double timeSinceLaunch;        // in s
-    double timePreviousStage;      // in s
-    double timeSincePreviousStage; // in s
+    double timeLaunch;             // in ms
+    double timeSinceLaunch;        // in ms
+    double timePreviousStage;      // in ms
+    double timeSincePreviousStage; // in ms
 
     bool barometerFlag;
     bool gpsFlag;

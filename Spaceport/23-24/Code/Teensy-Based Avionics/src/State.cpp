@@ -92,12 +92,15 @@ void State::updateState() {
     }
     settimeAbsolute();
 
-    if (stageNumber == 0 && acceleration.z() > 20 && position.z() > 75) {
+    if (stageNumber == 0 && acceleration.z() > 25 && position.z() > 75) {
         stageNumber = 1;
         timeLaunch = timeAbsolute;
         timePreviousStage = timeAbsolute;
         stage = "Ascent";
         recordDataStage = "Flight";
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(200);
+        digitalWrite(LED_BUILTIN, LOW);
     }
     else if (stageNumber == 1 && acceleration.z() < 5) {
         stageNumber = 2;
@@ -107,7 +110,7 @@ void State::updateState() {
         stageNumber = 3;
         stage = "Drogue Descent";
     }
-    else if (stageNumber == 3 && position.z() < 750) {
+    else if (stageNumber == 3 && position.z() < 750 && millis() - timeSinceLaunch > 120000) {
         stageNumber = 4;
         stage = "Main Descent";
     }
@@ -119,9 +122,13 @@ void State::updateState() {
 
     // backup case to dump data (25 minutes)
     determinetimeSinceLaunch();
-    if (timeSinceLaunch > 1500) {
+    if (stageNumber > 0 && timeSinceLaunch > 1500000 && stageNumber < 5) {
         stageNumber = 5;
         stage = "Landed";
+        recordDataStage = "PostFlight";
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(500);
+        digitalWrite(LED_BUILTIN, LOW);
     }
 
     
@@ -155,14 +162,14 @@ void State::setcsvHeader(){
 
 void State::setdataString(){
     dataString = "";
-    dataString += String(timeAbsolute); dataString += ",";
+    dataString += String(timeAbsolute/1000); dataString += ",";
     dataString += stage; dataString += ",";
     dataString += String(position.x()); dataString += ",";
     dataString += String(position.y()); dataString += ",";
     dataString += String(position.z()); dataString += ",";
     dataString += String(velocity.x()); dataString += ",";
-    dataString += String(velocity.x()); dataString += ",";
-    dataString += String(velocity.x()); dataString += ",";
+    dataString += String(velocity.y()); dataString += ",";
+    dataString += String(velocity.z()); dataString += ",";
     dataString += String(acceleration.x()); dataString += ",";
     dataString += String(acceleration.y()); dataString += ",";
     dataString += String(acceleration.z()); dataString += ",";
