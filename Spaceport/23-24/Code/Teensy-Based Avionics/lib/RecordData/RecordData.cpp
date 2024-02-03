@@ -26,7 +26,7 @@ void recordData(String data, String stage){
         }
     }
     else{
-        Serial.println("Flight Over Data Dumped");
+        // Serial.println("Flight Over Data Dumped");
        // TODO create error code here
     }
 }

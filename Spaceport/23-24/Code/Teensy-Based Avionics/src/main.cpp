@@ -15,24 +15,23 @@ State computer;
 #define BUZZER 33
 
 void setup() {
-    Serial.begin(9600);
-    while (!Serial);
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(1000);
+    digitalWrite(LED_BUILTIN, LOW);
 
-    pinMode(BUZZER, OUTPUT);
-    delay(1000);
-    Serial.println("Buzzer on");
-    digitalWrite(BUZZER, HIGH);
-    delay(1000);
-    digitalWrite(BUZZER, LOW);
-    Serial.println("Buzzer off");
+
+    // Serial.begin(9600);
+    // while (!Serial);
+
     
     computer.addBarometer(&bmp);
-    computer.addGPS(&gps);
+    // computer.addGPS(&gps);
     // computer.addRTC(&rtc);
     computer.addIMU(&bno);
 
     computer.stateBarometer->initialize();
-    computer.stateGPS->initialize();
+    // computer.stateGPS->initialize();
     computer.stateIMU->initialize();
     // computer.stateRTC->initialize();
 
@@ -40,13 +39,17 @@ void setup() {
     setupPSRAM(computer.csvHeader);
     bool sdSuccess = setupSDCard(computer.csvHeader);
 
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(1000);
+    digitalWrite(LED_BUILTIN, LOW);
+
     if (sdSuccess) {
-        Serial.println("SD Card initialized");
+        // Serial.println("SD Card initialized");
         digitalWrite(BUZZER, HIGH);
         delay(1000);
         digitalWrite(BUZZER, LOW);
     } else {
-        Serial.println("SD Card failed to initialize");
+        // Serial.println("SD Card failed to initialize");
         digitalWrite(BUZZER, HIGH);
         delay(200);
         digitalWrite(BUZZER, LOW);
@@ -65,7 +68,7 @@ void loop() {
     computer.updateState();
 
     computer.setdataString();
-    Serial.println(computer.getdataString());
+    // Serial.println(computer.getdataString());
     recordData(computer.getdataString(), computer.getrecordDataState());
     delay(100);
 }

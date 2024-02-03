@@ -70,10 +70,10 @@ bool setupSDCard(String csvHeader){
         if (logFile) {
             logFile.println(csvHeader);
             logFile.close(); // close the file
-            Serial.println("Log file created: " + logFileName);
+            // Serial.println("Log file created: " + logFileName);
             sdReady = true;
         }else{
-            Serial.println(F("SD Card reader found, but file was unable to be created"));
+            // Serial.println(F("SD Card reader found, but file was unable to be created"));
             // buzz(9, 100);
             delay(100);
             // buzz(9, 100);
@@ -83,7 +83,7 @@ bool setupSDCard(String csvHeader){
             return false;
         }
     }else{
-        Serial.println(F("SD Card Reader NOT found! Data will not be logged!"));
+        // Serial.println(F("SD Card Reader NOT found! Data will not be logged!"));
         // buzz(9, 100);
         delay(100);
         // buzz(9, 100);
