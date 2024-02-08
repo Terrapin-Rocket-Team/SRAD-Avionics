@@ -2,7 +2,6 @@
 #define RECORD_DATA_H
 
 #include "psram.h"
-#include "psram.cpp"
 // #include "../State/State.h"
 
 extern int PRE_FLIGHT_DATA_DUMP_DURATION;

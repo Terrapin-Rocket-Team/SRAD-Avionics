@@ -1,4 +1,4 @@
-#include "recordData.h"
+#include "RecordData.h"
 
 int PRE_FLIGHT_DATA_DUMP_DURATION = 60;  //in seconds
 int PRE_FLIGHT_TIME_SINCE_LAST_DUMP = 0;  //in seconds
@@ -26,7 +26,7 @@ void recordData(String data, String stage){
         }
     }
     else{
-        Serial.println("Flight Over Data Dumped");
+        // Serial.println("Flight Over Data Dumped");
        // TODO create error code here
     }
 }

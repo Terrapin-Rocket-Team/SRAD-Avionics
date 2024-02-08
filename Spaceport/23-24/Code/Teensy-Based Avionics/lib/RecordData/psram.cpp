@@ -18,11 +18,11 @@ bool setupPSRAM(String csvHeader){
   psram_memory_cur = psram_memory_begin;
   
   if(size > 0){
-    Serial.println(F("PSRAM Ready"));
+    // Serial.println(F("PSRAM Ready"));
     PSRAMReady = true;
     psramPrintln(csvHeader);
   }else{
-    Serial.println(F("PSRAM not found"));
+    // Serial.println(F("PSRAM not found"));
     return false;
   }
 
@@ -38,9 +38,9 @@ void psramPrintln(){
 // Dump FRAM to SD Card
 String PSRAMDumpToSD(){
   String success;
-  Serial.println(" ");
+  // Serial.println(" ");
   if(isSDReady() && PSRAMReady){
-      Serial.print("Dumping to SD...");
+    //   Serial.print("Dumping to SD...");
       String curStr = "";
       float startTime = micros() / (1000000.0f);
       for(; psram_memory_cur < psramNextLoc; psram_memory_cur++){
@@ -63,11 +63,11 @@ String PSRAMDumpToSD(){
 
         float curTime = micros() / (1000000.0f);
         if((curTime - startTime) > PSRAM_DUMP_TIMEOUT){
-          Serial.println("SD Timeout");
+          // Serial.println("SD Timeout");
           return "Timeout";
         }
       }
-      Serial.println("Dumped");
+      // Serial.println("Dumped");
   }
 
   psramNextLoc = psram_memory_begin;

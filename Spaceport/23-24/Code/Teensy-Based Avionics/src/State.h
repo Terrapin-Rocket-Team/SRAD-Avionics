@@ -7,6 +7,7 @@
 #include "IMU.h"
 #include "LightSensor.h"
 #include "Radio.h"
+#include "RTC.h"
 
 class State
 {
@@ -21,12 +22,18 @@ public:
     GPS *stateGPS;
     IMU *stateIMU;
     LightSensor *stateLightSensor;
+    RTC *stateRTC;
     String csvHeader;
+    int stageNumber;
+    int lastGPSUpdate;
 
     State(); // constructor
+    void setup();
     void settimeAbsolute();
     void setcsvHeader();
     void setdataString();
+    void updateSensors();
+    void updateState();
     String getdataString();
     String getrecordDataState();
 
@@ -35,19 +42,20 @@ public:
     void addGPS(GPS *gps);
     void addIMU(IMU *imu);
     void addLightSensor(LightSensor *LightSensor);
+    void addRTC(RTC *rtc);
 
-protected:                         // able to be accesses by the child classes
     double apogee;                 // in m above start position
     double accelerationMagnitude;  // in m/s^2
-    double timeLaunch;             // in s
-    double timeSinceLaunch;        // in s
-    double timePreviousStage;      // in s
-    double timeSincePreviousStage; // in s
+    double timeLaunch;             // in ms
+    double timeSinceLaunch;        // in ms
+    double timePreviousStage;      // in ms
+    double timeSincePreviousStage; // in ms
 
     bool barometerFlag;
     bool gpsFlag;
     bool imuFlag;
     bool lightSensorFlag;
+    bool rtcFlag;
 
     String recordDataStage;
 
