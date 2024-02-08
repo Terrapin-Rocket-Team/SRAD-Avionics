@@ -7,8 +7,9 @@
 #define RTC_H
 #include <RTClib.h>
 #include <imumaths.h>
+#include "Sensor.h"
 
-class RTC {
+class RTC : public Sensor{
 public:
     virtual ~RTC() {}; // virtual destructor
     virtual String getcsvHeader() = 0; // these functions set to 0 are like abstract functions
@@ -20,7 +21,6 @@ public:
     virtual DateTime setLaunchTime() = 0;
     virtual DateTime getPowerOnTime() = 0;
     virtual DateTime getCurrentTime() = 0;
-    virtual String getStaticValues() = 0; // returns a string with just the static variables and the values
     virtual void * getData() = 0;
     virtual String getStaticDataString() = 0;
 };

@@ -9,6 +9,8 @@ State::State(){
     velocity.x() = 0; velocity.y() = 0; velocity.z() = 0;
     acceleration.x() = 0; acceleration.y() = 0; acceleration.z() = 0;
     apogee = position.z();
+    stageNumber = 0;
+    lastGPSUpdate = millis();
 
     barometerFlag = false; gpsFlag = false; imuFlag = false; lightSensorFlag = false;
 }
@@ -33,6 +35,11 @@ void State::addLightSensor(LightSensor* LightSensor){
     lightSensorFlag = true;
 }
 
+void State::addRTC(RTC* rtc){
+    stateRTC = rtc;
+    rtcFlag = true;
+}
+
 void State::settimeAbsolute(){
     timeAbsolute = millis();
 }
@@ -55,6 +62,80 @@ void State::determinetimeSinceLaunch(){
     timeSinceLaunch = timeAbsolute - timeLaunch;
 }
 
+void State::updateSensors() {
+    if (barometerFlag) {
+        stateBarometer->get_data();
+    }
+    if (imuFlag) {
+        stateIMU->get_data();
+        stateIMU->get_orientation();
+        stateIMU->get_orientation_euler();
+    }
+    if (gpsFlag && millis() - lastGPSUpdate > 1500){
+        stateGPS->read_gps();
+    }
+}
+
+void State::updateState() {
+    if(gpsFlag) {
+        position = imu::Vector<3>(stateGPS->get_pos().x(), stateGPS->get_pos().y(), stateGPS->get_alt());
+        velocity = stateGPS->get_velocity();
+    }
+    if (barometerFlag) {
+        velocity.z() = (stateBarometer->get_rel_alt_ft() - position.z()) / (millis() - timeAbsolute);
+        position.z() = stateBarometer->get_rel_alt_ft();
+    }
+    if (imuFlag)
+    {
+        acceleration = stateIMU->get_acceleration();
+        orientation = stateIMU->get_orientation();
+    }
+    settimeAbsolute();
+
+    if (stageNumber == 0 && acceleration.z() > 25 && position.z() > 75) {
+        stageNumber = 1;
+        timeLaunch = timeAbsolute;
+        timePreviousStage = timeAbsolute;
+        stage = "Ascent";
+        recordDataStage = "Flight";
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(200);
+        digitalWrite(LED_BUILTIN, LOW);
+    }
+    else if (stageNumber == 1 && acceleration.z() < 5) {
+        stageNumber = 2;
+        stage = "Coasting";
+    }
+    else if (stageNumber == 2 && velocity.z() < 0){
+        stageNumber = 3;
+        stage = "Drogue Descent";
+    }
+    else if (stageNumber == 3 && position.z() < 750 && millis() - timeSinceLaunch > 120000) {
+        stageNumber = 4;
+        stage = "Main Descent";
+    }
+    else if (stageNumber == 4 && velocity.z() > -0.5 && accelerationMagnitude < 5 && stateBarometer->get_rel_alt_ft() < 200) {
+        stageNumber = 5;
+        stage = "Landed";
+        recordDataStage = "PostFlight";
+    }
+
+    // backup case to dump data (25 minutes)
+    determinetimeSinceLaunch();
+    if (stageNumber > 0 && timeSinceLaunch > 1500000 && stageNumber < 5) {
+        stageNumber = 5;
+        stage = "Landed";
+        recordDataStage = "PostFlight";
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(500);
+        digitalWrite(LED_BUILTIN, LOW);
+    }
+
+    
+    
+
+}
+
 void State::setcsvHeader(){
     csvHeader = "";
     csvHeader += "Time"; csvHeader += ",";
@@ -74,18 +155,21 @@ void State::setcsvHeader(){
     if(lightSensorFlag){
         csvHeader += stateLightSensor -> getcsvHeader();
     }
+    if (rtcFlag){
+        csvHeader += stateRTC -> getcsvHeader();
+    }
 }
 
 void State::setdataString(){
     dataString = "";
-    dataString += String(timeAbsolute); dataString += ",";
+    dataString += String(timeAbsolute/1000); dataString += ",";
     dataString += stage; dataString += ",";
     dataString += String(position.x()); dataString += ",";
     dataString += String(position.y()); dataString += ",";
     dataString += String(position.z()); dataString += ",";
     dataString += String(velocity.x()); dataString += ",";
-    dataString += String(velocity.x()); dataString += ",";
-    dataString += String(velocity.x()); dataString += ",";
+    dataString += String(velocity.y()); dataString += ",";
+    dataString += String(velocity.z()); dataString += ",";
     dataString += String(acceleration.x()); dataString += ",";
     dataString += String(acceleration.y()); dataString += ",";
     dataString += String(acceleration.z()); dataString += ",";
@@ -100,6 +184,9 @@ void State::setdataString(){
     }
     if(lightSensorFlag){
         dataString += stateLightSensor -> getdataString();
+    }
+    if (rtcFlag){
+        dataString += stateRTC -> getdataString();
     }
 }
 

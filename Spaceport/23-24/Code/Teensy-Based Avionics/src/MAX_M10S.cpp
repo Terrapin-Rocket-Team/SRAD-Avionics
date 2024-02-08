@@ -38,7 +38,7 @@ void MAX_M10S::initialize() {
     delay(25); // Wait for the serial port to initialize
     while (m10s.begin() == false) //Connect to the u-blox module using Wire port
     {
-        Serial.println(F("u-blox GNSS not detected at default I2C address. Retrying..."));
+        // Serial.println(F("u-blox GNSS not detected at default I2C address. Retrying..."));
         delay (1000);
     }
 
