@@ -24,15 +24,27 @@ SOFTWARE.
 
 #ifndef APRS_ENCODE_FUNCTIONS_H
 #define APRS_ENCODE_FUNCTIONS_H
+
+#if defined(ARDUINO)
 #include <Arduino.h>
+#elif defined(_WIN32) || defined(_WIN64) // Windows
+#include <cstdint>
+#include <string>
+#include <cstring>
+#elif defined(__unix__)  // Linux
+// TODO
+#elif defined(__APPLE__) // OSX
+// TODO
+#endif
 
 char *s_min_nn(uint32_t min_nnnnn, int high_precision);
-String create_lat_aprs(String lat, bool hp);
-String create_long_aprs(String lng, bool hp);
-String create_dao_aprs(String lat, String lng);
-String padding(unsigned int number, unsigned int width);
+void create_lat_aprs(char (*lat)[], bool hp);
+void create_long_aprs(char (*lng)[], bool hp);
+char *create_dao_aprs(char *lat, char *lng);
+void padding(unsigned int number, unsigned int width, char (*output)[], int offset = 0);
+int numDigits(unsigned int num);
 
-// takes in decimal minutes and converts to MM.dd or MM.dddd
+// takes in decimal minutes and converts to MM.dddd
 char *s_min_nn(uint32_t min_nnnnn, int high_precision)
 {
     /* min_nnnnn: RawDegrees billionths is uint32_t by definition and is n'telth
@@ -42,6 +54,16 @@ char *s_min_nn(uint32_t min_nnnnn, int high_precision)
      */
 
     static char buf[6];
+
+    // make sure there are nine digits
+    int missingDigits = 9 - numDigits(min_nnnnn);
+    if (missingDigits < 0)
+        for (int i = 0; i < missingDigits * -1; i++)
+            min_nnnnn /= 10;
+    if (missingDigits > 0)
+        for (int i = 0; i < missingDigits; i++)
+            min_nnnnn *= 10;
+
     min_nnnnn = min_nnnnn * 0.006;
 
     if (high_precision)
@@ -71,70 +93,100 @@ char *s_min_nn(uint32_t min_nnnnn, int high_precision)
 }
 
 // creates the latitude string for the APRS message based on whether the GPS coordinates are high precision
-String create_lat_aprs(String lat, bool hp)
+void create_lat_aprs(char (*lat)[], bool hp)
 {
-    char str[20];
-    char n_s = 'N';
-    if (lat.charAt(0) == '-')
+    bool negative = (*lat)[0] == '-';
+
+    int len = strlen(*lat);
+    int decimalPos = 0;
+    // use for loop in case there is no decimal
+    for (int i = 0; i < len; i++)
     {
-        n_s = 'S';
-        lat = lat.substring(1);
+        if ((*lat)[i] == '.')
+        {
+            decimalPos = i;
+            break;
+        }
     }
     // we like sprintf's float up-rounding.
     // but sprintf % may round to 60.00 -> 5360.00 (53° 60min is a wrong notation
     // ;)
-    sprintf(str, "%02d%s%c", lat.substring(0, lat.indexOf('.')).toInt(), s_min_nn(lat.substring(lat.indexOf('.') + 1).toInt(), hp), n_s);
-    String lat_str(str);
-    return lat_str;
+    sprintf(*lat, "%02d%s%c", atoi(*lat) * (negative ? -1 : 1), s_min_nn(atoi(*lat + decimalPos + 1), hp), negative ? 'S' : 'N');
 }
 
 // creates the longitude string for the APRS message based on whether the GPS coordinates are high precision
-String create_long_aprs(String lng, bool hp)
+void create_long_aprs(char (*lng)[], bool hp)
 {
-    char str[20];
-    char e_w = 'E';
-    if (lng.charAt(0) == '-')
+    bool negative = (*lng)[0] == '-';
+
+    int len = strlen(*lng);
+    int decimalPos = 0;
+    // use for loop in case there is no decimal
+    for (int i = 0; i < len; i++)
     {
-        e_w = 'W';
-        lng = lng.substring(1);
+        if ((*lng)[i] == '.')
+        {
+            decimalPos = i;
+            break;
+        }
     }
-    sprintf(str, "%03d%s%c", lng.substring(0, lng.indexOf('.')).toInt(), s_min_nn(lng.substring(lng.indexOf('.') + 1).toInt(), hp), e_w);
-    String lng_str(str);
-    return lng_str;
+    // we like sprintf's float up-rounding.
+    // but sprintf % may round to 60.00 -> 5360.00 (53° 60min is a wrong notation
+    // ;)
+    sprintf(*lng, "%02d%s%c", atoi(*lng) * (negative ? -1 : 1), s_min_nn(atoi(*lng + decimalPos + 1), hp), negative ? 'W' : 'E');
 }
 
 // creates the dao at the end of aprs message based on latitude and longitude
-String create_dao_aprs(String lat, String lng)
+char *create_dao_aprs(char *lat, char *lng)
 {
     // !DAO! extension, use Base91 format for best precision
     // /1.1 : scale from 0-99 to 0-90 for base91, int(... + 0.5): round to nearest
     // integer https://metacpan.org/dist/Ham-APRS-FAP/source/FAP.pm
     // http://www.aprs.org/aprs12/datum.txt
-    //
+    static char str[10];
 
-    char str[10];
-    // show_display("Test", lat.substring(lat.indexOf('.') + 1).toInt(), lng.substring(lng.indexOf('.') + 1).toInt());
-    sprintf(str, "!w%s", s_min_nn(lat.substring(lat.indexOf('.') + 1).toInt(), 2));
-    sprintf(str + 3, "%s!", s_min_nn(lng.substring(lng.indexOf('.') + 1).toInt(), 2));
-    String dao_str(str);
-    return dao_str;
+    int len = strlen(lat);
+    int decimalPos = 0;
+    // use for loop in case there is no decimal
+    for (int i = 0; i < len; i++)
+    {
+        if (lat[i] == '.')
+            decimalPos = i;
+    }
+    sprintf(str, "!w%s", s_min_nn((int)(lat + decimalPos + 1), 2));
+
+    len = strlen(lng);
+    decimalPos = 0;
+    for (int i = 0; i < len; i++)
+    {
+        if (lng[i] == '.')
+            decimalPos = i;
+    }
+    sprintf(str + 3, "%s!", s_min_nn((int)(lng + decimalPos + 1), 2));
+
+    return str;
 }
 
 // adds a specified number of zeros to the begining of a number
-String padding(unsigned int number, unsigned int width)
+void padding(unsigned int number, unsigned int width, char (*output)[], int offset)
 {
-    String result;
-    String num(number);
-    if (num.length() > width)
+    unsigned int numLen = numDigits(number);
+    if (numLen > width)
     {
-        width = num.length();
+        width = numLen;
     }
-    for (unsigned int i = 0; i < width - num.length(); i++)
+    for (unsigned int i = 0; i < width - numLen; i++)
     {
-        result.concat('0');
+        (*output)[offset + i] = '0';
     }
-    result.concat(num);
-    return result;
+    sprintf(*output + offset + width - numLen, "%d", number);
+}
+
+int numDigits(unsigned int num)
+{
+    if (num < 10)
+        return 1;
+    return 1 + numDigits(num / 10);
 }
 
 #endif
