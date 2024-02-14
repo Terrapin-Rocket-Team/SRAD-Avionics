@@ -21,7 +21,7 @@ public:
     virtual imu::Vector<3> get_displace() = 0;
     virtual double get_gps_time() = 0;
     virtual int get_fix_qual() = 0;
-    virtual String getcsvHeader() = 0;
+    virtual std::vector<String> getcsvHeader() = 0;
     virtual String getdataString() = 0;
     virtual String getStaticDataString();
 };

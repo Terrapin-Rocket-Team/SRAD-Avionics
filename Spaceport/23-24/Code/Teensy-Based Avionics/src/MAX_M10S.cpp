@@ -25,6 +25,16 @@ MAX_M10S::MAX_M10S(uint8_t SCK, uint8_t SDA, uint8_t address) {
     irl_time.y() = -1;
     irl_time.z() = -1;
     fix_qual = -1;
+
+    csvHeader = {"Latitude (deg), Longitude (deg)",
+                 "Altitude (m)",
+                 "Velocity (m/s)",
+                 "Displacement X (m)",
+                 "Displacement Y (m)",
+                 "Displacement Z (m)",
+                 "gps time (s)",
+                 "quality of data (# satellites)",
+                 "real time (hr/min/s)"};
 }
 
 //need to update origin some how
@@ -148,25 +158,19 @@ void * MAX_M10S::get_data() {
 
 }
 
-String MAX_M10S::getcsvHeader() {
-    return "Latitude (deg), Longitude (deg), "
-        "Altitude (mm), "
-        "Velocity (m/s), "
-        "Displacement X (m), Displacement Y (m), Displacement Z (m), "
-        "gps time (s), "
-        "quality of data (satellites), "
-        "real time (hr/min/s)";
-
+std::vector<String> MAX_M10S::getcsvHeader()
+{
+    return csvHeader;
 }
 
 String MAX_M10S::getdataString() {
-    return String(pos.x()) + ", " + String(pos.y()) + ", " + 
-        String(altitude) + ", " +
-        String(sqrt(pow(velocity.x(), 2) + pow(velocity.y(), 2) + pow(velocity.z(), 2))) + ", " + 
-        String(displacement.x()) + ", " + String(displacement.y()) + ", " + String(displacement.z()) + ", " + 
-        String(gps_time) + ", " +
-        String(fix_qual) + ", " + 
-        String(irl_time.x()) + ":" + String(irl_time.y()) + ":" + String(irl_time.z());
+    return String(pos.x()) + "," + String(pos.y()) + "," + 
+        String(altitude) + "," +
+        String(sqrt(pow(velocity.x(), 2) + pow(velocity.y(), 2) + pow(velocity.z(), 2))) + "," + 
+        String(displacement.x()) + "," + String(displacement.y()) + "," + String(displacement.z()) + "," + 
+        String(gps_time) + "," +
+        String(fix_qual) + "," + 
+        String(irl_time.x()) + ":" + String(irl_time.y()) + ":" + String(irl_time.z()) + ",";
     
 }
 

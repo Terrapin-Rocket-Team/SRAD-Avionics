@@ -27,7 +27,7 @@ public:
     // gives it in rotations about the x, y, z (yaw, pitch, roll) axes
     imu::Vector<3> convert_to_euler(imu::Quaternion orientation);
     void * get_data();
-    String getcsvHeader();
+    std::vector<String> getcsvHeader();
     String getdataString();
     String getStaticDataString();
 

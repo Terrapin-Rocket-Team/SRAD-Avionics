@@ -28,7 +28,7 @@ public:
     double get_rel_alt_ft();
     double get_rel_alt_m();
     void * get_data();
-    String getcsvHeader();
+    std::vector<String> getcsvHeader();
     String getdataString();
     String getStaticDataString();
 };

@@ -15,7 +15,7 @@ public:
     virtual double get_pressure_atm() = 0;
     virtual double get_rel_alt_ft() = 0;
     virtual void * get_data() = 0;
-    virtual String getcsvHeader() = 0;
+    virtual std::vector<String> getcsvHeader() = 0;
     virtual String getdataString() = 0;
     virtual String getStaticDataString() = 0;
 };

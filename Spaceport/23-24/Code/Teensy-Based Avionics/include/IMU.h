@@ -19,7 +19,7 @@ public:
     virtual imu::Vector<3> get_acceleration() = 0;
     virtual imu::Vector<3> get_orientation_euler() = 0;
     virtual imu::Vector<3> get_magnetometer() = 0;
-    virtual String getcsvHeader() = 0;
+    virtual std::vector<String> getcsvHeader() = 0;
     virtual String getdataString() = 0;
 };
 

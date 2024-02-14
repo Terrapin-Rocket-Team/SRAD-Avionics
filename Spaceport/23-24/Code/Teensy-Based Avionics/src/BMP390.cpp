@@ -6,8 +6,10 @@ Construtor for the BMP390 class, pass in the pin numbers for each of the I2C pin
 BMP390::BMP390(uint8_t SCK, uint8_t SDA) {
 
     SCK_pin = SCK;
-    SDA_pin = SDA; 
-
+    SDA_pin = SDA;
+    csvHeader = { "Pressure (hPa)",
+                  "Temperature (C)",
+                  "Altitude (ft)" };
 }
 
 void BMP390::initialize() {
@@ -78,12 +80,13 @@ void * BMP390::get_data() {
     return (void *) &altitude;
 }
 
-String BMP390::getcsvHeader() {
-    return "Pressure (hPa),Temperature (C),Altitude (ft)";
+std::vector<String> BMP390::getcsvHeader()
+{
+    return csvHeader;
 }
 
 String BMP390::getdataString() {
-    return String(get_pressure()) + "," + String(get_temp()) + "," + String(get_rel_alt_ft());
+    return String(get_pressure()) + "," + String(get_temp()) + "," + String(get_rel_alt_ft()) + ",";
 }
 
 String BMP390::getStaticDataString() {

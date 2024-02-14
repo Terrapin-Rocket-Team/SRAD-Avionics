@@ -8,6 +8,8 @@
 #include "LightSensor.h"
 #include "Radio.h"
 #include "RTC.h"
+#include <vector>
+#include <numeric>
 
 class State
 {

@@ -12,7 +12,7 @@
 class RTC : public Sensor{
 public:
     virtual ~RTC() {}; // virtual destructor
-    virtual String getcsvHeader() = 0; // these functions set to 0 are like abstract functions
+    virtual std::vector<String> getcsvHeader() = 0; // these functions set to 0 are like abstract functions
     virtual String getdataString() = 0; // don't include static values here or in csvHeader
     virtual void initialize() = 0; 
     virtual imu::Vector<2> getTimeOn() = 0; // ms

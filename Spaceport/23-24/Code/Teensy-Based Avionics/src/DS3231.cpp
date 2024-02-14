@@ -8,6 +8,7 @@ DS3231::DS3231() {
    millisAtStart = 0; // initialized at power on
    powerOnTime = nullptr; // initialized at power on
    launchTime = nullptr; // initialized at launch
+   csvHeader = { "current_time", "time_since_launch" };
 }
 
 // returns time since power on as a vector, first entry with seconds precision and second entry with ms
@@ -53,14 +54,15 @@ void * DS3231::getData() { //sec since launch, cast to void pointer
     return ((void *)(millis()));
 }
 
-String DS3231::getcsvHeader() { //all dynamic data
-    return "current_time, time_since_launch";
+std::vector<String> DS3231::getcsvHeader()
+{ // all dynamic data
+    return csvHeader;
 }
 
 String DS3231::getdataString() { 
     String curTime =  getCurrentTime().timestamp();
     imu::Vector<2> timeSinceLaunch = getTimeSinceLaunch();
-    return curTime + ", " + String(timeSinceLaunch[0]) + "sec " + String(timeSinceLaunch[1]) + "ms";
+    return curTime + ", " + String(timeSinceLaunch[0]) + "sec " + String(timeSinceLaunch[1]) + "ms,";
 
 }
 

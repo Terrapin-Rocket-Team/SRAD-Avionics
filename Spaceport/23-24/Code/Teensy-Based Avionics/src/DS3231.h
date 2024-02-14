@@ -25,7 +25,7 @@ public:
     void * getData();
     String getdataString();
     String getStaticDataString();
-    String getcsvHeader();
+    std::vector<String> getcsvHeader();
 };
 
 # endif

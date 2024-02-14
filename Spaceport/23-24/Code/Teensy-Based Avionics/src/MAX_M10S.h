@@ -36,7 +36,7 @@ public:
     imu::Vector<3> get_origin_pos();
     int get_fix_qual();
     void * get_data();
-    String getcsvHeader();
+    std::vector<String> getcsvHeader();
     String getdataString();
     String getStaticDataString();
 };

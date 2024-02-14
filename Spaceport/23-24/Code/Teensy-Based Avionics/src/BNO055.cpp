@@ -4,6 +4,7 @@
 BNO055::BNO055(uint8_t SCK, uint8_t SDA) {
     SCK_pin = SCK;
     SDA_pin = SDA;
+    csvHeader = { "acceleration_X (m/s/s)", "acceleration_Y (m/s/s)", "acceleration_Z (m/s/s)", "euler X", "euler Y", "euler Z", "Quaternion X", "Quaternion Y", "Quaternion Z", "Quaternion W" };
 }
 
 void BNO055::initialize()
@@ -65,12 +66,13 @@ void * BNO055::get_data() {
     return (void *) &acceleration_vec;
 }
 
-String BNO055::getcsvHeader() {
-    return "acceleration_X (m/s/s), acceleration_Y (m/s/s), acceleration_Z (m/s/s), euler X, euler Y, euler Z, Quaternion X, Quaternion Y, Quaternion Z, Quaternion W";
+std::vector<String> BNO055::getcsvHeader()
+{
+    return csvHeader;
 }
 
 String BNO055::getdataString() {
-    return String(acceleration_vec.x()) + "," + String(acceleration_vec.y()) + "," + String(acceleration_vec.z()) + "," + String(orientation_euler.x()) + "," + String(orientation_euler.y()) + "," + String(orientation_euler.z()) + "," + String(orientation.x()) + "," + String(orientation.y()) + "," + String(orientation.z()) + "," + String(orientation.w());
+    return String(acceleration_vec.x()) + "," + String(acceleration_vec.y()) + "," + String(acceleration_vec.z()) + "," + String(orientation_euler.x()) + "," + String(orientation_euler.y()) + "," + String(orientation_euler.z()) + "," + String(orientation.x()) + "," + String(orientation.y()) + "," + String(orientation.z()) + "," + String(orientation.w()) + ",";
 }
 
 String BNO055::getStaticDataString() {
