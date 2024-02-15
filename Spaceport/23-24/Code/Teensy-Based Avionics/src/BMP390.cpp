@@ -7,7 +7,9 @@ BMP390::BMP390(uint8_t SCK, uint8_t SDA) {
 
     SCK_pin = SCK;
     SDA_pin = SDA;
-    datapoints = 3;
+    csvHeader = { "Pressure (hPa)",
+                  "Temperature (C)",
+                  "Altitude (ft)" };
 }
 
 void BMP390::initialize() {
@@ -78,16 +80,12 @@ void * BMP390::get_data() {
     return (void *) &altitude;
 }
 
-char** BMP390::getcsvHeader()
+std::vector<String> BMP390::getcsvHeader()
 {
-    char** ret = new char*[datapoints];
-    ret[0] = newstr("Pressure (hPa)");
-    ret[1] = newstr("Temperature (C)");
-    ret[2] = newstr("Altitude (ft)");
-    return ret;
+    return csvHeader;
 }
 
-char** BMP390::getdataString() {
+String BMP390::getdataString() {
     return String(get_pressure()) + "," + String(get_temp()) + "," + String(get_rel_alt_ft()) + ",";
 }
 
