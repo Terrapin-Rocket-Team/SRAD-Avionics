@@ -1,13 +1,9 @@
 /*
- * State.cpp - Holds all the information about the current position/state of the rocket in 3d space.
+ * State.cpp - Holds all the information about the current position/state of the rocket in 3D space.
  *
  * Fetches data from various sensors to update its fields and stores a string with all values in a csv format that can be fetched for outputting.
  * Includes checks to ensure that various sensors are enabled before attempting to use them
  *
- * TODO: Integrate Kalman filter (Issue #40 - https://github.com/Terrapin-Rocket-Team/SRAD_Avionics/issues/40)
- *
- * Created By: Varun Unnithan
- * Last Updated By: Drew Brandt
  */
 
 #include "State.h"
@@ -30,7 +26,7 @@ State::State()
     apogee = position.z();
     stageNumber = 0;
     lastGPSUpdate = millis();
-
+    char* a = newstr("Test");
     barometerFlag = gpsFlag = imuFlag = lightSensorFlag = rtcFlag = false;
 }
 

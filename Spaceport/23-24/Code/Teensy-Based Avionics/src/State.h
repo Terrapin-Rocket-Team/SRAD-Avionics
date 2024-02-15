@@ -8,8 +8,6 @@
 #include "LightSensor.h"
 #include "Radio.h"
 #include "RTC.h"
-#include <vector>
-#include <numeric>
 
 class State
 {
@@ -25,7 +23,7 @@ public:
     IMU *stateIMU;
     LightSensor *stateLightSensor;
     RTC *stateRTC;
-    String csvHeader;
+    char* csvHeader;
     int stageNumber;
     int lastGPSUpdate;
 
