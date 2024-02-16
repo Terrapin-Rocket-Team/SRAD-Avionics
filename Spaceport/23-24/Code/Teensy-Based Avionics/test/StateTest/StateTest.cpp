@@ -13,21 +13,21 @@ State computer;
 
 int i = 0;
 
-//column numbers
-int numColums = 10;
-int AX = 0;//m/s/s
-int AY = 0;
-int AZ = 0;   // Z is up
-int OX = 0;
-int OY = 0;
-int OZ = 0;
-int OW = 0;
-int BAlt = 0; // m
-int BTemp = 0; // m
-int BPres = 0; // m
-int GX = 0;//displacement from start in m
-int GY = 0;
-int GZ = 0;//Z is up
+//column numbers, 0 indexed
+int numColums = 17;
+int AX = 3;//m/s/s
+int AY = 4;
+int AZ = 5;   // Z is up
+int OX = 7;
+int OY = 8;
+int OZ = 9;
+int OW = 6;
+int BAlt = 10; // m
+int BTemp = 12; // m
+int BPres = 11; // m
+int GX = 15;//lat/long
+int GY = 14;
+int GZ = 16;//Z is up
 
 #define BUZZER 33
 
@@ -84,7 +84,7 @@ void loop()
     Serial.println(stateStr);
     delete[] stateStr;
     stateStr = nullptr;
-    
+
     delay(100);
     digitalWrite(BUZZER, LOW);
 }
