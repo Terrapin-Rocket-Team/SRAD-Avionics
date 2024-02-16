@@ -31,6 +31,7 @@ void recordData(char* data, char* stage){
         // Serial.println("Flight Over Data Dumped");
        // TODO create error code here
     }
+    delete[] data;//IMPORTANT! DATA IS NOT STORED ON THE STACK
 }
 
 void dataToPSRAM(char* data){
