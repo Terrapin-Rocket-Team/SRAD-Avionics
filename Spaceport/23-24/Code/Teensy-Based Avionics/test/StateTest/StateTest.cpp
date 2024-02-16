@@ -14,10 +14,17 @@ State computer;
 int i = 0;
 
 //column numbers
+int numColums = 10;
 int AX = 0;//m/s/s
 int AY = 0;
-int AZ = 0;//Z is up
-int BAlt = 0;//m
+int AZ = 0;   // Z is up
+int OX = 0;
+int OY = 0;
+int OZ = 0;
+int OW = 0;
+int BAlt = 0; // m
+int BTemp = 0; // m
+int BPres = 0; // m
 int GX = 0;//displacement from start in m
 int GY = 0;
 int GZ = 0;//Z is up
@@ -79,5 +86,17 @@ void loop()
 }
 
 void ParseIncomingFakeSensorData(String line){
-    if(line.length() > 0);
+    if(line.length() == 0) return;
+    String columns[numColums];
+    int cursor = 0;
+    for(int j = 0;j < line.length();j++){
+        if(cursor == numColums) break;
+        if(line[j] ==',')
+        cursor++;
+        else
+        columns[cursor].append(line[j]);
+    }
+    baro.feedData((double)columns[BAlt].toFloat(),(double)columns[BTemp].toFloat(),(double)columns[BPres].toFloat());
+    gps.feedData((double)columns[GX].toFloat(), (double)columns[GY].toFloat(), (double)columns[GZ].toFloat());
+    fimu.feedData((double)columns[AX].toFloat(), (double)columns[AY].toFloat(), (double)columns[AZ].toFloat(), (double)columns[OX].toFloat(), (double)columns[OY].toFloat(), (double)columns[OZ].toFloat(), (double)columns[OW].toFloat());
 }
