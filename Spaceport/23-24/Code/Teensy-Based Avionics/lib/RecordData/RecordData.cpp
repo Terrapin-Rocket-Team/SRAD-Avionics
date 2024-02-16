@@ -32,6 +32,7 @@ void recordData(char* data, char* stage){
        // TODO create error code here
     }
     delete[] data;//IMPORTANT! DATA IS NOT STORED ON THE STACK
+    data = nullptr;//I think this is considered best-practice because a double delete on a nullptr is safe.
 }
 
 void dataToPSRAM(char* data){
