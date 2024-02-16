@@ -28,7 +28,7 @@ public:
     double get_rel_alt_m();
     void *get_data();
     bool initialize() override;
-    char *getcsvHeader() override;
+    const char *getcsvHeader() override;
     char *getdataString() override;
     char *getStaticDataString() override;
 };

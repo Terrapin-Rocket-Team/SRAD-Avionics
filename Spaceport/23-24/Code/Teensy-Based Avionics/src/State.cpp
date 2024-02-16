@@ -163,7 +163,7 @@ void State::updateState()
 void State::setcsvHeader()
 {
     char csvHeaderStart[] = "Time,Stage,PX,PY,PZ,VX,VY,VZ,AX,AY,AZ,";
-    char *headers[] = {csvHeaderStart, nullptr, nullptr, nullptr, nullptr}; // all stack arrays!!!!
+    const char *headers[] = {csvHeaderStart, nullptr, nullptr, nullptr, nullptr}; // all stack arrays!!!!
     int cursor = 1;
     delete[] csvHeader; // just in case there is already something there. This function should never be called more than once.
 
@@ -202,6 +202,8 @@ void State::setcsvHeader()
     {
         for (int k = 0; headers[i][k]; j++, k++) // append all the header strings onto the main string
             csvHeader[j] = headers[i][k];
+        if (i > 1)
+            delete[] headers[i];//delete all the heap arrays
     }
     csvHeader[j - 1] = '\0'; // all strings have ',' at end so this gets rid of that and terminates it a character early.
 }
@@ -224,7 +226,7 @@ void State::setdataString()
         acceleration.x(), acceleration.y(), acceleration.z());
     // Serial.print(used);//Just curious
 
-    char *data[] = {csvDataStart, nullptr, nullptr, nullptr, nullptr};//all stack arrays
+    char *data[] = {csvDataStart, nullptr, nullptr, nullptr, nullptr};
     int cursor = 1;
     delete[] dataString; // This probably definitely exists (although maybe shouldn't if RecordData deletes it when it's done.)
 
@@ -263,6 +265,8 @@ void State::setdataString()
     {
         for (int k = 0; data[i][k]; j++, k++) // append all the data strings onto the main string
             dataString[j] = data[i][k];
+        if (i > 1)
+            delete[] data[i];//delete all the heap arrays.
     }
     dataString[j - 1] = '\0'; // all strings have ',' at end so this gets rid of that and terminates it a character early.
 }

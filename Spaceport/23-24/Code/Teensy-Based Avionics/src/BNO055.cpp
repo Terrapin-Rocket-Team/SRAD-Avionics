@@ -71,7 +71,7 @@ void *BNO055::get_data()
     return (void *)&acceleration_vec;
 }
 
-char *BNO055::getcsvHeader()
+const char *BNO055::getcsvHeader()
 {                                                                                                          // incl I- for IMU
     return "I-AX (m/s/s),I-AY (m/s/s),I-AZ (m/s/s),I-ULRX,I-ULRY,I-ULRZ,I-QUATX,I-QUATY,I-QUATZ,I-QUATW,"; // trailing comma
 }
@@ -79,8 +79,8 @@ char *BNO055::getcsvHeader()
 char *BNO055::getdataString()
 {
     // See State.cpp::setdataString() for comments on what these numbers mean
-    const int size = 12*10 + 10;
-    char data[size];
+    const int size = 12 * 10 + 10;
+    char *data = new char[size];
     snprintf(data, size, "%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,", acceleration_vec.x(), acceleration_vec.y(), acceleration_vec.z(), orientation_euler.x(), orientation_euler.y(), orientation_euler.z(), orientation.x(), orientation.y(), orientation.z(), orientation.w()); // trailing comma"
     return data;
 }
@@ -89,7 +89,7 @@ char *BNO055::getStaticDataString()
 {
     // See State.cpp::setdataString() for comments on what these numbers mean
     const int size = 30 + 12 * 3;
-    char data[size];
+    char *data = new char[size];
     snprintf(data, size, "Initial Magnetic Field (uT): %.2f,%.2f,%.2f\n", initial_mag_field.x(), initial_mag_field.y(), initial_mag_field.z());
     return data;
 }

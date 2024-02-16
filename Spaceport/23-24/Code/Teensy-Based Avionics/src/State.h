@@ -30,7 +30,6 @@ public:
     bool init();
     void settimeAbsolute();
     void updateState();
-    char *getrecordDataState();
 
     // add sensor functions
     void setBaro(Barometer *Barometer);
