@@ -1,15 +1,13 @@
 #include <Arduino.h>
 #include "State.h"
-#include "BMP390.h"
-#include "BNO055.h"
-#include "MAX_M10S.h"
-#include "DS3231.h"
+#include "FakeBaro.h"
+#include "FakeGPS.h"
+#include "FakeIMU.h"
 #include <RecordData.h>
 
-BNO055 bno(13, 12);         // I2C Address 0x29
-BMP390 bmp(13, 12);         // I2C Address 0x77
-MAX_M10S gps(13, 12, 0x42); // I2C Address 0x42
-// DS3231 rtc;               // I2C Address 0x68
+FakeBaro baro;
+FakeGPS gps;
+FakeIMU fimu;//"imu" is the namespace of the vector stuff :/
 State computer;
 
 
@@ -35,10 +33,10 @@ void setup()
     while (!Serial)
         ;
 
-    computer.setBaro(&bmp);
+    computer.setBaro(&baro);
     computer.setGPS(&gps);
     // computer.setRTC(&rtc);
-    computer.setIMU(&bno);
+    computer.setIMU(&fimu);
 
     computer.init();
     setupPSRAM(computer.csvHeader);
