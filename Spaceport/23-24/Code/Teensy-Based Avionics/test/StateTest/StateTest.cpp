@@ -78,8 +78,10 @@ void loop()
         ParseIncomingFakeSensorData(Serial.readStringUntil('\n'));
 
     computer.updateState();
-
-    // Serial.println(computer.getdataString());
+    char* stateStr = computer.getStateString();
+    Serial.println(stateStr);
+    delete[] stateStr;
+    stateStr = nullptr;
     recordData(computer.getdataString(), computer.stage);
     delay(100);
     digitalWrite(BUZZER, LOW);

@@ -22,10 +22,13 @@ State::State()
     imu = nullptr;
     lisens = nullptr;
     rtc = nullptr;
+    stateString = nullptr;
+    dataString = nullptr;
 }
 State::~State()
 {
     delete[] csvHeader;
+    delete[] stateString;
 }
 bool State::init()
 {
@@ -203,7 +206,7 @@ void State::setcsvHeader()
         for (int k = 0; headers[i][k]; j++, k++) // append all the header strings onto the main string
             csvHeader[j] = headers[i][k];
         if (i > 1)
-            delete[] headers[i];//delete all the heap arrays
+            delete[] headers[i]; // delete all the heap arrays
     }
     csvHeader[j - 1] = '\0'; // all strings have ',' at end so this gets rid of that and terminates it a character early.
 }
@@ -266,9 +269,23 @@ void State::setdataString()
         for (int k = 0; data[i][k]; j++, k++) // append all the data strings onto the main string
             dataString[j] = data[i][k];
         if (i > 1)
-            delete[] data[i];//delete all the heap arrays.
+            delete[] data[i]; // delete all the heap arrays.
     }
     dataString[j - 1] = '\0'; // all strings have ',' at end so this gets rid of that and terminates it a character early.
+}
+
+char *State::getStateString()
+{
+    delete[] stateString;
+    stateString = new char[500]; // way oversized for right now.
+    snprintf(stateString, 500, "%.2f,%.2f,%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\n",
+             timeAbsolute, timeSinceLaunch, stage, timeSincePreviousStage,
+             acceleration.x(), acceleration.y(), acceleration.z(),
+             velocity.x(), velocity.y(), velocity.z(),
+             position.x(), position.y(), position.z(),
+             orientation.x(), orientation.y(), orientation.z(), orientation.w(),
+             apogee);
+    return stateString;
 }
 
 char *State::getdataString() { return dataString; }

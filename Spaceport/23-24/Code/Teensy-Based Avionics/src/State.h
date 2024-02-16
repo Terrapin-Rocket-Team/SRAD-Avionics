@@ -46,6 +46,7 @@ public:
 
     char *getdataString();
     char *getcsvHeader();
+    char *getStateString(); // This contains only the portions that define what the state thinks the rocket looks like. I recommend sending this over the radio during launches.
 
     double apogee;                 // in m above start position
     double accelerationMagnitude;  // in m/s^2
@@ -61,6 +62,8 @@ public:
 
 private:
     char *dataString;
+    char *stateString;
+
     Barometer *baro;
     GPS *gps;
     IMU *imu;
