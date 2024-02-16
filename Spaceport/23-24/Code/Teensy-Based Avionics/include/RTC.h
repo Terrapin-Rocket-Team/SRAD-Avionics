@@ -12,9 +12,6 @@
 class RTC : public Sensor{
 public:
     virtual ~RTC() {}; // virtual destructor
-    virtual String getcsvHeader() = 0; // these functions set to 0 are like abstract functions
-    virtual String getdataString() = 0; // don't include static values here or in csvHeader
-    virtual void initialize() = 0; 
     virtual imu::Vector<2> getTimeOn() = 0; // ms
     virtual imu::Vector<2> getTimeSinceLaunch() = 0; // ms
     virtual DateTime getLaunchTime() = 0; 
@@ -22,7 +19,6 @@ public:
     virtual DateTime getPowerOnTime() = 0;
     virtual DateTime getCurrentTime() = 0;
     virtual void * getData() = 0;
-    virtual String getStaticDataString() = 0;
 };
 
 #endif 

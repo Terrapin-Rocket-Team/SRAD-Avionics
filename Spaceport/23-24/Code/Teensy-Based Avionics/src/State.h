@@ -9,6 +9,7 @@
 #include "Radio.h"
 #include "RTC.h"
 
+const char stages[][12] = {"Pre-Flight", "Stage X", "Coasting", "Descent", "Post-Flight"};
 class State
 {
 public:
@@ -17,32 +18,35 @@ public:
     imu::Vector<3> velocity;     // in m/s
     imu::Vector<3> acceleration; // in m/s^2
     imu::Quaternion orientation; // in quaternion
-    String stage;
-    Barometer *stateBarometer;
-    GPS *stateGPS;
-    IMU *stateIMU;
-    LightSensor *stateLightSensor;
-    RTC *stateRTC;
-    String csvHeader;
+    char stage[12];
+    char *csvHeader;
     int stageNumber;
     int lastGPSUpdate;
 
     State(); // constructor
-    void setup();
+    ~State();
+    // to be called after all applicable sensors have been added.
+    // Retruns false if any sensor failed to init. check for getSensor == nullptr to see which sensor failed. Disables sensor if failed.
+    bool init();
     void settimeAbsolute();
-    void setcsvHeader();
-    void setdataString();
-    void updateSensors();
     void updateState();
-    String getdataString();
-    String getrecordDataState();
+    char *getrecordDataState();
 
     // add sensor functions
-    void addBarometer(Barometer *Barometer);
-    void addGPS(GPS *gps);
-    void addIMU(IMU *imu);
-    void addLightSensor(LightSensor *LightSensor);
-    void addRTC(RTC *rtc);
+    void setBaro(Barometer *Barometer);
+    void setGPS(GPS *gps);
+    void setIMU(IMU *imu);
+    void setLS(LightSensor *LightSensor);
+    void setRTC(RTC *rtc);
+
+    Barometer *getBaro();
+    GPS *getGPS();
+    IMU *getIMU();
+    LightSensor *getLS();
+    RTC *getRTC();
+
+    char *getdataString();
+    char *getcsvHeader();
 
     double apogee;                 // in m above start position
     double accelerationMagnitude;  // in m/s^2
@@ -51,21 +55,21 @@ public:
     double timePreviousStage;      // in ms
     double timeSincePreviousStage; // in ms
 
-    bool barometerFlag;
-    bool gpsFlag;
-    bool imuFlag;
-    bool lightSensorFlag;
-    bool rtcFlag;
-
-    String recordDataStage;
-
     void determinetimeSincePreviousStage();
     void determinetimeSinceLaunch();
     void determineaccelerationMagnitude(imu::Vector<3> accel);
     void determineapogee(double zPosition);
 
 private:
-    String dataString;
+    char *dataString;
+    Barometer *baro;
+    GPS *gps;
+    IMU *imu;
+    LightSensor *lisens;
+    RTC *rtc;
+
+    void setcsvHeader();
+    void setdataString();
 };
 
 #endif

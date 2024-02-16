@@ -17,7 +17,6 @@ private:
 public:
     BNO055(uint8_t SCK, uint8_t SDA); 
     void calibrate_bno();
-    void initialize();
     imu::Quaternion get_orientation();
     // gives linear_acceleration in m/s/s, which excludes gravity
     imu::Vector<3> get_acceleration();
@@ -26,11 +25,11 @@ public:
     imu::Vector<3> get_magnetometer();
     // gives it in rotations about the x, y, z (yaw, pitch, roll) axes
     imu::Vector<3> convert_to_euler(imu::Quaternion orientation);
-    void * get_data();
-    String getcsvHeader();
-    String getdataString();
-    String getStaticDataString();
-
+    void *get_data();
+    bool initialize() override;
+    char *getcsvHeader() override;
+    char *getdataString() override;
+    char *getStaticDataString() override;
 };
 
 

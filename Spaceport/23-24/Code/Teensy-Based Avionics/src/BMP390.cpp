@@ -1,28 +1,22 @@
 #include "BMP390.h"
 
 /*
-Construtor for the BMP390 class, pass in the pin numbers for each of the I2C pins
+Construtor for the BMP390 class, pass in the pin numbers for each of the I2C pins on the MCU
 */
-BMP390::BMP390(uint8_t SCK, uint8_t SDA) {
+BMP390::BMP390(uint8_t SCK, uint8_t SDA)
+{
 
     SCK_pin = SCK;
-    SDA_pin = SDA; 
-
+    SDA_pin = SDA;
 }
 
-void BMP390::initialize() {
+bool BMP390::initialize()
+{
 
-    // Serial.begin(115200);
-    // while (!Serial);
-    // Serial.println("BMP390 on.");
-
-    if (!bmp.begin_I2C()) {   // hardware I2C mode, can pass in address & alt Wire
-    //if (! bmp.begin_SPI(BMP_CS)) {  // hardware SPI mode  
-    //if (! bmp.begin_SPI(BMP_CS, BMP_SCK, BMP_MISO, BMP_MOSI)) {  // software SPI mode
-        // Serial.begin(115200);
-        // while (!Serial);
+    if (!bmp.begin_I2C())
+    { // hardware I2C mode, can pass in address & alt Wire
         // Serial.println("Could not find a valid BMP390 sensor, check wiring!");
-        delay(1000);
+        return false;
     }
 
     delay(1000);
@@ -44,48 +38,66 @@ void BMP390::initialize() {
         startPressure += bmp.readPressure();
         delay(25);
     }
-    groundPressure = (startPressure/100)/100.0; // hPa
+    groundPressure = (startPressure / 100) / 100.0; // hPa
+    return true;
 }
 
-double BMP390::get_pressure() {
+double BMP390::get_pressure()
+{
     pressure = bmp.readPressure() / 100.0; // hPa
     return pressure;
 }
 
-double BMP390::get_temp() {
+double BMP390::get_temp()
+{
     temp = bmp.readTemperature(); // C
     return temp;
 }
 
-double BMP390::get_temp_f() {
+double BMP390::get_temp_f()
+{
     return (get_temp() * 9.0 / 5.0) + 32.0;
 }
 
-double BMP390::get_pressure_atm() {
+double BMP390::get_pressure_atm()
+{
     return get_pressure() / SEALEVELPRESSURE_HPA;
 }
 
-double BMP390::get_rel_alt_m() {
+double BMP390::get_rel_alt_m()
+{
     altitude = bmp.readAltitude(groundPressure); // meters
     return altitude;
 }
 
-double BMP390::get_rel_alt_ft() {
+double BMP390::get_rel_alt_ft()
+{
     return get_rel_alt_m() * 3.28084;
 }
 
-void * BMP390::get_data() {
-    return (void *) &altitude;
+void *BMP390::get_data()
+{
+    return (void *)&altitude;
 }
 
-String BMP390::getcsvHeader() {
-    return "Pressure (hPa),Temperature (C),Altitude (ft)";
+char *BMP390::getcsvHeader()
+{ // incl  B- to indicate Barometer data  vvvv Why is this in ft and not m?
+    return "B-Pres (hPa),B-Temp (C),B-Alt (ft),"; // trailing commas are very important
 }
 
-String BMP390::getdataString() {
-    return String(get_pressure()) + "," + String(get_temp()) + "," + String(get_rel_alt_ft());
+char *BMP390::getdataString()
+{ // See State.cpp::setdataString() for comments on what these numbers mean
+    // float x3
+    const int size = 12 * 3 + 3;
+    char data[size];
+    snprintf(data, size, "%.2f,%.2f,%.2f,", get_pressure(), get_temp(), get_rel_alt_ft());//trailing comma
+    return data;
 }
 
-String BMP390::getStaticDataString() {
-    return "Ground Pressure (hPa):" + String(groundPressure) + "\n";
+char *BMP390::getStaticDataString()
+{ // See State.cpp::setdataString() for comments on what these numbers mean
+    const int size = 25 + 12 * 1;
+    char data[size];
+    snprintf(data, size, "Ground Pressure (hPa): %.2f\n", groundPressure);
+    return data;
 }

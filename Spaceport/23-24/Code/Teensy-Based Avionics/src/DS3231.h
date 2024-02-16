@@ -14,7 +14,6 @@ private:
 
 public:
     DS3231(); // constructor
-    void initialize(); 
     void onLaunch();
     imu::Vector<2> getTimeOn(); // ms
     imu::Vector<2> getTimeSinceLaunch(); // ms
@@ -22,10 +21,11 @@ public:
     DateTime getPowerOnTime();
     DateTime getCurrentTime();
     DateTime setLaunchTime();
-    void * getData();
-    String getdataString();
-    String getStaticDataString();
-    String getcsvHeader();
+    void *getData();
+    bool initialize() override;
+    char *getcsvHeader() override;
+    char *getdataString() override;
+    char *getStaticDataString() override;
 };
 
 # endif
