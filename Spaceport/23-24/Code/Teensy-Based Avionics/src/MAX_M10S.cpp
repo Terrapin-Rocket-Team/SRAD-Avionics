@@ -29,22 +29,24 @@ MAX_M10S::MAX_M10S(uint8_t SCK, uint8_t SDA, uint8_t address) {
 
 //need to update origin some how
 
-void MAX_M10S::initialize() {
-    // Serial.println("Max-M10s");
+bool MAX_M10S::initialize() {
 
-    Wire.begin(); // Start I2C
 
     //myGNSS.enableDebugging(); // Uncomment this line to enable helpful debug messages on Serial
     delay(25); // Wait for the serial port to initialize
-    while (m10s.begin() == false) //Connect to the u-blox module using Wire port
+    int count = 0;
+    while (m10s.begin() == false && count < 3) //Connect to the u-blox module using Wire port
     {
         // Serial.println(F("u-blox GNSS not detected at default I2C address. Retrying..."));
         delay (1000);
+        count ++;
     }
+    if(!m10s.begin()) return false;
 
     m10s.setI2COutput(COM_TYPE_UBX); //Set the I2C port to output UBX only (turn off NMEA noise)
     
     //myGNSS.saveConfigSelective(VAL_CFG_SUBSEC_IOPORT); //Optional: save (only) the communications port settings to flash and BBR
+    return true;
 }
 
 /*
@@ -148,32 +150,25 @@ void * MAX_M10S::get_data() {
 
 }
 
-String MAX_M10S::getcsvHeader() {
-    return "Latitude (deg), Longitude (deg), "
-        "Altitude (mm), "
-        "Velocity (m/s), "
-        "Displacement X (m), Displacement Y (m), Displacement Z (m), "
-        "gps time (s), "
-        "quality of data (satellites), "
-        "real time (hr/min/s)";
-
+char *MAX_M10S::getcsvHeader()
+{                                                                                                                                                // incl G- for GPS
+    return "G-Lat (deg),G-Lon (deg),G-Alt (m),G-Speed (m/s),G-DispX (m),G-DispY (m),G-DispZ (m),G-Time (s),G-# of Sats,G-Real Time (hr/min/s),"; // trailing comma
 }
-
-String MAX_M10S::getdataString() {
-    return String(pos.x()) + ", " + String(pos.y()) + ", " + 
-        String(altitude) + ", " +
-        String(sqrt(pow(velocity.x(), 2) + pow(velocity.y(), 2) + pow(velocity.z(), 2))) + ", " + 
-        String(displacement.x()) + ", " + String(displacement.y()) + ", " + String(displacement.z()) + ", " + 
-        String(gps_time) + ", " +
-        String(fix_qual) + ", " + 
-        String(irl_time.x()) + ":" + String(irl_time.y()) + ":" + String(irl_time.z());
-    
+char *MAX_M10S::getdataString()
+{
+    // See State.cpp::setdataString() for comments on what these numbers mean. 15 for GPS.
+    const int size = 15 * 2 + 12 * 5 + 10 * 1 + 10 + 10;
+    char data[size];
+    snprintf(data, size, "%.10f,%.10f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%d,%.0f:%.0f:%.0f,", pos.x(), pos.y(), altitude, sqrt(pow(velocity.x(), 2) + pow(velocity.y(), 2) + pow(velocity.z(), 2)), displacement.x(), displacement.y(), displacement.z(), gps_time, fix_qual, irl_time.x(), irl_time.y(), irl_time.z()); // trailing comma
+    return data;
 }
-
-String MAX_M10S::getStaticDataString() {
-    return "Original Latitude (m): " + String(origin.x()) + "\n" +
-        "Original Longitude (m): " + String(origin.y()) + "\n" +
-        "Original Altitude (m): " +  String(origin.z()) + "\n";
+char *MAX_M10S::getStaticDataString()
+{
+    // See State.cpp::setdataString() for comments on what these numbers mean. 15 for GPS.
+    const int size = 54 + 15 * 2 + 12 * 1;
+    char data[size];
+    snprintf(data, size, "Original Latitude (m): %.10f\nOriginal Longitude (m): %.10f\nOriginal Altitude (m): %.2f\n", origin.x(), origin.y(), origin.z());
+    return data;
 }
 
 // Danny S.
