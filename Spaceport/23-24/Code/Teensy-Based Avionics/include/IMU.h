@@ -3,7 +3,6 @@
 #ifndef IMU_H
 #define IMU_H
 
-#include <Arduino.h>
 #include "Sensor.h"
 
 #ifndef __ADAFRUIT_BNO055_H__

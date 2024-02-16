@@ -1,7 +1,6 @@
 #ifndef BAROMETER_H
 #define BAROMETER_H
 
-#include <Arduino.h>
 #include "Sensor.h"
 
 

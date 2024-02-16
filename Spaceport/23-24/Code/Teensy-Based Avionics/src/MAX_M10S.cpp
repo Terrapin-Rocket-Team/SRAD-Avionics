@@ -150,7 +150,7 @@ void * MAX_M10S::get_data() {
 
 }
 
-char *MAX_M10S::getcsvHeader()
+const char *MAX_M10S::getcsvHeader()
 {                                                                                                                                                // incl G- for GPS
     return "G-Lat (deg),G-Lon (deg),G-Alt (m),G-Speed (m/s),G-DispX (m),G-DispY (m),G-DispZ (m),G-Time (s),G-# of Sats,G-Real Time (hr/min/s),"; // trailing comma
 }
@@ -158,15 +158,15 @@ char *MAX_M10S::getdataString()
 {
     // See State.cpp::setdataString() for comments on what these numbers mean. 15 for GPS.
     const int size = 15 * 2 + 12 * 5 + 10 * 1 + 10 + 10;
-    char data[size];
+    char *data = new char[size];
     snprintf(data, size, "%.10f,%.10f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%d,%.0f:%.0f:%.0f,", pos.x(), pos.y(), altitude, sqrt(pow(velocity.x(), 2) + pow(velocity.y(), 2) + pow(velocity.z(), 2)), displacement.x(), displacement.y(), displacement.z(), gps_time, fix_qual, irl_time.x(), irl_time.y(), irl_time.z()); // trailing comma
     return data;
 }
 char *MAX_M10S::getStaticDataString()
 {
     // See State.cpp::setdataString() for comments on what these numbers mean. 15 for GPS.
-    const int size = 54 + 15 * 2 + 12 * 1;
-    char data[size];
+    const int size = 60 + 15 * 2 + 12 * 1;
+    char *data = new char[size];
     snprintf(data, size, "Original Latitude (m): %.10f\nOriginal Longitude (m): %.10f\nOriginal Altitude (m): %.2f\n", origin.x(), origin.y(), origin.z());
     return data;
 }

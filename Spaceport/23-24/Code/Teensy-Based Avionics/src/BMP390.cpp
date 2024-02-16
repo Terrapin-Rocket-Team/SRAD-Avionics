@@ -80,7 +80,7 @@ void *BMP390::get_data()
     return (void *)&altitude;
 }
 
-char *BMP390::getcsvHeader()
+const char *BMP390::getcsvHeader()
 { // incl  B- to indicate Barometer data  vvvv Why is this in ft and not m?
     return "B-Pres (hPa),B-Temp (C),B-Alt (ft),"; // trailing commas are very important
 }
@@ -89,7 +89,7 @@ char *BMP390::getdataString()
 { // See State.cpp::setdataString() for comments on what these numbers mean
     // float x3
     const int size = 12 * 3 + 3;
-    char data[size];
+    char *data = new char[size];
     snprintf(data, size, "%.2f,%.2f,%.2f,", get_pressure(), get_temp(), get_rel_alt_ft());//trailing comma
     return data;
 }
@@ -97,7 +97,7 @@ char *BMP390::getdataString()
 char *BMP390::getStaticDataString()
 { // See State.cpp::setdataString() for comments on what these numbers mean
     const int size = 25 + 12 * 1;
-    char data[size];
+    char *data = new char[size];
     snprintf(data, size, "Ground Pressure (hPa): %.2f\n", groundPressure);
     return data;
 }

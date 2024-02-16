@@ -36,7 +36,7 @@ public:
     int get_fix_qual();
     void *get_data();
     bool initialize() override;
-    char *getcsvHeader() override;
+    const char *getcsvHeader() override;
     char *getdataString() override;
     char *getStaticDataString() override;
 };

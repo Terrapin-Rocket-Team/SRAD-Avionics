@@ -27,7 +27,7 @@ public:
     imu::Vector<3> convert_to_euler(imu::Quaternion orientation);
     void *get_data();
     bool initialize() override;
-    char *getcsvHeader() override;
+    const char *getcsvHeader() override;
     char *getdataString() override;
     char *getStaticDataString() override;
 };

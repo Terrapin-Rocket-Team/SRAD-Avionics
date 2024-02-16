@@ -23,7 +23,7 @@ public:
     DateTime setLaunchTime();
     void *getData();
     bool initialize() override;
-    char *getcsvHeader() override;
+    const char *getcsvHeader() override;
     char *getdataString() override;
     char *getStaticDataString() override;
 };

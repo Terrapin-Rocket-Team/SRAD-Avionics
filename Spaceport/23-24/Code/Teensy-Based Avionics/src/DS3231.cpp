@@ -54,7 +54,7 @@ void * DS3231::getData() { //sec since launch, cast to void pointer
     return ((void *)(millis()));
 }
 
-char *DS3231::getcsvHeader()
+const char *DS3231::getcsvHeader()
 {
     return "R-CurTime,R-Time Since Launch,"; // trailing comma
 }
@@ -62,7 +62,7 @@ char *DS3231::getdataString()
 {
     // See State.cpp::setdataString() for comments on what these numbers mean. 19 for the timestamp
     const int size = 19 * 1 + 12 * 1 + 2;
-    char data[size];
+    char *data = new char[size];
     snprintf(data, size, "%s,%.2f,", getCurrentTime().timestamp().c_str(), getTimeSinceLaunch()[0]); // trailing comma
     return data;
 }
@@ -70,7 +70,7 @@ char *DS3231::getStaticDataString()
 {
     // See State.cpp::setdataString() for comments on what these numbers mean. 19 for the timestamps
     const int size = 47 + 10 * 1 + 19 * 2;
-    char data[size];
+    char *data = new char[size];
     snprintf(data, size, "millis_at_start: %d\npower_on_time: %s\nlaunch_time: %s\n", millisAtStart, powerOnTime.timestamp().c_str(), launchTime.timestamp().c_str());
     return data;
 }
