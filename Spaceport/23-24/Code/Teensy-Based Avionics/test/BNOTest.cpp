@@ -11,7 +11,9 @@ void setup() {
     bno.initialize();
     Serial.println("BNO055 initialized");
     delay(1000);
-    Serial.println(bno.getStaticDataString());
+    char* str = bno.getStaticDataString();
+    Serial.println(str);
+    delete[] str;
 }
 
 void loop() {
