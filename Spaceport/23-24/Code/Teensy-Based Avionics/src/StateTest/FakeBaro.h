@@ -6,7 +6,7 @@
 class FakeBaro : public Barometer
 {
 public:
-    void feedData(double npress, double ntemp, double nalt)
+    void feedData(double nalt, double ntemp, double npress)
     {
         press = npress;
         temp = ntemp;
