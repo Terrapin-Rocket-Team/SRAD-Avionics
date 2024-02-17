@@ -150,7 +150,7 @@ void State::updateState()
         stageNumber = 5;
         strcpy(stage, stages[4]);
     }
-
+    determineapogee(position.z());
     // backup case to dump data (25 minutes)
     determinetimeSinceLaunch();
     if (stageNumber > 0 && timeSinceLaunch > 1500000 && stageNumber < 5)
@@ -169,7 +169,6 @@ void State::setcsvHeader()
     const char *headers[] = {csvHeaderStart, nullptr, nullptr, nullptr, nullptr}; // all stack arrays!!!!
     int cursor = 1;
     delete[] csvHeader; // just in case there is already something there. This function should never be called more than once.
-
     //---Determine required size for header
     int size = sizeof(csvHeaderStart); // includes '\0' at end of string for the end of csvHeader to use
     if (baro)
@@ -198,17 +197,15 @@ void State::setcsvHeader()
         size += strlen(headers[cursor++]);
     }
     csvHeader = new char[size];
-
     //---Fill header String
     int j = 0;
     for (int i = 0; headers[i]; i++)
     {
         for (int k = 0; headers[i][k]; j++, k++) // append all the header strings onto the main string
             csvHeader[j] = headers[i][k];
-        if (i > 1)
-            delete[] headers[i]; // delete all the heap arrays
     }
     csvHeader[j - 1] = '\0'; // all strings have ',' at end so this gets rid of that and terminates it a character early.
+
 }
 
 // This doesn't really follow DRY, but I couldn't be bothered to make it more generic because I don't think I'll ever have to write it again.
@@ -268,7 +265,7 @@ void State::setdataString()
     {
         for (int k = 0; data[i][k]; j++, k++) // append all the data strings onto the main string
             dataString[j] = data[i][k];
-        if (i > 1)
+        if (i >= 1)
             delete[] data[i]; // delete all the heap arrays.
     }
     dataString[j - 1] = '\0'; // all strings have ',' at end so this gets rid of that and terminates it a character early.

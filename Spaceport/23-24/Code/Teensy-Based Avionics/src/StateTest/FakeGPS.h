@@ -26,7 +26,7 @@ public:
     char *getdataString()
     {
         char *data = new char[2];
-        snprintf(data, 1, "%s",",");
+        snprintf(data, 2, "%s",",");
         return data;
     }
     char *getStaticDataString()
