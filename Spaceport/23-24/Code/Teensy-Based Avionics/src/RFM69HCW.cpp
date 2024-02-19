@@ -552,7 +552,7 @@ int RFM69HCW::RSSI()
 }
 
 // utility functions
-
+// <algorithm> header has a max and min function - danny
 int max(int a, int b)
 {
     if (a > b)
