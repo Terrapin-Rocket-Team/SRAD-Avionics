@@ -4,25 +4,25 @@
 #define IS_RFM69HW_HCW
 
 #include "Radio.h"
+#include "APRSMsg.h"
 #include "RFM69.h"
 #include "APRSEncodeFunctions.h"
-#include "APRSMsg.h"
 
 class RFM69HCW : public Radio
 {
 public:
     RFM69HCW(uint32_t frequency, bool transmitter, bool highBitrate, APRSConfig config);
     ~RFM69HCW();
-    void begin();
-    void begin(SPIClass *s, uint8_t cs, uint8_t irq);
-    bool tx(char *message);
-    const char *rx();
-    bool encode(char *message, EncodingType type);
-    bool decode(char *message, EncodingType type);
-    bool send(char *message, EncodingType type);
-    const char *receive(EncodingType type);
+    void begin() override;
+    void begin(SPIClass *s, uint8_t cs, uint8_t irq, uint8_t rst);
+    bool tx(char *message) override;
+    const char *rx() override;
+    bool encode(char *message, EncodingType type) override;
+    bool decode(char *message, EncodingType type) override;
+    bool send(const char *message, EncodingType type) override;
+    const char *receive(EncodingType type) override;
     bool available();
-    int RSSI();
+    int RSSI() override;
 
 private:
     RFM69 radio;

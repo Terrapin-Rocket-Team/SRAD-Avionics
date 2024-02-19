@@ -22,27 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#ifndef APRS_ENCODE_FUNCTIONS_H
-#define APRS_ENCODE_FUNCTIONS_H
-
-#if defined(ARDUINO)
-#include <Arduino.h>
-#elif defined(_WIN32) || defined(_WIN64) // Windows
-#include <cstdint>
-#include <string>
-#include <cstring>
-#elif defined(__unix__)  // Linux
-// TODO
-#elif defined(__APPLE__) // OSX
-// TODO
-#endif
-
-char *s_min_nn(uint32_t min_nnnnn, int high_precision);
-void create_lat_aprs(char (*lat)[], bool hp);
-void create_long_aprs(char (*lng)[], bool hp);
-char *create_dao_aprs(char *lat, char *lng);
-void padding(unsigned int number, unsigned int width, char (*output)[], int offset = 0);
-int numDigits(unsigned int num);
+#include "APRSEncodeFunctions.h"
 
 // takes in decimal minutes and converts to MM.dddd
 char *s_min_nn(uint32_t min_nnnnn, int high_precision)
@@ -93,16 +73,16 @@ char *s_min_nn(uint32_t min_nnnnn, int high_precision)
 }
 
 // creates the latitude string for the APRS message based on whether the GPS coordinates are high precision
-void create_lat_aprs(char (*lat)[], bool hp)
+void create_lat_aprs(char *lat, bool hp)
 {
-    bool negative = (*lat)[0] == '-';
+    bool negative = lat[0] == '-';
 
-    int len = strlen(*lat);
+    int len = strlen(lat);
     int decimalPos = 0;
     // use for loop in case there is no decimal
     for (int i = 0; i < len; i++)
     {
-        if ((*lat)[i] == '.')
+        if (lat[i] == '.')
         {
             decimalPos = i;
             break;
@@ -111,20 +91,20 @@ void create_lat_aprs(char (*lat)[], bool hp)
     // we like sprintf's float up-rounding.
     // but sprintf % may round to 60.00 -> 5360.00 (53° 60min is a wrong notation
     // ;)
-    sprintf(*lat, "%02d%s%c", atoi(*lat) * (negative ? -1 : 1), s_min_nn(atoi(*lat + decimalPos + 1), hp), negative ? 'S' : 'N');
+    sprintf(lat, "%02d%s%c", atoi(lat) * (negative ? -1 : 1), s_min_nn(atoi(lat + decimalPos + 1), hp), negative ? 'S' : 'N');
 }
 
 // creates the longitude string for the APRS message based on whether the GPS coordinates are high precision
-void create_long_aprs(char (*lng)[], bool hp)
+void create_long_aprs(char *lng, bool hp)
 {
-    bool negative = (*lng)[0] == '-';
+    bool negative = lng[0] == '-';
 
-    int len = strlen(*lng);
+    int len = strlen(lng);
     int decimalPos = 0;
     // use for loop in case there is no decimal
     for (int i = 0; i < len; i++)
     {
-        if ((*lng)[i] == '.')
+        if (lng[i] == '.')
         {
             decimalPos = i;
             break;
@@ -133,7 +113,7 @@ void create_long_aprs(char (*lng)[], bool hp)
     // we like sprintf's float up-rounding.
     // but sprintf % may round to 60.00 -> 5360.00 (53° 60min is a wrong notation
     // ;)
-    sprintf(*lng, "%02d%s%c", atoi(*lng) * (negative ? -1 : 1), s_min_nn(atoi(*lng + decimalPos + 1), hp), negative ? 'W' : 'E');
+    sprintf(lng, "%02d%s%c", atoi(lng) * (negative ? -1 : 1), s_min_nn(atoi(lng + decimalPos + 1), hp), negative ? 'W' : 'E');
 }
 
 // creates the dao at the end of aprs message based on latitude and longitude
@@ -168,7 +148,7 @@ char *create_dao_aprs(char *lat, char *lng)
 }
 
 // adds a specified number of zeros to the begining of a number
-void padding(unsigned int number, unsigned int width, char (*output)[], int offset)
+void padding(unsigned int number, unsigned int width, char *output, int offset)
 {
     unsigned int numLen = numDigits(number);
     if (numLen > width)
@@ -177,9 +157,9 @@ void padding(unsigned int number, unsigned int width, char (*output)[], int offs
     }
     for (unsigned int i = 0; i < width - numLen; i++)
     {
-        (*output)[offset + i] = '0';
+        output[offset + i] = '0';
     }
-    sprintf(*output + offset + width - numLen, "%d", number);
+    sprintf(output + offset + width - numLen, "%u", number);
 }
 
 int numDigits(unsigned int num)
@@ -188,5 +168,3 @@ int numDigits(unsigned int num)
         return 1;
     return 1 + numDigits(num / 10);
 }
-
-#endif

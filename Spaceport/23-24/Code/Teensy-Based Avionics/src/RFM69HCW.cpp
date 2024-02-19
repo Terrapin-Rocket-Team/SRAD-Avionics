@@ -7,9 +7,9 @@ Constructor
     - highBitrate true for 300kbps, false for 4.8kbps
     - config with APRS settings
 */
-RFM69HCW::RFM69HCW(uint32_t frquency, bool transmitter, bool highBitrate, APRSConfig config)
+RFM69HCW::RFM69HCW(uint32_t frequency, bool transmitter, bool highBitrate, APRSConfig config)
 {
-    this->frq = frq;
+    this->frq = frequency;
 
     this->isTransmitter = transmitter;
     if (this->isTransmitter)
@@ -72,7 +72,7 @@ Initializer to call in setup
     - cs is the chip select pin
     - irq is the interrupt pin
 */
-void RFM69HCW::begin(SPIClass *s, uint8_t cs, uint8_t irq)
+void RFM69HCW::begin(SPIClass *s, uint8_t cs, uint8_t irq, uint8_t rst)
 {
 
     this->radio = RFM69(cs, irq, true, s);
@@ -80,6 +80,8 @@ void RFM69HCW::begin(SPIClass *s, uint8_t cs, uint8_t irq)
     // the frequency the initialize function uses is kinda useless, it only lets you choose from preselected frequencies
     // so set the frequency to the right band 433 or 915 Mhz at first
     radio.initialize(this->frq < 914e6 ? RF69_433MHZ : RF69_915MHZ, this->addr, this->networkID);
+    if (true)
+        radio.readAllRegsCompact();
     // then use this to actually set the frequency
     radio.setFrequency(this->frq);
     radio.setHighPower(true);
@@ -88,6 +90,13 @@ void RFM69HCW::begin(SPIClass *s, uint8_t cs, uint8_t irq)
     // the default bitrate of 4.8kbps should be fine unless we want high bitrate for video
     if (this->isHighBitrate)
         radio.set300KBPS();
+
+    pinMode(rst, OUTPUT);
+    digitalWrite(rst, LOW);
+    delay(10);
+    digitalWrite(rst, HIGH);
+    delay(10);
+    digitalWrite(rst, LOW);
 }
 
 /*
@@ -104,13 +113,25 @@ bool RFM69HCW::tx(char *message)
     this->addr = len / bufSize + (len % bufSize > 0);
     radio.setAddress(this->addr);
 
-    // fill the buffer repeatedly until the entire message has been sent
-    for (int j = 0; j < this->addr; j++)
-    {
-        memcpy(this->buf, message + j * 61, min(61, len - j * 61));
+    Serial.println(this->addr);
 
-        radio.send(this->toAddr, (void *)buf, this->bufSize, false);
+    // fill the buffer repeatedly until the entire message has been sent
+    for (unsigned int j = 0; j < this->addr; j++)
+    {
+        memset(this->buf, 0, 61);
+        memcpy(this->buf, message + j * 61, min(61, len - j * 61));
+        Serial.println(min(61, len - j * 61));
+        Serial.print(this->toAddr);
+        Serial.print(" ");
+        this->buf[60] = '\0';
+        Serial.print(this->buf);
+        Serial.print(" ");
+        Serial.print(message + j * 61);
+        Serial.print(" ");
+        Serial.println(min(61, len - j * 61));
+        radio.send(this->toAddr, (void *)this->buf, min(61, len - j * 61), false);
     }
+    Serial.println("2");
 
     this->addr = 0x0002;
     radio.setAddress(this->addr);
@@ -125,7 +146,10 @@ Note that the message may be incomplete, if the message is complete available() 
 */
 const char *RFM69HCW::rx()
 {
-    if (radio.receiveDone())
+    bool t = radio.receiveDone();
+    Serial.print("Receive done? ");
+    Serial.println(t);
+    if (t)
     {
         // copy data from the radio object
         strncpy(this->buf, (char *)radio.DATA, bufSize);
@@ -175,17 +199,21 @@ bool RFM69HCW::encode(char *message, EncodingType type)
     if (type == ENCT_TELEMETRY)
     {
         APRSMsg aprs;
-        int msgLen = strlen(message);
-        // make sure message has enough space for the output
+        int msgLen = strlen(this->lastMsg);
+
+        //  make sure message has enough space for the output
         if (msgLen < 110)
         {
-            char *msg = new char[msgLen];
-            strcpy(msg, message);
-            delete[] message;
-            message = new char[111];
-            strcpy(message, msg);
+            char *msg = new char[msgLen + 1];
+            strcpy(msg, this->lastMsg);
+            delete[] this->lastMsg;
+            this->lastMsg = new char[111];
+            strcpy(this->lastMsg, msg);
+
             delete[] msg;
         }
+
+        message = this->lastMsg;
 
         aprs.setSource(this->cfg.CALLSIGN);
         aprs.setPath(this->cfg.PATH);
@@ -205,7 +233,7 @@ bool RFM69HCW::encode(char *message, EncodingType type)
                 currentVal[currentValIndex] = message[i];
                 currentValIndex++;
             }
-            if (message[i] == ',')
+            if (message[i] == ',' || (currentValCount == 7 && i == msgLen - 1))
             {
                 currentVal[currentValIndex] = '\0';
 
@@ -236,14 +264,14 @@ bool RFM69HCW::encode(char *message, EncodingType type)
         if (data.precision == 'L')
         {
             strcpy(data.dao, "");
-            create_lat_aprs(&data.lat, 0);
-            create_long_aprs(&data.lng, 0);
+            create_lat_aprs(data.lat, 0);
+            create_long_aprs(data.lng, 0);
         }
         else if (data.precision == 'H')
         {
             strcpy(data.dao, create_dao_aprs(data.lat, data.lng));
-            create_lat_aprs(&data.lat, 1);
-            create_long_aprs(&data.lng, 1);
+            create_lat_aprs(data.lat, 1);
+            create_long_aprs(data.lng, 1);
         }
 
         // get alt string
@@ -251,12 +279,12 @@ bool RFM69HCW::encode(char *message, EncodingType type)
         if (alt_int < 0)
         {
             strcpy(data.alt, "/A=-");
-            padding(alt_int * -1, 5, &data.alt, 4);
+            padding(alt_int * -1, 5, data.alt, 4);
         }
         else
         {
             strcpy(data.alt, "/A=");
-            padding(alt_int, 6, &data.alt, 3);
+            padding(alt_int, 6, data.alt, 3);
         }
 
         // get course/speed strings
@@ -265,8 +293,8 @@ bool RFM69HCW::encode(char *message, EncodingType type)
         int hdg_int = max(0, min(360, atoi(data.hdg)));
         if (hdg_int == 0)
             hdg_int = 360;
-        padding(spd_int, 3, &data.spd);
-        padding(hdg_int, 3, &data.hdg);
+        padding(spd_int, 3, data.spd);
+        padding(hdg_int, 3, data.hdg);
 
         // generate the aprs message
         char body[80];
@@ -274,7 +302,7 @@ bool RFM69HCW::encode(char *message, EncodingType type)
                 data.hdg, '/', data.spd, data.alt, "/S", data.stage, '/',
                 data.t0, ' ', data.dao);
         aprs.getBody()->setData(body);
-        aprs.encode(message);
+        aprs.encode(this->lastMsg);
         return true;
     }
     return false;
@@ -478,7 +506,7 @@ bool RFM69HCW::decode(char *message, EncodingType type)
         lat *= latMult;
         lng *= lngMult;
 
-        sprintf(message, "%d,%d,%s,%s,%s,%s,%s,%s", lat, lng, data.alt, data.spd, data.hdg, strlen(data.dao) > 0 ? 'H' : 'L', data.stage, data.t0);
+        sprintf(message, "%f,%f,%s,%s,%s,%c,%s,%s", lat, lng, data.alt, data.spd, data.hdg, strlen(data.dao) > 0 ? 'H' : 'L', data.stage, data.t0);
 
         return true;
     }
@@ -508,13 +536,20 @@ char *message must be a null terminated string
     - message is the message to be sent
     - type is the encoding type
 */
-bool RFM69HCW::send(char *message, EncodingType type)
+bool RFM69HCW::send(const char *message, EncodingType type)
 {
+    Serial.println("1");
     delete[] this->lastMsg;
+    Serial.println("2");
     this->lastMsg = new char[strlen(message) + 1];
+    Serial.println("3");
     strcpy(this->lastMsg, message);
-
-    return encode(this->lastMsg, type) && tx(this->lastMsg);
+    Serial.println("4");
+    encode(this->lastMsg, type);
+    Serial.println("5");
+    tx(this->lastMsg);
+    Serial.println("6");
+    return true;
 }
 
 /*
@@ -552,7 +587,7 @@ int RFM69HCW::RSSI()
 }
 
 // utility functions
-
+#ifndef max
 int max(int a, int b)
 {
     if (a > b)
@@ -560,9 +595,14 @@ int max(int a, int b)
     return b;
 }
 
+#endif
+
+#ifndef min
 int min(int a, int b)
 {
     if (a < b)
         return a;
     return b;
 }
+
+#endif
