@@ -34,7 +34,8 @@ void BNO055::calibrate_bno()
 
 
 imu::Quaternion BNO055::get_orientation() {
-    return bno.getQuat();
+    orientation = bno.getQuat();
+    return orientation;
 }
 
 imu::Vector<3> BNO055::get_acceleration() {
