@@ -48,7 +48,6 @@ void RFM69HCW::begin()
 #if defined(TEENSYDUINO)
     // default SPI for teensy 4.1 uses pin 10 for CS and can use pin 9 for interrupt
     this->radio = RFM69(10, 9, true, &SPI);
-    this->radio = RFM69();
 #else
     // attempt to create the radio, but this probably won't work
     this->radio = RFM69();
@@ -285,7 +284,7 @@ bool RFM69HCW::encode(char *message, EncodingType type)
 Multi-purpose encoder function
 Decodes the message into a format selected by type
 char *message must be a dynamically allocated null terminated string
-- Telemetry: TODO
+- Telemetry:
     message - input: APRS message -> output: latitude,longitude,altitude,speed,heading,precision,stage,t0
 - Video: TODO
     message - input: Base 64 string -> output: ?
@@ -401,9 +400,85 @@ bool RFM69HCW::decode(char *message, EncodingType type)
         strncpy(data.dao, bodyptr, len - (bodyptr - body));
         data.dao[len - (bodyptr - body)] = '\0';
 
-        // TODO convert lat and lng to degrees
+        // convert lat and lng to degrees
 
-        sprintf(message, "%s,%s,%s,%s,%s,%s,%s,%s", data.lat, data.lng, data.alt, data.spd, data.hdg, strlen(data.dao) > 0 ? 'H' : 'L', data.stage, data.t0);
+        int latMult = (data.lat[strlen(data.lat) - 1] == 'N') ? 1 : -1;
+        int lngMult = (data.lat[strlen(data.lat) - 1] == 'E') ? 1 : -1;
+
+        int lenLat = strlen(data.lat);
+        int decimalPosLat = 0;
+        // use for loop in case there is no decimal
+        for (int i = 0; i < lenLat; i++)
+        {
+            if (data.lat[i] == '.')
+            {
+                decimalPosLat = i;
+                break;
+            }
+        }
+
+        int lenLng = strlen(data.lng);
+        int decimalPosLng = 0;
+        // use for loop in case there is no decimal
+        for (int i = 0; i < lenLng; i++)
+        {
+            if (data.lng[i] == '.')
+            {
+                decimalPosLng = i;
+                break;
+            }
+        }
+
+        double lat = 0;
+        for (int i = decimalPosLat - 3; i >= 0; i--)
+        {
+            int t = data.lat[i];
+            for (int j = 0; j < i; j++)
+                t *= 10;
+            lat += t;
+        }
+
+        double latMins = 0;
+        for (int i = lenLat - 2; i > decimalPosLat - 3; i--)
+        {
+            if (data.lat[i] == '.')
+                continue;
+            double t = data.lat[i];
+            for (int j = (lenLat - 2 - decimalPosLat) * -1; j < i - 2; j++)
+                t *= j < 0 ? 1 / 10 : 10;
+            latMins += t;
+        }
+        latMins /= 60;
+
+        lat += latMins;
+
+        double lng = 0;
+        for (int i = decimalPosLng - 3; i >= 0; i--)
+        {
+            int t = data.lng[i];
+            for (int j = 0; j < i; j++)
+                t *= 10;
+            lat += t;
+        }
+
+        double lngMins = 0;
+        for (int i = lenLng - 2; i > decimalPosLng - 3; i--)
+        {
+            if (data.lng[i] == '.')
+                continue;
+            double t = data.lng[i];
+            for (int j = (lenLng - 2 - decimalPosLng) * -1; j < i - 2; j++)
+                t *= j < 0 ? 1 / 10 : 10;
+            lngMins += t;
+        }
+        lngMins /= 60;
+
+        lng += lngMins;
+
+        lat *= latMult;
+        lng *= lngMult;
+
+        sprintf(message, "%d,%d,%s,%s,%s,%s,%s,%s", lat, lng, data.alt, data.spd, data.hdg, strlen(data.dao) > 0 ? 'H' : 'L', data.stage, data.t0);
 
         return true;
     }

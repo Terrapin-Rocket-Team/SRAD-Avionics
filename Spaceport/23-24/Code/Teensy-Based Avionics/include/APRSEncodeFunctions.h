@@ -44,7 +44,7 @@ char *create_dao_aprs(char *lat, char *lng);
 void padding(unsigned int number, unsigned int width, char (*output)[], int offset = 0);
 int numDigits(unsigned int num);
 
-// takes in decimal minutes and converts to MM.dd or MM.dddd
+// takes in decimal minutes and converts to MM.dddd
 char *s_min_nn(uint32_t min_nnnnn, int high_precision)
 {
     /* min_nnnnn: RawDegrees billionths is uint32_t by definition and is n'telth
