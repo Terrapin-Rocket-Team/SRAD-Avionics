@@ -123,8 +123,16 @@ bool APRSMsg::decode(char *message)
     if (pos_path - (pos_dest + 1) >= 10)
         return false;
 
-    strncpy(_source, message, pos_src);
-    _source[pos_src] = '\0';
+    if (pos_src >= 0)
+    {
+        strncpy(_source, message, pos_src);
+        _source[pos_src] = '\0';
+    }
+    else
+    {
+        _source[0] = '\0';
+    }
+    
     if (pos_dest != -1 && pos_dest < pos_path)
     {
         strncpy(_path, message + pos_dest + 1, pos_path - (pos_dest + 1));
@@ -135,8 +143,16 @@ bool APRSMsg::decode(char *message)
     else
     {
         _path[0] = '\0';
-        strncpy(_destination, message + pos_src + 1, pos_path - (pos_src + 1));
-        _destination[pos_path - (pos_src + 1)] = '\0';
+        if (pos_src >= 0 && pos_path >= 0)
+        {
+
+            strncpy(_destination, message + pos_src + 1, pos_path - (pos_src + 1));
+            _destination[pos_path - (pos_src + 1)] = '\0';
+        }
+        else
+        {
+            _destination[0] = '\0';
+        }
     }
     strcpy(_rawBody, message + pos_path + 1);
     _rawBody[strlen(message + pos_path + 1)] = '\0';
