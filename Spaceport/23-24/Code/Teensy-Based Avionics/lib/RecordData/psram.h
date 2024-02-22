@@ -14,27 +14,8 @@ void psramPrintln();  // Add a newline to the file in FRAM
 float getPSRAMCapacity();  // % of storage used in FRAM
 
 // Write string and newline to FRAM
-template< typename T > void psramPrintln( T data ){
-  String str = String(data);
-  int strLen = str.length();
-  for(int i = 0; i < strLen; i++){
-    *psramNextLoc = str.charAt(i);
-    psramNextLoc++;
-  }
-  *psramNextLoc = '\n';
-  psramNextLoc++;
-}
-
-// Write string to FRAM
-template< typename T > void psramPrint( T data ){
-  String str = String(data);
-  int strLen = str.length();
-  
-  for(int i = 0; i < strLen; i++){
-    *psramNextLoc = str.charAt(i);
-    psramNextLoc++;
-  }
-}
+void psramPrint(const char *data);
+void psramPrintln(const char *data);
 
 String PSRAMDumpToSD();  // Dump FRAM to SD Card, returns Timeout if timeout and Dumped if successful
 void PSRAMPreLaunchDump();
@@ -42,7 +23,7 @@ void PSRAMPreLaunchDump();
 bool isPSRAMReady();  // Returns whether the FRAM is initialized
 bool isPSRAMDumped();  // Returns whether the FRAM has been dumped
 char* getPSRAMNextLoc();  // Returns the next free memory location in FRAM
-bool setupPSRAM(String csvHeader);  // Initializes the FRAM
+bool setupPSRAM(const char* csvHeader);  // Initializes the FRAM
 void resetPSRAMDumpStatus();  // Resets PSRAM Dump Status
 
 void psramMarkLiftoff();

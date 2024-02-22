@@ -34,7 +34,7 @@ void setup()
     computer.init();
 
     setupPSRAM(computer.csvHeader);
-    bool sdSuccess = setupSDCard(computer.csvHeader);
+    bool sdSuccess = setupSDCard(String(computer.csvHeader));
 
     if (sdSuccess)
     {
@@ -55,7 +55,7 @@ void setup()
         digitalWrite(BUZZER, LOW);
     }
     Serial.println("Initialized");
-    digitalWrite(LED_BUILTIN, HIGH); // keep light high indicating testing
+    //digitalWrite(LED_BUILTIN, HIGH); // keep light high indicating testing
     while (Serial.available() == 0)
     {
     }

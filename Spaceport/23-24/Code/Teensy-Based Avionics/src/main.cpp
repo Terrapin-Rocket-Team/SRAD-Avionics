@@ -63,5 +63,5 @@ void loop() {
 
     // Serial.println(computer.getdataString());
     recordData(computer.getdataString(), computer.stage);
-    delay(100);
+    delay(50);
 }

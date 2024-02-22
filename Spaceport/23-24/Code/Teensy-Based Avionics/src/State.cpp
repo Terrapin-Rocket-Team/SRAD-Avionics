@@ -153,7 +153,7 @@ void State::updateState()
     determineapogee(position.z());
     // backup case to dump data (25 minutes)
     determinetimeSinceLaunch();
-    if (stageNumber > 0 && timeSinceLaunch > 1500000 && stageNumber < 5)
+    if (stageNumber > 0 && timeSinceLaunch > 120000 && stageNumber < 5)
     {
         stageNumber = 5;
         strcpy(stage, stages[4]);
@@ -161,12 +161,13 @@ void State::updateState()
         delay(500);
         digitalWrite(LED_BUILTIN, LOW);
     }
+    setdataString();
 }
 
 void State::setcsvHeader()
 {
     char csvHeaderStart[] = "Time,Stage,PX,PY,PZ,VX,VY,VZ,AX,AY,AZ,";
-    const char *headers[] = {csvHeaderStart, nullptr, nullptr, nullptr, nullptr}; // all stack arrays!!!!
+    const char *headers[] = {csvHeaderStart, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}; // all stack arrays!!!!
     int cursor = 1;
     delete[] csvHeader; // just in case there is already something there. This function should never be called more than once.
     //---Determine required size for header
@@ -226,7 +227,7 @@ void State::setdataString()
         acceleration.x(), acceleration.y(), acceleration.z());
     // Serial.print(used);//Just curious
 
-    char *data[] = {csvDataStart, nullptr, nullptr, nullptr, nullptr};
+    char *data[] = {csvDataStart, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
     int cursor = 1;
     delete[] dataString; // This probably definitely exists (although maybe shouldn't if RecordData deletes it when it's done.)
 
