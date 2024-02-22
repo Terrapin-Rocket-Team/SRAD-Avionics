@@ -146,7 +146,7 @@ void State::updateState()
     {
         stageNumber = 3;
     }
-    else if (stageNumber == 3 && position.z() < 750 && millis() - timeSinceLaunch > 120000)
+    else if (stageNumber == 3 && position.z() < 750 && millis() - timeSinceLaunch > 120000)//This should be lowered
     {
         stageNumber = 4;
     }
@@ -157,7 +157,7 @@ void State::updateState()
     determineapogee(position.z());
     // backup case to dump data (25 minutes)
     determinetimeSinceLaunch();
-    if (stageNumber > 0 && timeSinceLaunch > 120000 && stageNumber < 5)
+    if (stageNumber > 0 && timeSinceLaunch > 1500000 && stageNumber < 5)
     {
         stageNumber = 5;
         digitalWrite(LED_BUILTIN, HIGH);
