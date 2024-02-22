@@ -23,7 +23,7 @@ void recordData(char* data, char* stage){
             PSRAMDumpToSD();
         }
     }
-    else if(stage[0] == 'S'){//'S' for "Stage X" TODO: implement better check for this lmao
+    else if(stage !=nullptr){//'S' for "Stage X" TODO: implement better check for this lmao
         psramMarkLiftoff();  // TODO this should only have to run the first time
         dataToPSRAM(data);
     }
@@ -33,7 +33,7 @@ void recordData(char* data, char* stage){
     }
     }
 
-void dataToPSRAM(char* data){
+void dataToPSRAM( char* data){
     if(isPSRAMReady()){
         psramPrintln(data);
     }

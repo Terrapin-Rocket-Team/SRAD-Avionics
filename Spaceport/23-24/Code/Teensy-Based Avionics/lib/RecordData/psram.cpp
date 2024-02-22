@@ -10,7 +10,7 @@ char *psram_memory_cur = NULL;
 std::vector<String> previousRowsPSRAM = {};
 bool isLaunchedPSRAM = false;
 
-bool setupPSRAM(String csvHeader){
+bool setupPSRAM(const char *csvHeader){
   uint8_t size = external_psram_size;
   psram_memory_begin = (char *)(0x70000000);
   psram_memory_end = psram_memory_begin + (size * 1048576);
@@ -18,17 +18,29 @@ bool setupPSRAM(String csvHeader){
   psram_memory_cur = psram_memory_begin;
   
   if(size > 0){
-    // Serial.println(F("PSRAM Ready"));
+    Serial.println(F("PSRAM Ready"));
     PSRAMReady = true;
     psramPrintln(csvHeader);
   }else{
-    // Serial.println(F("PSRAM not found"));
+    Serial.println(F("PSRAM not found"));
     return false;
   }
 
   return true;
 }
+void psramPrintln(const char* data ){
+  psramPrint(data);
+  *psramNextLoc = '\n';
+  psramNextLoc++;
+}
 
+// Write string to FRAM
+void psramPrint(const char* data ){
+  for(int i = 0;data[i] !='\0';i++){
+    *psramNextLoc = data[i];
+    psramNextLoc++;
+  }
+}
 // Write newline to FRAM
 void psramPrintln(){
   *psramNextLoc = '\n';
@@ -122,7 +134,7 @@ float getPSRAMCapacity(){
 void insertBlankValuesPSRAM(int numValues) {
   if (isPSRAMReady()) {
     for (int i = 0; i < numValues; i++) {
-      psramPrint(F(",")); // Have blank data when sensor not found
+      psramPrint(","); // Have blank data when sensor not found
     }
   }
 }
