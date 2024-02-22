@@ -9,7 +9,7 @@
 #include "Radio.h"
 #include "RTC.h"
 
-const char stages[][12] = {"Pre-Flight", "Stage X", "Coasting", "Descent", "Post-Flight"};
+const char STAGES[][15] = {"Pre-Flight", "Boosting", "Coasting", "Drogue Descent", "Main Descent", "Post-Flight"};
 class State
 {
 public:
@@ -18,18 +18,16 @@ public:
     imu::Vector<3> velocity;     // in m/s
     imu::Vector<3> acceleration; // in m/s^2
     imu::Quaternion orientation; // in quaternion
-    char stage[12];
-    char *csvHeader;
-    int stageNumber;
-    int lastGPSUpdate;
 
-    State(); // constructor
+    State();
     ~State();
     // to be called after all applicable sensors have been added.
     // Retruns false if any sensor failed to init. check for getSensor == nullptr to see which sensor failed. Disables sensor if failed.
     bool init();
     void settimeAbsolute();
     void updateState();
+    int getStageNum();
+
 
     // add sensor functions
     void setBaro(Barometer *Barometer);
@@ -63,7 +61,10 @@ public:
 private:
     char *dataString;
     char *stateString;
-
+    char *csvHeader;
+    int stageNumber;
+    int lastGPSUpdate;
+    int numSensors;
     Barometer *baro;
     GPS *gps;
     IMU *imu;
@@ -72,6 +73,7 @@ private:
 
     void setcsvHeader();
     void setdataString();
+    void updateSensors();
 };
 
 #endif

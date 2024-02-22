@@ -3,7 +3,6 @@
 
 #include "sdCard.h"
 #include <vector>
-
 #define PSRAM_DUMP_TIMEOUT .25
 
 extern "C" uint8_t external_psram_size;
@@ -17,7 +16,7 @@ float getPSRAMCapacity();  // % of storage used in FRAM
 void psramPrint(const char *data);
 void psramPrintln(const char *data);
 
-String PSRAMDumpToSD();  // Dump FRAM to SD Card, returns Timeout if timeout and Dumped if successful
+bool PSRAMDumpToSD();  // Dump FRAM to SD Card, returns Timeout if timeout and Dumped if successful
 void PSRAMPreLaunchDump();
 
 bool isPSRAMReady();  // Returns whether the FRAM is initialized

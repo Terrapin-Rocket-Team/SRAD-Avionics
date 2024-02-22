@@ -26,7 +26,7 @@ void ParseIncomingFakeSensorData(String line, FakeBaro& baro, FakeGPS& gps, Fake
     if(line.length() == 0) return;
     String columns[numColums];
     int cursor = 0;
-    for(int j = 0;j < line.length();j++){
+    for(unsigned int j = 0;j < line.length();j++){
         if(cursor == numColums) break;
         if(line[j] ==',')
         cursor++;

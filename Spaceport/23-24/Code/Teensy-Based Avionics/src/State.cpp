@@ -2,7 +2,6 @@
 
 State::State()
 {
-    strcpy(stage, stages[0]);
     timeAbsolute = millis();
     timePreviousStage = 0;
     position.x() = 0;
@@ -24,6 +23,7 @@ State::State()
     rtc = nullptr;
     stateString = nullptr;
     dataString = nullptr;
+    numSensors = 0;
 }
 State::~State()
 {
@@ -32,10 +32,10 @@ State::~State()
 }
 bool State::init()
 {
-    int good = 0, numSensors = 0;
+    int good = 0, tryNumSensors = 0;
     if (baro)
     {
-        numSensors++;
+        tryNumSensors++;
         if (baro->initialize())
             good++;
         else
@@ -43,7 +43,7 @@ bool State::init()
     }
     if (gps)
     {
-        numSensors++;
+        tryNumSensors++;
         if (gps->initialize())
             good++;
         else
@@ -51,7 +51,7 @@ bool State::init()
     }
     if (imu)
     {
-        numSensors++;
+        tryNumSensors++;
         if (imu->initialize())
             good++;
         else
@@ -59,7 +59,7 @@ bool State::init()
     }
     if (lisens)
     {
-        numSensors++;
+        tryNumSensors++;
         if (lisens->calibrate()) // This should be changed to init...
             good++;
         else
@@ -67,14 +67,15 @@ bool State::init()
     }
     if (rtc)
     {
-        numSensors++;
+        tryNumSensors++;
         if (rtc->initialize())
             good++;
         else
             rtc = nullptr;
     }
     setcsvHeader();
-    return good == numSensors;
+    numSensors = good;
+    return good == tryNumSensors;
 }
 void State::determineaccelerationMagnitude(imu::Vector<3> accel)
 {
@@ -98,19 +99,28 @@ void State::determinetimeSinceLaunch()
 {
     timeSinceLaunch = timeAbsolute - timeLaunch;
 }
-
-void State::updateState()
+void State::updateSensors()
 {
-    if (gps)
+    if (gps && millis() - lastGPSUpdate > 1500)
     {
         gps->read_gps();
+        lastGPSUpdate = millis();
+    }
+    if (baro)
+        baro->get_rel_alt_m();
+}
+void State::updateState()
+{
+    updateSensors();
+    if (gps)
+    {
         position = imu::Vector<3>(gps->get_pos().x(), gps->get_pos().y(), gps->get_alt());
         velocity = gps->get_velocity();
     }
     if (baro)
     {
-        velocity.z() = (baro->get_rel_alt_m() - position.z()) / (millis() - timeAbsolute);
-        position.z() = baro->get_rel_alt_m();
+        velocity.z() = (*(double*)baro->get_data() - position.z()) / (millis() - timeAbsolute);//how ugly. get_data() prevents resending commands to the sensor.
+        position.z() = *(double *)baro->get_data();
     }
     if (imu)
     {
@@ -124,8 +134,6 @@ void State::updateState()
         stageNumber = 1;
         timeLaunch = timeAbsolute;
         timePreviousStage = timeAbsolute;
-        strcpy(stage, stages[1]);
-        stage[strlen(stage) - 1] = '1';  // future support for multi-stage rockets
         digitalWrite(LED_BUILTIN, HIGH); // not sure why this is here because it will never be seen, but leaving it for now
         delay(200);
         digitalWrite(LED_BUILTIN, LOW);
@@ -133,22 +141,18 @@ void State::updateState()
     else if (stageNumber == 1 && acceleration.z() < 5)
     {
         stageNumber = 2;
-        strcpy(stage, stages[2]);
     }
     else if (stageNumber == 2 && velocity.z() < 0)
     {
         stageNumber = 3;
-        strcpy(stage, stages[3]);
     }
     else if (stageNumber == 3 && position.z() < 750 && millis() - timeSinceLaunch > 120000)
     {
         stageNumber = 4;
-        strcpy(stage, stages[3]); // because I don't know if we need the extra descent stage, I've not included it for now.
     }
-    else if (stageNumber == 4 && velocity.z() > -0.5 && accelerationMagnitude < 5 && baro->get_rel_alt_ft() < 200)
+    else if (stageNumber == 4 && velocity.z() > -0.5 && accelerationMagnitude < 5 && *(double *)baro->get_data() < 200)
     {
         stageNumber = 5;
-        strcpy(stage, stages[4]);
     }
     determineapogee(position.z());
     // backup case to dump data (25 minutes)
@@ -156,7 +160,6 @@ void State::updateState()
     if (stageNumber > 0 && timeSinceLaunch > 120000 && stageNumber < 5)
     {
         stageNumber = 5;
-        strcpy(stage, stages[4]);
         digitalWrite(LED_BUILTIN, HIGH);
         delay(500);
         digitalWrite(LED_BUILTIN, LOW);
@@ -166,10 +169,16 @@ void State::updateState()
 
 void State::setcsvHeader()
 {
+    int numCategories = numSensors + 1;
     char csvHeaderStart[] = "Time,Stage,PX,PY,PZ,VX,VY,VZ,AX,AY,AZ,";
-    const char *headers[] = {csvHeaderStart, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}; // all stack arrays!!!!
+    const char **headers = new char *[numCategories];
+    headers[0] = csvHeaderStart;
+    for (int i = 1; i < numCategories; i++)
+        headers[i] = nullptr;
     int cursor = 1;
+
     delete[] csvHeader; // just in case there is already something there. This function should never be called more than once.
+
     //---Determine required size for header
     int size = sizeof(csvHeaderStart); // includes '\0' at end of string for the end of csvHeader to use
     if (baro)
@@ -198,15 +207,16 @@ void State::setcsvHeader()
         size += strlen(headers[cursor++]);
     }
     csvHeader = new char[size];
+
     //---Fill header String
     int j = 0;
-    for (int i = 0; headers[i]; i++)
+    for (int i = 0; headers[i] != nullptr; i++)
     {
-        for (int k = 0; headers[i][k]; j++, k++) // append all the header strings onto the main string
+        for (int k = 0; headers[i][k] != '\0'; j++, k++) // append all the header strings onto the main string
             csvHeader[j] = headers[i][k];
     }
+    delete[] headers;
     csvHeader[j - 1] = '\0'; // all strings have ',' at end so this gets rid of that and terminates it a character early.
-
 }
 
 // This doesn't really follow DRY, but I couldn't be bothered to make it more generic because I don't think I'll ever have to write it again.
@@ -216,18 +226,21 @@ void State::setdataString()
     // Assuming 12 char/float (2 dec precision, leaving min value of -9,999,999.99), 30 char/string, 10 char/int
     // string * 1, float * 9, int * 0, 11 commas
     // 30 + 108 + 11 = 149
+    int numCategories = numSensors + 1;
     const int dataStartSize = 30 * 1 + 12 * 9 + 11;
     char csvDataStart[dataStartSize];
     int used = snprintf(
         csvDataStart, dataStartSize,
         "%.2f,%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,", // trailing comma very important
-        timeAbsolute / 1000, stage,
+        timeAbsolute / 1000, STAGES[stageNumber],
         position.x(), position.y(), position.z(),
         velocity.x(), velocity.y(), velocity.z(),
         acceleration.x(), acceleration.y(), acceleration.z());
     // Serial.print(used);//Just curious
-
-    char *data[] = {csvDataStart, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
+    const char **data = new char *[numCategories];
+    data[0] = csvDataStart;
+    for (int i = 1; i < numCategories; i++)
+        data[i] = nullptr;
     int cursor = 1;
     delete[] dataString; // This probably definitely exists (although maybe shouldn't if RecordData deletes it when it's done.)
 
@@ -269,6 +282,7 @@ void State::setdataString()
         if (i >= 1)
             delete[] data[i]; // delete all the heap arrays.
     }
+    delete[] data;
     dataString[j - 1] = '\0'; // all strings have ',' at end so this gets rid of that and terminates it a character early.
 }
 
@@ -277,7 +291,7 @@ char *State::getStateString()
     delete[] stateString;
     stateString = new char[500]; // way oversized for right now.
     snprintf(stateString, 500, "%.2f,%.2f,%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f",
-             timeAbsolute, timeSinceLaunch, stage, timeSincePreviousStage,
+             timeAbsolute, timeSinceLaunch, STAGES[stageNumber], timeSincePreviousStage,
              acceleration.x(), acceleration.y(), acceleration.z(),
              velocity.x(), velocity.y(), velocity.z(),
              position.x(), position.y(), position.z(),
@@ -288,6 +302,7 @@ char *State::getStateString()
 
 char *State::getdataString() { return dataString; }
 char *State::getcsvHeader() { return csvHeader; }
+int State::getStageNum() { return stageNumber; }
 
 #pragma region Getters and Setters for Sensors
 void State::setBaro(Barometer *nbaro) { baro = nbaro; }

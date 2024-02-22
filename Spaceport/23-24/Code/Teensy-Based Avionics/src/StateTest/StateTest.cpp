@@ -33,8 +33,8 @@ void setup()
     computer.setIMU(&fimu);
     computer.init();
 
-    setupPSRAM(computer.csvHeader);
-    bool sdSuccess = setupSDCard(String(computer.csvHeader));
+    setupPSRAM(computer.getcsvHeader());
+    bool sdSuccess = setupSDCard(String(computer.getcsvHeader()));
 
     if (sdSuccess)
     {
@@ -72,7 +72,7 @@ void loop()
     }
 
     computer.updateState();
-    recordData(computer.getdataString(), computer.stage);
+    recordData(computer.getdataString(), computer.getStageNum());
 
     char* stateStr = computer.getStateString();
     Serial.println(stateStr);
