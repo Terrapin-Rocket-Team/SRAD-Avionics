@@ -12,13 +12,14 @@ public:
         temp = ntemp;
         alt = nalt;
     }
+    void *get_data() {return &alt; }
     double get_temp() { return press; }
     double get_pressure() { return temp; }
     double get_rel_alt_m() { return alt; }
     bool initialize() { return true; }
 
     const char *getcsvHeader()
-    {                                                // incl  B- to indicate Barometer data  vvvv Why is this in ft and not m?
+    {                                                // incl  B- to indicate Barometer data
         return "B-Pres (hPa),B-Temp (C),B-Alt (m),"; // trailing commas are very important
     }
 

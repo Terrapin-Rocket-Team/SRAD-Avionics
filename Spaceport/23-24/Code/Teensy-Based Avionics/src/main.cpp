@@ -31,8 +31,8 @@ void setup() {
     computer.setIMU(&bno);
 
     computer.init();
-    setupPSRAM(computer.csvHeader);
-    bool sdSuccess = setupSDCard(computer.csvHeader);
+    setupPSRAM(computer.getcsvHeader());
+    bool sdSuccess = setupSDCard(computer.getcsvHeader());
 
     digitalWrite(LED_BUILTIN, HIGH);
     delay(1000);
@@ -62,6 +62,6 @@ void loop() {
     computer.updateState();
 
     // Serial.println(computer.getdataString());
-    recordData(computer.getdataString(), computer.stage);
+    recordData(computer.getdataString(), computer.getStageNum());
     delay(50);
 }
