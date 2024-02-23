@@ -38,6 +38,7 @@ public:
     const char *receive(EncodingType type) override;
     bool available();
     int RSSI() override;
+    void set300KBPS();
     RH_RF69 radio;
 
 private:
