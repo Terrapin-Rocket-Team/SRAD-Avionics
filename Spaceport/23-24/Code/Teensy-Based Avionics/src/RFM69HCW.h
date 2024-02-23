@@ -3,23 +3,24 @@
 
 #define IS_RFM69HW_HCW
 
-#include <Arduino.h>
 #include "Radio.h"
 #include "RFM69.h"
-#include "APRS-Decoder.h"
 #include "APRSEncodeFunctions.h"
+#include "APRSMsg.h"
 
 class RFM69HCW : public Radio
 {
 public:
     RFM69HCW(uint32_t frequency, bool transmitter, bool highBitrate, APRSConfig config);
-    void begin(SPIClass *s, uint8_t cs, uint8_t irq, int frqBand);
-    bool tx(String message);
-    String rx();
-    bool encode(String &message, int type);
-    bool decode(String &message, int type);
-    bool send(String message, int type);
-    String receive(int type);
+    ~RFM69HCW();
+    void begin();
+    void begin(SPIClass *s, uint8_t cs, uint8_t irq);
+    bool tx(char *message);
+    const char *rx();
+    bool encode(char *message, EncodingType type);
+    bool decode(char *message, EncodingType type);
+    bool send(char *message, EncodingType type);
+    const char *receive(EncodingType type);
     bool available();
     int RSSI();
 
@@ -36,11 +37,12 @@ private:
     bool isTransmitter;
     bool isHighBitrate;
     // for sending/receiving data
-    char *buf;
+    char buf[RF69_MAX_DATA_LEN];
     uint8_t bufSize = RF69_MAX_DATA_LEN;
     APRSConfig cfg;
     bool avail;
-    int lastRSSI;
+    int avgRSSI;
+    int incomingMsgLen;
     char *lastMsg;
 };
 
