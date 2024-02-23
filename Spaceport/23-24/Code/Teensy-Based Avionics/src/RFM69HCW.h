@@ -5,16 +5,31 @@
 
 #include "Radio.h"
 #include "APRSMsg.h"
-#include "RFM69.h"
+#include "RH_RF69.h"
 #include "APRSEncodeFunctions.h"
+
+/*
+double frequency in Mhz
+bool transmitter
+bool highBitrate
+*/
+struct RadioSettings
+{
+    double frequency;
+    bool transmitter;
+    bool highBitrate;
+    RHGenericSPI *spi;
+    uint8_t cs;
+    uint8_t irq;
+    uint8_t rst;
+};
 
 class RFM69HCW : public Radio
 {
 public:
-    RFM69HCW(uint32_t frequency, bool transmitter, bool highBitrate, APRSConfig config);
+    RFM69HCW(RadioSettings s, APRSConfig config);
     ~RFM69HCW();
-    void begin() override;
-    void begin(SPIClass *s, uint8_t cs, uint8_t irq, uint8_t rst);
+    bool begin() override;
     bool tx(char *message) override;
     const char *rx() override;
     bool encode(char *message, EncodingType type) override;
@@ -23,9 +38,9 @@ public:
     const char *receive(EncodingType type) override;
     bool available();
     int RSSI() override;
+    RH_RF69 radio;
 
 private:
-    RFM69 radio;
     // all radios should have the same networkID
     const uint8_t networkID = 0x0001;
     // default to the highest transmit power
@@ -33,12 +48,10 @@ private:
     // set by constructor
     uint16_t addr;
     uint16_t toAddr;
-    uint32_t frq;
-    bool isTransmitter;
-    bool isHighBitrate;
+    RadioSettings settings;
     // for sending/receiving data
-    char buf[RF69_MAX_DATA_LEN];
-    uint8_t bufSize = RF69_MAX_DATA_LEN;
+    char buf[RH_RF69_MAX_MESSAGE_LEN];
+    uint8_t bufSize = RH_RF69_MAX_MESSAGE_LEN;
     APRSConfig cfg;
     bool avail;
     int avgRSSI;

@@ -17,14 +17,15 @@ enum EncodingType
 {
     ENCT_TELEMETRY,
     ENCT_VIDEO,
-    ENCT_GROUNDSTATION
+    ENCT_GROUNDSTATION,
+    ENCT_NONE
 };
 
 class Radio
 {
 public:
     virtual ~Radio(){}; // Virtual descructor. Very important
-    virtual void begin() = 0;
+    virtual bool begin() = 0;
     virtual bool tx(char *message) = 0;
     virtual const char *rx() = 0;
     virtual bool encode(char *message, EncodingType type) = 0;
