@@ -1,74 +1,52 @@
 #include <Arduino.h>
-#include "State.h"
-#include "BMP390.h"
-#include "BNO055.h"
-#include "MAX_M10S.h"
-#include "DS3231.h"
-#include <RecordData.h>
+#include "RFM69HCW.h"
 
-BNO055 bno(13, 12);   //I2C Address 0x29
-BMP390 bmp(13, 12);   //I2C Address 0x77
-MAX_M10S gps(13, 12, 0x42); //I2C Address 0x42  
-DS3231 rtc();   //I2C Address 0x68
-State computer;
+#define CALLSIGN "KC3UTM"
+#define TOCALL "APRS"
+#define PATH "WIDE1-1"
 
-#define BUZZER 33
+APRSConfig config = {CALLSIGN, TOCALL, PATH, '[', '/'};
+RadioSettings settingsT = {433.775, false, false, &hardware_spi, 10, 2, 9};
+RadioSettings settingsR = {433.775, false, false, &hardware_spi, 7, 3, 8};
+RFM69HCW transmit = {settingsT, config};
+RFM69HCW receive = {settingsR, config};
+uint32_t timer = millis();
 
-void setup() {
-    pinMode(LED_BUILTIN, OUTPUT);
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(1000);
-    digitalWrite(LED_BUILTIN, LOW);
+char message[] = "39.336896667,-77.337067833,480,0,31,H,0,11:40:51";
 
+void setup()
+{
+    Serial.begin(9600);
+    while (!Serial)
+        ;
 
-    // Serial.begin(9600);
-    // while (!Serial);
+    if (!transmit.begin())
+        Serial.println("Transmitter failed to begin");
+    if (!receive.begin())
+        Serial.println("Reciever failed to begin");
 
-    
-    computer.addBarometer(&bmp);
-    // computer.addGPS(&gps);
-    // computer.addRTC(&rtc);
-    computer.addIMU(&bno);
-
-    computer.stateBarometer->initialize();
-    // computer.stateGPS->initialize();
-    computer.stateIMU->initialize();
-    // computer.stateRTC->initialize();
-
-    computer.setcsvHeader();
-    setupPSRAM(computer.csvHeader);
-    bool sdSuccess = setupSDCard(computer.csvHeader);
-
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(1000);
-    digitalWrite(LED_BUILTIN, LOW);
-
-    if (sdSuccess) {
-        // Serial.println("SD Card initialized");
-        digitalWrite(BUZZER, HIGH);
-        delay(1000);
-        digitalWrite(BUZZER, LOW);
-    } else {
-        // Serial.println("SD Card failed to initialize");
-        digitalWrite(BUZZER, HIGH);
-        delay(200);
-        digitalWrite(BUZZER, LOW);
-        delay(200);
-        digitalWrite(BUZZER, HIGH);
-        delay(200);
-        digitalWrite(BUZZER, LOW);
-
-    }
-
+    Serial.println("RFM69 began");
 }
 
-void loop() {
-    
-    computer.updateSensors();
-    computer.updateState();
+void loop()
+{
+    if (receive.available())
+    {
 
-    computer.setdataString();
-    // Serial.println(computer.getdataString());
-    recordData(computer.getdataString(), computer.getrecordDataState());
-    delay(100);
+        Serial.print("Received: ");
+        Serial.println(receive.receive(ENCT_NONE));
+    }
+
+    if (millis() - timer >= 1000)
+    {
+        timer = millis();
+        char radiopacket[] = "39.336896667,-77.337067833,480,0,31,H,0,11:40:51";
+        Serial.print("Sending ");
+        Serial.println(radiopacket);
+
+        // transmit.encode(radiopacket, ENCT_TELEMETRY);
+
+        // Send a message!
+        transmit.tx(radiopacket);
+    }
 }

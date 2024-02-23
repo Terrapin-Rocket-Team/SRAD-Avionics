@@ -7,12 +7,9 @@ Constructor
     - highBitrate true for 300kbps, false for 4.8kbps
     - config with APRS settings
 */
-RFM69HCW::RFM69HCW(uint32_t frequency, bool transmitter, bool highBitrate, APRSConfig config)
+RFM69HCW::RFM69HCW(RadioSettings s, APRSConfig config) : radio(s.cs, s.irq, *s.spi)
 {
-    this->frq = frequency;
-
-    this->isTransmitter = transmitter;
-    if (this->isTransmitter)
+    if (s.transmitter)
     {
         // addresses for transmitters
         this->addr = 0x0002; // to fit the max number of bytes in a packet, this will change
@@ -27,12 +24,13 @@ RFM69HCW::RFM69HCW(uint32_t frequency, bool transmitter, bool highBitrate, APRSC
         this->toAddr = 0x0002;
     }
 
-    this->isHighBitrate = highBitrate;
+    this->avail = false;
 
+    this->settings = s;
     this->cfg = config;
 
     // avoid errors if lastMsg isn't allocated
-    this->lastMsg = new char[1];
+    this->lastMsg = new char[200];
 }
 
 RFM69HCW::~RFM69HCW()
@@ -43,28 +41,28 @@ RFM69HCW::~RFM69HCW()
 /*
 Use the other begin function
 */
-void RFM69HCW::begin()
-{
-#if defined(TEENSYDUINO)
-    // default SPI for teensy 4.1 uses pin 10 for CS and can use pin 9 for interrupt
-    this->radio = RFM69(10, 9, true, &SPI);
-#else
-    // attempt to create the radio, but this probably won't work
-    this->radio = RFM69();
-#endif
+// void RFM69HCW::begin()
+// {
+// #if defined(TEENSYDUINO)
+//     // default SPI for teensy 4.1 uses pin 10 for CS and can use pin 9 for interrupt
+//     // RH_RF69 this->radio(10, 9, hardware_spi);
+// #else
+//     // attempt to create the radio, but this probably won't work
+//     this->radio = RH_RF69();
+// #endif
 
-    // the frequency the initialize function uses is kinda useless, it only lets you choose from preselected frequencies
-    // so set the frequency to the right band 433 or 915 Mhz at first
-    radio.initialize(this->frq < 914e6 ? RF69_433MHZ : RF69_915MHZ, this->addr, this->networkID);
-    // then use this to actually set the frequency
-    radio.setFrequency(this->frq);
-    radio.setHighPower(true);
-    radio.setPowerDBm(this->txPower);
-    radio.encrypt(0);
-    // the default bitrate of 4.8kbps should be fine unless we want high bitrate for video
-    if (this->isHighBitrate)
-        radio.set300KBPS();
-}
+//     // the frequency the initialize function uses is kinda useless, it only lets you choose from preselected frequencies
+//     // so set the frequency to the right band 433 or 915 Mhz at first
+//     radio.initialize(this->frq < 914e6 ? RF69_433MHZ : RF69_915MHZ, this->addr, this->networkID);
+//     // then use this to actually set the frequency
+//     radio.setFrequency(this->frq);
+//     radio.setHighPower(true);
+//     radio.setPowerDBm(this->txPower);
+//     radio.encrypt(0);
+//     // the default bitrate of 4.8kbps should be fine unless we want high bitrate for video
+//     if (this->isHighBitrate)
+//         radio.set300KBPS();
+// }
 
 /*
 Initializer to call in setup
@@ -72,31 +70,29 @@ Initializer to call in setup
     - cs is the chip select pin
     - irq is the interrupt pin
 */
-void RFM69HCW::begin(SPIClass *s, uint8_t cs, uint8_t irq, uint8_t rst)
+bool RFM69HCW::begin()
 {
+    pinMode(this->settings.rst, OUTPUT);
+    digitalWrite(this->settings.rst, LOW);
+    delay(10);
+    digitalWrite(this->settings.rst, HIGH);
+    delay(10);
+    digitalWrite(this->settings.rst, LOW);
 
-    this->radio = RFM69(cs, irq, true, s);
+    if (!this->radio.init())
+        return false;
 
-    // the frequency the initialize function uses is kinda useless, it only lets you choose from preselected frequencies
-    // so set the frequency to the right band 433 or 915 Mhz at first
-    radio.initialize(this->frq < 914e6 ? RF69_433MHZ : RF69_915MHZ, this->addr, this->networkID);
-    if (true)
-        radio.readAllRegsCompact();
     // then use this to actually set the frequency
-    radio.setFrequency(this->frq);
-    radio.setHighPower(true);
-    radio.setPowerDBm(this->txPower);
-    radio.encrypt(0);
-    // the default bitrate of 4.8kbps should be fine unless we want high bitrate for video
-    if (this->isHighBitrate)
-        radio.set300KBPS();
+    if (!this->radio.setFrequency(this->settings.frequency))
+        return false;
+    this->radio.setTxPower(this->txPower, true);
 
-    pinMode(rst, OUTPUT);
-    digitalWrite(rst, LOW);
-    delay(10);
-    digitalWrite(rst, HIGH);
-    delay(10);
-    digitalWrite(rst, LOW);
+    // the default bitrate of 4.8kbps should be fine unless we want high bitrate for video
+    // if (this->settings.highBitrate)
+    //     radio.set300KBPS();
+
+    // Serial.println(this->radio.printRegisters() == 0 ? "false" : "true");
+    return true;
 }
 
 /*
@@ -110,31 +106,20 @@ bool RFM69HCW::tx(char *message)
     int len = strlen(message);
 
     // get number of packets for this message, and set this radio's address to that value so the receiver knows how many packets to expect
-    this->addr = len / bufSize + (len % bufSize > 0);
-    radio.setAddress(this->addr);
-
-    Serial.println(this->addr);
+    this->addr = len / bufSize + (len % this->bufSize > 0);
+    radio.setHeaderId(this->addr);
 
     // fill the buffer repeatedly until the entire message has been sent
     for (unsigned int j = 0; j < this->addr; j++)
     {
-        memset(this->buf, 0, 61);
-        memcpy(this->buf, message + j * 61, min(61, len - j * 61));
-        Serial.println(min(61, len - j * 61));
-        Serial.print(this->toAddr);
-        Serial.print(" ");
-        this->buf[60] = '\0';
-        Serial.print(this->buf);
-        Serial.print(" ");
-        Serial.print(message + j * 61);
-        Serial.print(" ");
-        Serial.println(min(61, len - j * 61));
-        radio.send(this->toAddr, (void *)this->buf, min(61, len - j * 61), false);
+        memset(this->buf, 0, this->bufSize);
+        memcpy(this->buf, message + j * this->bufSize, min(this->bufSize, len - j * this->bufSize));
+        this->radio.send((uint8_t *)this->buf, min(this->bufSize, len - j * this->bufSize));
+        this->radio.waitPacketSent();
     }
-    Serial.println("2");
 
     this->addr = 0x0002;
-    radio.setAddress(this->addr);
+    radio.setHeaderId(this->addr);
 
     return true;
 }
@@ -146,41 +131,56 @@ Note that the message may be incomplete, if the message is complete available() 
 */
 const char *RFM69HCW::rx()
 {
-    bool t = radio.receiveDone();
-    Serial.print("Receive done? ");
-    Serial.println(t);
-    if (t)
+    if (this->radio.available())
     {
-        // copy data from the radio object
-        strncpy(this->buf, (char *)radio.DATA, bufSize);
+        // Should be a message for us now
+        if (this->radio.recv((uint8_t *)this->buf, &(this->bufSize)))
+        {
+            this->buf[this->bufSize] = 0;
 
-        // check if this is the first part of the message
-        if (this->incomingMsgLen == 0)
-        {
-            this->incomingMsgLen = radio.SENDERID;
-            delete[] this->lastMsg;
-            this->lastMsg = new char[this->incomingMsgLen * bufSize + 1];
-            memcpy(this->lastMsg, this->buf, bufSize);
-            this->lastMsg[bufSize] = '\0';
-        }
-        else // otherwise append to the end of the message, removing the \0 from last time
-        {
-            int len = strlen(this->lastMsg);
-            memcpy(this->lastMsg + len, this->buf, bufSize);
-            this->lastMsg[len + bufSize] = '\0';
-        }
+            // check if this is the first part of the message
+            if (this->incomingMsgLen == 0)
+            {
+                this->incomingMsgLen = this->radio.headerId();
+                if (this->incomingMsgLen == 0)
+                    return "Error parsing message";
+                delete[] this->lastMsg;
+                this->lastMsg = new char[this->incomingMsgLen * this->bufSize + 1];
+                memcpy(this->lastMsg, this->buf, this->bufSize);
+                this->lastMsg[bufSize] = '\0';
+            }
+            else // otherwise append to the end of the message, removing the \0 from last time
+            {
+                int len = strlen(this->lastMsg);
+                memcpy(this->lastMsg + len, this->buf, bufSize);
+                this->lastMsg[len + bufSize] = '\0';
+            }
 
-        // check if the full message has been received
-        int msgLen = strlen(this->lastMsg);
-        if (msgLen / bufSize + (msgLen % bufSize > 0) == this->incomingMsgLen)
-        {
-            this->incomingMsgLen = 0;
-            this->avail = true;
+            Serial.print("Received [");
+            Serial.print(this->bufSize);
+            Serial.print("]: ");
+            Serial.println(this->buf);
+            Serial.print("RSSI: ");
+            Serial.println(this->radio.lastRssi(), DEC);
+            Serial.println("");
+
+            // check if the full message has been received
+            int msgLen = strlen(this->lastMsg);
+            if (msgLen / bufSize + (msgLen % bufSize > 0) == this->incomingMsgLen)
+            {
+                this->incomingMsgLen = 0;
+                this->avail = true;
+            }
+            this->avgRSSI += radio.lastRssi();
         }
-        this->avgRSSI += radio.readRSSI();
+        else
+        {
+            Serial.println("Receive failed");
+        }
         return this->lastMsg;
     }
-    return "";
+
+    return "No message available";
 }
 
 /*
@@ -196,6 +196,10 @@ char *message must be a dynamically allocated null terminated string
 */
 bool RFM69HCW::encode(char *message, EncodingType type)
 {
+    if (type == ENCT_NONE)
+        return true;
+    Serial.println("something");
+    delay(1000);
     if (type == ENCT_TELEMETRY)
     {
         APRSMsg aprs;
@@ -321,6 +325,8 @@ char *message must be a dynamically allocated null terminated string
 */
 bool RFM69HCW::decode(char *message, EncodingType type)
 {
+    if (type == ENCT_NONE)
+        return true;
     if (type == ENCT_TELEMETRY)
     {
         APRSMsg aprs;
@@ -539,12 +545,16 @@ char *message must be a null terminated string
 bool RFM69HCW::send(const char *message, EncodingType type)
 {
     Serial.println("1");
-    delete[] this->lastMsg;
+    // Serial.println(this->lastMsg);
+    // delete[] this->lastMsg;
     Serial.println("2");
-    this->lastMsg = new char[strlen(message) + 1];
+    // this->lastMsg = new char[strlen(message) + 1];
     Serial.println("3");
-    strcpy(this->lastMsg, message);
+    delay(1000);
+    strncpy(this->lastMsg, message, 5);
+    this->lastMsg[5] = '\0';
     Serial.println("4");
+    delay(1000);
     encode(this->lastMsg, type);
     Serial.println("5");
     tx(this->lastMsg);
