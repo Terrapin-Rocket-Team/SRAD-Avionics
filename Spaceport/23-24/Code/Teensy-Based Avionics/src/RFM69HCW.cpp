@@ -87,11 +87,13 @@ bool RFM69HCW::begin()
         return false;
     this->radio.setTxPower(this->txPower, true);
 
-    // the default bitrate of 4.8kbps should be fine unless we want high bitrate for video
-    // if (this->settings.highBitrate)
-    //     radio.set300KBPS();
+    // always set FSK mode
+    this->radio.setModemConfig(RH_RF69::FSK_Rb4_8Fd9_6);
 
-    // Serial.println(this->radio.printRegisters() == 0 ? "false" : "true");
+    // the default bitrate of 4.8kbps should be fine unless we want high bitrate for video
+    if (this->settings.highBitrate)
+        set300KBPS();
+
     return true;
 }
 
@@ -594,6 +596,19 @@ Returns the RSSI of the last message
 int RFM69HCW::RSSI()
 {
     return this->avgRSSI / this->incomingMsgLen;
+}
+
+void RFM69HCW::set300KBPS()
+{
+    this->radio.spiWrite(0x03, 0x00);       // REG_BITRATEMSB: 300kbps (0x006B, see DS p20)
+    this->radio.spiWrite(0x04, 0x6B);       // REG_BITRATELSB: 300kbps (0x006B, see DS p20)
+    this->radio.spiWrite(0x19, 0x40);       // REG_RXBW: 500kHz
+    this->radio.spiWrite(0x1A, 0x80);       // REG_AFCBW: 500kHz
+    this->radio.spiWrite(0x05, 0x13);       // REG_FDEVMSB: 300khz (0x1333)
+    this->radio.spiWrite(0x06, 0x33);       // REG_FDEVLSB: 300khz (0x1333)
+    this->radio.spiWrite(0x29, 240);        // set REG_RSSITHRESH to -120dBm
+    this->radio.spiWrite(0x37, 0b10010000); // DC=WHITENING, CRCAUTOOFF=0
+                                            //                ^^->DC: 00=none, 01=manchester, 10=whitening
 }
 
 // utility functions
