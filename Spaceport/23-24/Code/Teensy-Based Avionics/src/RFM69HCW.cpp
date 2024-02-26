@@ -7,7 +7,7 @@ Constructor
     - highBitrate true for 300kbps, false for 4.8kbps
     - config with APRS settings
 */
-RFM69HCW::RFM69HCW(RadioSettings s, APRSConfig config) : radio(s.cs, s.irq, *s.spi)
+RFM69HCW::RFM69HCW(const RadioSettings s, const APRSConfig config) : radio(s.cs, s.irq, *s.spi)
 {
     if (s.transmitter)
     {
@@ -61,6 +61,7 @@ bool RFM69HCW::begin()
     // set headers
     this->radio.setHeaderTo(this->toAddr);
     this->radio.setHeaderFrom(this->addr);
+    this->radio.setThisAddress(this->addr);
     this->radio.setHeaderId(this->id);
 
     if (this->settings.highBitrate)
@@ -71,6 +72,8 @@ bool RFM69HCW::begin()
         this->radio.setPreambleLength(0);
         this->radio.setSyncWords();
     }
+
+    Serial.println(this->bufSize);
 
     return true;
 }
@@ -94,7 +97,7 @@ bool RFM69HCW::tx(const char *message)
     {
         memset(this->buf, 0, this->bufSize);
         memcpy(this->buf, message + j * this->bufSize, min(this->bufSize, len - j * this->bufSize));
-        this->radio.send((uint8_t *)this->buf, min(this->bufSize, len - j * this->bufSize));
+        this->radio.send(this->buf, min(this->bufSize, len - j * this->bufSize));
         this->radio.waitPacketSent();
     }
 
@@ -115,34 +118,40 @@ const char *RFM69HCW::rx()
     if (this->radio.available())
     {
         // Should be a message for us now
-        if (this->radio.recv((uint8_t *)this->buf, &(this->bufSize)))
+        uint8_t receivedLen = this->bufSize;
+        if (this->radio.recv(this->buf, &(receivedLen)))
         {
-            this->buf[this->bufSize] = 0;
-
+            Serial.println(receivedLen);
+            return;
             // check if this is the first part of the message
             if (this->incomingMsgLen == 0)
             {
+                memset(this->buf, 0, this->bufSize);
                 this->incomingMsgLen = this->radio.headerId();
                 if (this->incomingMsgLen == 0)
                     return "Error parsing message";
                 memcpy(this->msg, this->buf, this->bufSize);
-                this->msg[bufSize] = '\0';
+                this->msg[this->bufSize] = '\0';
             }
             else // otherwise append to the end of the message, removing the \0 from last time
             {
                 int len = strlen(this->msg);
+                Serial.println(min(MSG_LEN - (len + this->bufSize), this->bufSize));
+                Serial.println(this->bufSize);
+                Serial.println(min(MSG_LEN, len + this->bufSize));
                 memcpy(this->msg + len, this->buf, min(MSG_LEN - (len + this->bufSize), bufSize));
                 this->msg[min(MSG_LEN, len + this->bufSize)] = '\0'; // make sure we don't go over MSG_LEN
             }
 
             // Debug
-            // Serial.print("Received [");
-            // Serial.print(this->bufSize);
-            // Serial.print("]: ");
-            // Serial.println(this->buf);
-            // Serial.print("RSSI: ");
-            // Serial.println(this->radio.lastRssi(), DEC);
-            // Serial.println("");
+            Serial.print("Received [");
+            Serial.print(this->bufSize);
+            Serial.print("]: ");
+            this->buf[this->bufSize] = 0;
+            Serial.println((char *)this->buf);
+            Serial.print("RSSI: ");
+            Serial.println(this->radio.lastRssi(), DEC);
+            Serial.println("");
 
             this->rssi += radio.lastRssi();
 
@@ -179,50 +188,47 @@ bool RFM69HCW::encode(char *message, EncodingType type)
         return true;
     if (type == ENCT_TELEMETRY)
     {
-        APRSMsg aprs;
         int msgLen = strlen(message);
-
-        aprs.setSource(this->cfg.CALLSIGN);
-        aprs.setPath(this->cfg.PATH);
-        aprs.setDestination(this->cfg.TOCALL);
 
         // holds the data to be assembled into the aprs body
         APRSData data;
 
         // find each value separated in order by a comma and put in the APRSData array
-        char currentVal[MSG_LEN];
-        int currentValIndex = 0;
-        int currentValCount = 0;
-        for (int i = 0; i < msgLen; i++)
         {
-            if (message[i] != ',')
+            char currentVal[MSG_LEN];
+            int currentValIndex = 0;
+            int currentValCount = 0;
+            for (int i = 0; i < msgLen; i++)
             {
-                currentVal[currentValIndex] = message[i];
-                currentValIndex++;
-            }
-            if (message[i] == ',' || (currentValCount == 7 && i == msgLen - 1))
-            {
-                currentVal[currentValIndex] = '\0';
+                if (message[i] != ',')
+                {
+                    currentVal[currentValIndex] = message[i];
+                    currentValIndex++;
+                }
+                if (message[i] == ',' || (currentValCount == 7 && i == msgLen - 1))
+                {
+                    currentVal[currentValIndex] = '\0';
 
-                if (currentValCount == 0 && strlen(currentVal) < 16)
-                    strcpy(data.lat, currentVal);
-                if (currentValCount == 1 && strlen(currentVal) < 16)
-                    strcpy(data.lng, currentVal);
-                if (currentValCount == 2 && strlen(currentVal) < 10)
-                    strcpy(data.alt, currentVal);
-                if (currentValCount == 3 && strlen(currentVal) < 4)
-                    strcpy(data.spd, currentVal);
-                if (currentValCount == 4 && strlen(currentVal) < 4)
-                    strcpy(data.hdg, currentVal);
-                if (currentValCount == 5)
-                    data.precision = currentVal[0];
-                if (currentValCount == 6 && strlen(currentVal) < 3)
-                    strcpy(data.stage, currentVal);
-                if (currentValCount == 7 && strlen(currentVal) < 9)
-                    strcpy(data.t0, currentVal);
+                    if (currentValCount == 0 && strlen(currentVal) < 16)
+                        strcpy(data.lat, currentVal);
+                    if (currentValCount == 1 && strlen(currentVal) < 16)
+                        strcpy(data.lng, currentVal);
+                    if (currentValCount == 2 && strlen(currentVal) < 10)
+                        strcpy(data.alt, currentVal);
+                    if (currentValCount == 3 && strlen(currentVal) < 4)
+                        strcpy(data.spd, currentVal);
+                    if (currentValCount == 4 && strlen(currentVal) < 4)
+                        strcpy(data.hdg, currentVal);
+                    if (currentValCount == 5)
+                        data.precision = currentVal[0];
+                    if (currentValCount == 6 && strlen(currentVal) < 3)
+                        strcpy(data.stage, currentVal);
+                    if (currentValCount == 7 && strlen(currentVal) < 9)
+                        strcpy(data.t0, currentVal);
 
-                currentValIndex = 0;
-                currentValCount++;
+                    currentValIndex = 0;
+                    currentValCount++;
+                }
             }
         }
 
@@ -235,7 +241,7 @@ bool RFM69HCW::encode(char *message, EncodingType type)
         }
         else if (data.precision == 'H')
         {
-            strcpy(data.dao, create_dao_aprs(data.lat, data.lng));
+            create_dao_aprs(data.lat, data.lng, data.dao);
             create_lat_aprs(data.lat, 1);
             create_long_aprs(data.lng, 1);
         }
@@ -262,13 +268,19 @@ bool RFM69HCW::encode(char *message, EncodingType type)
         padding(spd_int, 3, data.spd);
         padding(hdg_int, 3, data.hdg);
 
+        APRSMsg aprs;
+
+        aprs.setSource(this->cfg.CALLSIGN);
+        aprs.setPath(this->cfg.PATH);
+        aprs.setDestination(this->cfg.TOCALL);
+
         // generate the aprs message
         char body[80];
         sprintf(body, "%c%s%c%s%c%s%c%s%s%s%s%c%s%c%s", '!', data.lat, this->cfg.OVERLAY, data.lng, this->cfg.SYMBOL,
                 data.hdg, '/', data.spd, data.alt, "/S", data.stage, '/',
                 data.t0, ' ', data.dao);
         aprs.getBody()->setData(body);
-        aprs.encode(this->msg);
+        aprs.encode(message);
         return true;
     }
     return false;
