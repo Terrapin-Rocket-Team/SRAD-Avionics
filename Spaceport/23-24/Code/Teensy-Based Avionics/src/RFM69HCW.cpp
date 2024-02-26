@@ -12,57 +12,25 @@ RFM69HCW::RFM69HCW(RadioSettings s, APRSConfig config) : radio(s.cs, s.irq, *s.s
     if (s.transmitter)
     {
         // addresses for transmitters
-        this->addr = 0x0002; // to fit the max number of bytes in a packet, this will change
-                             // based on message length, but it will be reset to this value
-                             // if the transmitter needs to receive information from the ground
-        this->toAddr = 0x0001;
+        this->addr = 0x02;
+        this->toAddr = 0x01;
+        this->id = 0x00; // to fit the max number of bytes in a packet, this will change
+                         // based on message length, but it will be reset to this value
+                         // after each complete transmission
     }
     else
     {
         // addresses for receivers
-        this->addr = 0x0001;
-        this->toAddr = 0x0002;
+        this->addr = 0x01;
+        this->toAddr = 0x02;
+        this->id = 0x00;
     }
 
     this->avail = false;
 
     this->settings = s;
     this->cfg = config;
-
-    // avoid errors if lastMsg isn't allocated
-    this->lastMsg = new char[200];
 }
-
-RFM69HCW::~RFM69HCW()
-{
-    delete[] this->lastMsg;
-}
-
-/*
-Use the other begin function
-*/
-// void RFM69HCW::begin()
-// {
-// #if defined(TEENSYDUINO)
-//     // default SPI for teensy 4.1 uses pin 10 for CS and can use pin 9 for interrupt
-//     // RH_RF69 this->radio(10, 9, hardware_spi);
-// #else
-//     // attempt to create the radio, but this probably won't work
-//     this->radio = RH_RF69();
-// #endif
-
-//     // the frequency the initialize function uses is kinda useless, it only lets you choose from preselected frequencies
-//     // so set the frequency to the right band 433 or 915 Mhz at first
-//     radio.initialize(this->frq < 914e6 ? RF69_433MHZ : RF69_915MHZ, this->addr, this->networkID);
-//     // then use this to actually set the frequency
-//     radio.setFrequency(this->frq);
-//     radio.setHighPower(true);
-//     radio.setPowerDBm(this->txPower);
-//     radio.encrypt(0);
-//     // the default bitrate of 4.8kbps should be fine unless we want high bitrate for video
-//     if (this->isHighBitrate)
-//         radio.set300KBPS();
-// }
 
 /*
 Initializer to call in setup
@@ -90,9 +58,19 @@ bool RFM69HCW::begin()
     // always set FSK mode
     this->radio.setModemConfig(RH_RF69::FSK_Rb4_8Fd9_6);
 
-    // the default bitrate of 4.8kbps should be fine unless we want high bitrate for video
+    // set headers
+    this->radio.setHeaderTo(this->toAddr);
+    this->radio.setHeaderFrom(this->addr);
+    this->radio.setHeaderId(this->id);
+
     if (this->settings.highBitrate)
+    {
+        // the default bitrate of 4.8kbps should be fine unless we want high bitrate for video
         set300KBPS();
+        // remove as much overhead as possible
+        this->radio.setPreambleLength(0);
+        this->radio.setSyncWords();
+    }
 
     return true;
 }
@@ -102,17 +80,17 @@ Transmit function
 Most basic transmission method, simply transmits the string without modification
     - message is the message to be transmitted, must be null terminated
 */
-bool RFM69HCW::tx(char *message)
+bool RFM69HCW::tx(const char *message)
 {
     // get length because message may be too long to transmit at one time
     int len = strlen(message);
 
-    // get number of packets for this message, and set this radio's address to that value so the receiver knows how many packets to expect
-    this->addr = len / bufSize + (len % this->bufSize > 0);
-    radio.setHeaderId(this->addr);
+    // get number of packets for this message, and set this radio's id to that value so the receiver knows how many packets to expect
+    this->id = len / this->bufSize + (len % this->bufSize > 0);
+    this->radio.setHeaderId(this->id);
 
     // fill the buffer repeatedly until the entire message has been sent
-    for (unsigned int j = 0; j < this->addr; j++)
+    for (unsigned int j = 0; j < this->id; j++)
     {
         memset(this->buf, 0, this->bufSize);
         memcpy(this->buf, message + j * this->bufSize, min(this->bufSize, len - j * this->bufSize));
@@ -120,8 +98,8 @@ bool RFM69HCW::tx(char *message)
         this->radio.waitPacketSent();
     }
 
-    this->addr = 0x0002;
-    radio.setHeaderId(this->addr);
+    this->id = 0x00;
+    this->radio.setHeaderId(this->id);
 
     return true;
 }
@@ -130,6 +108,7 @@ bool RFM69HCW::tx(char *message)
 Receive function
 Most basic receiving method, simply checks for a message and returns a pointer to it
 Note that the message may be incomplete, if the message is complete available() will return true
+The received message must be less than MSG_LEN
 */
 const char *RFM69HCW::rx()
 {
@@ -146,42 +125,40 @@ const char *RFM69HCW::rx()
                 this->incomingMsgLen = this->radio.headerId();
                 if (this->incomingMsgLen == 0)
                     return "Error parsing message";
-                delete[] this->lastMsg;
-                this->lastMsg = new char[this->incomingMsgLen * this->bufSize + 1];
-                memcpy(this->lastMsg, this->buf, this->bufSize);
-                this->lastMsg[bufSize] = '\0';
+                memcpy(this->msg, this->buf, this->bufSize);
+                this->msg[bufSize] = '\0';
             }
             else // otherwise append to the end of the message, removing the \0 from last time
             {
-                int len = strlen(this->lastMsg);
-                memcpy(this->lastMsg + len, this->buf, bufSize);
-                this->lastMsg[len + bufSize] = '\0';
+                int len = strlen(this->msg);
+                memcpy(this->msg + len, this->buf, min(MSG_LEN - (len + this->bufSize), bufSize));
+                this->msg[min(MSG_LEN, len + this->bufSize)] = '\0'; // make sure we don't go over MSG_LEN
             }
 
-            Serial.print("Received [");
-            Serial.print(this->bufSize);
-            Serial.print("]: ");
-            Serial.println(this->buf);
-            Serial.print("RSSI: ");
-            Serial.println(this->radio.lastRssi(), DEC);
-            Serial.println("");
+            // Debug
+            // Serial.print("Received [");
+            // Serial.print(this->bufSize);
+            // Serial.print("]: ");
+            // Serial.println(this->buf);
+            // Serial.print("RSSI: ");
+            // Serial.println(this->radio.lastRssi(), DEC);
+            // Serial.println("");
+
+            this->rssi += radio.lastRssi();
 
             // check if the full message has been received
-            int msgLen = strlen(this->lastMsg);
-            if (msgLen / bufSize + (msgLen % bufSize > 0) == this->incomingMsgLen)
+            int msgLen = strlen(this->msg);
+            if (msgLen / this->bufSize + (msgLen % this->bufSize > 0) == this->incomingMsgLen)
             {
+                this->rssi /= this->incomingMsgLen;
                 this->incomingMsgLen = 0;
                 this->avail = true;
             }
-            this->avgRSSI += radio.lastRssi();
-        }
-        else
-        {
-            Serial.println("Receive failed");
-        }
-        return this->lastMsg;
-    }
 
+            return this->msg;
+        }
+        return "Failed to receive message";
+    }
     return "No message available";
 }
 
@@ -192,7 +169,7 @@ char *message must be a dynamically allocated null terminated string
 - Telemetry:
     message - input: latitude,longitude,altitude,speed,heading,precision,stage,t0 -> output: APRS message
 - Video: TODO
-    message - input: Base 64 string -> output: ?
+    message - input: char* filled with raw bytes -> output: Raw byte array
 - Ground Station: TODO
     message - input: Source:Value,Destination:Value,Path:Value,Type:Value,Body:Value -> output: APRS message
 */
@@ -200,26 +177,10 @@ bool RFM69HCW::encode(char *message, EncodingType type)
 {
     if (type == ENCT_NONE)
         return true;
-    Serial.println("something");
-    delay(1000);
     if (type == ENCT_TELEMETRY)
     {
         APRSMsg aprs;
-        int msgLen = strlen(this->lastMsg);
-
-        //  make sure message has enough space for the output
-        if (msgLen < 110)
-        {
-            char *msg = new char[msgLen + 1];
-            strcpy(msg, this->lastMsg);
-            delete[] this->lastMsg;
-            this->lastMsg = new char[111];
-            strcpy(this->lastMsg, msg);
-
-            delete[] msg;
-        }
-
-        message = this->lastMsg;
+        int msgLen = strlen(message);
 
         aprs.setSource(this->cfg.CALLSIGN);
         aprs.setPath(this->cfg.PATH);
@@ -229,7 +190,7 @@ bool RFM69HCW::encode(char *message, EncodingType type)
         APRSData data;
 
         // find each value separated in order by a comma and put in the APRSData array
-        char *currentVal = new char[msgLen];
+        char currentVal[MSG_LEN];
         int currentValIndex = 0;
         int currentValCount = 0;
         for (int i = 0; i < msgLen; i++)
@@ -264,7 +225,6 @@ bool RFM69HCW::encode(char *message, EncodingType type)
                 currentValCount++;
             }
         }
-        delete[] currentVal;
 
         // get lat and long string for low or high precision
         if (data.precision == 'L')
@@ -308,7 +268,7 @@ bool RFM69HCW::encode(char *message, EncodingType type)
                 data.hdg, '/', data.spd, data.alt, "/S", data.stage, '/',
                 data.t0, ' ', data.dao);
         aprs.getBody()->setData(body);
-        aprs.encode(this->lastMsg);
+        aprs.encode(this->msg);
         return true;
     }
     return false;
@@ -319,11 +279,11 @@ Multi-purpose encoder function
 Decodes the message into a format selected by type
 char *message must be a dynamically allocated null terminated string
 - Telemetry:
-    message - input: APRS message -> output: latitude,longitude,altitude,speed,heading,precision,stage,t0
+    message - output: latitude,longitude,altitude,speed,heading,precision,stage,t0 <- input: APRS message
 - Video: TODO
-    message - input: Base 64 string -> output: ?
+    message - output: char* filled with raw bytes <- input: Raw byte array
 - Ground Station:
-    message - input: APRS message -> output: Source:Value,Destination:Value,Path:Value,Type:Value,Body:Value
+    message - output: Source:Value,Destination:Value,Path:Value,Type:Value,Body:Value <- input: APRS message
 */
 bool RFM69HCW::decode(char *message, EncodingType type)
 {
@@ -333,12 +293,7 @@ bool RFM69HCW::decode(char *message, EncodingType type)
     {
         APRSMsg aprs;
         aprs.decode(message);
-        // make sure message has enough space for the output
-        if (strlen(message) < 70)
-        {
-            delete[] message;
-            message = new char[71];
-        }
+
         char body[80];
         char *bodyptr = body;
         strcpy(body, aprs.getBody()->getData());
@@ -523,15 +478,10 @@ bool RFM69HCW::decode(char *message, EncodingType type)
         // put the message into a APRSMessage object to decode it
         APRSMsg aprs;
         aprs.decode(message);
-        // make sure message has enough space for the output
-        if (strlen(message) < 180)
-        {
-            delete[] message;
-            message = new char[181];
-        }
+
         aprs.toString(message);
         // add RSSI to the end of message
-        sprintf(message + strlen(message), "%s%d", ",RSSI:", this->avgRSSI / this->incomingMsgLen);
+        sprintf(message + strlen(message), "%s%d", ",RSSI:", this->rssi);
         return true;
     }
     return false;
@@ -541,26 +491,16 @@ bool RFM69HCW::decode(char *message, EncodingType type)
 Comprehensive send function
 Encodes the message into the selected type, then sends it
 char *message must be a null terminated string
+Transmitted and encoded message length must not exceed MSG_LEN
     - message is the message to be sent
     - type is the encoding type
 */
 bool RFM69HCW::send(const char *message, EncodingType type)
 {
-    Serial.println("1");
-    // Serial.println(this->lastMsg);
-    // delete[] this->lastMsg;
-    Serial.println("2");
-    // this->lastMsg = new char[strlen(message) + 1];
-    Serial.println("3");
-    delay(1000);
-    strncpy(this->lastMsg, message, 5);
-    this->lastMsg[5] = '\0';
-    Serial.println("4");
-    delay(1000);
-    encode(this->lastMsg, type);
-    Serial.println("5");
-    tx(this->lastMsg);
-    Serial.println("6");
+    strcpy(this->msg, message);
+    this->msg[MSG_LEN] = '\0'; // make sure msg is null terminated just in case
+    encode(this->msg, type);
+    tx(this->msg);
     return true;
 }
 
@@ -568,6 +508,7 @@ bool RFM69HCW::send(const char *message, EncodingType type)
 Comprehensive receive function
 Should be called after verifying there is an available message by calling available()
 Decodes the last received message according to the type
+Received and decoded message length must not exceed MSG_LEN
     - type is the decoding type
 */
 const char *RFM69HCW::receive(EncodingType type)
@@ -575,8 +516,8 @@ const char *RFM69HCW::receive(EncodingType type)
     if (this->avail)
     {
         this->avail = false;
-        decode(this->lastMsg, type);
-        return this->lastMsg;
+        decode(this->msg, type);
+        return this->msg;
     }
     return "";
 }
@@ -595,7 +536,7 @@ Returns the RSSI of the last message
 */
 int RFM69HCW::RSSI()
 {
-    return this->avgRSSI / this->incomingMsgLen;
+    return this->rssi;
 }
 
 void RFM69HCW::set300KBPS()
