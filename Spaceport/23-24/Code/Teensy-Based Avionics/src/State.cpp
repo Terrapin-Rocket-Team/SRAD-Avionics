@@ -138,7 +138,7 @@ void State::updateState()
         // imu x y z
         inputs[0] = imu->get_acceleration().x();
         inputs[1] = imu->get_acceleration().y();
-        inputs[2] = imu->get_acceleration().z();
+        inputs[2] = imu->get_acceleration().z() + 9.80665;//add G cuz imu removes it.
         akf::updateFilter(kfilter, timeAbsolute, gps ? 1 : 0, baro ? 1 : 0, imu ? 1 : 0, measurements, inputs, &predictions);
         // time, pos x, y, z, vel x, y, z, acc x, y, z
         //ignore time return value.
@@ -254,7 +254,7 @@ void State::setcsvHeader()
 
     //---Fill header String
     int j = 0;
-    for (int i = 0; headers[i] != nullptr; i++)
+    for (int i = 0; i < numCategories; i++)
     {
         for (int k = 0; headers[i][k] != '\0'; j++, k++) // append all the header strings onto the main string
             csvHeader[j] = headers[i][k];
@@ -319,7 +319,7 @@ void State::setdataString()
 
     //---Fill data String
     int j = 0;
-    for (int i = 0; data[i]; i++)
+    for (int i = 0; i < numCategories; i++)
     {
         for (int k = 0; data[i][k]; j++, k++) // append all the data strings onto the main string
             dataString[j] = data[i][k];
