@@ -13,12 +13,13 @@ DS3231 rtc();   //I2C Address 0x68
 State computer;
 
 #define BUZZER 33
+#define BMP_ADDR_PIN 36
 
 void setup()
 {
     //Setup BMP to use defualt address
-    pinMode(36, OUTPUT);
-    digitalWrite(36, HIGH);
+    pinMode(BMP_ADDR_PIN, OUTPUT);
+    digitalWrite(BMP_ADDR_PIN, HIGH);
 
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);
