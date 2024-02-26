@@ -4,7 +4,10 @@ int PRE_FLIGHT_DATA_DUMP_DURATION = 60;  // in seconds
 int PRE_FLIGHT_TIME_SINCE_LAST_DUMP = 0; // in seconds
 int PRE_FLIGHT_TIME_OF_LAST_DUMP = 0;    // in seconds
 
-void recordData(char *data, int stage)
+static void dataToPSRAM(char *data, bool start = true);
+
+
+void recordFlightData(char *data, int stage)
 {
     if (stage == 0)
     {
@@ -32,8 +35,14 @@ void recordData(char *data, int stage)
     }
 }
 
-void dataToPSRAM(char *data)
+void recordLogData(char *data)
+{
+    dataToPSRAM(data, false);
+}
+
+
+void dataToPSRAM(char *data, bool atStart = true)
 {
     if (isPSRAMReady())
-        psramPrintln(data);
+        psramPrintln(data, atStart);
 }

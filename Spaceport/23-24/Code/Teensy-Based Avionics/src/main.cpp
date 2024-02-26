@@ -11,7 +11,7 @@ BMP390 bmp(13, 12);   //I2C Address 0x77
 MAX_M10S gps(13, 12, 0x42); //I2C Address 0x42  
 DS3231 rtc();   //I2C Address 0x68
 State computer;
-
+PSRAM *ram;
 #define BUZZER 33
 
 void setup() {
@@ -20,6 +20,7 @@ void setup() {
     delay(1000);
     digitalWrite(LED_BUILTIN, LOW);
 
+    ram = new PSRAM();
 
     // Serial.begin(9600);
     // while (!Serial);
