@@ -14,7 +14,12 @@ State computer;
 
 #define BUZZER 33
 
-void setup() {
+void setup()
+{
+    //Setup BMP to use defualt address
+    pinMode(36, OUTPUT);
+    digitalWrite(36, HIGH);
+
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);
     delay(1000);
@@ -59,7 +64,6 @@ void setup() {
         digitalWrite(BUZZER, LOW);
 
     }
-
 }
 
 void loop() {
