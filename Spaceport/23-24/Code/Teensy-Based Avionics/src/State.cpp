@@ -1,6 +1,6 @@
 #include "State.h"
 
-State::State()
+State::State(bool useKalmanFilter)
 {
     timeAbsolute = millis();
     timePreviousStage = 0;
@@ -24,12 +24,26 @@ State::State()
     stateString = nullptr;
     dataString = nullptr;
     numSensors = 0;
+    useKF = useKalmanFilter;
+    // time pos x y z vel x y z acc x y z
+    predictions = new double[10]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    // gps x y z barometer z
+    measurements = new double[4]{1, 1, 1, 1};
+    // imu x y z
+    inputs = new double[3]{1, 1, 1};
+    kfilter = new akf::KFState();
 }
+
 State::~State()
 {
     delete[] csvHeader;
     delete[] stateString;
+    delete[] predictions;
+    delete[] measurements;
+    delete[] inputs;
+    delete kfilter;
 }
+
 bool State::init()
 {
     int good = 0, tryNumSensors = 0;
@@ -75,6 +89,10 @@ bool State::init()
     }
     setcsvHeader();
     numSensors = good;
+
+    if (useKF)
+        initKF(baro, gps, imu);
+
     return good == tryNumSensors;
 }
 void State::determineaccelerationMagnitude(imu::Vector<3> accel)
@@ -85,9 +103,7 @@ void State::determineaccelerationMagnitude(imu::Vector<3> accel)
 void State::determineapogee(double zPosition)
 {
     if (apogee < zPosition)
-    {
         apogee = zPosition;
-    }
 }
 
 void State::determinetimeSincePreviousStage()
@@ -112,20 +128,48 @@ void State::updateSensors()
 void State::updateState()
 {
     updateSensors();
-    if (gps)
+    if (useKF)
     {
-        position = imu::Vector<3>(gps->get_pos().x(), gps->get_pos().y(), gps->get_alt());
-        velocity = gps->get_velocity();
+        // gps x y z barometer z
+        measurements[0] = gps->get_displace().x();
+        measurements[1] = gps->get_displace().y();
+        measurements[2] = gps->get_displace().z();
+        measurements[4] = baro->get_rel_alt_m();
+        // imu x y z
+        inputs[0] = imu->get_acceleration().x();
+        inputs[1] = imu->get_acceleration().y();
+        inputs[2] = imu->get_acceleration().z();
+        akf::updateFilter(kfilter, timeAbsolute, gps ? 1 : 0, baro ? 1 : 0, imu ? 1 : 0, measurements, inputs, &predictions);
+        // time, pos x, y, z, vel x, y, z, acc x, y, z
+        //ignore time return value.
+        position.x() = predictions[1];
+        position.y() = predictions[2];
+        position.z() = predictions[3];
+        velocity.x() = predictions[4];
+        velocity.y() = predictions[5];
+        velocity.z() = predictions[6];
+        acceleration.x() = predictions[7];
+        acceleration.y() = predictions[8];
+        acceleration.z() = predictions[9];
     }
-    if (baro)
+    else
     {
-        velocity.z() = (*(double*)baro->get_data() - position.z()) / (millis() - timeAbsolute);//how ugly. get_data() prevents resending commands to the sensor.
-        position.z() = *(double *)baro->get_data();
-    }
-    if (imu)
-    {
-        acceleration = imu->get_acceleration();
-        orientation = imu->get_orientation();
+
+        if (gps)
+        {
+            position = imu::Vector<3>(gps->get_pos().x(), gps->get_pos().y(), gps->get_alt());
+            velocity = gps->get_velocity();
+        }
+        if (baro)
+        {
+            velocity.z() = (*(double *)baro->get_data() - position.z()) / (millis() - timeAbsolute); // how ugly. get_data() prevents resending commands to the sensor.
+            position.z() = *(double *)baro->get_data();
+        }
+        if (imu)
+        {
+            acceleration = imu->get_acceleration();
+            orientation = imu->get_orientation();
+        }
     }
     settimeAbsolute();
 
@@ -146,7 +190,7 @@ void State::updateState()
     {
         stageNumber = 3;
     }
-    else if (stageNumber == 3 && position.z() < 750 && millis() - timeSinceLaunch > 120000)//This should be lowered
+    else if (stageNumber == 3 && position.z() < 750 && millis() - timeSinceLaunch > 120000) // This should be lowered
     {
         stageNumber = 4;
     }
@@ -305,6 +349,7 @@ char *State::getcsvHeader() { return csvHeader; }
 int State::getStageNum() { return stageNumber; }
 
 #pragma region Getters and Setters for Sensors
+
 void State::setBaro(Barometer *nbaro) { baro = nbaro; }
 void State::setGPS(GPS *ngps) { gps = ngps; }
 void State::setIMU(IMU *nimu) { imu = nimu; }
@@ -317,4 +362,34 @@ GPS *State::getGPS() { return gps; }
 IMU *State::getIMU() { return imu; }
 LightSensor *State::getLS() { return lisens; }
 RTC *State::getRTC() { return rtc; }
+
+#pragma endregion
+
+#pragma region Private Helper methods
+
+void State::initKF(bool useBaro, bool useGps, bool useImu)
+{
+    // These are currently not ever deleted. Since this is only called once, it should not be an issue, but proper practice is to delete these when the state is destroyed.
+
+    double *initial_state = new double[6]{0, 0, 0, 0, 0, 0};
+    double *initial_input = new double[3]{0, 0, 0};
+    double *initial_covariance = new double[36]{1, 0, 0, 1, 0, 0,
+                                                0, 1, 0, 0, 1, 0,
+                                                0, 0, 1, 0, 0, 1,
+                                                1, 0, 0, 1, 0, 0,
+                                                0, 1, 0, 0, 1, 0,
+                                                0, 0, 1, 0, 0, 1};
+    double *measurement_covariance = new double[16]{3, 0, 0, 0,
+                                                    0, 3, 0, 0,
+                                                    0, 0, 3, 0,
+                                                    0, 0, 0, 3};
+    double *process_noise_covariance = new double[36]{.1, 0, 0, 0, 0, 0,
+                                                      0, .1, 0, 0, 0, 0,
+                                                      0, 0, .1, 0, 0, 0,
+                                                      0, 0, 0, .1, 0, 0,
+                                                      0, 0, 0, 0, .1, 0,
+                                                      0, 0, 0, 0, 0, .1};
+    akf::init(kfilter, 6, 3, 4, initial_state, initial_input, initial_covariance, measurement_covariance, process_noise_covariance);
+}
+
 #pragma endregion

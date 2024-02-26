@@ -1,6 +1,8 @@
 #ifndef STATE_H
 #define STATE_H
 
+#include "AbhiKalmanFilter.h"
+
 // Include all the sensor classes
 #include "Barometer.h"
 #include "GPS.h"
@@ -19,8 +21,9 @@ public:
     imu::Vector<3> acceleration; // in m/s^2
     imu::Quaternion orientation; // in quaternion
 
-    State();
+    State(bool useKalmanFilter = false);
     ~State();
+
     // to be called after all applicable sensors have been added.
     // Retruns false if any sensor failed to init. check for getSensor == nullptr to see which sensor failed. Disables sensor if failed.
     bool init();
@@ -74,6 +77,18 @@ private:
     void setcsvHeader();
     void setdataString();
     void updateSensors();
+
+
+    //Kalman Filter settings
+    bool useKF;
+    void initKF(bool useBaro, bool useGps, bool useImu);
+    akf::KFState *kfilter;
+    // time pos x y z vel x y z acc x y z
+    double *predictions;
+    // gps x y z barometer z
+    double *measurements;
+    // imu x y z
+    double *inputs;
 };
 
 #endif
