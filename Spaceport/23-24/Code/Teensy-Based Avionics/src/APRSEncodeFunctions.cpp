@@ -117,13 +117,12 @@ void create_long_aprs(char *lng, bool hp)
 }
 
 // creates the dao at the end of aprs message based on latitude and longitude
-char *create_dao_aprs(char *lat, char *lng)
+void create_dao_aprs(char *lat, char *lng, char *dao)
 {
     // !DAO! extension, use Base91 format for best precision
     // /1.1 : scale from 0-99 to 0-90 for base91, int(... + 0.5): round to nearest
     // integer https://metacpan.org/dist/Ham-APRS-FAP/source/FAP.pm
     // http://www.aprs.org/aprs12/datum.txt
-    static char str[10];
 
     int len = strlen(lat);
     int decimalPos = 0;
@@ -133,7 +132,7 @@ char *create_dao_aprs(char *lat, char *lng)
         if (lat[i] == '.')
             decimalPos = i;
     }
-    sprintf(str, "!w%s", s_min_nn((int)(lat + decimalPos + 1), 2));
+    sprintf(dao, "!w%s", s_min_nn((int)(lat + decimalPos + 1), 2));
 
     len = strlen(lng);
     decimalPos = 0;
@@ -142,9 +141,7 @@ char *create_dao_aprs(char *lat, char *lng)
         if (lng[i] == '.')
             decimalPos = i;
     }
-    sprintf(str + 3, "%s!", s_min_nn((int)(lng + decimalPos + 1), 2));
-
-    return str;
+    sprintf(dao + 3, "%s!", s_min_nn((int)(lng + decimalPos + 1), 2));
 }
 
 // adds a specified number of zeros to the begining of a number

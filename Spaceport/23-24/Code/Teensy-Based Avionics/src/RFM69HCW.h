@@ -38,7 +38,7 @@ struct RadioSettings
 class RFM69HCW : public Radio
 {
 public:
-    RFM69HCW(RadioSettings s, APRSConfig config);
+    RFM69HCW(const RadioSettings s, const APRSConfig config);
     bool begin() override;
     bool tx(const char *message) override;
     const char *rx() override;
@@ -49,11 +49,11 @@ public:
     int RSSI() override;
     bool available();
     void set300KBPS();
-    RH_RF69 radio;
 
 private:
+    RH_RF69 radio;
     // all radios should have the same networkID
-    const uint8_t networkID = 0x0001;
+    const uint8_t networkID = 0x01;
     // default to the highest transmit power
     const int txPower = 20;
     // set by constructor
@@ -63,7 +63,7 @@ private:
     RadioSettings settings;
     // for sending/receiving data
     // stores messages sent to radio, length determined by max radio message length
-    uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
+    uint8_t buf[RH_RF69_MAX_MESSAGE_LEN + 1];
     uint8_t bufSize = RH_RF69_MAX_MESSAGE_LEN;
     APRSConfig cfg;
     bool avail;
