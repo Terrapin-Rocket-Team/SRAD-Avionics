@@ -290,8 +290,8 @@ char *State::getStateString()
 {
     delete[] stateString;
     stateString = new char[500]; // way oversized for right now.
-    snprintf(stateString, 500, "%.2f,%.2f,%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f",
-             timeAbsolute, timeSinceLaunch, STAGES[stageNumber], timeSincePreviousStage,
+    snprintf(stateString, 500, "%.2f,%.2f,%s,%.2f|%.2f,%.2f,%.2f|%.2f,%.2f,%.2f|%.2f,%.2f,%.2f|%.2f,%.2f,%.2f,%.2f,%.2f",
+             timeAbsolute / 1000.0, timeSinceLaunch / 1000.0, STAGES[stageNumber], timeSincePreviousStage / 1000.0,
              acceleration.x(), acceleration.y(), acceleration.z(),
              velocity.x(), velocity.y(), velocity.z(),
              position.x(), position.y(), position.z(),
