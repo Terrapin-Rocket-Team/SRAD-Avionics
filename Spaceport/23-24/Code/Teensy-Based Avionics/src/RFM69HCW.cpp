@@ -73,8 +73,6 @@ bool RFM69HCW::begin()
         this->radio.setSyncWords();
     }
 
-    Serial.println(this->bufSize);
-
     return true;
 }
 
@@ -99,6 +97,7 @@ bool RFM69HCW::tx(const char *message)
         memcpy(this->buf, message + j * this->bufSize, min(this->bufSize, len - j * this->bufSize));
         this->radio.send(this->buf, min(this->bufSize, len - j * this->bufSize));
         this->radio.waitPacketSent();
+        delay(100); // leaving this here for now, should try to remove later
     }
 
     this->id = 0x00;
@@ -121,44 +120,39 @@ const char *RFM69HCW::rx()
         uint8_t receivedLen = this->bufSize;
         if (this->radio.recv(this->buf, &(receivedLen)))
         {
-            Serial.println(receivedLen);
-            return;
             // check if this is the first part of the message
             if (this->incomingMsgLen == 0)
             {
-                memset(this->buf, 0, this->bufSize);
                 this->incomingMsgLen = this->radio.headerId();
                 if (this->incomingMsgLen == 0)
                     return "Error parsing message";
-                memcpy(this->msg, this->buf, this->bufSize);
-                this->msg[this->bufSize] = '\0';
+                memcpy(this->msg, this->buf, receivedLen);
+                this->msg[receivedLen] = '\0';
             }
             else // otherwise append to the end of the message, removing the \0 from last time
             {
                 int len = strlen(this->msg);
-                Serial.println(min(MSG_LEN - (len + this->bufSize), this->bufSize));
-                Serial.println(this->bufSize);
-                Serial.println(min(MSG_LEN, len + this->bufSize));
-                memcpy(this->msg + len, this->buf, min(MSG_LEN - (len + this->bufSize), bufSize));
-                this->msg[min(MSG_LEN, len + this->bufSize)] = '\0'; // make sure we don't go over MSG_LEN
+                memcpy(this->msg + len, this->buf, min(MSG_LEN - (len + receivedLen), receivedLen));
+                this->msg[min(MSG_LEN, len + receivedLen)] = '\0'; // make sure we don't go over MSG_LEN
             }
-
+            this->id++;
             // Debug
-            Serial.print("Received [");
-            Serial.print(this->bufSize);
-            Serial.print("]: ");
-            this->buf[this->bufSize] = 0;
-            Serial.println((char *)this->buf);
-            Serial.print("RSSI: ");
-            Serial.println(this->radio.lastRssi(), DEC);
-            Serial.println("");
+            // Serial.print("Received [");
+            // Serial.print(this->bufSize);
+            // Serial.print("]: ");
+            // this->buf[this->bufSize] = 0;
+            // Serial.println((char *)this->buf);
+            // Serial.print("RSSI: ");
+            // Serial.println(this->radio.lastRssi(), DEC);
+            // Serial.println("");
 
             this->rssi += radio.lastRssi();
 
             // check if the full message has been received
             int msgLen = strlen(this->msg);
-            if (msgLen / this->bufSize + (msgLen % this->bufSize > 0) == this->incomingMsgLen)
+            if (this->incomingMsgLen == this->id) // this works for now, maybe find a better way later?
             {
+                this->id = 0;
                 this->rssi /= this->incomingMsgLen;
                 this->incomingMsgLen = 0;
                 this->avail = true;

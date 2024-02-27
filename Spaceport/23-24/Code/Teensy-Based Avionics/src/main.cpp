@@ -25,7 +25,7 @@ void setup()
     if (!receive.begin())
         Serial.println("Reciever failed to begin");
 
-    Serial.println("RFM69 began");
+    // Serial.println("RFM69 began");
     pinMode(33, OUTPUT);
 }
 
@@ -33,11 +33,13 @@ void loop()
 {
     if (receive.available())
     {
-        digitalWrite(33, HIGH);
-        delay(100);
-        digitalWrite(33, LOW);
-        Serial.print("Received: ");
-        Serial.println(receive.receive(ENCT_NONE));
+        // digitalWrite(33, HIGH);
+        // delay(100);
+        // digitalWrite(33, LOW);
+        // Serial.print("Received: ");
+        Serial.println("s");
+        Serial.println(receive.receive(ENCT_GROUNDSTATION));
+        Serial.println("e");
     }
 
     // if (millis() - timer >= 1000)
