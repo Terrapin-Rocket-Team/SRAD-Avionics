@@ -27,13 +27,12 @@ void setup()
     digitalWrite(LED_BUILTIN, LOW);
 
 
-    // Serial.begin(9600);
+    Serial.begin(9600);
     // while (!Serial);
 
     
     computer.setBaro(&bmp);
-    // computer.addGPS(&gps);
-    // computer.addRTC(&rtc);
+    computer.setGPS(&gps);
     computer.setIMU(&bno);
 
     computer.init();
@@ -66,7 +65,9 @@ void loop() {
     
     computer.updateState();
 
-    Serial.println(computer.getStateString());
+    //Serial.println(computer.getStateString());
+    Serial.println(computer.getGPS()->get_fix_qual());
+    Serial.println(computer.getGPS()->getdataString());
     recordData(computer.getdataString(), computer.getStageNum());
-    delay(50);
+    delay(100);
 }
