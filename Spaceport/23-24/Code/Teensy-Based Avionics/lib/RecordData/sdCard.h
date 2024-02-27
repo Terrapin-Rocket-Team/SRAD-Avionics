@@ -10,7 +10,7 @@ extern FsFile flightDataFile;
 extern char logFileName[24];
 extern char flightDataFileName[24];
 
-bool setupSDCard();  // Initializes the sensor
+bool setupSDCard(const char *csvHeader); // Initializes the sensor
 bool isSDReady();  // Returns whether the sensor is initialized
 
 

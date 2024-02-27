@@ -9,7 +9,7 @@ class PSRAM
 {
 public:
     PSRAM();
-    bool init(const char *csvHeader);
+    bool init();
     void print(const char *data, bool atStart = true);
     void println(const char *data, bool atStart = true);
     bool isReady();

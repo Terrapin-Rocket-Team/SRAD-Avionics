@@ -38,7 +38,7 @@ void setup()
     else
         recordLogData(ERROR, "Some Sensors Failed to Initialize. Disabling those sensors.");
 
-    if (ram->init(computer.getcsvHeader()))
+    if (ram->init())
         recordLogData(INFO, "PSRAM Initialized");
     else
         recordLogData(ERROR, "PSRAM Failed to Initialize");
@@ -47,7 +47,7 @@ void setup()
     delay(1000);
     digitalWrite(LED_BUILTIN, LOW);
 
-    if (setupSDCard())
+    if (setupSDCard(computer.getcsvHeader()))
     {
 
         recordLogData(INFO, "SD Card Initialized");
