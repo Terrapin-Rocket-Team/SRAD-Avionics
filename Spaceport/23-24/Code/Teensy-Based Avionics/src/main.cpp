@@ -15,6 +15,8 @@ PSRAM *ram;
 #define BUZZER 33
 #define BMP_ADDR_PIN 36
 
+static double last = 0;//for better timing than "delay(100)"
+
 void setup()
 {
     // Setup BMP to use defualt address
@@ -70,11 +72,14 @@ void setup()
 
 void loop()
 {
+    double time = millis();
+    
+    if(time - last < 100)
+        return;
 
+    last = time;
     computer.updateState();
-
     dataStageUpdate(computer.getStageNum());
     recordLogData(INFO, computer.getdataString(), TO_USB);
     recordFlightData(computer.getdataString());
-    delay(100);
 }

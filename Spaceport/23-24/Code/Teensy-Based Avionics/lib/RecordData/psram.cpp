@@ -4,7 +4,6 @@ PSRAM::PSRAM()
 {
     ready = false;
     dumped = false;
-    launched = false;
 
     cursorStart = nullptr;
     cursorEnd = nullptr;
