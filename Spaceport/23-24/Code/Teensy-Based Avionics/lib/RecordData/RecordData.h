@@ -2,14 +2,26 @@
 #define RECORD_DATA_H
 
 #include "psram.h"
-// #include "../State/State.h"
+#include "sdCard.h"
 
-extern int PRE_FLIGHT_DATA_DUMP_DURATION;
-extern int PRE_FLIGHT_TIME_SINCE_LAST_DUMP;
-extern int PRE_FLIGHT_TIME_OF_LAST_DUMP;
 extern PSRAM *ram;
 
-void recordSensorData(char *data, int stage); //0 is preflight, 5 is postflight.
-void recordLogData(char *data);
 
+enum LogType
+{
+    LOG,
+    ERROR,
+    WARNING,
+    INFO
+};
+enum Dest
+{
+    BOTH,
+    TO_USB,
+    TO_FILE
+};
+
+void recordFlightData(char *data); //0 is preflight, 5 is postflight.
+void recordLogData(LogType type, const char *data, Dest dest = BOTH);
+void dataStageUpdate(int stage);//kind of bad...
 #endif

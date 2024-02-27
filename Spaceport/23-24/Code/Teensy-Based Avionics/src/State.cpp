@@ -1,5 +1,4 @@
 #include "State.h"
-
 State::State()
 {
     timeAbsolute = millis();
@@ -36,42 +35,62 @@ bool State::init()
     if (baro)
     {
         tryNumSensors++;
-        if (baro->initialize())
+        if (baro->initialize()){
             good++;
-        else
+            recordLogData(INFO, "Barometer initialized");
+        }
+        else{
             baro = nullptr;
+            recordLogData(ERROR, "Barometer failed to initialize");
+        }
     }
     if (gps)
     {
         tryNumSensors++;
-        if (gps->initialize())
+        if (gps->initialize()){
             good++;
-        else
+            recordLogData(INFO, "GPS initialized");
+        }
+        else{
             gps = nullptr;
+            recordLogData(ERROR, "GPS failed to initialize");
+        }
     }
     if (imu)
     {
         tryNumSensors++;
-        if (imu->initialize())
+        if (imu->initialize()){
             good++;
-        else
+            recordLogData(INFO, "IMU initialized");
+        }
+        else{
             imu = nullptr;
+            recordLogData(ERROR, "IMU failed to initialize");
+        }
     }
     if (lisens)
     {
         tryNumSensors++;
-        if (lisens->calibrate()) // This should be changed to init...
+        if (lisens->calibrate()){//should be initialize...
             good++;
-        else
+            recordLogData(INFO, "Light Sensor initialized");
+        }
+        else{
             lisens = nullptr;
+            recordLogData(ERROR, "Light Sensor failed to initialize");
+        }
     }
     if (rtc)
     {
         tryNumSensors++;
-        if (rtc->initialize())
+        if (rtc->initialize()){
             good++;
-        else
+            recordLogData(INFO, "RTC initialized");
+        }
+        else{
             rtc = nullptr;
+            recordLogData(ERROR, "RTC failed to initialize");
+        }
     }
     setcsvHeader();
     numSensors = good;
@@ -87,6 +106,9 @@ void State::determineapogee(double zPosition)
     if (apogee < zPosition)
     {
         apogee = zPosition;
+    }
+    if(apogee > zPosition + 10){
+        recordLogData(INFO, "Apogee detected");
     }
 }
 
@@ -131,38 +153,66 @@ void State::updateState()
 
     if (stageNumber == 0 && acceleration.z() > 25 && position.z() > 75)
     {
-        stageNumber = 1;
+        updateStage(1);
         timeLaunch = timeAbsolute;
         timePreviousStage = timeAbsolute;
-        digitalWrite(LED_BUILTIN, HIGH); // not sure why this is here because it will never be seen, but leaving it for now
-        delay(200);
-        digitalWrite(LED_BUILTIN, LOW);
+        recordLogData(INFO, "Launch detected.");
+        recordLogData(INFO, "Printing static data.");
+        if(gps){
+            recordLogData(INFO, "GPS:");
+            recordLogData(INFO, gps->getStaticDataString());
+        }
+        if(baro){
+            recordLogData(INFO, "Barometer:");
+            recordLogData(INFO, baro->getStaticDataString());
+        }
+        if(imu){
+            recordLogData(INFO, "IMU:");
+            recordLogData(INFO, imu->getStaticDataString());
+        }
+        if(lisens){
+            recordLogData(INFO, "Light Sensor:");
+            recordLogData(INFO, lisens->getStaticDataString());
+        }
+        if(rtc){
+            recordLogData(INFO, "RTC:");
+            recordLogData(INFO, rtc->getStaticDataString());
+        }
     }
     else if (stageNumber == 1 && acceleration.z() < 5)
     {
-        stageNumber = 2;
+        updateStage(2);
+        recordLogData(INFO, "Coasting detected.");
     }
     else if (stageNumber == 2 && velocity.z() < 0)
     {
-        stageNumber = 3;
+        updateStage(3);
+        recordLogData(INFO, "Drogue conditions detected.");
     }
     else if (stageNumber == 3 && position.z() < 750 && millis() - timeSinceLaunch > 12000)//This should be lowered
     {
-        stageNumber = 4;
+        updateStage(4);
+        recordLogData(INFO, "Main parachute conditions detected.");
     }
     else if (stageNumber == 4 && velocity.z() > -0.5 && accelerationMagnitude < 5 && *(double *)baro->get_data() < 200)
     {
         stageNumber = 5;
+        if(landingCounter++ > 50){//roughly 5 seconds of data after landing
+            updateStage(5);
+            recordLogData(INFO, "Dumping data after landing.");
+        }
+        recordLogData(INFO, "Landing detected. Waiting for 5 seconds to dump data.");
     }
     determineapogee(position.z());
     // backup case to dump data (25 minutes)
     determinetimeSinceLaunch();
     if (stageNumber > 0 && timeSinceLaunch > 1500000 && stageNumber < 5)
     {
-        stageNumber = 5;
+        updateStage(5);
         digitalWrite(LED_BUILTIN, HIGH);
         delay(500);
         digitalWrite(LED_BUILTIN, LOW);
+        recordLogData(WARNING, "Dumping data after 25 minutes.");
     }
     setdataString();
 }
@@ -303,7 +353,7 @@ char *State::getStateString()
 char *State::getdataString() { return dataString; }
 char *State::getcsvHeader() { return csvHeader; }
 int State::getStageNum() { return stageNumber; }
-
+void State::updateStage(int num) { stageNumber = num; dataStageUpdate(num); }
 #pragma region Getters and Setters for Sensors
 void State::setBaro(Barometer *nbaro) { baro = nbaro; }
 void State::setGPS(GPS *ngps) { gps = ngps; }

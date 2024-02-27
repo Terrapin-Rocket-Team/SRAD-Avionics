@@ -2,8 +2,7 @@
 #define PSRAM_H
 
 #include "sdCard.h"
-#include <vector>
-#define PSRAM_DUMP_TIMEOUT 0.25 //in seconds
+#define PSRAM_DUMP_TIMEOUT 100 //in milliseconds
 
 extern "C" uint8_t external_psram_size;
 class PSRAM
@@ -14,9 +13,9 @@ public:
     void print(const char *data, bool atStart = true);
     void println(const char *data, bool atStart = true);
     bool isReady();
-    void markLiftoff();
     bool dumpFlightData();
     bool dumpLogData();
+    int getFreeSpace();
 
 private:
     bool ready;

@@ -8,6 +8,7 @@
 #include "LightSensor.h"
 #include "Radio.h"
 #include "RTC.h"
+#include "RecordData.h"
 
 const char STAGES[][15] = {"Pre-Flight", "Boosting", "Coasting", "Drogue Descent", "Main Descent", "Post-Flight"};
 class State
@@ -70,10 +71,11 @@ private:
     IMU *imu;
     LightSensor *lisens;
     RTC *rtc;
-
+    int landingCounter;//used to save a bit of data after landing
     void setcsvHeader();
     void setdataString();
     void updateSensors();
+    void updateStage(int num);//updates the recordData stage and the stageNumber
 };
 
 #endif

@@ -28,8 +28,11 @@ bool PSRAM::init(const char *csvHeader)
 }
 void PSRAM::println(const char *data, bool atStart = true)
 {
-    print(data, atStart);
-    print("\n", atStart);
+    if (ready)
+    {
+        print(data, atStart);
+        print("\n", atStart);
+    }
 }
 
 // Write string to FRAM
@@ -51,53 +54,58 @@ void PSRAM::print(const char *data, bool atStart = true)
         }
 }
 
-// Dump FRAM to SD Card
+// Dump FRAM to SD Card. Only to be called after flight has landed or timeout is reached.
 bool PSRAM::dumpFlightData()
 {
     if (isSDReady() && ready)
     {
-        String curStr = "";
-        float startTime = micros() / (1000000.0f);
-        for (char *i = memBegin; i < cursorStart; i++)
+        flightDataFile = sd.open(flightDataFileName, FILE_WRITE);
+        if (flightDataFile)
         {
-            char nextByte = *i;
-            curStr = curStr + nextByte;
-            if (nextByte == '\n')
-            {
-                logFile = sd.open(logFileName, FILE_WRITE);
-                if (logFile)
-                {
-                    logFile.print(curStr);
-                    logFile.close(); // close the file
-                }
-                // if (!isLaunchedPSRAM)
-                // {
-                //     if (previousRowsPSRAM.size() >= COMPACT_WALKBACK_COUNT)
-                //     {
-                //         previousRowsPSRAM.erase(previousRowsPSRAM.begin());
-                //     }
-                //     previousRowsPSRAM.push_back(String(curStr));
-                // }
-                curStr = "";
-            }
-
-            float curTime = micros() / (1000000.0f);
-            if ((curTime - startTime) > PSRAM_DUMP_TIMEOUT)
-            {
-                // Serial.println("SD Timeout");
-                return false;
-            }
+            flightDataFile.write(memBegin, cursorStart - memBegin);
+            flightDataFile.close();
         }
-        // Serial.println("Dumped");
-    }
+        else return false;
+    } else return false;
 
     cursorStart = memBegin;
-    dumped = true;
     return true;
 }
 
-bool PSRAM::dumpLogData(){
+bool PSRAM::dumpLogData()
+{ // more complicated because data is stored in reverse order
+    if (!isSDReady() || !ready)
+        return false;
 
+    char buffer[2048]; // large buffer but the Teensy should be able to handle it. Buffer should be a multiple of 512 for SD card efficiency.
+    char *writeCursor = memEnd;
+    int i = 0;
+    logFile = sd.open(logFileName, FILE_WRITE);
+
+    if (!logFile)
+        return false;
+    
+    while (writeCursor >= cursorEnd)
+    {
+
+        for (i = 0; i < 2048; i++)
+        {
+            if (writeCursor == cursorEnd)
+            {
+                buffer[i] = '\0';
+                break;
+            }
+            buffer[i] = *writeCursor;
+            writeCursor--;
+        }
+
+        logFile.write(buffer, i + 1);
+    }
+
+    logFile.close();
+    cursorEnd = memEnd;
+    dumped = true;
+    return true;
 }
 
 // Returns whether the FRAM is initialized
@@ -106,7 +114,7 @@ bool PSRAM::isReady()
     return ready;
 }
 
-void PSRAM::markLiftoff()
+int PSRAM::getFreeSpace()
 {
-    launched = true;
+    return cursorEnd - cursorStart;
 }
