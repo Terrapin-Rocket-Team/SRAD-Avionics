@@ -25,7 +25,7 @@ bool PSRAM::init()
 
     return ready;
 }
-void PSRAM::println(const char *data, bool atStart = true)
+void PSRAM::println(const char *data, bool atStart)
 {
     if (ready)
     {
@@ -35,7 +35,7 @@ void PSRAM::println(const char *data, bool atStart = true)
 }
 
 // Write string to FRAM
-void PSRAM::print(const char *data, bool atStart = true)
+void PSRAM::print(const char *data, bool atStart)
 {
     if (ready)
         for (int i = 0; data[i] != '\0'; i++)
