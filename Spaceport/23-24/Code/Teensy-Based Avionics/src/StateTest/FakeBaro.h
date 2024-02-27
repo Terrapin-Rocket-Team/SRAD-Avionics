@@ -40,7 +40,6 @@ public:
 
     double get_temp_f(){return 0;}
     double get_rel_alt_ft() {return 0;}
-    void *get_data(){return nullptr;}
     double get_pressure_atm() {return 0;}
 
 private:

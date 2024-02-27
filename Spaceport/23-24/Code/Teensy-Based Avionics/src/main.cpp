@@ -13,8 +13,10 @@ DS3231 rtc();   //I2C Address 0x68
 State computer;
 
 #define BUZZER 33
-
+#define BMP_ADDR_PIN 36
 void setup() {
+    pinMode(BMP_ADDR_PIN, OUTPUT);
+    digitalWrite(BMP_ADDR_PIN, HIGH);
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);
     delay(1000);
@@ -61,7 +63,7 @@ void loop() {
     
     computer.updateState();
 
-    // Serial.println(computer.getdataString());
+    Serial.println(computer.getStateString());
     recordData(computer.getdataString(), computer.getStageNum());
     delay(50);
 }

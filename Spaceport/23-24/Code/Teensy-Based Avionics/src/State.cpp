@@ -146,7 +146,7 @@ void State::updateState()
     {
         stageNumber = 3;
     }
-    else if (stageNumber == 3 && position.z() < 750 && millis() - timeSinceLaunch > 120000)//This should be lowered
+    else if (stageNumber == 3 && position.z() < 750 && millis() - timeSinceLaunch > 12000)//This should be lowered
     {
         stageNumber = 4;
     }
@@ -210,7 +210,7 @@ void State::setcsvHeader()
 
     //---Fill header String
     int j = 0;
-    for (int i = 0; headers[i] != nullptr; i++)
+    for (int i = 0; i < numCategories; i++)
     {
         for (int k = 0; headers[i][k] != '\0'; j++, k++) // append all the header strings onto the main string
             csvHeader[j] = headers[i][k];
@@ -275,7 +275,7 @@ void State::setdataString()
 
     //---Fill data String
     int j = 0;
-    for (int i = 0; data[i]; i++)
+    for (int i = 0; i < numCategories; i++)
     {
         for (int k = 0; data[i][k]; j++, k++) // append all the data strings onto the main string
             dataString[j] = data[i][k];
