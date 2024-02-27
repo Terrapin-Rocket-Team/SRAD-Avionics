@@ -23,9 +23,10 @@ imu::Vector<2> DS3231::getTimeSinceLaunch() {
     return imu::Vector<2>(secSinceLaunch, extraMillis);
 }
 
-void DS3231::initialize() {
+bool DS3231::initialize() {
     powerOnTime = rtc.now();
     millisAtStart = millis();
+    return true;
 }
 
 void DS3231::onLaunch() {
@@ -53,22 +54,23 @@ void * DS3231::getData() { //sec since launch, cast to void pointer
     return ((void *)(millis()));
 }
 
-String DS3231::getcsvHeader() { //all dynamic data
-    return "current_time, time_since_launch";
+const char *DS3231::getcsvHeader()
+{
+    return "R-CurTime,R-Time Since Launch,"; // trailing comma
 }
-
-String DS3231::getdataString() { 
-    String curTime =  getCurrentTime().timestamp();
-    imu::Vector<2> timeSinceLaunch = getTimeSinceLaunch();
-    return curTime + ", " + String(timeSinceLaunch[0]) + "sec " + String(timeSinceLaunch[1]) + "ms";
-
+char *DS3231::getdataString()
+{
+    // See State.cpp::setdataString() for comments on what these numbers mean. 19 for the timestamp
+    const int size = 19 * 1 + 12 * 1 + 2;
+    char *data = new char[size];
+    snprintf(data, size, "%s,%.2f,", getCurrentTime().timestamp().c_str(), getTimeSinceLaunch()[0]); // trailing comma
+    return data;
 }
-
-String DS3231::getStaticDataString() {
-    return "millis_at_start:" + String(millisAtStart) + ",\n"
-        + "power_on_time:" + powerOnTime.timestamp() + ",\n"
-        + "launch_time:" + launchTime.timestamp();
+char *DS3231::getStaticDataString()
+{
+    // See State.cpp::setdataString() for comments on what these numbers mean. 19 for the timestamps
+    const int size = 47 + 10 * 1 + 19 * 2;
+    char *data = new char[size];
+    snprintf(data, size, "millis_at_start: %d\npower_on_time: %s\nlaunch_time: %s\n", millisAtStart, powerOnTime.timestamp().c_str(), launchTime.timestamp().c_str());
+    return data;
 }
-
-
-

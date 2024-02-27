@@ -68,7 +68,7 @@ bool setupSDCard(String csvHeader){
         // Setup file with CSV header
         logFile = sd.open(logFileName, FILE_WRITE);
         if (logFile) {
-            logFile.println(csvHeader);
+            // logFile.println(csvHeader);//This is done by the PSRAM when it's ready to dump the first lines of data. This creates a duplicate header.
             logFile.close(); // close the file
             // Serial.println("Log file created: " + logFileName);
             sdReady = true;
