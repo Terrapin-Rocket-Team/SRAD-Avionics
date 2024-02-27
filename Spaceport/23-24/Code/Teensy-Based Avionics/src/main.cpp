@@ -1,51 +1,73 @@
 #include <Arduino.h>
-#include "RFM69HCW.h"
+#include "State.h"
+#include "BMP390.h"
+#include "BNO055.h"
+#include "MAX_M10S.h"
+#include "DS3231.h"
+#include <RecordData.h>
 
-#define CALLSIGN "KC3UTM"
-#define TOCALL "APRS"
-#define PATH "WIDE1-1"
+BNO055 bno(13, 12);         // I2C Address 0x29
+BMP390 bmp(13, 12);         // I2C Address 0x77
+MAX_M10S gps(13, 12, 0x42); // I2C Address 0x42
+DS3231 rtc();               // I2C Address 0x68
+State computer;
 
-APRSConfig config = {CALLSIGN, TOCALL, PATH, '[', '/'};
-// RadioSettings settingsT = {433.775, true, false, &hardware_spi, 10, 2, 9};
-RadioSettings settingsR = {433.775, false, false, &hardware_spi, 10, 31, 32};
-// RFM69HCW transmit = {settingsT, config};
-RFM69HCW receive = {settingsR, config};
-// uint32_t timer = millis();
-
-// char radiopacket[150] = "39.336896667,-77.337067833,480,0,31,H,0,11:40:51";
+#define BUZZER 33
+#define BMP_ADDR_PIN 36
 
 void setup()
 {
-    Serial.begin(9600);
-    while (!Serial)
-        ;
+    // Setup BMP to use defualt address
+    pinMode(BMP_ADDR_PIN, OUTPUT);
+    digitalWrite(BMP_ADDR_PIN, HIGH);
 
-    // if (!transmit.begin())
-    //     Serial.println("Transmitter failed to begin");
-    if (!receive.begin())
-        Serial.println("Reciever failed to begin");
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(1000);
+    digitalWrite(LED_BUILTIN, LOW);
 
-    // Serial.println("RFM69 began");
-    pinMode(33, OUTPUT);
+    // Serial.begin(9600);
+    // while (!Serial);
+
+    computer.setBaro(&bmp);
+    // computer.addGPS(&gps);
+    // computer.addRTC(&rtc);
+    computer.setIMU(&bno);
+
+    computer.init();
+    setupPSRAM(computer.getcsvHeader());
+    bool sdSuccess = setupSDCard(computer.getcsvHeader());
+
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(1000);
+    digitalWrite(LED_BUILTIN, LOW);
+
+    if (sdSuccess)
+    {
+        // Serial.println("SD Card initialized");
+        digitalWrite(BUZZER, HIGH);
+        delay(1000);
+        digitalWrite(BUZZER, LOW);
+    }
+    else
+    {
+        // Serial.println("SD Card failed to initialize");
+        digitalWrite(BUZZER, HIGH);
+        delay(200);
+        digitalWrite(BUZZER, LOW);
+        delay(200);
+        digitalWrite(BUZZER, HIGH);
+        delay(200);
+        digitalWrite(BUZZER, LOW);
+    }
 }
 
 void loop()
 {
-    if (receive.available())
-    {
-        // digitalWrite(33, HIGH);
-        // delay(100);
-        // digitalWrite(33, LOW);
-        // Serial.print("Received: ");
-        Serial.println("s");
-        Serial.println(receive.receive(ENCT_GROUNDSTATION));
-        Serial.println("e");
-    }
 
-    // if (millis() - timer >= 1000)
-    // {
-    //     timer = millis();
-    //     Serial.println("Sending...");
-    //     transmit.send(radiopacket, ENCT_TELEMETRY);
-    // }
+    computer.updateState();
+
+    Serial.println(computer.getStateString());
+    recordData(computer.getdataString(), computer.getStageNum());
+    delay(50);
 }
