@@ -12,7 +12,7 @@ PSRAM::PSRAM()
     memEnd = nullptr;
 }
 
-bool PSRAM::init(const char *csvHeader)
+bool PSRAM::init()
 {
     uint8_t size = external_psram_size;
     memBegin = cursorStart = (char *)(0x70000000);
@@ -21,7 +21,6 @@ bool PSRAM::init(const char *csvHeader)
     if (size > 0)
     {
         ready = true;
-        println(csvHeader);
     }
 
     return ready;

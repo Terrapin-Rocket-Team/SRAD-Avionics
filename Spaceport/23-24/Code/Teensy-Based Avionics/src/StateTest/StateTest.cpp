@@ -11,7 +11,7 @@ FakeGPS gps;
 FakeIMU fimu;//"imu" is the namespace of the vector stuff :/
 State computer;
 
-
+PSRAM *ram;
 
 int i = 0;
 
@@ -32,9 +32,9 @@ void setup()
     computer.setGPS(&gps);
     computer.setIMU(&fimu);
     computer.init();
-
-    setupPSRAM(computer.getcsvHeader());
-    bool sdSuccess = setupSDCard(String(computer.getcsvHeader()));
+    ram = new PSRAM();
+    ram->init();
+    bool sdSuccess = setupSDCard(computer.getcsvHeader());
 
     if (sdSuccess)
     {
@@ -72,10 +72,10 @@ void loop()
     }
 
     computer.updateState();
-    recordData(computer.getdataString(), computer.getStageNum());
+    recordFlightData(computer.getdataString());
 
     char* stateStr = computer.getStateString();
-    Serial.println(stateStr);
+    recordLogData(INFO, stateStr, TO_USB);
 
     delay(100);
     digitalWrite(BUZZER, LOW);

@@ -60,7 +60,7 @@ FsFile flightDataFile;
 #endif // SD_FAT_TYPE
 
 // Initializes the sensor
-bool setupSDCard()
+bool setupSDCard(const char *csvHeader)
 {
     int rdy = 0;
     sdReady = false;
@@ -86,6 +86,7 @@ bool setupSDCard()
         flightDataFile = sd.open(flightDataFileName, FILE_WRITE);
         if (flightDataFile)
         {
+            flightDataFile.println(csvHeader);
             flightDataFile.close();
             rdy++;
         }
