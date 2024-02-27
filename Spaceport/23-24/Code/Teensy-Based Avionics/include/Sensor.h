@@ -1,6 +1,7 @@
 #ifndef SENSOR_H
 #define SENSOR_H
 
+#include "RecordData.h"
 class Sensor {
 public:
     virtual ~Sensor() {}; //Virtual descructor. Very important
