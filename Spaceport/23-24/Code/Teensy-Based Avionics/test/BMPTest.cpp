@@ -11,7 +11,9 @@ void setup() {
     bmp.initialize();
     Serial.println("BMP390 initialized");
     delay(1000);
-    Serial.println(bmp.getStaticDataString());
+    char* str = bmp.getStaticDataString();
+    Serial.println(str);
+    delete[] str;
 }
 
 void loop() {

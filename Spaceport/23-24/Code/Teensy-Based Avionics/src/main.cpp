@@ -31,19 +31,14 @@ void setup()
     // while (!Serial);
 
     
-    computer.addBarometer(&bmp);
+    computer.setBaro(&bmp);
     // computer.addGPS(&gps);
     // computer.addRTC(&rtc);
-    computer.addIMU(&bno);
+    computer.setIMU(&bno);
 
-    computer.stateBarometer->initialize();
-    // computer.stateGPS->initialize();
-    computer.stateIMU->initialize();
-    // computer.stateRTC->initialize();
-
-    computer.setcsvHeader();
-    setupPSRAM(computer.csvHeader);
-    bool sdSuccess = setupSDCard(computer.csvHeader);
+    computer.init();
+    setupPSRAM(computer.getcsvHeader());
+    bool sdSuccess = setupSDCard(computer.getcsvHeader());
 
     digitalWrite(LED_BUILTIN, HIGH);
     delay(1000);
@@ -69,11 +64,9 @@ void setup()
 
 void loop() {
     
-    computer.updateSensors();
     computer.updateState();
 
-    computer.setdataString();
-    // Serial.println(computer.getdataString());
-    recordData(computer.getdataString(), computer.getrecordDataState());
-    delay(100);
+    Serial.println(computer.getStateString());
+    recordData(computer.getdataString(), computer.getStageNum());
+    delay(50);
 }
