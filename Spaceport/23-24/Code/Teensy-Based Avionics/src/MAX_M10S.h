@@ -31,7 +31,6 @@ public:
     imu::Vector<3> get_displace();
     double get_gps_time();
     bool get_first_fix();
-    imu::Vector<3> get_irl_time();
     imu::Vector<3> get_origin_pos();
     int get_fix_qual();
     void *get_data();
