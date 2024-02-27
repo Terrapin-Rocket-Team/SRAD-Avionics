@@ -1,9 +1,11 @@
 #include "sdCard.h"
 
-//SdFs sd;
-//FsFile logFile;  // File object to use for logging
-String logFileName;  // Name of the log file
-bool sdReady = false;  // Whether the SD card has been initialized
+static constexpr int NAME_SIZE = 24;
+// SdFs sd;
+// FsFile logFile;  // File object to use for logging
+char logFileName[NAME_SIZE]; // Name of the log file
+char flightDataFileName[NAME_SIZE]; // Name of the flight data file
+bool sdReady = false;        // Whether the SD card has been initialized
 
 // SD_FAT_TYPE = 0 for SdFat/File as defined in SdFatConfig.h,
 // 1 for FAT16/FAT32, 2 for exFAT, 3 for FAT16/FAT32 and exFAT.
@@ -23,7 +25,7 @@ const uint8_t SD_CS_PIN = SS;
 #else  // SDCARD_SS_PIN
 // Assume built-in SD is used.
 const uint8_t SD_CS_PIN = SDCARD_SS_PIN;
-#endif  // SDCARD_SS_PIN
+#endif // SDCARD_SS_PIN
 
 // Try max SPI clock for an SD. Reduce SPI_CLOCK if errors occur.
 #define SPI_CLOCK SD_SCK_MHZ(50)
@@ -31,72 +33,69 @@ const uint8_t SD_CS_PIN = SDCARD_SS_PIN;
 // Try to select the best SD card configuration.
 #if HAS_SDIO_CLASS
 #define SD_CONFIG SdioConfig(FIFO_SDIO)
-#elif  ENABLE_DEDICATED_SPI
+#elif ENABLE_DEDICATED_SPI
 #define SD_CONFIG SdSpiConfig(SD_CS_PIN, DEDICATED_SPI, SPI_CLOCK)
-#else  // HAS_SDIO_CLASS
+#else // HAS_SDIO_CLASS
 #define SD_CONFIG SdSpiConfig(SD_CS_PIN, SHARED_SPI, SPI_CLOCK)
-#endif  // HAS_SDIO_CLASS
+#endif // HAS_SDIO_CLASS
 
 #if SD_FAT_TYPE == 0
 SdFat sd;
 File logFile;
+File flightDataFile;
 #elif SD_FAT_TYPE == 1
 SdFat32 sd;
 File32 logFile;
+File32 flightDataFile;
 #elif SD_FAT_TYPE == 2
 SdExFat sd;
 ExFile logFile;
+ExFile flightDataFile;
 #elif SD_FAT_TYPE == 3
 SdFs sd;
 FsFile logFile;
-#else  // SD_FAT_TYPE
+FsFile flightDataFile;
+#else // SD_FAT_TYPE
 #error Invalid SD_FAT_TYPE
-#endif  // SD_FAT_TYPE
+#endif // SD_FAT_TYPE
 
 // Initializes the sensor
-bool setupSDCard(String csvHeader){
-    logFileName.reserve(24);
-    if (sd.begin(SD_CONFIG)) {
+bool setupSDCard()
+{
+    int rdy = 0;
+    sdReady = false;
+    if (sd.begin(SD_CONFIG))
+    {
         // Find file name
-        int fileNo = 1;
+        int fileNo = 0;
         bool exists = true;
-        while (exists) {
-            logFileName = "datalog_" + String(fileNo++) + ".csv";
+        while (exists)
+        {
+            snprintf(logFileName, NAME_SIZE, "datalog_%d.csv", ++fileNo);
             exists = sd.exists(logFileName);
         }
+        snprintf(flightDataFileName, NAME_SIZE, "FlightData_%d.csv", fileNo);//will overwrite the previous file if it exists
 
-        // Setup file with CSV header
+        // Setup files
         logFile = sd.open(logFileName, FILE_WRITE);
-        if (logFile) {
-            // logFile.println(csvHeader);//This is done by the PSRAM when it's ready to dump the first lines of data. This creates a duplicate header.
-            logFile.close(); // close the file
-            // Serial.println("Log file created: " + logFileName);
-            sdReady = true;
-        }else{
-            // Serial.println(F("SD Card reader found, but file was unable to be created"));
-            // buzz(9, 100);
-            delay(100);
-            // buzz(9, 100);
-            // buzz(17, 100);
-            delay(100);
-            // buzz(17, 100);
-            return false;
+        if (logFile)
+        {
+            logFile.close();
+            rdy++;
         }
-    }else{
-        // Serial.println(F("SD Card Reader NOT found! Data will not be logged!"));
-        // buzz(9, 100);
-        delay(100);
-        // buzz(9, 100);
-        // buzz(17, 100);
-        delay(100);
-        // buzz(17, 100);
-        return false;
+        flightDataFile = sd.open(flightDataFileName, FILE_WRITE);
+        if (flightDataFile)
+        {
+            flightDataFile.close();
+            rdy++;
+        }
     }
-
-    return true;
+    sdReady = rdy == 2;
+    return sdReady;
 }
 
 // Returns whether the sensor is initialized
-bool isSDReady(){
-  return sdReady;
+bool isSDReady()
+{
+    return sdReady;
 }
