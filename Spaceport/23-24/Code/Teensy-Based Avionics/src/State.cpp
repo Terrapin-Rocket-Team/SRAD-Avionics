@@ -92,8 +92,8 @@ bool State::init()
             recordLogData(ERROR, "RTC failed to initialize");
         }
     }
-    setcsvHeader();
     numSensors = good;
+    setcsvHeader();
     return good == tryNumSensors;
 }
 void State::determineaccelerationMagnitude(imu::Vector<3> accel)
@@ -133,6 +133,8 @@ void State::updateSensors()
 }
 void State::updateState()
 {
+    if(stageNumber > 4 && landingCounter > 50)//if landed and waited 5 seconds, don't update sensors.
+        return;
     updateSensors();
     if (gps)
     {
@@ -151,7 +153,7 @@ void State::updateState()
     }
     settimeAbsolute();
 
-    if (stageNumber == 0 && acceleration.z() > 25 && position.z() > 75)
+    if (stageNumber == 0 && acceleration.z() > 0 && position.z() > 1)
     {
         updateStage(1);
         timeLaunch = timeAbsolute;
@@ -184,12 +186,12 @@ void State::updateState()
         updateStage(2);
         recordLogData(INFO, "Coasting detected.");
     }
-    else if (stageNumber == 2 && velocity.z() < 0)
+    else if (stageNumber == 2 && velocity.z() < 1)
     {
         updateStage(3);
         recordLogData(INFO, "Drogue conditions detected.");
     }
-    else if (stageNumber == 3 && position.z() < 750 && millis() - timeSinceLaunch > 12000)//This should be lowered
+    else if (stageNumber == 3 && position.z() < 750 && millis() - timeSinceLaunch > 1200)//This should be lowered
     {
         updateStage(4);
         recordLogData(INFO, "Main parachute conditions detected.");
@@ -197,11 +199,14 @@ void State::updateState()
     else if (stageNumber == 4 && velocity.z() > -0.5 && accelerationMagnitude < 5 && *(double *)baro->get_data() < 200)
     {
         stageNumber = 5;
-        if(landingCounter++ > 50){//roughly 5 seconds of data after landing
-            updateStage(5);
-            recordLogData(INFO, "Dumping data after landing.");
-        }
         recordLogData(INFO, "Landing detected. Waiting for 5 seconds to dump data.");
+    }
+    else if(stageNumber == 5){
+        if (landingCounter++ >= 50)
+        { // roughly 5 seconds of data after landing
+            updateStage(5);
+            recordLogData(INFO, "Dumped data after landing.");
+        }
     }
     determineapogee(position.z());
     // backup case to dump data (25 minutes)
@@ -221,10 +226,8 @@ void State::setcsvHeader()
 {
     int numCategories = numSensors + 1;
     char csvHeaderStart[] = "Time,Stage,PX,PY,PZ,VX,VY,VZ,AX,AY,AZ,";
-    const char **headers = new char *[numCategories];
+    const char **headers = new const char *[numCategories];
     headers[0] = csvHeaderStart;
-    for (int i = 1; i < numCategories; i++)
-        headers[i] = nullptr;
     int cursor = 1;
 
     delete[] csvHeader; // just in case there is already something there. This function should never be called more than once.
@@ -262,8 +265,9 @@ void State::setcsvHeader()
     int j = 0;
     for (int i = 0; i < numCategories; i++)
     {
-        for (int k = 0; headers[i][k] != '\0'; j++, k++) // append all the header strings onto the main string
+        for (int k = 0; headers[i][k] != '\0'; j++, k++) {// append all the header strings onto the main string
             csvHeader[j] = headers[i][k];
+        }
     }
     delete[] headers;
     csvHeader[j - 1] = '\0'; // all strings have ',' at end so this gets rid of that and terminates it a character early.
@@ -279,20 +283,17 @@ void State::setdataString()
     int numCategories = numSensors + 1;
     const int dataStartSize = 30 * 1 + 12 * 9 + 11;
     char csvDataStart[dataStartSize];
-    int used = snprintf(
+    snprintf(
         csvDataStart, dataStartSize,
         "%.2f,%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,", // trailing comma very important
-        timeAbsolute / 1000, STAGES[stageNumber],
+        timeAbsolute / 1000.0, STAGES[stageNumber],
         position.x(), position.y(), position.z(),
         velocity.x(), velocity.y(), velocity.z(),
         acceleration.x(), acceleration.y(), acceleration.z());
-    // Serial.print(used);//Just curious
-    const char **data = new char *[numCategories];
+    const char **data = new const char *[numCategories];
     data[0] = csvDataStart;
-    for (int i = 1; i < numCategories; i++)
-        data[i] = nullptr;
     int cursor = 1;
-    delete[] dataString; // This probably definitely exists (although maybe shouldn't if RecordData deletes it when it's done.)
+    delete[] dataString; // This probably definitely exists already.
 
     //---Determine required size for string
     int size = sizeof(csvDataStart); // includes '\0' at end of string for the end of dataString to use
@@ -340,8 +341,8 @@ char *State::getStateString()
 {
     delete[] stateString;
     stateString = new char[500]; // way oversized for right now.
-    snprintf(stateString, 500, "%.2f,%.2f,%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f",
-             timeAbsolute, timeSinceLaunch, STAGES[stageNumber], timeSincePreviousStage,
+    snprintf(stateString, 500, "%.2f,%.2f,%s,%.2f|%.2f,%.2f,%.2f|%.2f,%.2f,%.2f|%.7f,%.7f,%.2f|%.2f,%.2f,%.2f,%.2f|%.2f",
+             timeAbsolute / 1000.0, timeSinceLaunch / 1000.0, STAGES[stageNumber], timeSincePreviousStage / 1000.0,
              acceleration.x(), acceleration.y(), acceleration.z(),
              velocity.x(), velocity.y(), velocity.z(),
              position.x(), position.y(), position.z(),

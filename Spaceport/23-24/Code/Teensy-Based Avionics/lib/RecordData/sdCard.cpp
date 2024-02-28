@@ -60,11 +60,11 @@ FsFile flightDataFile;
 #endif // SD_FAT_TYPE
 
 // Initializes the sensor
-bool setupSDCard(const char *csvHeader)
+bool setupSDCard()
 {
     int rdy = 0;
     sdReady = false;
-    if (sd.begin(SD_CONFIG))
+    if (sd.begin(SD_CONFIG) || sd.restart())
     {
         // Find file name
         int fileNo = 0;
@@ -86,15 +86,26 @@ bool setupSDCard(const char *csvHeader)
         flightDataFile = sd.open(flightDataFileName, FILE_WRITE);
         if (flightDataFile)
         {
-            flightDataFile.println(csvHeader);
             flightDataFile.close();
             rdy++;
         }
     }
     sdReady = rdy == 2;
+
     return sdReady;
 }
-
+void sendSDCardHeader(const char *csvHeader)
+{
+    if (sdReady)
+    {
+        flightDataFile = sd.open(flightDataFileName, FILE_WRITE);
+        if (flightDataFile)
+        {
+            flightDataFile.println(csvHeader);
+            flightDataFile.close();
+        }
+    }
+}
 // Returns whether the sensor is initialized
 bool isSDReady()
 {

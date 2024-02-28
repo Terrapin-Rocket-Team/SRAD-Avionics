@@ -4,7 +4,7 @@ static const char *logTypeStrings[] = {"LOG", "ERROR", "WARNING", "INFO"};
 static int dataStage = 0;
 void recordFlightData(char *data)
 {
-    if (dataStage == 0)
+    if ((dataStage == 0 || dataStage > 4) && isSDReady())
     {
         flightDataFile = sd.open(flightDataFileName, FILE_WRITE); // during preflight, print to SD card constantly. ignore PSRAM for this stage.
         if (flightDataFile)
@@ -13,8 +13,6 @@ void recordFlightData(char *data)
             flightDataFile.close();
         }
     }
-    else if (dataStage > 4) // after flight,dump the data to the card
-        ram->dumpFlightData();
     else
         ram->println(data); // while in flight, print to PSRAM for later dumping to SD card.
 }
@@ -35,7 +33,7 @@ void recordLogData(LogType type, const char *data, Dest dest)
     }
     if (dest == BOTH || dest == TO_FILE)
     {
-        if (dataStage == 0)
+        if ((dataStage == 0 || dataStage > 4) && isSDReady())
         {
             logFile = sd.open(logFileName, FILE_WRITE); // during preflight, print to SD card constantly. ignore PSRAM for this stage. With both files printing, may be bad...
             if (logFile)
@@ -45,11 +43,9 @@ void recordLogData(LogType type, const char *data, Dest dest)
                 logFile.close();
             }
         }
-        if (dataStage > 4)
-            ram->dumpLogData();
-        else
+        else if (ram->isReady()) // while in flight, print to PSRAM for later dumping to SD card.
         {
-            ram->print(logPrefix);
+            ram->print(logPrefix, false);
             ram->println(data, false);
         }
     }
@@ -58,4 +54,8 @@ void recordLogData(LogType type, const char *data, Dest dest)
 void dataStageUpdate(int stage)
 {
     dataStage = stage;
+    if(dataStage > 4){
+        ram->dumpFlightData();
+        ram->dumpLogData();
+    }
 }
