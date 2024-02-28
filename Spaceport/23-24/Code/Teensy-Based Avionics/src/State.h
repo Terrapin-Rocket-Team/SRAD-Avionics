@@ -71,6 +71,7 @@ private:
     IMU *imu;
     LightSensor *lisens;
     RTC *rtc;
+    bool hitApogee;
     int landingCounter;//used to save a bit of data after landing
     void setcsvHeader();
     void setdataString();
