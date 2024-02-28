@@ -123,9 +123,9 @@ void State::determinetimeSinceLaunch()
 }
 void State::updateSensors()
 {
-    if (gps && millis() - lastGPSUpdate > 1500)
+    if (gps)
     {
-        gps->read_gps();
+        gps->read_gps();//should no longer be as blocking as it was and should have new data every 100ms.
         lastGPSUpdate = millis();
     }
     if (baro)
