@@ -267,7 +267,7 @@ int State::determineStage()
         stageNumber = 4;
         recordLogData(INFO, "Main parachute conditions detected.");
     }
-    else if (stageNumber == 4 && velocity.z() > -0.5 && accelerationMagnitude < 5 && (*baro)->get_rel_alt_m() < 20)
+    else if (stageNumber == 4 && velocity.z() > -0.5 && (*baro)->get_rel_alt_m() < 20)
     {
         stageNumber = 5;
         recordLogData(INFO, "Landing detected. Waiting for 5 seconds to dump data.");

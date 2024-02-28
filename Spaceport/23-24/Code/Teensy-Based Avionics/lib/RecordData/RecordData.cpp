@@ -66,5 +66,8 @@ void setRecordMode(Mode m)
             ram->dumpFlightData();
             ram->dumpLogData();
         }
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(2000);
+        digitalWrite(LED_BUILTIN, LOW);
     }
 }
