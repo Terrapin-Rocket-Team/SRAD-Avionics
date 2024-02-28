@@ -96,8 +96,9 @@ bool RFM69HCW::tx(const char *message)
         memset(this->buf, 0, this->bufSize);
         memcpy(this->buf, message + j * this->bufSize, min(this->bufSize, len - j * this->bufSize));
         this->radio.send(this->buf, min(this->bufSize, len - j * this->bufSize));
-        this->radio.waitPacketSent();
-        delay(100); // leaving this here for now, should try to remove later
+        if (j != this->id - 1u)
+            this->radio.waitPacketSent();
+        // delay(100); // leaving this here for now, should try to remove later
     }
 
     this->id = 0x00;
@@ -149,7 +150,7 @@ const char *RFM69HCW::rx()
             this->rssi += radio.lastRssi();
 
             // check if the full message has been received
-            int msgLen = strlen(this->msg);
+            // int msgLen = strlen(this->msg);
             if (this->incomingMsgLen == this->id) // this works for now, maybe find a better way later?
             {
                 this->id = 0;
