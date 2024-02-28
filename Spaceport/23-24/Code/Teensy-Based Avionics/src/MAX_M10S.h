@@ -24,7 +24,6 @@ private:
 
 public:
     MAX_M10S(uint8_t SCK, uint8_t SDA, uint8_t address);
-    void read_gps();
     double get_alt();
     imu::Vector<3> get_velocity();
     imu::Vector<2> get_pos();
@@ -33,11 +32,13 @@ public:
     bool get_first_fix();
     imu::Vector<3> get_origin_pos();
     int get_fix_qual();
-    void *get_data();
+    void *getData();
     bool initialize() override;
-    const char *getcsvHeader() override;
-    char *getdataString() override;
+    const char *getCsvHeader() override;
+    char *getDataString() override;
     char *getStaticDataString() override;
+    char const *getName() override;
+    void update() override;
 };
 
 #endif //MAX_M10S_H

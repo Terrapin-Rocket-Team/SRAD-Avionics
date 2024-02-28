@@ -1,10 +1,12 @@
 #include "RecordData.h"
 
 static const char *logTypeStrings[] = {"LOG", "ERROR", "WARNING", "INFO"};
-static int dataStage = 0;
+static Mode mode = GROUND;
 void recordFlightData(char *data)
 {
-    if ((dataStage == 0 || dataStage > 4) && isSDReady())
+    if(!isSDReady())
+        return;
+    if (mode == GROUND)
     {
         flightDataFile = sd.open(flightDataFileName, FILE_WRITE); // during preflight, print to SD card constantly. ignore PSRAM for this stage.
         if (flightDataFile)
@@ -19,9 +21,14 @@ void recordFlightData(char *data)
 
 void recordLogData(LogType type, const char *data, Dest dest)
 {
+    recordLogData(millis() / 1000.0, type, data, dest);
+}
+
+void recordLogData(double timeStamp, LogType type, const char *data, Dest dest)
+{
     int size = 15 + 7; // 15 for the timestamp and extra chars, 7 for the log type
     char logPrefix[size];
-    snprintf(logPrefix, size, "%.3f - [%s] ", millis() / 1000.0, logTypeStrings[type]);
+    snprintf(logPrefix, size, "%.3f - [%s] ", timeStamp, logTypeStrings[type]);
 
     if (dest == BOTH || dest == TO_USB)
     {
@@ -31,9 +38,9 @@ void recordLogData(LogType type, const char *data, Dest dest)
         Serial.print(logPrefix);
         Serial.println(data);
     }
-    if (dest == BOTH || dest == TO_FILE)
+    if (dest == BOTH || dest == TO_FILE && isSDReady())
     {
-        if ((dataStage == 0 || dataStage > 4) && isSDReady())
+        if (mode == GROUND)
         {
             logFile = sd.open(logFileName, FILE_WRITE); // during preflight, print to SD card constantly. ignore PSRAM for this stage. With both files printing, may be bad...
             if (logFile)
@@ -51,11 +58,13 @@ void recordLogData(LogType type, const char *data, Dest dest)
     }
 }
 
-void dataStageUpdate(int stage)
+void setRecordMode(Mode m)
 {
-    dataStage = stage;
-    if(dataStage > 4){
-        ram->dumpFlightData();
-        ram->dumpLogData();
+    mode = m;
+    if(mode == GROUND){
+        if(ram->isReady() && isSDReady()){
+            ram->dumpFlightData();
+            ram->dumpLogData();
+        }
     }
 }

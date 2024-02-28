@@ -58,9 +58,9 @@ void setup()
     else
         recordLogData(ERROR, "PSRAM Failed to Initialize");
 
-    computer.setBaro(&baro);
-    computer.setGPS(&gps);
-    computer.setIMU(&fimu);
+    computer.addSensor(&baro);
+    computer.addSensor(&gps);
+    computer.addSensor(&fimu);
 
     if (computer.init())
         recordLogData(INFO, "All Sensors Initialized");
@@ -71,7 +71,7 @@ void setup()
     delay(1000);
     digitalWrite(LED_BUILTIN, LOW);
 
-    sendSDCardHeader(computer.getcsvHeader());
+    sendSDCardHeader(computer.getCsvHeader());
     while(Serial.available() == 0);
 }
 
@@ -85,12 +85,10 @@ void loop()
     }
 
     computer.updateState();
-    recordFlightData(computer.getdataString());
 
     char* stateStr = computer.getStateString();
     Serial.print("[][]");
     Serial.println(stateStr);
-
-    delay(100);
+    delay(50);
     digitalWrite(BUZZER, LOW);
 }

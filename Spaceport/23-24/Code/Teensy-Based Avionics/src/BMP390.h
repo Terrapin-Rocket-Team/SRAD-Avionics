@@ -26,11 +26,13 @@ public:
     double get_pressure_atm();
     double get_rel_alt_ft();
     double get_rel_alt_m();
-    void *get_data();
+    void *getData();
     bool initialize() override;
-    const char *getcsvHeader() override;
-    char *getdataString() override;
+    const char *getCsvHeader() override;
+    char *getDataString() override;
     char *getStaticDataString() override;
+    char const *getName() override;
+    void update() override;
 };
 
 #endif // BMP390_H

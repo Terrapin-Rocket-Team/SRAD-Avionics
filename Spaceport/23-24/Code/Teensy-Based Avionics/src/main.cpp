@@ -63,11 +63,12 @@ void setup()
     else
         recordLogData(ERROR, "PSRAM Failed to Initialize");
 
-
-
-    computer.setBaro(&bmp);
-    computer.setGPS(&gps);
-    computer.setIMU(&bno);
+    if (!computer.addSensor(&bmp))
+        recordLogData(INFO, "Failed to add BMP390 Sensor");
+    if (!computer.addSensor(&gps))
+        recordLogData(INFO, "Failed to add MAX_M10S Sensor");
+    if (!computer.addSensor(&bno))
+        recordLogData(INFO, "Failed to add BNO055 Sensor");
 
     if (computer.init())
         recordLogData(INFO, "All Sensors Initialized");
@@ -78,7 +79,7 @@ void setup()
     delay(1000);
     digitalWrite(LED_BUILTIN, LOW);
 
-    sendSDCardHeader(computer.getcsvHeader());
+    sendSDCardHeader(computer.getCsvHeader());
 }
 
 void loop()
@@ -90,5 +91,5 @@ void loop()
 
     last = time;
     computer.updateState();
-    recordFlightData(computer.getdataString());
+    recordLogData(INFO, computer.getStateString(), TO_USB);
 }

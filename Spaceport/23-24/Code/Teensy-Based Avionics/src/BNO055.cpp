@@ -17,7 +17,13 @@ bool BNO055::initialize()
     initial_mag_field = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
     return true;
 }
-
+void BNO055::update()
+{
+    orientation = bno.getQuat();
+    acceleration_vec = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+    orientation_euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
+    magnetometer = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
+}
 void BNO055::calibrate_bno()
 {
     uint8_t system, gyro, accel, mag, i = 0;
@@ -35,25 +41,21 @@ void BNO055::calibrate_bno()
 
 imu::Quaternion BNO055::get_orientation()
 {
-    orientation = bno.getQuat();
     return orientation;
 }
 
 imu::Vector<3> BNO055::get_acceleration()
 {
-    acceleration_vec = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
     return acceleration_vec;
 }
 
 imu::Vector<3> BNO055::get_orientation_euler()
 {
-    orientation_euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
     return orientation_euler;
 }
 
 imu::Vector<3> BNO055::get_magnetometer()
 {
-    magnetometer = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
     return magnetometer;
 }
 
@@ -66,19 +68,19 @@ imu::Vector<3> convert_to_euler(imu::Quaternion orientation)
 }
 
 // will give back a pointer to a linear acceleration vector
-void *BNO055::get_data()
+void *BNO055::getData()
 {
     return (void *)&acceleration_vec;
 }
 
-const char *BNO055::getcsvHeader()
+const char *BNO055::getCsvHeader()
 {                                                                                                          // incl I- for IMU
     return "I-AX (m/s/s),I-AY (m/s/s),I-AZ (m/s/s),I-ULRX,I-ULRY,I-ULRZ,I-QUATX,I-QUATY,I-QUATZ,I-QUATW,"; // trailing comma
 }
 
-char *BNO055::getdataString()
+char *BNO055::getDataString()
 {
-    // See State.cpp::setdataString() for comments on what these numbers mean
+    // See State.cpp::setDataString() for comments on what these numbers mean
     const int size = 12 * 10 + 10;
     char *data = new char[size];
     snprintf(data, size, "%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,", acceleration_vec.x(), acceleration_vec.y(), acceleration_vec.z(), orientation_euler.x(), orientation_euler.y(), orientation_euler.z(), orientation.x(), orientation.y(), orientation.z(), orientation.w()); // trailing comma"
@@ -87,9 +89,14 @@ char *BNO055::getdataString()
 
 char *BNO055::getStaticDataString()
 {
-    // See State.cpp::setdataString() for comments on what these numbers mean
+    // See State.cpp::setDataString() for comments on what these numbers mean
     const int size = 30 + 12 * 3;
     char *data = new char[size];
     snprintf(data, size, "Initial Magnetic Field (uT): %.2f,%.2f,%.2f\n", initial_mag_field.x(), initial_mag_field.y(), initial_mag_field.z());
     return data;
+}
+
+const char *BNO055::getName()
+{
+    return "BNO055";
 }

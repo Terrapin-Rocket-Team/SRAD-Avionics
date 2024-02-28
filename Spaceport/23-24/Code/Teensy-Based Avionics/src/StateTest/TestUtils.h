@@ -46,7 +46,7 @@ uint32_t FreeMem(){ // for Teensy 3.0
     stackTop = (uint32_t) &stackTop;
 
     // current position of heap.
-    void* hTop = malloc(1);
+    void* hTop = malloc(1000);
     heapTop = (uint32_t) hTop;
     free(hTop);
 
