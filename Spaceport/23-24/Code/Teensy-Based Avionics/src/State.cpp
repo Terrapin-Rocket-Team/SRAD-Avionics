@@ -22,7 +22,9 @@ State::State()
     rtc = nullptr;
     stateString = nullptr;
     dataString = nullptr;
+    csvHeader = nullptr;
     numSensors = 0;
+    hitApogee = false;
 }
 State::~State()
 {
@@ -107,8 +109,9 @@ void State::determineapogee(double zPosition)
     {
         apogee = zPosition;
     }
-    if(apogee > zPosition + 10){
+    if(apogee > zPosition + 10 && !hitApogee){
         recordLogData(INFO, "Apogee detected");
+        hitApogee = true;
     }
 }
 
@@ -152,8 +155,8 @@ void State::updateState()
         orientation = imu->get_orientation();
     }
     settimeAbsolute();
-
-    if (stageNumber == 0 && acceleration.z() > 0 && position.z() > 1)
+    determineaccelerationMagnitude(acceleration);
+    if (stageNumber == 0 && acceleration.z() > 25 && position.z() > 20)
     {
         updateStage(1);
         timeLaunch = timeAbsolute;
@@ -191,12 +194,12 @@ void State::updateState()
         updateStage(3);
         recordLogData(INFO, "Drogue conditions detected.");
     }
-    else if (stageNumber == 3 && position.z() < 750 && millis() - timeSinceLaunch > 1200)//This should be lowered
+    else if (stageNumber == 3 && position.z() < 750/3 && millis() - timeSinceLaunch > 1200)//This should be lowered
     {
         updateStage(4);
         recordLogData(INFO, "Main parachute conditions detected.");
     }
-    else if (stageNumber == 4 && velocity.z() > -0.5 && accelerationMagnitude < 5 && *(double *)baro->get_data() < 200)
+    else if (stageNumber == 4 && velocity.z() > -0.5 && accelerationMagnitude < 5 && *(double *)baro->get_data() < 20)
     {
         stageNumber = 5;
         recordLogData(INFO, "Landing detected. Waiting for 5 seconds to dump data.");

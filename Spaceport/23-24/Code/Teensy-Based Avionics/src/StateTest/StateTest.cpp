@@ -22,30 +22,26 @@ int i = 0;
 void setup()
 {
     pinMode(LED_BUILTIN, OUTPUT);
-    Serial.begin(9600);
-    delay(2000);
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(500);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(1000);
-    computer.setBaro(&baro);
-    computer.setGPS(&gps);
-    computer.setIMU(&fimu);
-    computer.init();
-    ram = new PSRAM();
-    ram->init();
-    bool sdSuccess = setupSDCard(computer.getcsvHeader());
+    //pinMode(BUZZER, OUTPUT); //its very loud during testing
 
-    if (sdSuccess)
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(1000);
+    digitalWrite(LED_BUILTIN, LOW);
+
+    ram = new PSRAM(); // init after the SD card for better data logging.
+
+    // The SD card MUST be initialized first to allow proper data logging.
+    if (setupSDCard())
     {
-        // Serial.println("SD Card initialized");
+
+        recordLogData(INFO, "SD Card Initialized");
         digitalWrite(BUZZER, HIGH);
         delay(1000);
         digitalWrite(BUZZER, LOW);
     }
     else
     {
-        // Serial.println("SD Card failed to initialize");
+        recordLogData(ERROR, "SD Card Failed to Initialize");
         digitalWrite(BUZZER, HIGH);
         delay(200);
         digitalWrite(BUZZER, LOW);
@@ -54,12 +50,29 @@ void setup()
         delay(200);
         digitalWrite(BUZZER, LOW);
     }
-    Serial.println("Initialized");
-    //digitalWrite(LED_BUILTIN, HIGH); // keep light high indicating testing
-    while (Serial.available() == 0)
-    {
-    }
-    
+
+    // The PSRAM must be initialized before the sensors to allow for proper data logging.
+
+    if (ram->init())
+        recordLogData(INFO, "PSRAM Initialized");
+    else
+        recordLogData(ERROR, "PSRAM Failed to Initialize");
+
+    computer.setBaro(&baro);
+    computer.setGPS(&gps);
+    computer.setIMU(&fimu);
+
+    if (computer.init())
+        recordLogData(INFO, "All Sensors Initialized");
+    else
+        recordLogData(ERROR, "Some Sensors Failed to Initialize. Disabling those sensors.");
+
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(1000);
+    digitalWrite(LED_BUILTIN, LOW);
+
+    sendSDCardHeader(computer.getcsvHeader());
+    while(Serial.available() == 0);
 }
 
 void loop()
@@ -75,7 +88,8 @@ void loop()
     recordFlightData(computer.getdataString());
 
     char* stateStr = computer.getStateString();
-    recordLogData(INFO, stateStr, TO_USB);
+    Serial.print("[][]");
+    Serial.println(stateStr);
 
     delay(100);
     digitalWrite(BUZZER, LOW);

@@ -91,5 +91,4 @@ void loop()
     last = time;
     computer.updateState();
     recordFlightData(computer.getdataString());
-    recordLogData(LOG, computer.getStateString(), TO_USB);
 }
