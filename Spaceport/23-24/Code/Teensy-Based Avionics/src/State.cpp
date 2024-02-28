@@ -73,6 +73,11 @@ bool State::init()
         else
             rtc = nullptr;
     }
+    if (radio)
+    {
+        if (!radio->begin())
+            radio = nullptr;
+    }
     setcsvHeader();
     numSensors = good;
     return good == tryNumSensors;
@@ -119,7 +124,7 @@ void State::updateState()
     }
     if (baro)
     {
-        velocity.z() = (*(double*)baro->get_data() - position.z()) / (millis() - timeAbsolute);//how ugly. get_data() prevents resending commands to the sensor.
+        velocity.z() = (*(double *)baro->get_data() - position.z()) / (millis() - timeAbsolute); // how ugly. get_data() prevents resending commands to the sensor.
         position.z() = *(double *)baro->get_data();
     }
     if (imu)
@@ -146,7 +151,7 @@ void State::updateState()
     {
         stageNumber = 3;
     }
-    else if (stageNumber == 3 && position.z() < 750 && millis() - timeSinceLaunch > 12000)//This should be lowered
+    else if (stageNumber == 3 && position.z() < 750 && millis() - timeSinceLaunch > 12000) // This should be lowered
     {
         stageNumber = 4;
     }
@@ -310,6 +315,7 @@ void State::setGPS(GPS *ngps) { gps = ngps; }
 void State::setIMU(IMU *nimu) { imu = nimu; }
 void State::setLS(LightSensor *nlisens) { lisens = nlisens; }
 void State::setRTC(RTC *nrtc) { rtc = nrtc; }
+void State::setRadio(Radio *r) { radio = r; }
 void State::settimeAbsolute() { timeAbsolute = millis(); }
 
 Barometer *State::getBaro() { return baro; }
@@ -317,4 +323,12 @@ GPS *State::getGPS() { return gps; }
 IMU *State::getIMU() { return imu; }
 LightSensor *State::getLS() { return lisens; }
 RTC *State::getRTC() { return rtc; }
+Radio *State::getRadio() { return radio; }
 #pragma endregion
+
+bool State::transmit()
+{
+    char data[200];
+    sprintf(data, "%f,%f,%i,%i,%i,%c,%i,%s", position(0), position(1), (int)(position(2) * 3.28084), (int)(velocity.magnitude() * 3.2808399), 31, 'H', stageNumber, "12:00:00");
+    return radio->send(data, ENCT_TELEMETRY);
+}

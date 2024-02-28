@@ -28,19 +28,20 @@ public:
     void updateState();
     int getStageNum();
 
-
     // add sensor functions
     void setBaro(Barometer *Barometer);
     void setGPS(GPS *gps);
     void setIMU(IMU *imu);
     void setLS(LightSensor *LightSensor);
     void setRTC(RTC *rtc);
+    void setRadio(Radio *r);
 
     Barometer *getBaro();
     GPS *getGPS();
     IMU *getIMU();
     LightSensor *getLS();
     RTC *getRTC();
+    Radio *getRadio();
 
     char *getdataString();
     char *getcsvHeader();
@@ -58,6 +59,8 @@ public:
     void determineaccelerationMagnitude(imu::Vector<3> accel);
     void determineapogee(double zPosition);
 
+    bool transmit();
+
 private:
     char *dataString;
     char *stateString;
@@ -70,6 +73,7 @@ private:
     IMU *imu;
     LightSensor *lisens;
     RTC *rtc;
+    Radio *radio;
 
     void setcsvHeader();
     void setdataString();
