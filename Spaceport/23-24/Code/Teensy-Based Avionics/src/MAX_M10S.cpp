@@ -32,12 +32,12 @@ MAX_M10S::MAX_M10S(uint8_t SCK, uint8_t SDA, uint8_t address) {
 bool MAX_M10S::initialize() {
 
 
-    //myGNSS.enableDebugging(); // Uncomment this line to enable helpful debug messages on Serial
+    //m10s.enableDebugging(); // Uncomment this line to enable helpful debug messages on Serial
     delay(25); // Wait for the serial port to initialize
     int count = 0;
     while (m10s.begin() == false && count < 3) //Connect to the u-blox module using Wire port
     {
-        // Serial.println(F("u-blox GNSS not detected at default I2C address. Retrying..."));
+        Serial.println(F("u-blox GNSS not detected at default I2C address. Retrying..."));
         delay (1000);
         count ++;
     }

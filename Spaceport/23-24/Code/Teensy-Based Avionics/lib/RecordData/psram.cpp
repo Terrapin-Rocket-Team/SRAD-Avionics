@@ -88,16 +88,15 @@ bool PSRAM::dumpLogData()
 
         for (i = 0; i < 2048; i++)
         {
-            if (writeCursor == cursorEnd)
+            if (writeCursor <= cursorEnd)
             {
                 buffer[i] = '\0';
+                writeCursor--;
                 break;
             }
-            buffer[i] = *writeCursor;
-            writeCursor--;
+            buffer[i] = *writeCursor--;
         }
-
-        logFile.write(buffer, i + 1);
+        logFile.write(buffer, i);
     }
 
     logFile.close();
