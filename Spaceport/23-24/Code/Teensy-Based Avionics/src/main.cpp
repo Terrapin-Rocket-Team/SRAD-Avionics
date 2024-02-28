@@ -20,7 +20,7 @@ static double last = 0;//for better timing than "delay(100)"
 void setup()
 { 
     recordLogData(INFO, "Initializing Avionics System. 10 second delay to prevent unnecessary file generation.", TO_USB);
-    //delay(10000);
+    delay(10000);
 
     // Setup BMP to use defualt address
     pinMode(BMP_ADDR_PIN, OUTPUT);
@@ -91,5 +91,5 @@ void loop()
     last = time;
     computer.updateState();
     recordFlightData(computer.getdataString());
-    //recordLogData(LOG, computer.getStateString(), TO_USB);
+    recordLogData(LOG, computer.getStateString(), TO_USB);
 }
