@@ -68,7 +68,7 @@ void MAX_M10S::read_gps()
 
     if (!first_fix)
     {
-        //recordLogData(INFO, "GPS has first fix"); //Log this data when the new data logging branch is merged.
+        recordLogData(INFO, "GPS has first fix"); //Log this data when the new data logging branch is merged.
         first_fix = true;
         origin.x() = pos.x();
         origin.y() = pos.y();
