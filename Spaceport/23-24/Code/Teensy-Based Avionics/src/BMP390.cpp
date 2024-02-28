@@ -41,52 +41,54 @@ bool BMP390::initialize()
     groundPressure = (startPressure / 100) / 100.0; // hPa
     return true;
 }
-
-double BMP390::get_pressure()
+void BMP390::update()
 {
     pressure = bmp.readPressure() / 100.0; // hPa
+    temp = bmp.readTemperature();          // C
+    altitude = bmp.readAltitude(groundPressure); // m
+}
+double BMP390::get_pressure()
+{
     return pressure;
 }
 
 double BMP390::get_temp()
 {
-    temp = bmp.readTemperature(); // C
     return temp;
 }
 
 double BMP390::get_temp_f()
 {
-    return (get_temp() * 9.0 / 5.0) + 32.0;
+    return (temp * 9.0 / 5.0) + 32.0;
 }
 
 double BMP390::get_pressure_atm()
 {
-    return get_pressure() / SEALEVELPRESSURE_HPA;
+    return pressure / SEALEVELPRESSURE_HPA;
 }
 
 double BMP390::get_rel_alt_m()
 {
-    altitude = bmp.readAltitude(groundPressure); // meters
     return altitude;
 }
 
 double BMP390::get_rel_alt_ft()
 {
-    return get_rel_alt_m() * 3.28084;
+    return altitude * 3.28084;
 }
 
-void *BMP390::get_data()
+void *BMP390::getData()
 {
     return (void *)&altitude;
 }
 
-const char *BMP390::getcsvHeader()
+const char *BMP390::getCsvHeader()
 { // incl  B- to indicate Barometer data  vvvv Why is this in ft and not m?
     return "B-Pres (hPa),B-Temp (C),B-Alt (ft),"; // trailing commas are very important
 }
 
-char *BMP390::getdataString()
-{ // See State.cpp::setdataString() for comments on what these numbers mean
+char *BMP390::getDataString()
+{ // See State.cpp::setDataString() for comments on what these numbers mean
     // float x3
     const int size = 12 * 3 + 3;
     char *data = new char[size];
@@ -95,9 +97,14 @@ char *BMP390::getdataString()
 }
 
 char *BMP390::getStaticDataString()
-{ // See State.cpp::setdataString() for comments on what these numbers mean
+{ // See State.cpp::setDataString() for comments on what these numbers mean
     const int size = 25 + 12 * 1;
     char *data = new char[size];
     snprintf(data, size, "Ground Pressure (hPa): %.2f\n", groundPressure);
     return data;
+}
+
+const char *BMP390::getName()
+{
+    return "BMP390";
 }

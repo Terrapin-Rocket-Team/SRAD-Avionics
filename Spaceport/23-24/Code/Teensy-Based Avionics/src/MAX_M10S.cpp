@@ -56,7 +56,7 @@ bool MAX_M10S::initialize()
 /*
 used to update all instance variables
 */
-void MAX_M10S::read_gps()
+void MAX_M10S::update()
 {
     if (!m10s.getPVT() || m10s.getInvalidLlh())
         return; // See if new data is available
@@ -68,7 +68,7 @@ void MAX_M10S::read_gps()
 
     if (!first_fix && m10s.getSIV() >= 3)
     {
-        recordLogData(INFO, "GPS has first fix"); //Log this data when the new data logging branch is merged.
+        recordLogData(INFO, "GPS has first fix."); //Log this data when the new data logging branch is merged.
         first_fix = true;
         origin.x() = pos.x();
         origin.y() = pos.y();
@@ -153,18 +153,18 @@ int MAX_M10S::get_fix_qual()
     return fix_qual;
 }
 
-void *MAX_M10S::get_data()
+void *MAX_M10S::getData()
 {
     return (void *)&pos;
 }
 
-const char *MAX_M10S::getcsvHeader()
+const char *MAX_M10S::getCsvHeader()
 {                                                                                                                         // incl G- for GPS
     return "G-Lat (deg),G-Lon (deg),G-Alt (m),G-Speed (m/s),G-DispX (m),G-DispY (m),G-DispZ (m),G-Time (s),G-# of Sats,"; // trailing comma
 }
-char *MAX_M10S::getdataString()
+char *MAX_M10S::getDataString()
 {
-    // See State.cpp::setdataString() for comments on what these numbers mean. 15 for GPS.
+    // See State.cpp::setDataString() for comments on what these numbers mean. 15 for GPS.
     const int size = 15 * 2 + 12 * 5 + 10 * 1 + 10;
     char *data = new char[size];
     snprintf(data, size, "%.10f,%.10f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%d,", pos.x(), pos.y(), altitude, sqrt(pow(velocity.x(), 2) + pow(velocity.y(), 2) + pow(velocity.z(), 2)), displacement.x(), displacement.y(), displacement.z(), gps_time, fix_qual); // trailing comma
@@ -172,11 +172,16 @@ char *MAX_M10S::getdataString()
 }
 char *MAX_M10S::getStaticDataString()
 {
-    // See State.cpp::setdataString() for comments on what these numbers mean. 15 for GPS.
+    // See State.cpp::setDataString() for comments on what these numbers mean. 15 for GPS.
     const int size = 60 + 15 * 2 + 12 * 1;
     char *data = new char[size];
     snprintf(data, size, "Original Latitude (m): %.10f\nOriginal Longitude (m): %.10f\nOriginal Altitude (m): %.2f\n", origin.x(), origin.y(), origin.z());
     return data;
+}
+
+const char *MAX_M10S::getName()
+{
+    return "MAX_M10S";
 }
 
 // Danny S.
