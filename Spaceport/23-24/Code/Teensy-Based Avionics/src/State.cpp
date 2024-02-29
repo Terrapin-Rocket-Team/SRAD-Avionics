@@ -79,7 +79,6 @@ bool State::init(bool stateRecordsOwnFlightData)
         if (!radio->begin())
             radio = nullptr;
     }
-    setcsvHeader();
     numSensors = good;
     setCsvHeader();
     return good == tryNumSensors;
