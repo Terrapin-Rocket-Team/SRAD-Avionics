@@ -18,6 +18,7 @@ public:
     imu::Vector<3> velocity;     // in m/s
     imu::Vector<3> acceleration; // in m/s^2
     imu::Quaternion orientation; // in quaternion
+    double heading_angle;        // in degrees
 
     State();
     ~State();
