@@ -3,9 +3,9 @@
 static constexpr int NAME_SIZE = 24;
 // SdFs sd;
 // FsFile logFile;  // File object to use for logging
-char logFileName[NAME_SIZE]; // Name of the log file
+char logFileName[NAME_SIZE];        // Name of the log file
 char flightDataFileName[NAME_SIZE]; // Name of the flight data file
-bool sdReady = false;        // Whether the SD card has been initialized
+bool sdReady = false;               // Whether the SD card has been initialized
 
 // SD_FAT_TYPE = 0 for SdFat/File as defined in SdFatConfig.h,
 // 1 for FAT16/FAT32, 2 for exFAT, 3 for FAT16/FAT32 and exFAT.
@@ -69,12 +69,16 @@ bool setupSDCard()
         // Find file name
         int fileNo = 0;
         bool exists = true;
+// Disable the warning for the following line, because seeing the warning all the time is annoying
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
         while (exists)
         {
             snprintf(logFileName, NAME_SIZE, "datalog_%d.csv", ++fileNo);
             exists = sd.exists(logFileName);
         }
-        snprintf(flightDataFileName, NAME_SIZE, "FlightData_%d.csv", fileNo);//will overwrite the previous file if it exists
+        snprintf(flightDataFileName, NAME_SIZE, "FlightData_%d.csv", fileNo); // will overwrite the previous file if it exists
+#pragma GCC diagnostic pop
 
         // Setup files
         logFile = sd.open(logFileName, FILE_WRITE);
