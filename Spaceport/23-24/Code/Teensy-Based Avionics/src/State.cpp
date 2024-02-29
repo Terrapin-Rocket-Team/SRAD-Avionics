@@ -74,6 +74,11 @@ bool State::init(bool stateRecordsOwnFlightData)
             }
         }
     }
+    if (radio)
+    {
+        if (!radio->begin())
+            radio = nullptr;
+    }
     numSensors = good;
     setCsvHeader();
     return good == tryNumSensors;
@@ -97,6 +102,7 @@ void State::updateState()
     {
         position = imu::Vector<3>((*gps)->get_pos().x(), (*gps)->get_pos().y(), (*gps)->get_alt());
         velocity = (*gps)->get_velocity();
+        heading_angle = (*gps)->get_heading();
     }
     if (*baro)
     {
@@ -171,6 +177,8 @@ char *State::getCsvHeader() { return csvHeader; }
 int State::getStageNum() { return stageNumber; }
 
 #pragma region Getters and Setters for Sensors
+void State::setRadio(Radio *r) { radio = r; }
+Radio *State::getRadio() { return radio; }
 bool State::addSensor(Sensor *sensor)
 {
     for (int i = 0; i < NUM_MAX_SENSORS; i++)
@@ -325,4 +333,9 @@ void State::setCsvString(char *dest, const char *start, int startSize, bool head
 }
 
 #pragma endregion
-
+bool State::transmit()
+{
+    char data[200];
+    sprintf(data, "%f,%f,%i,%i,%i,%c,%i,%s", position(0), position(1), (int)(position(2) * 3.28084), (int)(velocity.magnitude() * 3.2808399), (int)heading_angle, 'H', stageNumber, "12:00:00");
+    return radio->send(data, ENCT_TELEMETRY);
+}

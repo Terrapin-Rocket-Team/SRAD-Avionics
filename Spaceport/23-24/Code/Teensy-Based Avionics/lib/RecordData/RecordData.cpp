@@ -38,7 +38,7 @@ void recordLogData(double timeStamp, LogType type, const char *data, Dest dest)
         Serial.print(logPrefix);
         Serial.println(data);
     }
-    if (dest == BOTH || dest == TO_FILE && isSDReady())
+    if ((dest == BOTH || dest == TO_FILE) && isSDReady())
     {
         if (mode == GROUND)
         {

@@ -17,6 +17,7 @@ public:
     virtual imu::Vector<3> get_displace() = 0;
     virtual double get_gps_time() = 0;
     virtual int get_fix_qual() = 0;
+    virtual double get_heading() = 0;
 
     virtual const char *getTypeString() override { return "GPS"; }
     virtual SensorType getType() override { return GPS_; }

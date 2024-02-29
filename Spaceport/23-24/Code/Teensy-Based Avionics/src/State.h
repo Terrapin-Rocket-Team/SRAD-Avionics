@@ -22,29 +22,39 @@ public:
     bool init(bool stateRecordsOwnData = true);
     void updateState();
     int getStageNum();
-
     // sensor functions
     bool addSensor(Sensor *sensor);
     Sensor *getSensor(SensorType type);
 
-    // deprecated to improve flexibility and extendability |
+    // deprecated to improve flexibility and extendability |    void setRadio(Radio *r);
+
     Barometer *getBaro();                               // |
     GPS *getGPS();                                      // |
     IMU *getIMU();                                      // |
     // deprecated to improve flexibility and extendability |
+    Radio *getRadio();
+    void setRadio(Radio *r);
 
     char *getDataString();
     char *getCsvHeader();
     char *getStateString(); // This contains only the portions that define what the state thinks the rocket looks like. I recommend sending this over the radio during launches.
+
+    bool transmit();
 
 private:
     static constexpr int NUM_MAX_SENSORS = 5; // update with the max number of expected sensors
     Sensor *sensors[NUM_MAX_SENSORS];
     int numSensors; // how many sensors are actually enabled
 
+    double heading_angle; // in degrees
+    
     char *csvHeader;
     char *dataString;
     char *stateString;
+
+
+    Radio *radio;
+
     void setCsvHeader();
     void setDataString();
     void updateSensors();

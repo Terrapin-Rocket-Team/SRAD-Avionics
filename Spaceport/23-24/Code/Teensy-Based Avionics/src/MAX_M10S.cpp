@@ -64,6 +64,8 @@ void MAX_M10S::update()
     double time = millis() / 1000.0;
     pos.x() = m10s.getLatitude() / 10000000.0;
     pos.y() = m10s.getLongitude() / 10000000.0;
+
+    heading = m10s.getHeading();
     altitude = m10s.getAltitude() / 1000.0;
     fix_qual = m10s.getSIV();
     if (!first_fix && fix_qual >= 3)
@@ -103,6 +105,10 @@ returns the lat and long of the rocket to the 7th sig fig
 imu::Vector<2> MAX_M10S::get_pos()
 {
     return pos;
+} 
+
+double MAX_M10S::get_heading() {
+    return heading;
 }
 
 /*

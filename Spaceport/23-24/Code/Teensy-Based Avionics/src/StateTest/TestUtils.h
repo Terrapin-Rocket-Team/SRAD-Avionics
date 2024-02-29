@@ -21,6 +21,7 @@ int BPres = 11; // m
 int GX = 15;//lat/long
 int GY = 14;
 int GZ = 16;//Z is up
+int GH = 13;
 
 void ParseIncomingFakeSensorData(String line, FakeBaro& baro, FakeGPS& gps, FakeIMU& fimu){
     if(line.length() == 0) return;
@@ -34,7 +35,7 @@ void ParseIncomingFakeSensorData(String line, FakeBaro& baro, FakeGPS& gps, Fake
         columns[cursor].append(line[j]);
     }
     baro.feedData((double)columns[BAlt].toFloat(),(double)columns[BTemp].toFloat(),(double)columns[BPres].toFloat());
-    gps.feedData((double)columns[GX].toFloat(), (double)columns[GY].toFloat(), (double)columns[GZ].toFloat());
+    gps.feedData((double)columns[GX].toFloat(), (double)columns[GY].toFloat(), (double)columns[GZ].toFloat(), (double)columns[GH].toFloat());
     fimu.feedData((double)columns[AX].toFloat(), (double)columns[AY].toFloat(), (double)columns[AZ].toFloat(), (double)columns[OX].toFloat(), (double)columns[OY].toFloat(), (double)columns[OZ].toFloat(), (double)columns[OW].toFloat());
 }
 

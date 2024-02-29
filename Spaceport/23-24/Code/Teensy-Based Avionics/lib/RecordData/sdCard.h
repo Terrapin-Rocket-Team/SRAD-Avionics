@@ -7,8 +7,8 @@
 extern SdFs sd;
 extern FsFile logFile;
 extern FsFile flightDataFile;
-extern char *logFileName;
-extern char *flightDataFileName;
+extern char logFileName[];
+extern char flightDataFileName[];
 
 bool setupSDCard(); // Initializes the sensor
 bool isSDReady();  // Returns whether the sensor is initialized
