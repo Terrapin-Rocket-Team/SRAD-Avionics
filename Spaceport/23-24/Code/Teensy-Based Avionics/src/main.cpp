@@ -7,6 +7,7 @@
 #include "RFM69HCW.h"
 #include "RecordData.h"
 
+
 BNO055 bno(13, 12);         // I2C Address 0x29
 BMP390 bmp(13, 12);         // I2C Address 0x77
 MAX_M10S gps(13, 12, 0x42); // I2C Address 0x42
@@ -17,7 +18,9 @@ RFM69HCW radio = {settings, config};
 State computer;
 uint32_t dataTimer = millis();
 uint32_t radioTimer = millis();
+
 PSRAM *ram;
+
 #define BUZZER 33
 #define BMP_ADDR_PIN 36
 
@@ -27,8 +30,7 @@ void setup()
 { 
     recordLogData(INFO, "Initializing Avionics System. 10 second delay to prevent unnecessary file generation.", TO_USB);
     delay(10000);
-
-    //  Setup BMP to use defualt address
+  
     pinMode(BMP_ADDR_PIN, OUTPUT);
     digitalWrite(BMP_ADDR_PIN, HIGH);
 
@@ -38,7 +40,7 @@ void setup()
     digitalWrite(LED_BUILTIN, HIGH);
     delay(100);
     digitalWrite(LED_BUILTIN, LOW);
-
+    pinMode(BUZZER, OUTPUT);
     ram = new PSRAM();//init after the SD card for better data logging.
 
     //The SD card MUST be initialized first to allow proper data logging.
@@ -53,6 +55,7 @@ void setup()
     else
     {
         recordLogData(ERROR, "SD Card Failed to Initialize");
+
         digitalWrite(BUZZER, HIGH);
         delay(200);
         digitalWrite(BUZZER, LOW);
@@ -102,5 +105,4 @@ void loop()
     last = time;
     computer.updateState();
     recordLogData(INFO, computer.getStateString(), TO_USB);
-
 }

@@ -79,6 +79,7 @@ bool State::init(bool stateRecordsOwnFlightData)
         if (!radio->begin())
             radio = nullptr;
     }
+    setcsvHeader();
     numSensors = good;
     setCsvHeader();
     return good == tryNumSensors;
@@ -333,6 +334,7 @@ void State::setCsvString(char *dest, const char *start, int startSize, bool head
 }
 
 #pragma endregion
+
 bool State::transmit()
 {
     char data[200];
