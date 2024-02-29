@@ -44,8 +44,6 @@ public:
 
     bool transmit();
 
-    bool transmit();
-
 private:
     static constexpr int NUM_MAX_SENSORS = 5; // update with the max number of expected sensors
     Sensor *sensors[NUM_MAX_SENSORS];
