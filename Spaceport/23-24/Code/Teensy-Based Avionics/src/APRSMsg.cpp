@@ -24,19 +24,18 @@ SOFTWARE.
 
 #include "APRSMsg.h"
 
-APRSMsg::APRSMsg()
-    : _body(new APRSBody())
+APRSMsg::APRSMsg() : _body()
 {
 }
 
 APRSMsg::APRSMsg(APRSMsg &other_msg)
-    : _type(other_msg.getType()), _body(new APRSBody())
+    : _type(other_msg.getType()), _body()
 {
     strcpy(_source, other_msg.getSource());
     strcpy(_destination, other_msg.getDestination());
     strcpy(_path, other_msg.getPath());
     strcpy(_rawBody, other_msg.getRawBody());
-    _body->setData(other_msg.getBody()->getData());
+    _body.setData(other_msg.getBody()->getData());
 }
 
 APRSMsg &APRSMsg::operator=(APRSMsg &other_msg)
@@ -48,19 +47,18 @@ APRSMsg &APRSMsg::operator=(APRSMsg &other_msg)
         setPath(other_msg.getPath());
         _type = other_msg.getType();
         strcpy(_rawBody, other_msg.getRawBody());
-        _body->setData(other_msg.getBody()->getData());
+        _body.setData(other_msg.getBody()->getData());
     }
     return *this;
 }
 
 APRSMsg::~APRSMsg()
 {
-    delete _body;
 }
 
 const char *APRSMsg::getSource()
 {
-    return &_source[0];
+    return _source;
 }
 
 void APRSMsg::setSource(const char source[8])
@@ -70,7 +68,7 @@ void APRSMsg::setSource(const char source[8])
 
 const char *APRSMsg::getDestination()
 {
-    return &_destination[0];
+    return _destination;
 }
 
 void APRSMsg::setDestination(const char destination[8])
@@ -80,7 +78,7 @@ void APRSMsg::setDestination(const char destination[8])
 
 const char *APRSMsg::getPath()
 {
-    return &_path[0];
+    return _path;
 }
 
 void APRSMsg::setPath(const char path[10])
@@ -98,9 +96,9 @@ const char *APRSMsg::getRawBody()
     return _rawBody;
 }
 
-APRSBody *const APRSMsg::getBody()
+APRSBody *APRSMsg::getBody()
 {
-    return _body;
+    return &_body;
 }
 
 bool APRSMsg::decode(char *message)
@@ -123,8 +121,16 @@ bool APRSMsg::decode(char *message)
     if (pos_path - (pos_dest + 1) >= 10)
         return false;
 
-    strncpy(_source, message, pos_src);
-    _source[pos_src] = '\0';
+    if (pos_src >= 0)
+    {
+        strncpy(_source, message, pos_src);
+        _source[pos_src] = '\0';
+    }
+    else
+    {
+        _source[0] = '\0';
+    }
+
     if (pos_dest != -1 && pos_dest < pos_path)
     {
         strncpy(_path, message + pos_dest + 1, pos_path - (pos_dest + 1));
@@ -135,13 +141,21 @@ bool APRSMsg::decode(char *message)
     else
     {
         _path[0] = '\0';
-        strncpy(_destination, message + pos_src + 1, pos_path - (pos_src + 1));
-        _destination[pos_path - (pos_src + 1)] = '\0';
+        if (pos_src >= 0 && pos_path >= 0)
+        {
+
+            strncpy(_destination, message + pos_src + 1, pos_path - (pos_src + 1));
+            _destination[pos_path - (pos_src + 1)] = '\0';
+        }
+        else
+        {
+            _destination[0] = '\0';
+        }
     }
     strcpy(_rawBody, message + pos_path + 1);
     _rawBody[strlen(message + pos_path + 1)] = '\0';
     _type = APRSMessageType(_rawBody[0]);
-    _body->decode(_rawBody);
+    _body.decode(_rawBody);
     return bool(_type);
 }
 
@@ -152,13 +166,13 @@ void APRSMsg::encode(char *message)
     {
         sprintf(message + strlen(message), ",%s", _path);
     }
-    sprintf(message + strlen(message), ":%s", _body->encode());
+    sprintf(message + strlen(message), ":%s", _body.encode());
 }
 
 void APRSMsg::toString(char *str)
 {
     char body[87];
-    _body->toString(body);
+    _body.toString(body);
     sprintf(str, "Source:%s,Destination:%s,Path:%s,Type:%s,%s", _source, _destination, _path, _type.toString(), body);
 }
 

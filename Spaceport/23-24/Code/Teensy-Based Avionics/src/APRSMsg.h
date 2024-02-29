@@ -162,7 +162,7 @@ public:
     APRSMessageType getType();
 
     const char *getRawBody();
-    APRSBody *const getBody();
+    APRSBody *getBody();
 
     virtual bool decode(char *message);
     virtual void encode(char *message);
@@ -174,7 +174,7 @@ private:
     char _path[10];
     APRSMessageType _type;
     char _rawBody[80];
-    APRSBody *const _body;
+    APRSBody _body;
 };
 
 /*

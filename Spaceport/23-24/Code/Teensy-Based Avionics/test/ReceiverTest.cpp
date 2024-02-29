@@ -5,21 +5,26 @@
 #define TOCALL "APRS"
 #define PATH "WIDE1-1"
 
-APRSConfig confi = {CALLSIGN, TOCALL, PATH, '[', '/'};
-RFM69HCW receive = {433775000, false, false, confi};
+APRSConfig config = {CALLSIGN, TOCALL, PATH, '[', '/'};
+RadioSettings settings = {433.775, false, false, &hardware_spi, 10, 31, 32};
+RFM69HCW receive = {settings, config};
 
-void setup() {
+void setup()
+{
     Serial.begin(9600);
-    while (!Serial) {
-        Serial.println("receiver loading");
-    }
-    SPIClass* sp = &SPI;
-    receive.begin(sp, 3, 4);
+    while (!Serial)
+        ;
+
+    if (!receive.begin())
+        Serial.println("Reciever failed to begin");
+
     Serial.println("RFM69r began");
 }
 
-void loop() {
-    if (receive.available()) {
-        Serial.println(receive.receive(ENCT_TELEMETRY));
-    } 
+void loop()
+{
+    if (receive.available())
+    {
+        Serial.println(receive.receive(ENCT_GROUNDSTATION));
+    }
 }
