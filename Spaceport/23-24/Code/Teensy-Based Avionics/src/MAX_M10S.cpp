@@ -65,8 +65,8 @@ void MAX_M10S::update()
     pos.x() = m10s.getLatitude() / 10000000.0;
     pos.y() = m10s.getLongitude() / 10000000.0;
     altitude = m10s.getAltitude() / 1000.0;
-
-    if (!first_fix && m10s.getSIV() >= 3)
+    fix_qual = m10s.getSIV();
+    if (!first_fix && fix_qual >= 3)
     {
         recordLogData(INFO, "GPS has first fix."); //Log this data when the new data logging branch is merged.
         first_fix = true;
@@ -87,7 +87,6 @@ void MAX_M10S::update()
 
     gps_time = time;
 
-    fix_qual = m10s.getSIV();
 }
 
 /*

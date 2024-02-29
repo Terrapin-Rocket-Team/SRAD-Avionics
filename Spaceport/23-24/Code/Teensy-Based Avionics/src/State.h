@@ -18,7 +18,7 @@ public:
     ~State();
 
     // to be called after all applicable sensors have been added.
-    // Retruns false if any sensor failed to init. check for getSensor == nullptr to see which sensor failed. Disables sensor if failed.
+    // Returns false if any sensor failed to init. check for getSensor == nullptr to see which sensor failed. Disables sensor if failed.
     bool init(bool stateRecordsOwnData = true);
     void updateState();
     int getStageNum();
@@ -60,7 +60,7 @@ private:
 
     // Helper functions
     void determineAccelerationMagnitude();
-    int determineStage();
+    void determineStage();
     bool applySensorType(int index); // points the sensor variables to an appropriate sensors[] index.
     void setCsvString(char *str, const char* start, int startSize, bool header);
 

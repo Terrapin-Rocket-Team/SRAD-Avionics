@@ -38,7 +38,7 @@ bool BMP390::initialize()
         startPressure += bmp.readPressure();
         delay(25);
     }
-    groundPressure = (startPressure / 100) / 100.0; // hPa
+    groundPressure = (startPressure / 100.0) / 100.0; // hPa
     return true;
 }
 void BMP390::update()
@@ -92,7 +92,7 @@ char *BMP390::getDataString()
     // float x3
     const int size = 12 * 3 + 3;
     char *data = new char[size];
-    snprintf(data, size, "%.2f,%.2f,%.2f,", get_pressure(), get_temp(), get_rel_alt_ft());//trailing comma
+    snprintf(data, size, "%.2f,%.2f,%.2f,", pressure, temp, altitude);//trailing comma
     return data;
 }
 

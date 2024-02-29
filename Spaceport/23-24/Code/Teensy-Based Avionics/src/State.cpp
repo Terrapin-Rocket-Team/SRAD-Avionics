@@ -229,7 +229,7 @@ void State::determineAccelerationMagnitude()
     accelerationMagnitude = sqrt((acceleration.x() * acceleration.x()) + (acceleration.y() * acceleration.y()) + (acceleration.z() * acceleration.z()));
 }
 
-int State::determineStage()
+void State::determineStage()
 {
     if (stageNumber == 0 && acceleration.z() > 25 && position.z() > 75)
     {
@@ -280,7 +280,6 @@ int State::determineStage()
             recordLogData(INFO, "Dumped data after landing.");
         }
     }
-    return stageNumber;
 }
 
 void State::setCsvString(char *dest, const char *start, int startSize, bool header)
