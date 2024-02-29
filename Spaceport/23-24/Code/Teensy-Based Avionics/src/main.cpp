@@ -29,8 +29,9 @@ void setup()
 
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);
-    delay(1000);
+    delay(100);
     digitalWrite(LED_BUILTIN, LOW);
+    pinMode(BUZZER, OUTPUT);
 
     Serial.begin(9600);
     while (!Serial)
@@ -43,7 +44,6 @@ void setup()
     computer.setRadio(&radio);
 
     computer.init();
-    Serial.println("here");
     setupPSRAM(computer.getcsvHeader());
     bool sdSuccess = setupSDCard(computer.getcsvHeader());
 
