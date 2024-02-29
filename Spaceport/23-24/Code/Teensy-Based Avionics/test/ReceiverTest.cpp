@@ -25,6 +25,6 @@ void loop()
 {
     if (receive.available())
     {
-        Serial.println(receive.receive(ENCT_TELEMETRY));
+        Serial.println(receive.receive(ENCT_GROUNDSTATION));
     }
 }

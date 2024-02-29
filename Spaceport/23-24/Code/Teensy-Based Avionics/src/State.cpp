@@ -330,6 +330,6 @@ Radio *State::getRadio() { return radio; }
 bool State::transmit()
 {
     char data[200];
-    sprintf(data, "%f,%f,%i,%i,%i,%c,%i,%s", position(0), position(1), (int)(position(2) * 3.28084), (int)(velocity.magnitude() * 3.2808399), 31, 'H', stageNumber, "12:00:00");
+    sprintf(data, "%f,%f,%i,%i,%i,%c,%i,%s", position(0), position(1), (int)(position(2) * 3.28084), (int)(velocity.magnitude() * 3.2808399), (int)heading_angle, 'H', stageNumber, "12:00:00");
     return radio->send(data, ENCT_TELEMETRY);
 }
