@@ -36,6 +36,7 @@ public:
     int get_fix_qual();
     double get_heading();
     void *getData();
+
     bool initialize() override;
     const char *getCsvHeader() override;
     char *getDataString() override;

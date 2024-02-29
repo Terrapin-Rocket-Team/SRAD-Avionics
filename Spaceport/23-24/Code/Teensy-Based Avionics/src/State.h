@@ -26,18 +26,23 @@ public:
     bool addSensor(Sensor *sensor);
     Sensor *getSensor(SensorType type);
 
-    // deprecated to improve flexibility and extendability |    void setRadio(Radio *r);
 
+    // deprecated to improve flexibility and extendability |
     Barometer *getBaro();                               // |
     GPS *getGPS();                                      // |
     IMU *getIMU();                                      // |
     // deprecated to improve flexibility and extendability |
+  
+  
     Radio *getRadio();
     void setRadio(Radio *r);
+
 
     char *getDataString();
     char *getCsvHeader();
     char *getStateString(); // This contains only the portions that define what the state thinks the rocket looks like. I recommend sending this over the radio during launches.
+
+    bool transmit();
 
     bool transmit();
 
@@ -52,11 +57,11 @@ private:
     char *dataString;
     char *stateString;
 
-
     Radio *radio;
 
     void setCsvHeader();
     void setDataString();
+
     void updateSensors();
 
     // Sensor types
