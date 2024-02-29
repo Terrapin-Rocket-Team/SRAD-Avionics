@@ -22,6 +22,7 @@ private:
     int fix_qual;                // num of connections to satellites
     imu::Vector<3> irl_time;     // returns the current hour, min, and sec
     bool first_fix;              // whether or not gps has recieved first fix
+    double heading;
 
 public:
     MAX_M10S(uint8_t SCK, uint8_t SDA, uint8_t address);
@@ -35,6 +36,7 @@ public:
     imu::Vector<3> get_irl_time();
     imu::Vector<3> get_origin_pos();
     int get_fix_qual();
+    double get_heading();
     void *get_data();
     bool initialize() override;
     const char *getcsvHeader() override;

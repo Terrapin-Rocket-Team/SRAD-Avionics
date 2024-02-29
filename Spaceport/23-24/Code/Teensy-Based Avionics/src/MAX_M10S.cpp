@@ -64,6 +64,8 @@ void MAX_M10S::read_gps() {
     pos.x() = m10s.getLatitude() / 10000000.0;
     pos.y() = m10s.getLongitude() / 10000000.0;
 
+    heading = m10s.getHeading();
+
     // updated before displacement and gps as the old values and new values are needed to get a 
     // significant of a velocity
     velocity.x() = ((pos.x() * 111139.0) - displacement.x()) / (millis() / 1000.0- gps_time);
@@ -96,6 +98,10 @@ returns the lat and long of the rocket to the 7th sig fig
 imu::Vector<2> MAX_M10S::get_pos() {
     return pos;
 } 
+
+double MAX_M10S::get_heading() {
+    return heading;
+}
 
 /*
 return the velocity (meters per second)

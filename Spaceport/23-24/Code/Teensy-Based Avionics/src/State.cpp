@@ -121,6 +121,7 @@ void State::updateState()
     {
         position = imu::Vector<3>(gps->get_pos().x(), gps->get_pos().y(), gps->get_alt());
         velocity = gps->get_velocity();
+        heading_angle = gps->get_heading();
     }
     if (baro)
     {
