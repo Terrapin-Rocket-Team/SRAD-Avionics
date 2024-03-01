@@ -10,7 +10,7 @@ public:
     {
         press = npress;
         temp = ntemp;
-        alt = nalt * 0.3048;
+        alt = nalt;
     }
     void *get_data() {return &alt; }
     double get_temp() { return press; }
