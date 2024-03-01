@@ -1,8 +1,8 @@
 #ifndef MATRIXMULT_H
 #define MATRIXMULT_H
 
-#include <Arduino.h>
 //#include "RFM69Helper.h"
+#include <Arduino.h>
 
 double *multiplyMatrices(double *matrix1, double *matrix2, int matrix1_rows, int matrix1_cols, int matrix2_rows, int matrix2_cols);
 double *inverseMatrix(double *matrix, int size);

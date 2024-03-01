@@ -9,7 +9,7 @@
 FakeBaro baro;
 FakeGPS gps;
 FakeIMU fimu;//"imu" is the namespace of the vector stuff :/
-State computer;
+State computer(true);
 
 
 
@@ -75,6 +75,7 @@ void loop()
     recordData(computer.getdataString(), computer.getStageNum());
 
     char* stateStr = computer.getStateString();
+    Serial.print(FreeMem());
     Serial.println(stateStr);
 
     delay(50);

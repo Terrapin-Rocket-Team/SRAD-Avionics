@@ -4,7 +4,7 @@ double *multiplyMatrices(double *matrix1, double *matrix2, int matrix1_rows, int
 {
     if (matrix1_cols != matrix2_rows)
     {
-        Serial.println("Error: Columns in matrix1 must match rows in matrix2.");
+        //Serial.println("Error: Columns in matrix1 must match rows in matrix2.");
         return nullptr;
     }
 
@@ -51,7 +51,7 @@ double *inverseMatrix(double *matrix, int size)
 
         if (matrix[pivotRow * size + i] == 0.0)
         {
-            Serial.println("Error: Matrix is singular, cannot calculate inverse.");
+            //Serial.println("Error: Matrix is singular, cannot calculate inverse.");
             return nullptr;
         }
 

@@ -138,7 +138,7 @@ void State::updateState()
         // imu x y z
         inputs[0] = imu->get_acceleration().x();
         inputs[1] = imu->get_acceleration().y();
-        inputs[2] = imu->get_acceleration().z() + 9.80665;//add G cuz imu removes it.
+        inputs[2] = imu->get_acceleration().z();//add G cuz imu removes it.
         akf::updateFilter(kfilter, timeAbsolute, gps ? 1 : 0, baro ? 1 : 0, imu ? 1 : 0, measurements, inputs, &predictions);
         // time, pos x, y, z, vel x, y, z, acc x, y, z
         //ignore time return value.
@@ -369,8 +369,6 @@ RTC *State::getRTC() { return rtc; }
 
 void State::initKF(bool useBaro, bool useGps, bool useImu)
 {
-    // These are currently not ever deleted. Since this is only called once, it should not be an issue, but proper practice is to delete these when the state is destroyed.
-
     double *initial_state = new double[6]{0, 0, 0, 0, 0, 0};
     double *initial_input = new double[3]{0, 0, 0};
     double *initial_covariance = new double[36]{1, 0, 0, 1, 0, 0,
@@ -379,17 +377,22 @@ void State::initKF(bool useBaro, bool useGps, bool useImu)
                                                 1, 0, 0, 1, 0, 0,
                                                 0, 1, 0, 0, 1, 0,
                                                 0, 0, 1, 0, 0, 1};
-    double *measurement_covariance = new double[16]{1, 0, 0, 0,
-                                                    0, 1, 0, 0,
-                                                    0, 0, 1, 0,
-                                                    0, 0, 0, 1};
-    double *process_noise_covariance = new double[36]{.03, 0, 0, 0, 0, 0,
-                                                      0, .03, 0, 0, 0, 0,
-                                                      0, 0, .03, 0, 0, 0,
-                                                      0, 0, 0, .03, 0, 0,
-                                                      0, 0, 0, 0, .03, 0,
-                                                      0, 0, 0, 0, 0, .03};
+    double *measurement_covariance = new double[16]{3, 0, 0, 0,
+                                                    0, 3, 0, 0,
+                                                    0, 0, 3, 0,
+                                                    0, 0, 0, 3};
+    double *process_noise_covariance = new double[36]{.1, 0, 0, 0, 0, 0,
+                                                      0, .1, 0, 0, 0, 0,
+                                                      0, 0, .1, 0, 0, 0,
+                                                      0, 0, 0, .1, 0, 0,
+                                                      0, 0, 0, 0, .1, 0,
+                                                      0, 0, 0, 0, 0, .1};
     akf::init(kfilter, 6, 3, 4, initial_state, initial_input, initial_covariance, measurement_covariance, process_noise_covariance);
+    delete[] initial_state;
+    delete[] initial_input;
+    delete[] initial_covariance;
+    delete[] measurement_covariance;
+    delete[] process_noise_covariance;
 }
 
 #pragma endregion

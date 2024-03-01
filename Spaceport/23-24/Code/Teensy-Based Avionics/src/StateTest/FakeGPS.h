@@ -10,8 +10,12 @@ public:
     void read_gps() {}
     void feedData(double pos_x, double pos_y, double pos_z)
     {
-        pos.x() = pos_x;
-        pos.y() = pos_y;
+        if(initial_latitude == 0 || initial_longitude == 0){
+            initial_latitude = pos_x;
+            initial_longitude = pos_y;
+        }
+        pos.x() = (pos_x - initial_latitude) * 111139;
+        pos.y() = (pos_y - initial_longitude) * 111139;
         alt = pos_z;
     }
     bool initialize() { return true; }
@@ -44,5 +48,7 @@ public:
 private:
     imu::Vector<2> pos;
     double alt;
+    double initial_latitude = 0;
+    double initial_longitude = 0;
 };
 #endif
