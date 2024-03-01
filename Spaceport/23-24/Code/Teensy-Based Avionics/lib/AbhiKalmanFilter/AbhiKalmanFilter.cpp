@@ -79,129 +79,205 @@ namespace akf
     {
         int sum = (has_barometer + has_gps) == 0 ? 1 : (has_barometer + has_gps);
 
-
         double *new_matrix;
         new_matrix = new double[state->measurement_size * state->state_size]{1.0 * has_gps, 0, 0, 0, 0, 0,
                                                                              0, 1.0 * has_gps, 0, 0, 0, 0,
-                                                                             0, 0, 1.0/sum * has_gps, 0, 0, 0,
-                                                                             0, 0, 1.0/sum * has_barometer, 0, 0, 0};
+                                                                             0, 0, 0.0 / sum * has_gps, 0, 0, 0,
+                                                                             0, 0, 1.0, 0, 0, 0};
         copy_array(new_matrix, state->observation_matrix, state->measurement_size * state->state_size);
         delete[] new_matrix;
     }
 
     void covariance_extrapolation(KFState *state)
     {
+        delete[] state->current_covariance;
+        double *m1 =
+            multiplyMatrices(
+                state->state_transition_matrix,
+                state->current_covariance,
+                state->state_size, state->state_size, state->state_size, state->state_size);
+        double *t1 =
+            transposeMatrix(
+                state->state_transition_matrix,
+                state->state_size, state->state_size);
+        double *m2 =
+            multiplyMatrices(
+                m1,
+                t1,
+                state->state_size, state->state_size, state->state_size, state->state_size);
         state->current_covariance =
             addMatrices(
-                multiplyMatrices(
-                    multiplyMatrices(
-                        state->state_transition_matrix,
-                        state->current_covariance,
-                        state->state_size, state->state_size, state->state_size, state->state_size),
-                    transposeMatrix(
-                        state->state_transition_matrix,
-                        state->state_size, state->state_size),
-                    state->state_size, state->state_size, state->state_size, state->state_size),
+                m2,
                 state->process_noise_covariance,
                 state->state_size, state->state_size);
+        delete[] m1;
+        delete[] t1;
+        delete[] m2;
     }
 
     void covariance_update(KFState *state)
     {
+        delete[] state->current_covariance;
         double *identity_matrix = ident(state->state_size);
+        double *m1 =
+            multiplyMatrices(
+                state->kalman_gain,
+                state->observation_matrix,
+                state->state_size, state->measurement_size, state->measurement_size, state->state_size);
+        double *s1 =
+            subMatrices(
+                identity_matrix,
+                m1,
+                state->state_size, state->state_size);
+        double *m2 =
+            multiplyMatrices(
+                s1,
+                state->current_covariance,
+                state->state_size, state->state_size, state->state_size, state->state_size);
+        double *m3 =
+            multiplyMatrices(
+                state->kalman_gain,
+                state->observation_matrix,
+                state->state_size, state->measurement_size, state->measurement_size, state->state_size);
+        double *s2 =
+            subMatrices(
+                identity_matrix,
+                m3,
+                state->state_size, state->state_size);
+        double *t1 =
+            transposeMatrix(
+                s2,
+                state->state_size, state->state_size);
+        double *m4 =
+            multiplyMatrices(
+                m2,
+                t1,
+                state->state_size, state->state_size, state->state_size, state->state_size);
+        double *m5 =
+            multiplyMatrices(
+                state->kalman_gain,
+                state->measurement_covariance,
+                state->state_size, state->measurement_size, state->measurement_size, state->measurement_size);
+        double *t2 =
+            transposeMatrix(
+                state->kalman_gain,
+                state->state_size, state->measurement_size);
+        double *m6 =
+            multiplyMatrices(
+                m5,
+                t2,
+                state->state_size, state->measurement_size, state->measurement_size, state->state_size);
+
         state->current_covariance =
             addMatrices(
-                multiplyMatrices(
-                    multiplyMatrices(
-                        subMatrices(
-                            identity_matrix,
-                            multiplyMatrices(
-                                state->kalman_gain,
-                                state->observation_matrix,
-                                state->state_size, state->measurement_size, state->measurement_size, state->state_size),
-                            state->state_size, state->state_size),
-                        state->current_covariance,
-                        state->state_size, state->state_size, state->state_size, state->state_size),
-                    transposeMatrix(
-                        subMatrices(
-                            identity_matrix,
-                            multiplyMatrices(
-                                state->kalman_gain,
-                                state->observation_matrix,
-                                state->state_size, state->measurement_size, state->measurement_size, state->state_size),
-                            state->state_size, state->state_size),
-                        state->state_size, state->state_size),
-                    state->state_size, state->state_size, state->state_size, state->state_size),
-                multiplyMatrices(
-                    multiplyMatrices(
-                        state->kalman_gain,
-                        state->measurement_covariance,
-                        state->state_size, state->measurement_size, state->measurement_size, state->measurement_size),
-                    transposeMatrix(
-                        state->kalman_gain,
-                        state->state_size, state->measurement_size),
-                    state->state_size, state->measurement_size, state->measurement_size, state->state_size),
+                m4,
+                m6,
                 state->state_size, state->state_size);
+        delete[] identity_matrix;
+        delete[] m1;
+        delete[] s1;
+        delete[] m2;
+        delete[] m3;
+        delete[] s2;
+        delete[] t1;
+        delete[] m4;
+        delete[] m5;
+        delete[] t2;
+        delete[] m6;
     }
 
     void kalman_update(KFState *state)
     {
-        state->kalman_gain =
+        delete[] state->kalman_gain;
+        double *t1 =
+            transposeMatrix(
+                state->observation_matrix,
+                state->measurement_size, state->state_size);
+        double *m1 =
             multiplyMatrices(
-                multiplyMatrices(
-                    state->current_covariance,
-                    transposeMatrix(
-                        state->observation_matrix,
-                        state->measurement_size, state->state_size),
-                    state->state_size, state->state_size, state->state_size, state->measurement_size),
-                inverseMatrix(
-                    addMatrices(
-                        multiplyMatrices(
-                            multiplyMatrices(
-                                state->observation_matrix,
-                                state->current_covariance,
-                                state->measurement_size, state->state_size, state->state_size, state->state_size),
-                            transposeMatrix(
-                                state->observation_matrix,
-                                state->measurement_size, state->state_size),
-                            state->measurement_size, state->state_size, state->state_size, state->measurement_size),
-                        state->measurement_covariance,
-                        state->measurement_size, state->measurement_size),
-                    state->measurement_size),
-                state->state_size, state->measurement_size, state->measurement_size, state->measurement_size);
+                state->current_covariance,
+                t1,
+                state->state_size, state->state_size, state->state_size, state->measurement_size);
+        double *m2 =
+            multiplyMatrices(
+                state->observation_matrix,
+                state->current_covariance,
+                state->measurement_size, state->state_size, state->state_size, state->state_size);
+        double *m3 =
+            multiplyMatrices(
+                m2,
+                t1,
+                state->measurement_size, state->state_size, state->state_size, state->measurement_size);
+        double *a1 =
+            addMatrices(
+                m3,
+                state->measurement_covariance,
+                state->measurement_size, state->measurement_size);
+        double *i1 =
+            inverseMatrix(
+                a1,
+                state->measurement_size);
+
+        state->kalman_gain =
+            multiplyMatrices(m1,
+                             i1,
+                             state->state_size, state->measurement_size, state->measurement_size, state->measurement_size);
+        delete[] t1;
+        delete[] m1;
+        delete[] m2;
+        delete[] m3;
+        delete[] a1;
+        delete[] i1;
     }
 
     void state_extrapolation(KFState *state)
     {
+        delete[] state->current_state;
+        double *m1 =
+            multiplyMatrices(
+                state->state_transition_matrix,
+                state->current_state,
+                state->state_size, state->state_size, state->state_size, 1);
+        double *m2 =
+            multiplyMatrices(
+                state->control_matrix,
+                state->current_input,
+                state->state_size, state->input_size, state->input_size, 1);
         state->current_state =
             addMatrices(
-                multiplyMatrices(
-                    state->state_transition_matrix,
-                    state->current_state,
-                    state->state_size, state->state_size, state->state_size, 1),
-                multiplyMatrices(
-                    state->control_matrix,
-                    state->current_input,
-                    state->state_size, state->input_size, state->input_size, 1),
+                m1,
+                m2,
                 state->state_size, 1);
+        delete[] m1;
+        delete[] m2;
     }
 
     void state_update(KFState *state)
     {
+        delete[] state->current_state;
+        double *m1 =
+            multiplyMatrices(
+                state->observation_matrix,
+                state->current_state,
+                state->measurement_size, state->state_size, state->state_size, 1);
+        double *s1 =
+            subMatrices(
+                state->current_measurement,
+                m1,
+                state->measurement_size, 1);
+        double *m2 =
+            multiplyMatrices(
+                state->kalman_gain,
+                s1,
+                state->state_size, state->measurement_size, state->measurement_size, 1);
         state->current_state =
             addMatrices(
                 state->current_state,
-                multiplyMatrices(
-                    state->kalman_gain,
-                    subMatrices(
-                        state->current_measurement,
-                        multiplyMatrices(
-                            state->observation_matrix,
-                            state->current_state,
-                            state->measurement_size, state->state_size, state->state_size, 1),
-                        state->measurement_size, 1),
-                    state->state_size, state->measurement_size, state->measurement_size, 1),
+                m2,
                 state->state_size, 1);
+        delete[] m1;
+        delete[] s1;
+        delete[] m2;
     }
 
     void predict(KFState *state, double *input)
