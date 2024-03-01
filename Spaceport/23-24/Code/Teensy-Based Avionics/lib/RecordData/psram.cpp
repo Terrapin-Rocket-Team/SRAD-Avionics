@@ -24,22 +24,22 @@ bool PSRAM::init()
 
     return ready;
 }
-void PSRAM::println(const char *data, bool atStart)
+void PSRAM::println(const char *data, bool isFlightData)
 {
     if (ready)
     {
-        print(data, atStart);
-        print("\n", atStart);
+        print(data, isFlightData);
+        print("\n", isFlightData);
     }
 }
 
 // Write string to FRAM
-void PSRAM::print(const char *data, bool atStart)
+void PSRAM::print(const char *data, bool isFlightData)
 {
     if (ready)
         for (int i = 0; data[i] != '\0'; i++)
         {
-            if (atStart)
+            if (isFlightData)
             {
                 *cursorStart = data[i];
                 cursorStart++;

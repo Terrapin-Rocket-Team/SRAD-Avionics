@@ -26,6 +26,8 @@ public:
     const char *getCsvHeader() override;
     char *getDataString() override;
     char *getStaticDataString() override;
+    const char *getName() override { return "DS3231"; }
+    void update() override {}
 };
 
 # endif

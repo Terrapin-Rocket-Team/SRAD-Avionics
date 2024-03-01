@@ -13,6 +13,8 @@ public:
     virtual double get_temp_f() = 0;
     virtual double get_pressure_atm() = 0;
     virtual double get_rel_alt_ft() = 0;
+    virtual SensorType getType() override { return LIGHT_SENSOR_; }
+    virtual const char *getTypeString() override { return "Light Sensor"; }
 };
 
 

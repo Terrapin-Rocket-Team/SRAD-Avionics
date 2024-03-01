@@ -9,8 +9,8 @@ class PSRAM
 public:
     PSRAM();
     bool init();
-    void print(const char *data, bool atStart = true);
-    void println(const char *data, bool atStart = true);
+    void print(const char *data, bool isFlightData = true);
+    void println(const char *data, bool isFlightData = true);
     bool isReady();
     bool dumpFlightData();
     bool dumpLogData();

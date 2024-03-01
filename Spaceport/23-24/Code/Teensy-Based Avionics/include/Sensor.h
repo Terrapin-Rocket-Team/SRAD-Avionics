@@ -19,6 +19,7 @@ public:
     // Sets up the sensor and stores any critical parameters
     virtual bool initialize() = 0; 
     // a generic function that returns a pointer to the sensor's most import data value
+    //deprecate this function?
     virtual void * getData() = 0;
     // gives the names of the columns which transient data will be stored under, in a comma separated string
     virtual const char* getCsvHeader() = 0;
