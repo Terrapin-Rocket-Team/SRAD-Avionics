@@ -93,7 +93,7 @@
 /// \par Theory of operation
 ///
 /// See ASH Transceiver Software Designer's Guide of 2002.08.07
-///   http://wireless.murata.com/media/products/apnotes/tr_swg05.pdf
+///   http://wireless.murata.com/media/products/apnotes/tr_swg05.pdf?ref=rfm.com
 ///
 /// http://web.engr.oregonstate.edu/~moon/research/files/cas2_mar_07_dpll.pdf while not directly relevant 
 /// is also interesting.
@@ -106,7 +106,7 @@
 /// - 36 bit training preamble consisting of 0-1 bit pairs
 /// - 12 bit start symbol 0xb38
 /// - 1 byte of message length byte count (4 to 30), count includes byte count and FCS bytes
-/// - n message bytes (including 4 bytes of header), maximum n is RH_ASK_MAX_MESSAGE_LEN + 4 (64)
+/// - n message bytes (uincluding 4 bytes of header), maximum n is RH_ASK_MAX_MESSAGE_LEN + 4 (64)
 /// - 2 bytes FCS, sent low byte-hi byte
 ///
 /// Everything after the start symbol is encoded 4 to 6 bits, Therefore a byte in the message
@@ -154,9 +154,6 @@
 ///  - SYN115, F115 and other similar ASK transmitters
 /// - Transceivers
 ///  - DR3100 (433.92MHz)
-///
-/// \par Interoperation with other systems
-/// RH_ASK is reported to be supported by RTL-SDR https://www.rtl-sdr.com/tag/rtl_433/
 ///
 /// \par Connecting to Arduino
 ///

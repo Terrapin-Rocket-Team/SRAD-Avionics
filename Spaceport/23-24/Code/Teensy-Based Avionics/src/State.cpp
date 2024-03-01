@@ -337,6 +337,7 @@ void State::setCsvString(char *dest, const char *start, int startSize, bool head
 bool State::transmit()
 {
     char data[200];
-    sprintf(data, "%f,%f,%i,%i,%i,%c,%i,%s", position(0), position(1), (int)(position(2) * 3.28084), (int)(velocity.magnitude() * 3.2808399), (int)heading_angle, 'H', stageNumber, "12:00:00");
-    return radio->send(data, ENCT_TELEMETRY);
+    snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", position(0), position(1), (int)(position(2) * 3.28084), (int)(velocity.magnitude() * 3.2808399), (int)heading_angle, 'H', stageNumber, "12:00:00");
+    bool b = radio->send(data, ENCT_TELEMETRY);
+    return b;
 }

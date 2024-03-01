@@ -16,7 +16,6 @@ APRSConfig config = {"KC3UTM", "APRS", "WIDE1-1", '[', '/'};
 RadioSettings settings = {433.775, true, false, &hardware_spi, 10, 31, 32};
 RFM69HCW radio = {settings, config};
 State computer;
-uint32_t dataTimer = millis();
 uint32_t radioTimer = millis();
 
 PSRAM *ram;
@@ -77,7 +76,7 @@ void setup()
         recordLogData(INFO, "Failed to add MAX_M10S Sensor");
     if (!computer.addSensor(&bno))
         recordLogData(INFO, "Failed to add BNO055 Sensor");
-
+    computer.setRadio(&radio);
     if (computer.init())
         recordLogData(INFO, "All Sensors Initialized");
     else
@@ -95,7 +94,7 @@ void loop()
     double time = millis();
     if (time - radioTimer >= 2000)
     {
-        //computer.transmit();
+        computer.transmit();
         radioTimer = time;
     }
     if(time - last < 100)
@@ -104,4 +103,6 @@ void loop()
     last = time;
     computer.updateState();
     recordLogData(INFO, computer.getStateString(), TO_USB);
+    Serial.print(millis() - time);
+    Serial.print(" ms ");
 }
