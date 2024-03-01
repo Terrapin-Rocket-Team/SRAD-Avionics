@@ -379,16 +379,16 @@ void State::initKF(bool useBaro, bool useGps, bool useImu)
                                                 1, 0, 0, 1, 0, 0,
                                                 0, 1, 0, 0, 1, 0,
                                                 0, 0, 1, 0, 0, 1};
-    double *measurement_covariance = new double[16]{3, 0, 0, 0,
-                                                    0, 3, 0, 0,
-                                                    0, 0, 3, 0,
-                                                    0, 0, 0, 3};
-    double *process_noise_covariance = new double[36]{.1, 0, 0, 0, 0, 0,
-                                                      0, .1, 0, 0, 0, 0,
-                                                      0, 0, .1, 0, 0, 0,
-                                                      0, 0, 0, .1, 0, 0,
-                                                      0, 0, 0, 0, .1, 0,
-                                                      0, 0, 0, 0, 0, .1};
+    double *measurement_covariance = new double[16]{1, 0, 0, 0,
+                                                    0, 1, 0, 0,
+                                                    0, 0, 1, 0,
+                                                    0, 0, 0, 1};
+    double *process_noise_covariance = new double[36]{.03, 0, 0, 0, 0, 0,
+                                                      0, .03, 0, 0, 0, 0,
+                                                      0, 0, .03, 0, 0, 0,
+                                                      0, 0, 0, .03, 0, 0,
+                                                      0, 0, 0, 0, .03, 0,
+                                                      0, 0, 0, 0, 0, .03};
     akf::init(kfilter, 6, 3, 4, initial_state, initial_input, initial_covariance, measurement_covariance, process_noise_covariance);
 }
 
