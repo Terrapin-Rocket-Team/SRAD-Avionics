@@ -15,7 +15,7 @@ public:
         alt = pos_z;
         this->heading = heading;
     }
-    bool initialize() override { return false; }
+    bool initialize() override { return true; }
     imu::Vector<2> get_pos() { return pos; }
     double get_alt(){return alt;}
     imu::Vector<3> get_velocity() {return imu::Vector<3>(0,0,0);}

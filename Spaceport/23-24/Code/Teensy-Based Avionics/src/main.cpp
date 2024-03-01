@@ -40,7 +40,6 @@ void setup()
     digitalWrite(LED_BUILTIN, HIGH);
     delay(100);
     digitalWrite(LED_BUILTIN, LOW);
-    pinMode(BUZZER, OUTPUT);
     ram = new PSRAM();//init after the SD card for better data logging.
 
     //The SD card MUST be initialized first to allow proper data logging.
@@ -96,7 +95,7 @@ void loop()
     double time = millis();
     if (time - radioTimer >= 2000)
     {
-        computer.transmit();
+        //computer.transmit();
         radioTimer = time;
     }
     if(time - last < 100)
