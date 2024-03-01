@@ -75,7 +75,6 @@ void loop()
     recordData(computer.getdataString(), computer.getStageNum());
 
     char* stateStr = computer.getStateString();
-    Serial.print(FreeMem());
     Serial.println(stateStr);
 
     delay(50);
