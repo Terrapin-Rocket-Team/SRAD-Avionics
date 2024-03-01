@@ -127,7 +127,7 @@ void State::updateSensors()
 }
 void State::updateState()
 {
-    settimeAbsolute();
+    //settimeAbsolute();
     updateSensors();
     if (useKF)
     {
@@ -140,7 +140,7 @@ void State::updateState()
         inputs[0] = imu->get_acceleration().x();
         inputs[1] = imu->get_acceleration().y();
         inputs[2] = imu->get_acceleration().z();//add G cuz imu removes it.
-        akf::updateFilter(kfilter, timeAbsolute/ 1000.0, gps ? 1 : 0, baro ? 1 : 0, imu ? 1 : 0, measurements, inputs, &predictions);
+        akf::updateFilter(kfilter, timeAbsolute, gps ? 1 : 0, baro ? 1 : 0, imu ? 1 : 0, measurements, inputs, &predictions);
         // time, pos x, y, z, vel x, y, z, acc x, y, z
         //ignore time return value.
         position.x() = predictions[1];

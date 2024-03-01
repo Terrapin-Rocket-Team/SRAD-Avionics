@@ -7,6 +7,7 @@
 #include "FakeIMU.h"
 
 //column numbers, 0 indexed
+int timeAbsoluteCol = 0;
 int numColums = 17;
 int AX = 3;//m/s/s
 int AY = 4;
@@ -22,7 +23,7 @@ int GX = 15;//lat/long
 int GY = 14;
 int GZ = 16;//Z is up
 
-void ParseIncomingFakeSensorData(String line, FakeBaro& baro, FakeGPS& gps, FakeIMU& fimu){
+double ParseIncomingFakeSensorData(String line, FakeBaro& baro, FakeGPS& gps, FakeIMU& fimu){
     if(line.length() == 0) return;
     String columns[numColums];
     int cursor = 0;
@@ -36,6 +37,7 @@ void ParseIncomingFakeSensorData(String line, FakeBaro& baro, FakeGPS& gps, Fake
     baro.feedData((double)columns[BAlt].toFloat(),(double)columns[BTemp].toFloat(),(double)columns[BPres].toFloat());
     gps.feedData((double)columns[GX].toFloat(), (double)columns[GY].toFloat(), (double)columns[GZ].toFloat());
     fimu.feedData((double)columns[AX].toFloat(), (double)columns[AY].toFloat(), (double)columns[AZ].toFloat(), (double)columns[OX].toFloat(), (double)columns[OY].toFloat(), (double)columns[OZ].toFloat(), (double)columns[OW].toFloat());
+    return (double)columns[timeAbsoluteCol].toFloat();
 }
 
 uint32_t FreeMem(){ // for Teensy 3.0

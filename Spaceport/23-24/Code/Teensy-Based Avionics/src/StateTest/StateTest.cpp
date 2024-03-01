@@ -66,17 +66,17 @@ void loop()
 {
     if (i % 20 == 0 || i++ % 20 == 1)//infinitely beep buzzer to indicate testing state. Please do NOT launch rocket with test code on the MCU......
         digitalWrite(BUZZER, HIGH);  // buzzer is on for 200ms/2sec
-
+    double t = 0;
     if(Serial.available() > 0){
-        ParseIncomingFakeSensorData(Serial.readStringUntil('\n'),baro,gps,fimu);
+        t = ParseIncomingFakeSensorData(Serial.readStringUntil('\n'),baro,gps,fimu);
     }
-
+    computer.timeAbsolute = t - 1838.76;//starting time of fake data
     computer.updateState();
     recordData(computer.getdataString(), computer.getStageNum());
 
     char* stateStr = computer.getStateString();
     Serial.println(stateStr);
 
-    delay(50);
+    delay(10);
     digitalWrite(BUZZER, LOW);
 }
