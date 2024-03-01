@@ -135,7 +135,7 @@ void State::updateState()
         measurements[0] = gps->get_displace().x();
         measurements[1] = gps->get_displace().y();
         measurements[2] = gps->get_displace().z();
-        measurements[4] = baro->get_rel_alt_m();
+        measurements[3] = baro->get_rel_alt_m();
         // imu x y z
         inputs[0] = imu->get_acceleration().x();
         inputs[1] = imu->get_acceleration().y();
@@ -377,16 +377,16 @@ void State::initKF(bool useBaro, bool useGps, bool useImu)
                                                 1, 0, 0, 1, 0, 0,
                                                 0, 1, 0, 0, 1, 0,
                                                 0, 0, 1, 0, 0, 1};
-    double *measurement_covariance = new double[16]{3, 0, 0, 0,
-                                                    0, 3, 0, 0,
-                                                    0, 0, 3, 0,
-                                                    0, 0, 0, 3};
-    double *process_noise_covariance = new double[36]{.1, 0, 0, 0, 0, 0,
-                                                      0, .1, 0, 0, 0, 0,
-                                                      0, 0, .1, 0, 0, 0,
-                                                      0, 0, 0, .1, 0, 0,
-                                                      0, 0, 0, 0, .1, 0,
-                                                      0, 0, 0, 0, 0, .1};
+    double *measurement_covariance = new double[16]{1, 0, 0, 0,
+                                                    0, 1, 0, 0,
+                                                    0, 0, 1, 0,
+                                                    0, 0, 0, 1};
+    double *process_noise_covariance = new double[36]{.03, 0, 0, 0, 0, 0,
+                                                      0, .03, 0, 0, 0, 0,
+                                                      0, 0, .03, 0, 0, 0,
+                                                      0, 0, 0, .03, 0, 0,
+                                                      0, 0, 0, 0, .03, 0,
+                                                      0, 0, 0, 0, 0, .03};
     akf::init(kfilter, 6, 3, 4, initial_state, initial_input, initial_covariance, measurement_covariance, process_noise_covariance);
     delete[] initial_state;
     delete[] initial_input;
