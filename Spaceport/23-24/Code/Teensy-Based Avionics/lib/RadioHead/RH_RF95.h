@@ -310,7 +310,7 @@
 ///
 /// \par Packet Format
 ///
-/// All messages sent and received by this RH_RF95 Driver conform to this packet format, which is compatible with RH_SX126x:
+/// All messages sent and received by this RH_RF95 Driver conform to this packet format:
 ///
 /// - LoRa mode:
 /// - 8 symbol PREAMBLE
@@ -838,7 +838,7 @@ public:
     /// When false, does not send CRC in outgoing packets and does not require a CRC to be
     /// present on incoming packets. However if a CRC is present, it must be correct.
     /// Normally this should be left on (the default)
-    /// so that packets with a bad CRC are rejected. If turned off you will be much more likely to receive
+    /// so that packets with a bad CRC are rejected. If turned off you wil be much more likely to receive
     /// false noise packets.
     /// \param[in] on bool, true enables CRCs in incoming and outgoing packets, false disables them
     void setPayloadCRC(bool on);
@@ -850,10 +850,6 @@ public:
     uint8_t getDeviceVersion();
     
 protected:
-
-    /// Do whatever is necesary to establish the interrupt handler. Subclasses may have different needs 
-    bool setupInterruptHandler();
-    
     /// This is a low level function to handle the interrupts for one instance of RH_RF95.
     /// Called automatically by isr*()
     /// Should not need to be called by user code.

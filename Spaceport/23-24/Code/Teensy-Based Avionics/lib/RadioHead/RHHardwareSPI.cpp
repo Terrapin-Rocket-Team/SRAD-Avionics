@@ -12,9 +12,6 @@
 RHHardwareSPI hardware_spi;
 
 
-// This is very ugly and there should be a better way. Problem is that
-// not all types hardware/platform dependent of SPI classes have the
-// same name, so its hard to abstract it away on a per-instance basis
 #if (RH_PLATFORM == RH_PLATFORM_STM32) // Maple etc
 // Declare an SPI interface to use
 HardwareSPI SPI(1);
@@ -30,6 +27,7 @@ HardwareSPI SPI(1);
  SPIClass SPI_HSPI(HSPI);
  #define SPI SPI_HSPI
 #endif
+
 
 // Arduino Due has default SPI pins on central SPI headers, and not on 10, 11, 12, 13
 // as per other Arduinos
@@ -104,7 +102,7 @@ void RHHardwareSPI::begin()
    else
        frequency = 1000000;
 
-#if ((RH_PLATFORM == RH_PLATFORM_ARDUINO) && defined (__arm__) && (defined(ARDUINO_SAM_DUE) || defined(ARDUINO_ARCH_SAMD))) || defined(ARDUINO_ARCH_NRF52) || defined(ARDUINO_ARCH_STM32) || defined(ARDUINO_UNOR4_MINIMA)  || defined(ARDUINO_UNOR4_WIFI) || defined(ARDUINO_ARCH_STM32L0) || defined(NRF52) || defined (ARDUINO_ARCH_RP2040)
+#if ((RH_PLATFORM == RH_PLATFORM_ARDUINO) && defined (__arm__) && (defined(ARDUINO_SAM_DUE) || defined(ARDUINO_ARCH_SAMD))) || defined(ARDUINO_ARCH_NRF52) || defined(ARDUINO_ARCH_STM32) || defined(ARDUINO_ARCH_STM32L0) || defined(NRF52) || defined (ARDUINO_ARCH_RP2040)
     // Arduino Due in 1.5.5 has its own BitOrder :-(
     // So too does Arduino Zero
     // So too does rogerclarkmelbourne/Arduino_STM32

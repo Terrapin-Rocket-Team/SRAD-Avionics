@@ -10,7 +10,7 @@ It provides a complete object-oriented library for sending and receiving packeti
 via a variety of common data radios and other transports on a range of embedded microprocessors.
 
 The version of the package that this documentation refers to can be downloaded 
-from http://www.airspayce.com/mikem/arduino/RadioHead/RadioHead-1.128.zip
+from http://www.airspayce.com/mikem/arduino/RadioHead/RadioHead-1.120.zip
 You can find the latest version of the documentation at http://www.airspayce.com/mikem/arduino/RadioHead
 
 You can also find online help and discussion at 
@@ -105,6 +105,7 @@ Works with Semtech SX1276/77/78/79, Modtronix inAir4 and inAir9,
 and HopeRF RFM95/96/97/98 and other similar LoRa capable radios.
 Supports Long Range (LoRa) with spread spectrum frequency hopping, large payloads etc.
 FSK/GFSK/OOK modes are not (yet) supported.
+
 Also works with the same chips on Linux using LoRa-file-ops Linux driver ioctls to
 transmit and receive RadioHead compatible messages. 
 Requires a modified version of LoRa-file-ops driver to be installed,
@@ -128,22 +129,11 @@ Works with a range of inexpensive ASK (amplitude shift keying) RF transceivers s
 (also known as ST-RX04-ASK) receiver; TX-C1 transmitter and DR3100 transceiver; FS1000A/XY-MK-5V transceiver;
 HopeRF RFM83C / RFM85. Supports ASK (OOK).
 
-- RH_ABZ
-Works with EcoNode SmartTrap, Tlera Grasshopper and family. Almost any board equipped with a muRata cmwx1zzabz module
+- RH_ABZ Works with EcoNode SmartTrap, Tlera Grasshopper and family. Almost any board equipped with a muRata cmwx1zzabz module
 should work. Tested with EcoNode SmartTrap, Arduino 1.8.9, GrumpyOldPizza Arduino Core for STM32L0.
 When building for EcoNode SmartTrap in Arduino IDE, select board type Grasshopper-L082CZ.
 This chip and GrumpyOldPizza Arduino Core for STM32L0 are now supported by PlatformIO: 
 https://docs.platformio.org/en/latest/platforms/ststm32.html#arduino-stm32l0-configuration-system
-
-- RH_SX126x
-Works with Semtech SX1261/2/8 LoRa capable transceivers.
-Can be confgigured to automatically controls any digital output pins required to control external RF swicthes or amplifiers.
-
-- RH_STM32WLx
-Works with STM32WLE5xx and STM32WLE4xx family processors that include a SX1261/2 multi power amplifier transceiver.
-Automatically manages the dedicated SPI interface and interrupt, and the internal SPI slave select and reset pins to the radio.
-Examples provided. Requires the stm32duino package using these instructions:
-https://community.st.com/t5/stm32-mcus/stm32-arduino-stm32duino-tutorial/ta-p/49649
 
 - RH_Serial
 Works with RS232, RS422, RS485, RS488 and other point-to-point and multidropped serial connections, 
@@ -160,8 +150,6 @@ testing of Manager classes on Linux and without need for real radios or other tr
 - RHEncryptedDriver
 Adds encryption and decryption to any RadioHead transport driver, using any encrpytion cipher
 supported by ArduinoLibs Cryptographic Library http://rweather.github.io/arduinolibs/crypto.html
-which also supports the newly adopted ASCON lightweight cryptography standard for IoT, as announced by 
-National Institute of Standards and Technology (NIST).
 
 Drivers can be used on their own to provide unaddressed, unreliable datagrams. 
 All drivers have the same identical API.
@@ -181,7 +169,7 @@ length messages, but if you need more than that, the following
 Managers are provided:
 
 - RHDatagram
-  Addressed, unreliable variable length messages, with optional broadcast facilities.
+Addressed, unreliable variable length messages, with optional broadcast facilities.
 
 - RHReliableDatagram
   Addressed, reliable, retransmitted, acknowledged variable length messages.
@@ -199,9 +187,8 @@ Any Manager may be used with any Driver.
 
 A range of processors and platforms are supported:
 
-- Arduino and the Arduino IDE (version 1.0 to 1.8.1 and 2.1.1 and later)
-Including Diecimila, Uno, Mega, Leonardo, Yun, Due, Zero, Minima and possibly others from http://arduino.cc/, 
-  Also similar boards such as 
+- Arduino and the Arduino IDE (version 1.0 to 1.8.1 and later)
+Including Diecimila, Uno, Mega, Leonardo, Yun, Due, Zero etc. http://arduino.cc/, Also similar boards such as 
  - Moteino http://lowpowerlab.com/moteino/ 
  - Anarduino Mini http://www.anarduino.com/mini/ 
  - RedBearLab Blend V1.0 http://redbearlab.com/blend/ (with Arduino 1.0.5 and RedBearLab Blend Add-On version 20140701) 
@@ -449,7 +436,7 @@ It is not to be confused with any other similar marks covering other goods and s
 
 \par Copyright
 
-This software is Copyright (C) 2011-2022 Mike McCauley. Use is subject to license
+This software is Copyright (C) 2011-2021 Mike McCauley. Use is subject to license
 conditions. The main licensing options available are GPL V3 or Commercial:
 
 \par Open Source Licensing GPL V3
@@ -946,8 +933,8 @@ k             Fix SPI bus speed errors on 8MHz Arduinos.
              Update commercial licensing, remove binpress.
 \version 1.87 2018-10-06
              RH_RF22 now resets all registers to default state before initialisation commences. Suggested by Wothke.<br>
-	     Added RH_ENABLE_EXPLICIT_RETRY_DEDUP which improves the handling of duplicate detection especially
-	     in the case where a transmitter periodically wakes up and start transmitting from the first sequence number.
+	     Added RH_ENABLE_EXPLICIT_RETRY_DEDUP which improves the handling of duplicate detection especiually
+	     in the case where a transmitter periodically wakes up and start tranmitting from the first sequence number.
 	     Patch courtesy Justin Newitter. Thanks.
 \version 1.88 2018-11-13
              Updated to support ATTiny using instructions in
@@ -1183,45 +1170,6 @@ k             Fix SPI bus speed errors on 8MHz Arduinos.
 	     and a compatible radio to be connected appropriately:
 	     https://github.com/starnight/LoRa/tree/file-ops <br>
 
-\version 1.121 2022-02-02
-             Restored RH_RF95 code to clear the IRQ flags (twice).<br>
-
-\version 1.122 2023-05-20
-             Added RHRouter::getNextValidRoutingTableEntry() contributed by w...<br>
-	     Various compatibility imnprovements for STM32L0 etc from Calin Radoni.<br>
-	     Added ability to overriding the value of RH_ENABLE_EXPLICIT_RETRY_DEDUP
-	     via a compiler arg. Example from PlatformIO:
-	     build_flags =
-	      -D"RH_ENABLE_EXPLICIT_RETRY_DEDUP=1"
-	      Contributed by Justin Newitter.<br>
-	     Fixed an error in the header lengths in RH_TCP, which could result in the last octet
-	     of the payload being lost. checkForEvents() now returns false instead of exit() in case of IO failure<br>
-
-\version 1.123 2023-08-07
-             Added support for Arduino Uno R4 Minima.
-
-\version 1.124 2023-08-09
-             Extended support for Arduino Uno R4 to Arduino Uno R4 WIFI
-
-\version 1.125 2023-08-14
-             Improved support for Arduino Uno R4: ATOMIC_BLOCK_START and ATOMIC_BLOCK_END are no 
-	     longer defined since they hang on R4, and are not necessary since they have SPI_HAS_TRANSACTION
-
-\version 1.126 2023-11-24
-             ESP8266 support now uses IRAM_ATTR instead of ICACHE_RAM_ATTR. This should work fine with core 2.7.4 and later.<br>
-	     Changes to definitions of ATOMIC_BLOCK_START and ATOMIC_BLOCK_END for RH_PLATFORM_ESP32: Previous
-	     use of XTOS_DISABLE_ALL_INTERRUPTS not suported for ESP32C3. Now uses ATOMIC_ENTER_CRITICAL()
-	     and ATOMIC_EXIT_CRITICAL() which appear to be supported for all platforms in Arduino esp32 package.<br>
-
-\version 1.127 2024-01-07
-             Added support for SX126x family radios, and also for the STM32WLE5xx and STM32WLE4xx families of ARM procedssors that
-	     have a SX126x radio built in, and as used in the LoRa-E5-HF module (which is used in WiO-E5 mini development board),
-	     the LoRa-E5-LF module and the NUCLEO_WL55JC1 development board. Tested with WiO-E5 mini development board, but no standalone
-	     SPI versions of this radio.
-
-\version 1.128 2024-01-12
-             Added missing sx126x examples to distribution.
-	     
 \author  Mike McCauley. DO NOT CONTACT THE AUTHOR DIRECTLY. USE THE GOOGLE GROUP GIVEN ABOVE
 */
 
@@ -1469,7 +1417,7 @@ these examples and explanations and extend them to suit your needs.
 
 // Official version numbers are maintained automatically by Makefile:
 #define RH_VERSION_MAJOR 1
-#define RH_VERSION_MINOR 128
+#define RH_VERSION_MINOR 120
 
 // Symbolic names for currently supported platform types
 #define RH_PLATFORM_ARDUINO          1
@@ -1562,9 +1510,6 @@ these examples and explanations and extend them to suit your needs.
   // Raspi Pico
   #define RH_ASK_PICO_ALARM_IRQ TIMER_IRQ_1
   #define RH_ASK_PICO_ALARM_NUM 1
- #elif defined(ARDUINO_LORA_E5_MINI)
-  // WiO-E5 mini, or boards conating Seeed LoRa-E5-LF or LoRa-E5-HF, processor is STM32WLE5JC
-  #include <SubGhz.h>
  #endif
 #elif (RH_PLATFORM == RH_PLATFORM_ATTINY)
   #include <Arduino.h>
@@ -1664,16 +1609,12 @@ these examples and explanations and extend them to suit your needs.
  #define Serial SerialUSB
  #define RH_HAVE_SERIAL
 
-#elif (RH_PLATFORM == RH_PLATFORM_STM32L0)
+#elif (RH_PLATFORM == RH_PLATFORM_STM32L0)  // https://github.com/GrumpyOldPizza/ArduinoCore-stm32l0
  #include <Arduino.h>
  #include <SPI.h>
- // Can define this in platformio.ini						   
- #ifndef RH_EXCLUDE_STM32L0_INCLUDES
-  // https://github.com/GrumpyOldPizza/ArduinoCore-stm32l0
-  #include <stm32l0_gpio.h>
-  #include <stm32l0_exti.h>
-  #include <stm32l0_rtc.h>
- #endif
+ #include <stm32l0_gpio.h>
+ #include <stm32l0_exti.h>
+ #include <stm32l0_rtc.h>
  #define RH_HAVE_HARDWARE_SPI
  #define RH_HAVE_SERIAL 
 
@@ -1759,8 +1700,8 @@ these examples and explanations and extend them to suit your needs.
  #else
   #include <util/atomic.h>
  #endif
- #if defined(ARDUINO_ARCH_MBED_RP2040) || defined(ARDUINO_UNOR4_MINIMA) || defined(ARDUINO_UNOR4_WIFI)
-  // Standard arduino ATOMIC block crashes on MBED version of Pico as at 2021-08-12						   // and ius not available/required for UNO R4
+ #if defined(ARDUINO_ARCH_MBED_RP2040)
+  // Standard arduino ATOMIC block crashes on MBED version of Pico as at 2021-08-12						   
   #define ATOMIC_BLOCK_START {
   #define ATOMIC_BLOCK_END }						   
  #else
@@ -1789,16 +1730,8 @@ these examples and explanations and extend them to suit your needs.
  #define ATOMIC_BLOCK_END xt_wsr_ps(__savedPS);}
 #elif (RH_PLATFORM == RH_PLATFORM_ESP32)
 // jPerotto see hardware/esp32/1.0.4/tools/sdk/include/esp32/xtensa/xruntime.h
-// No, not supported on ESP32C3
-// #define ATOMIC_BLOCK_START uint32_t volatile register ilevel = XTOS_DISABLE_ALL_INTERRUPTS;
-// #define ATOMIC_BLOCK_END XTOS_RESTORE_INTLEVEL(ilevel);
-// This compiles for all ESP32 but is it correct?
-// #define ATOMIC_BLOCK_START int RH_ATOMIC_state = portSET_INTERRUPT_MASK_FROM_ISR();
-// #define ATOMIC_BLOCK_END portCLEAR_INTERRUPT_MASK_FROM_ISR(RH_ATOMIC_state);
-// These appear to be defined for all ESP32 type:
-  #include "freertos/atomic.h"
- #define ATOMIC_BLOCK_START ATOMIC_ENTER_CRITICAL()
- #define ATOMIC_BLOCK_END ATOMIC_EXIT_CRITICAL()
+ #define ATOMIC_BLOCK_START uint32_t volatile register ilevel = XTOS_DISABLE_ALL_INTERRUPTS;
+ #define ATOMIC_BLOCK_END XTOS_RESTORE_INTLEVEL(ilevel);
 #else 
  // TO BE DONE:
  #define ATOMIC_BLOCK_START
@@ -1898,8 +1831,7 @@ these examples and explanations and extend them to suit your needs.
 #if (RH_PLATFORM == RH_PLATFORM_ESP8266)
     // interrupt handler and related code must be in RAM on ESP8266,
     // according to issue #46.
-    // 2023-09-19: ESP8266 is now compatible with ESP 32 and uses IRAM_ATTR
-    #define RH_INTERRUPT_ATTR IRAM_ATTR
+    #define RH_INTERRUPT_ATTR ICACHE_RAM_ATTR
 						   
 #elif (RH_PLATFORM == RH_PLATFORM_ESP32)
     #define RH_INTERRUPT_ATTR IRAM_ATTR
@@ -1958,22 +1890,6 @@ these examples and explanations and extend them to suit your needs.
 
 // Specifies an invalid IO pin selection
 #define RH_INVALID_PIN       0xff
-
-// Here we have some system wide macroses you can define to alter the baviour of RadioHead
-// in various ways. The Ardiono IDE has no way to configure such things at compile time so
-// on that pltform you are forced to edit these macros here.
-// On platformio you can add them to platformio.ini like, say:
-// -D RH_ACK_DELAY=10`
-
-// Uncomment this to add a delay before acknowledgement in RHReliableDatagram.
-// In some networks with mixed processor speeds, may need this delay to prevent a
-// fast processor sending an ack before the receiver is ready for it.
-// The time is in milliseconds
-// #define  RH_ACK_DELAY 10
-
-// RH_Uncomment this to control which timer used by RH_ASK in some platforms like
-// STM32:
-// #define  RH_HW_TIMER TIM21`
 
 // Uncomment this is to enable Encryption (see RHEncryptedDriver):
 // But ensure you have installed the Crypto directory from arduinolibs first:

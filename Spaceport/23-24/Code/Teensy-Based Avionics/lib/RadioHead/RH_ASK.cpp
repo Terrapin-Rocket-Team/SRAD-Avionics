@@ -15,24 +15,13 @@
 
 #elif defined(BOARD_NAME)
   // ST's Arduino Core STM32, https://github.com/stm32duino/Arduino_Core_STM32
- #if defined(RH_HW_TIMER)
- // Can define your own timer name based on macros defs passed to compiler eg in platformio.ini
-  HardwareTimer timer(RH_HW_TIMER);
- #else
   HardwareTimer timer(TIM1);
- #endif
     
 #elif defined(ARDUINO_ARCH_STM32) || defined(ARDUINO_ARCH_STM32F1) || defined(ARDUINO_ARCH_STM32F3) || defined(ARDUINO_ARCH_STM32F4)
   // Roger Clark Arduino STM32, https://github.com/rogerclarkmelbourne/Arduino_STM32
   // And stm32duino    
   HardwareTimer timer(1);
-
-#elif defined(ARDUINO_UNOR4_MINIMA) || defined(ARDUINO_UNOR4_WIFI)
-  #include "FspTimer.h"
-  FspTimer ask_timer;
-
 #endif
-
 
 #if (RH_PLATFORM == RH_PLATFORM_ESP32)
   // Michael Cain
@@ -427,7 +416,6 @@ void RH_ASK::timerSetup()
     NVIC_ClearPendingIRQ(RH_ASK_DUE_TIMER_IRQ);
     NVIC_EnableIRQ(RH_ASK_DUE_TIMER_IRQ);
     TC_Start(RH_ASK_DUE_TIMER, RH_ASK_DUE_TIMER_CHANNEL);
-    
  #elif defined(ARDUINO_ARCH_RP2040)
     // Per https://emalliab.wordpress.com/2021/04/18/raspberry-pi-pico-arduino-core-and-timers/
     hw_set_bits(&timer_hw->inte, 1u << RH_ASK_PICO_ALARM_NUM);
@@ -435,30 +423,7 @@ void RH_ASK::timerSetup()
     irq_set_exclusive_handler(RH_ASK_PICO_ALARM_IRQ, picoInterrupt);
     irq_set_enabled(RH_ASK_PICO_ALARM_IRQ, true);
     set_pico_alarm(_speed);
-    
- #elif defined(ARDUINO_UNOR4_MINIMA) || defined(ARDUINO_UNOR4_WIFI)
-    uint8_t timer_type = GPT_TIMER;
-    int8_t tindex = FspTimer::get_available_timer(timer_type);
-    if (tindex < 0)
-	tindex = FspTimer::get_available_timer(timer_type, true);
 
-    if (tindex < 0)
-	return;
-
-    FspTimer::force_use_of_pwm_reserved_timer();
-    void timer_callback(timer_callback_args_t __attribute((unused)) *p_args); // Forward declaration
-    if (!ask_timer.begin(TIMER_MODE_PERIODIC, timer_type, tindex, _speed * 8, 0.0f, timer_callback))
-	return;
-
-    if (!ask_timer.setup_overflow_irq())
-	return;
-
-    if (!ask_timer.open())
-	return;
-
-    if (!ask_timer.start())
-	return;
-    
  #else
     uint16_t nticks; // number of prescaled ticks needed
     uint8_t prescaler; // Bit values for CS0[2:0]
@@ -820,14 +785,6 @@ void interrupt()
 {
     thisASKDriver->handleTimerInterrupt();
 }
-
-#elif  defined(ARDUINO_UNOR4_MINIMA) || defined(ARDUINO_UNOR4_WIFI)
-// callback method used by timer
-void timer_callback(timer_callback_args_t __attribute((unused)) *p_args)
-{
-    thisASKDriver->handleTimerInterrupt();
-}
-
 #elif (RH_PLATFORM == RH_PLATFORM_ARDUINO) || (RH_PLATFORM == RH_PLATFORM_GENERIC_AVR8) || (RH_PLATFORM == RH_PLATFORM_ATTINY)
 // This is the interrupt service routine called when timer1 overflows
 // Its job is to output the next bit from the transmitter (every 8 calls)

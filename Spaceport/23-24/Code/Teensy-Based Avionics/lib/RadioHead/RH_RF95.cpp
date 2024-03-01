@@ -14,6 +14,7 @@ RH_DECLARE_MUTEX(lock);
 // Each interrupt can be handled by a different instance of RH_RF95, allowing you to have
 // 2 or more LORAs per Arduino
 RH_RF95* RH_RF95::_deviceForInterrupt[RH_RF95_NUM_INTERRUPTS] = {0, 0, 0};
+uint8_t RH_RF95::_interruptCount = 0; // Index into _deviceForInterrupt for next device
 
 // These are indexed by the values of ModemConfigChoice
 // Stored in flash (program) memory to save SRAM
@@ -51,53 +52,6 @@ bool RH_RF95::init()
     	return false;
     }
 #endif
-
-    if (!setupInterruptHandler())
-	return false;
-
-    // No way to check the device type :-(
-    
-    // Set sleep mode, so we can also set LORA mode:
-    spiWrite(RH_RF95_REG_01_OP_MODE, RH_RF95_MODE_SLEEP | RH_RF95_LONG_RANGE_MODE);
-    delay(10); // Wait for sleep mode to take over from say, CAD
-    // Check we are in sleep mode, with LORA set
-    if (spiRead(RH_RF95_REG_01_OP_MODE) != (RH_RF95_MODE_SLEEP | RH_RF95_LONG_RANGE_MODE))
-    {
-//	Serial.println(spiRead(RH_RF95_REG_01_OP_MODE), HEX);
-	return false; // No device present?
-    }
-
-    
-    // Set up FIFO
-    // We configure so that we can use the entire 256 byte FIFO for either receive
-    // or transmit, but not both at the same time
-    spiWrite(RH_RF95_REG_0E_FIFO_TX_BASE_ADDR, 0);
-    spiWrite(RH_RF95_REG_0F_FIFO_RX_BASE_ADDR, 0);
-
-    // Packet format is preamble + explicit-header + payload + crc
-    // Explicit Header Mode
-    // payload is TO + FROM + ID + FLAGS + message data
-    // RX mode is implmented with RXCONTINUOUS
-    // max message data length is 255 - 4 = 251 octets
-
-    setModeIdle();
-
-    // Set up default configuration
-    // No Sync Words in LORA mode. ACTUALLY thats not correct, and for tehRF95, the default LoRaSync Word is 0x12
-    // (ie a private network) and it can be changed at RH_RF95_REG_39_SYNC_WORD
-    setModemConfig(Bw125Cr45Sf128); // Radio default
-//    setModemConfig(Bw125Cr48Sf4096); // slow and reliable?
-    setPreambleLength(8); // Default is 8
-    // An innocuous ISM frequency, same as RF22's
-    setFrequency(434.0);
-    // Lowish power
-    setTxPower(13);
-
-    return true;
-}
-
-bool RH_RF95::setupInterruptHandler()
-{
     // For some subclasses (eg RH_ABZ)  we dont want to set up interrupt
     int interruptNumber = NOT_AN_INTERRUPT;
     if (_interruptPin != RH_INVALID_PIN)
@@ -114,6 +68,19 @@ bool RH_RF95::setupInterruptHandler()
 	spiUsingInterrupt(interruptNumber);
     }
 
+    // No way to check the device type :-(
+    
+    // Set sleep mode, so we can also set LORA mode:
+    spiWrite(RH_RF95_REG_01_OP_MODE, RH_RF95_MODE_SLEEP | RH_RF95_LONG_RANGE_MODE);
+    delay(10); // Wait for sleep mode to take over from say, CAD
+    // Check we are in sleep mode, with LORA set
+    if (spiRead(RH_RF95_REG_01_OP_MODE) != (RH_RF95_MODE_SLEEP | RH_RF95_LONG_RANGE_MODE))
+    {
+//	Serial.println(spiRead(RH_RF95_REG_01_OP_MODE), HEX);
+	return false; // No device present?
+    }
+
+
     if (_interruptPin != RH_INVALID_PIN)
     {
 	// Add by Adrien van den Bossche <vandenbo@univ-tlse2.fr> for Teensy
@@ -129,10 +96,9 @@ bool RH_RF95::setupInterruptHandler()
 	// yourself based on knwledge of what Arduino board you are running on.
 	if (_myInterruptIndex == 0xff)
 	{
-	    static uint8_t interruptCount = 0; // Index into _deviceForInterrupt for next device
 	    // First run, no interrupt allocated yet
-	    if (interruptCount <= RH_RF95_NUM_INTERRUPTS)
-		_myInterruptIndex = interruptCount++;
+	    if (_interruptCount <= RH_RF95_NUM_INTERRUPTS)
+		_myInterruptIndex = _interruptCount++;
 	    else
 		return false; // Too many devices, not enough interrupt vectors
 	}
@@ -147,6 +113,31 @@ bool RH_RF95::setupInterruptHandler()
 	else
 	    return false; // Too many devices, not enough interrupt vectors
     }
+    
+    // Set up FIFO
+    // We configure so that we can use the entire 256 byte FIFO for either receive
+    // or transmit, but not both at the same time
+    spiWrite(RH_RF95_REG_0E_FIFO_TX_BASE_ADDR, 0);
+    spiWrite(RH_RF95_REG_0F_FIFO_RX_BASE_ADDR, 0);
+
+    // Packet format is preamble + explicit-header + payload + crc
+    // Explicit Header Mode
+    // payload is TO + FROM + ID + FLAGS + message data
+    // RX mode is implmented with RXCONTINUOUS
+    // max message data length is 255 - 4 = 251 octets
+
+    setModeIdle();
+
+    // Set up default configuration
+    // No Sync Words in LORA mode.
+    setModemConfig(Bw125Cr45Sf128); // Radio default
+//    setModemConfig(Bw125Cr48Sf4096); // slow and reliable?
+    setPreambleLength(8); // Default is 8
+    // An innocuous ISM frequency, same as RF22's
+    setFrequency(434.0);
+    // Lowish power
+    setTxPower(13);
+
     return true;
 }
 
@@ -252,8 +243,8 @@ void RH_RF95::handleInterrupt()
 	
     // Sigh: on some processors, for some unknown reason, doing this only once does not actually
     // clear the radio's interrupt flag. So we do it twice. Why?
-    spiWrite(RH_RF95_REG_12_IRQ_FLAGS, 0xff); // Clear all IRQ flags
-    spiWrite(RH_RF95_REG_12_IRQ_FLAGS, 0xff); // Clear all IRQ flags
+//    spiWrite(RH_RF95_REG_12_IRQ_FLAGS, 0xff); // Clear all IRQ flags
+//    spiWrite(RH_RF95_REG_12_IRQ_FLAGS, 0xff); // Clear all IRQ flags
     RH_MUTEX_UNLOCK(lock); 
 }
 
@@ -696,6 +687,7 @@ void RH_RF95::setLowDatarate()
 	spiWrite(RH_RF95_REG_26_MODEM_CONFIG3, current | RH_RF95_LOW_DATA_RATE_OPTIMIZE);
     else
 	spiWrite(RH_RF95_REG_26_MODEM_CONFIG3, current);
+   
 }
  
 void RH_RF95::setPayloadCRC(bool on)
@@ -712,7 +704,7 @@ void RH_RF95::setPayloadCRC(bool on)
  
 uint8_t RH_RF95::getDeviceVersion()
 {
-    _deviceVersion = spiRead(RH_RF95_REG_42_VERSION);
-    return _deviceVersion;
+	_deviceVersion = spiRead(RH_RF95_REG_42_VERSION);
+	return _deviceVersion;
 }
 
