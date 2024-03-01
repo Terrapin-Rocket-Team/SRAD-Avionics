@@ -14,8 +14,8 @@ public:
             initial_latitude = pos_x;
             initial_longitude = pos_y;
         }
-        pos.x() = (pos_x - initial_latitude) * 111139;
-        pos.y() = (pos_y - initial_longitude) * 111139;
+        pos.x() = (pos_x - initial_latitude) * 111319;
+        pos.y() = (pos_y - initial_longitude) * 111319 * cos(pos_x * 3.14159 / 180);
         alt = pos_z;
     }
     bool initialize() { return true; }
@@ -42,7 +42,7 @@ public:
 
     void * get_data(){return nullptr;}
     imu::Vector<3> get_origin_pos() { return imu::Vector<3>(0, 0, 0); }
-    imu::Vector<3> get_displace() { return imu::Vector<3>(0, 0, 0); }
+    imu::Vector<3> get_displace() { return imu::Vector<3>(pos.x(),pos.y(),alt); }
     double get_gps_time(){return 0;}
     int get_fix_qual(){return 0;}
 private:

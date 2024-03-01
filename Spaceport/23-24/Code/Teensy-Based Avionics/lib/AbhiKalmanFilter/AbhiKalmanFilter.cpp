@@ -82,8 +82,8 @@ namespace akf
         double *new_matrix;
         new_matrix = new double[state->measurement_size * state->state_size]{1.0 * has_gps, 0, 0, 0, 0, 0,
                                                                              0, 1.0 * has_gps, 0, 0, 0, 0,
-                                                                             0, 0, 0.0 / sum * has_gps, 0, 0, 0,
-                                                                             0, 0, 1.0, 0, 0, 0};
+                                                                             0, 0, 1.0 / sum * has_gps, 0, 0, 0,
+                                                                             0, 0, 1.0 / sum * has_barometer, 0, 0, 0};
         copy_array(new_matrix, state->observation_matrix, state->measurement_size * state->state_size);
         delete[] new_matrix;
     }
