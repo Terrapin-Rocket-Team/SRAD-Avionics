@@ -88,7 +88,7 @@ void setup()
 
     sendSDCardHeader(computer.getCsvHeader());
 }
-
+static double times;
 void loop()
 {
     double time = millis();
@@ -103,6 +103,10 @@ void loop()
     last = time;
     computer.updateState();
     recordLogData(INFO, computer.getStateString(), TO_USB);
+    Serial.print(millis() - times);
+    Serial.print("/");
     Serial.print(millis() - time);
     Serial.print(" ms ");
+
+    times = millis();
 }

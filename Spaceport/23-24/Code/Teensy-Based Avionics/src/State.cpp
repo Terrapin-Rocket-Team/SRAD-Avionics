@@ -90,6 +90,14 @@ void State::updateSensors()
     {
         if(sensors[i])
             sensors[i]->update();
+        Wire.beginTransmission(0x42);
+        byte b = Wire.endTransmission();
+        if (b != 0x00)
+        {
+            Wire.end();
+            Wire.begin();
+            Serial.println("I2C Error");
+        }
     }
 }
 
