@@ -15,7 +15,7 @@ void recordFlightData(char *data)
             flightDataFile.close();
         }
     }
-    else
+    else if(ram->isReady())
         ram->println(data); // while in flight, print to PSRAM for later dumping to SD card.
 }
 
@@ -60,8 +60,7 @@ void recordLogData(double timeStamp, LogType type, const char *data, Dest dest)
 
 void setRecordMode(Mode m)
 {
-    mode = m;
-    if(mode == GROUND){
+    if(mode == FLIGHT && m == GROUND){
         if(ram->isReady() && isSDReady()){
             ram->dumpFlightData();
             ram->dumpLogData();
@@ -70,4 +69,5 @@ void setRecordMode(Mode m)
         delay(2000);
         digitalWrite(LED_BUILTIN, LOW);
     }
+    mode = m;
 }
