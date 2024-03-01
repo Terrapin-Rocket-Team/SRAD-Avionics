@@ -77,6 +77,6 @@ void loop()
     char* stateStr = computer.getStateString();
     Serial.println(stateStr);
 
-    delay(100);
+    delay(50);
     digitalWrite(BUZZER, LOW);
 }
