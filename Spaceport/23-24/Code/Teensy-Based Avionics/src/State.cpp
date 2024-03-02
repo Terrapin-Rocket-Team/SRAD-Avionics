@@ -124,12 +124,12 @@ void State::updateState()
         orientation = (*imu)->get_orientation();
     }
     timeAbsolute = millis();
+    timeSinceLaunch = timeAbsolute - timeOfLaunch;
     determineAccelerationMagnitude();
     determineStage();
     if (stageNumber < 3)
         apogee = position.z();
     // backup case to dump data (25 minutes)
-    timeSinceLaunch = timeAbsolute - timeOfLaunch;
     if (stageNumber > 0 && timeSinceLaunch > 1500000 && stageNumber < 5)
     {
         stageNumber = 5;
@@ -248,12 +248,13 @@ void State::determineAccelerationMagnitude()
 
 void State::determineStage()
 {
-    if (stageNumber == 0 && acceleration.z() > 18 && position.z() > 3)
+    if (stageNumber == 0 && acceleration.z() > 9)
     {
         setRecordMode(FLIGHT);
         stageNumber = 1;
         timeOfLaunch = timeAbsolute;
         timePreviousStage = timeAbsolute;
+        launchTimeOfDay = (*gps)->get_time_of_day();
         recordLogData(INFO, "Launch detected.");
         recordLogData(INFO, "Printing static data.");
         for (int i = 0; i < NUM_MAX_SENSORS; i++)
@@ -271,7 +272,7 @@ void State::determineStage()
         stageNumber = 2;
         recordLogData(INFO, "Coasting detected.");
     }
-    else if (stageNumber == 2 && velocity.z() <= 0)
+    else if (stageNumber == 2 && velocity.z() <= 0 && timeSinceLaunch > 5)
     {
         char logData[100];
         snprintf(logData, 100, "Apogee detected at %.2f m.", position.z());
@@ -279,17 +280,17 @@ void State::determineStage()
         stageNumber = 3;
         recordLogData(INFO, "Drogue conditions detected.");
     }
-    else if (stageNumber == 3 && position.z() < 750 / 3 && timeAbsolute - timeSinceLaunch > 12000) // This should be lowered
+    else if (stageNumber == 3 && position.z() < 750 / 3 && timeSinceLaunch > 15) // This should be lowered
     {
         stageNumber = 4;
         recordLogData(INFO, "Main parachute conditions detected.");
     }
-    else if (stageNumber == 4 && velocity.z() > -0.5 && (*baro)->get_rel_alt_m() < 20)
+    else if (stageNumber == 4 && velocity.z() > -0.5 && (*baro)->get_rel_alt_m() < 20 && timeSinceLaunch > 25)
     {
         stageNumber = 5;
         recordLogData(INFO, "Landing detected. Waiting for 5 seconds to dump data.");
     }
-    else if (stageNumber == 5)
+    else if (stageNumber == 5 && timeSinceLaunch > 30)
     {
         if (landingCounter++ >= 50)
         { // roughly 5 seconds of data after landing
@@ -346,7 +347,7 @@ void State::setCsvString(char *dest, const char *start, int startSize, bool head
 bool State::transmit()
 {
     char data[200];
-    snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", position(0), position(1), (int)(position(2) * 3.28084), (int)(velocity.magnitude() * 3.2808399), (int)heading_angle, 'H', stageNumber, (*gps)->get_time_of_day());
+    snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", position(0), position(1), (int)(position(2) * 3.28084), (int)(velocity.magnitude() * 3.2808399), (int)heading_angle, 'H', stageNumber, launchTimeOfDay);
     bool b = radio->send(data, ENCT_TELEMETRY);
     return b;
 }

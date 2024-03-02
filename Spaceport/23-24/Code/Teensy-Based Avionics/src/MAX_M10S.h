@@ -22,7 +22,7 @@ private:
     imu::Vector<3> irl_time;     // returns the current hour, min, and sec
     bool first_fix;              // whether or not gps has recieved first fix
     double heading;
-    double hr, min, sec;
+    int hr, min, sec;
     char gps_time[9];
     double time;
 
@@ -32,7 +32,7 @@ public:
     imu::Vector<3> get_velocity();
     imu::Vector<2> get_pos();
     imu::Vector<3> get_displace();
-    char *get_gps_time();
+    char *get_time_of_day();
     bool get_first_fix();
     imu::Vector<3> get_origin_pos();
     int get_fix_qual();
@@ -43,7 +43,7 @@ public:
     const char *getCsvHeader() override;
     char *getDataString() override;
     char *getStaticDataString() override;
-    char const *getName() override;
+    const char *getName() override;
     void update() override;
 };
 

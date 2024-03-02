@@ -145,9 +145,9 @@ bool MAX_M10S::get_first_fix()
 /*
 time since in initialization in seconds
 */
-char *MAX_M10S::get_gps_time()
+char *MAX_M10S::get_time_of_day()
 {
-    snprintf(gps_time, 9, "%d:%d:%d", hr, min, sec);
+    snprintf(gps_time, 9, "%02d:%02d:%02d", hr, min, sec);
     return gps_time;
 }
 

@@ -89,7 +89,7 @@ void loop()
         ParseIncomingFakeSensorData(Serial.readStringUntil('\n'),baro,gps,fimu);
         Serial.clear();
     }
-    if (millis() - radioTimer >= 2000)
+    if (millis() - radioTimer >= 1200)
     {
         more = computer.transmit();
         radioTimer = millis();

@@ -90,6 +90,8 @@ private:
     imu::Vector<3> velocity;       // in m/s
     imu::Vector<3> acceleration;   // in m/s^2
     imu::Quaternion orientation;   // in quaternion
+
+    char *launchTimeOfDay = "00:00:00";
 };
 
 #endif

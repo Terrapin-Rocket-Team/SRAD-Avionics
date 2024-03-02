@@ -46,7 +46,7 @@ public:
     int get_fix_qual(){return 0;}
     const char *getName() override { return "FakeGPS"; }
     void update() override {}
-    const char *get_time_of_day() override { return "00:00:00"; }
+    char *get_time_of_day() override { return "00:00:00"; }
 
 private:
     imu::Vector<2> pos;
