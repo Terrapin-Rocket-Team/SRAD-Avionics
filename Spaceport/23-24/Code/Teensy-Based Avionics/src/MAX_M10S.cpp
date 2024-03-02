@@ -9,22 +9,22 @@ MAX_M10S::MAX_M10S(uint8_t SCK, uint8_t SDA, uint8_t address)
     SDA_pin = SDA;
 
     first_fix = false;
-    origin.x() = 38.987202;
-    origin.y() = -76.945999;
+    origin.x() = 0;
+    origin.y() = 0;
     origin.z() = 0;
     altitude = 0;
     pos.x() = 0;
     pos.y() = 0;
-    velocity.x() = -1;
-    velocity.y() = -1;
-    velocity.z() = -1;
-    displacement.x() = -1;
-    displacement.y() = -1;
-    displacement.z() = -1;
-    irl_time.x() = -1;
-    irl_time.y() = -1;
-    irl_time.z() = -1;
-    fix_qual = -1;
+    velocity.x() = 0;
+    velocity.y() = 0;
+    velocity.z() = 0;
+    displacement.x() = 0;
+    displacement.y() = 0;
+    displacement.z() = 0;
+    irl_time.x() = 0;
+    irl_time.y() = 0;
+    irl_time.z() = 0;
+    fix_qual = 0;
 }
 
 // need to update origin some how
