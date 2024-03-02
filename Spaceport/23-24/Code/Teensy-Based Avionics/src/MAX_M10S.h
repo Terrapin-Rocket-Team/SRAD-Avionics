@@ -18,11 +18,13 @@ private:
     imu::Vector<3> velocity;     // m per s
     imu::Vector<3> displacement; // m from starting location
     imu::Vector<3> origin;       // lat(deg), long(deg), alti(m) of the original location
-    double gps_time;             // time since start of program in seconds
     int fix_qual;                // num of connections to satellites
     imu::Vector<3> irl_time;     // returns the current hour, min, and sec
     bool first_fix;              // whether or not gps has recieved first fix
     double heading;
+    double hr, min, sec;
+    char gps_time[9];
+    double time;
 
 public:
     MAX_M10S(uint8_t SCK, uint8_t SDA, uint8_t address);
@@ -30,7 +32,7 @@ public:
     imu::Vector<3> get_velocity();
     imu::Vector<2> get_pos();
     imu::Vector<3> get_displace();
-    double get_gps_time();
+    char *get_gps_time();
     bool get_first_fix();
     imu::Vector<3> get_origin_pos();
     int get_fix_qual();

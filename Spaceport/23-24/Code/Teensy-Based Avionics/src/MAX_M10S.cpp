@@ -21,7 +21,6 @@ MAX_M10S::MAX_M10S(uint8_t SCK, uint8_t SDA, uint8_t address)
     displacement.x() = -1;
     displacement.y() = -1;
     displacement.z() = -1;
-    gps_time = 0;
     irl_time.x() = -1;
     irl_time.y() = -1;
     irl_time.z() = -1;
@@ -60,8 +59,8 @@ void MAX_M10S::update()
 {
     if (!m10s.getPVT() || m10s.getInvalidLlh())
         return; // See if new data is available
-
-    double time = millis() / 1000.0;
+    double time_last = time;
+    time = millis() / 1000.0;
     pos.x() = m10s.getLatitude() / 10000000.0;
     pos.y() = m10s.getLongitude() / 10000000.0;
 
@@ -79,16 +78,17 @@ void MAX_M10S::update()
 
     // updated before displacement and gps as the old values and new values are needed to get a
     // significant of a velocity
-    velocity.x() = (((pos.x() - origin.x()) * 111319.0) - displacement.x()) / (time - gps_time);
-    velocity.y() = (((pos.y() - origin.y()) * 111319.0 * cos(pos.x() * PI / 180.0)) - displacement.y()) / (time - gps_time);
-    velocity.z() = ((altitude)-displacement.z()) / (time - gps_time);
+    velocity.x() = (((pos.x() - origin.x()) * 111319.0) - displacement.x()) / (time - time_last);
+    velocity.y() = (((pos.y() - origin.y()) * 111319.0 * cos(pos.x() * PI / 180.0)) - displacement.y()) / (time - time_last);
+    velocity.z() = ((altitude)-displacement.z()) / (time - time_last);
 
     displacement.x() = (pos.x() - origin.x()) * 111319.0;
     displacement.y() = (pos.y() - origin.y()) * 111319.0 * cos(pos.x() * PI / 180.0);
     displacement.z() = (altitude - origin.z());
 
-    gps_time = time;
-
+    hr = m10s.getHour();
+    min = m10s.getMinute();
+    sec = m10s.getSecond();
 }
 
 /*
@@ -145,8 +145,9 @@ bool MAX_M10S::get_first_fix()
 /*
 time since in initialization in seconds
 */
-double MAX_M10S::get_gps_time()
+char *MAX_M10S::get_gps_time()
 {
+    snprintf(gps_time, 9, "%d:%d:%d", hr, min, sec);
     return gps_time;
 }
 
