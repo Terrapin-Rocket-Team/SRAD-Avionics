@@ -79,12 +79,12 @@ void MAX_M10S::update()
 
     // updated before displacement and gps as the old values and new values are needed to get a
     // significant of a velocity
-    velocity.x() = ((pos.x() * 111139.0) - displacement.x()) / (time - gps_time);
-    velocity.y() = ((pos.y() * 111139.0) - displacement.y()) / (time - gps_time);
+    velocity.x() = (((pos.x() - origin.x()) * 111319.0) - displacement.x()) / (time - gps_time);
+    velocity.y() = (((pos.y() - origin.y()) * 111319.0 * cos(pos.x() * PI / 180.0)) - displacement.y()) / (time - gps_time);
     velocity.z() = ((altitude)-displacement.z()) / (time - gps_time);
 
-    displacement.x() = (pos.x() - origin.x()) * 111139.0;
-    displacement.y() = (pos.y() - origin.y()) * 111139.0;
+    displacement.x() = (pos.x() - origin.x()) * 111319.0;
+    displacement.y() = (pos.y() - origin.y()) * 111319.0 * cos(pos.x() * PI / 180.0);
     displacement.z() = (altitude - origin.z());
 
     gps_time = time;

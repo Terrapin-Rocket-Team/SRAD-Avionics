@@ -2,7 +2,7 @@ import serial
 import time
 from colorama import Fore
 
-serial_port = 'COM4'  # Use the correct port for the Arduino
+serial_port = 'COM3'  # Use the correct port for the Arduino
 baud_rate = 9600  # Match the baud rate to the Arduino's
 data_file = 'fake_data.csv'
 output = 'test_results.csv'

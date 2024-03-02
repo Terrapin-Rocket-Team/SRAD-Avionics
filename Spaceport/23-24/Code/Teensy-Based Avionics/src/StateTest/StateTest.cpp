@@ -6,11 +6,15 @@
 #include "TestUtils.h"
 #include <RecordData.h>
 #include <exception>
+#include "RFM69HCW.h"
+
 FakeBaro baro;
 FakeGPS gps;
 FakeIMU fimu;//"imu" is the namespace of the vector stuff :/
 State computer;
-
+APRSConfig config = {"KC3UTM", "APRS", "WIDE1-1", '[', '/'};
+RadioSettings settings = {433.775, true, false, &hardware_spi, 10, 31, 32};
+RFM69HCW radio = {settings, config};
 PSRAM *ram;
 
 int i = 0;
@@ -61,7 +65,7 @@ void setup()
     computer.addSensor(&baro);
     computer.addSensor(&gps);
     computer.addSensor(&fimu);
-
+    computer.setRadio(&radio);
     if (computer.init())
         recordLogData(INFO, "All Sensors Initialized");
     else
@@ -74,7 +78,8 @@ void setup()
     sendSDCardHeader(computer.getCsvHeader());
     while(Serial.available() == 0);
 }
-
+static double radioTimer = 0;
+bool more = false;
 void loop()
 {
     if (i % 20 == 0 || i++ % 20 == 1)//infinitely beep buzzer to indicate testing state. Please do NOT launch rocket with test code on the MCU......
@@ -82,8 +87,16 @@ void loop()
 
     if(Serial.available() > 0){
         ParseIncomingFakeSensorData(Serial.readStringUntil('\n'),baro,gps,fimu);
+        Serial.clear();
     }
-
+    if (millis() - radioTimer >= 2000)
+    {
+        more = computer.transmit();
+        radioTimer = millis();
+    }
+    if (radio.mode() != RHGenericDriver::RHModeTx && more){
+        more = !radio.sendBuffer();
+    }
     computer.updateState();
 
     char* stateStr = computer.getStateString();

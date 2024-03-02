@@ -81,31 +81,47 @@ Transmit function
 Most basic transmission method, simply transmits the string without modification
     - message is the message to be transmitted, must be null terminated
 */
-bool RFM69HCW::tx(const char *message)
+bool RFM69HCW::tx(const char *message, int len)
 {
-    // get length because message may be too long to transmit at one time
-    int len = strlen(message);
 
     // get number of packets for this message, and set this radio's id to that value so the receiver knows how many packets to expect
     this->id = len / this->bufSize + (len % this->bufSize > 0);
     this->radio.setHeaderId(this->id);
 
-    // fill the buffer repeatedly until the entire message has been sent
-    for (unsigned int j = 0; j < this->id; j++)
-    {
-        memset(this->buf, 0, this->bufSize);
-        memcpy(this->buf, message + j * this->bufSize, min(this->bufSize, len - j * this->bufSize));
-        this->radio.send(this->buf, min(this->bufSize, len - j * this->bufSize));
-        if (j != this->id - 1u)
-            this->radio.waitPacketSent();
-        // delay(100); // leaving this here for now, should try to remove later
-    }
+    strcpy(this->msg, message);
 
-    this->id = 0x00;
-    this->radio.setHeaderId(this->id);
+    this->msgLen = len;
+    this->totalPackets = 0;
+    sendBuffer();
+    // fill the buffer repeatedly until the entire message has been sent
+    // for (unsigned int j = 0; j < this->id; j++)
+    // {
+    // memcpy(this->buf, message + j * this->bufSize, min(this->bufSize, len - j * this->bufSize));
+    // this->radio.send(this->buf, min(this->bufSize, len - j * this->bufSize));
+    // if (j != this->id - 1u)
+    //     this->radio.waitPacketSent();
+    // }
 
     return true;
 }
+
+bool RFM69HCW::sendBuffer()
+{
+    if (this->totalPackets >= this->id)
+        return true;
+    memcpy(this->buf, this->msg + this->totalPackets * this->bufSize, min(this->bufSize, this->msgLen - this->totalPackets * this->bufSize));
+    this->radio.send(this->buf, min(this->bufSize, this->msgLen - this->totalPackets * this->bufSize));
+    this->totalPackets++;
+    return this->totalPackets == this->id;
+}
+
+void RFM69HCW::endtx()
+{
+    this->id = 0x00;
+    this->radio.setHeaderId(this->id);
+}
+
+RHGenericDriver::RHMode RFM69HCW::mode() { return radio.mode(); }
 
 /*
 Receive function
@@ -122,10 +138,10 @@ const char *RFM69HCW::rx()
         if (this->radio.recv(this->buf, &(receivedLen)))
         {
             // check if this is the first part of the message
-            if (this->incomingMsgLen == 0)
+            if (this->totalPackets == 0)
             {
-                this->incomingMsgLen = this->radio.headerId();
-                if (this->incomingMsgLen == 0)
+                this->totalPackets = this->radio.headerId();
+                if (this->totalPackets == 0)
                     return "Error parsing message";
                 memcpy(this->msg, this->buf, receivedLen);
                 this->msg[receivedLen] = '\0';
@@ -151,11 +167,11 @@ const char *RFM69HCW::rx()
 
             // check if the full message has been received
             // int msgLen = strlen(this->msg);
-            if (this->incomingMsgLen == this->id) // this works for now, maybe find a better way later?
+            if (this->totalPackets == this->id) // this works for now, maybe find a better way later?
             {
                 this->id = 0;
-                this->rssi /= this->incomingMsgLen;
-                this->incomingMsgLen = 0;
+                this->rssi /= this->totalPackets;
+                this->totalPackets = 0;
                 this->avail = true;
             }
 
@@ -507,7 +523,7 @@ bool RFM69HCW::send(const char *message, EncodingType type)
     strcpy(this->msg, message);
     this->msg[MSG_LEN] = '\0'; // make sure msg is null terminated just in case
     encode(this->msg, type);
-    tx(this->msg);
+    tx(this->msg, strlen(this->msg));
     return true;
 }
 

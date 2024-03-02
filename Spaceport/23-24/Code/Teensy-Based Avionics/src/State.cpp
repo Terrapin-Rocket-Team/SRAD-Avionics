@@ -35,6 +35,7 @@ State::State()
     timeOfLaunch = 0;
     timeSinceLaunch = 0;
     timeSincePreviousStage = 0;
+    heading_angle = 0;
 }
 State::~State()
 {
@@ -103,7 +104,7 @@ void State::updateSensors()
 
 void State::updateState()
 {
-    if (stageNumber > 4 && landingCounter >= 50) // if landed and waited 5 seconds, don't update sensors.
+    if (stageNumber > 4 && landingCounter > 50) // if landed and waited 5 seconds, don't update sensors.
         return;
     updateSensors();
     if (*gps)
@@ -247,7 +248,7 @@ void State::determineAccelerationMagnitude()
 
 void State::determineStage()
 {
-    if (stageNumber == 0 && acceleration.z() > 25 && position.z() > 75)
+    if (stageNumber == 0 && acceleration.z() > 18 && position.z() > 3)
     {
         setRecordMode(FLIGHT);
         stageNumber = 1;
@@ -278,7 +279,7 @@ void State::determineStage()
         stageNumber = 3;
         recordLogData(INFO, "Drogue conditions detected.");
     }
-    else if (stageNumber == 3 && position.z() < 750 / 3 && millis() - timeSinceLaunch > 1200) // This should be lowered
+    else if (stageNumber == 3 && position.z() < 750 / 3 && timeAbsolute - timeSinceLaunch * 1000 > 12000) // This should be lowered
     {
         stageNumber = 4;
         recordLogData(INFO, "Main parachute conditions detected.");
