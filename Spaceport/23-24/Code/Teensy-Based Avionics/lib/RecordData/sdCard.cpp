@@ -74,10 +74,10 @@ bool setupSDCard()
 #pragma GCC diagnostic ignored "-Wformat-truncation"
         while (exists)
         {
-            snprintf(logFileName, NAME_SIZE, "datalog_%d.csv", ++fileNo);
+            snprintf(logFileName, NAME_SIZE, "%d_Log.txt", ++fileNo);
             exists = sd.exists(logFileName);
         }
-        snprintf(flightDataFileName, NAME_SIZE, "FlightData_%d.csv", fileNo); // will overwrite the previous file if it exists
+        snprintf(flightDataFileName, NAME_SIZE, "%d_FlightData.csv", fileNo); // will overwrite the previous file if it exists
 #pragma GCC diagnostic pop
 
         // Setup files

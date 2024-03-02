@@ -7,7 +7,6 @@
 #include "RFM69HCW.h"
 #include "RecordData.h"
 
-
 BNO055 bno(13, 12);         // I2C Address 0x29
 BMP390 bmp(13, 12);         // I2C Address 0x77
 MAX_M10S gps(13, 12, 0x42); // I2C Address 0x42
@@ -23,25 +22,25 @@ PSRAM *ram;
 #define BUZZER 33
 #define BMP_ADDR_PIN 36
 
-static double last = 0;//for better timing than "delay(100)"
+static double last = 0; // for better timing than "delay(100)"
 
 void setup()
-{ 
+{
     recordLogData(INFO, "Initializing Avionics System. 10 second delay to prevent unnecessary file generation.", TO_USB);
-    delay(10000);
-  
+    delay(5000);
+
     pinMode(BMP_ADDR_PIN, OUTPUT);
     digitalWrite(BMP_ADDR_PIN, HIGH);
 
     pinMode(LED_BUILTIN, OUTPUT);
-    //pinMode(BUZZER, OUTPUT); //its very loud during testing
+    // pinMode(BUZZER, OUTPUT); //its very loud during testing
 
     digitalWrite(LED_BUILTIN, HIGH);
     delay(100);
     digitalWrite(LED_BUILTIN, LOW);
-    ram = new PSRAM();//init after the SD card for better data logging.
+    ram = new PSRAM(); // init after the SD card for better data logging.
 
-    //The SD card MUST be initialized first to allow proper data logging.
+    // The SD card MUST be initialized first to allow proper data logging.
     if (setupSDCard())
     {
 
@@ -63,7 +62,7 @@ void setup()
         digitalWrite(BUZZER, LOW);
     }
 
-    //The PSRAM must be initialized before the sensors to allow for proper data logging.
+    // The PSRAM must be initialized before the sensors to allow for proper data logging.
 
     if (ram->init())
         recordLogData(INFO, "PSRAM Initialized");
@@ -85,28 +84,32 @@ void setup()
     digitalWrite(LED_BUILTIN, HIGH);
     delay(1000);
     digitalWrite(LED_BUILTIN, LOW);
-
     sendSDCardHeader(computer.getCsvHeader());
 }
 static double times;
+static bool more = false;
 void loop()
 {
     double time = millis();
+
     if (time - radioTimer >= 2000)
     {
-        computer.transmit();
+        more = computer.transmit();
         radioTimer = time;
     }
-    if(time - last < 100)
+    if (radio.mode() != RHGenericDriver::RHModeTx && more){
+        more = !radio.sendBuffer();
+    }
+    if (time - last < 100)
         return;
 
     last = time;
     computer.updateState();
     recordLogData(INFO, computer.getStateString(), TO_USB);
-    Serial.print(millis() - times);
-    Serial.print("/");
-    Serial.print(millis() - time);
-    Serial.print(" ms ");
+    // Serial.print(millis() - times);
+    // Serial.print("/");
+    // Serial.print(millis() - time);
+    // Serial.print(" ms ");
 
     times = millis();
 }
