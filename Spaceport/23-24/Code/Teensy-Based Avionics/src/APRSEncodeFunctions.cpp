@@ -35,15 +35,6 @@ char *s_min_nn(uint32_t min_nnnnn, int high_precision)
 
     static char buf[6];
 
-    // make sure there are nine digits
-    int missingDigits = 9 - numDigits(min_nnnnn);
-    if (missingDigits < 0)
-        for (int i = 0; i < missingDigits * -1; i++)
-            min_nnnnn /= 10;
-    if (missingDigits > 0)
-        for (int i = 0; i < missingDigits; i++)
-            min_nnnnn *= 10;
-
     min_nnnnn = min_nnnnn * 0.006;
 
     if (high_precision)
@@ -91,7 +82,19 @@ void create_lat_aprs(char *lat, bool hp)
     // we like sprintf's float up-rounding.
     // but sprintf % may round to 60.00 -> 5360.00 (53° 60min is a wrong notation
     // ;)
-    sprintf(lat, "%02d%s%c", atoi(lat) * (negative ? -1 : 1), s_min_nn(atoi(lat + decimalPos + 1), hp), negative ? 'S' : 'N');
+
+    int decLen = strlen(lat + decimalPos + 1);
+    int dec = atoi(lat + decimalPos + 1);
+
+    // make sure there are nine digits
+    int missingDigits = 9 - decLen;
+    if (missingDigits < 0)
+        for (int i = 0; i < missingDigits * -1; i++)
+            dec /= 10;
+    if (missingDigits > 0)
+        for (int i = 0; i < missingDigits; i++)
+            dec *= 10;
+    sprintf(lat, "%02d%s%c", atoi(lat) * (negative ? -1 : 1), s_min_nn(dec, hp), negative ? 'S' : 'N');
 }
 
 // creates the longitude string for the APRS message based on whether the GPS coordinates are high precision
@@ -113,7 +116,19 @@ void create_long_aprs(char *lng, bool hp)
     // we like sprintf's float up-rounding.
     // but sprintf % may round to 60.00 -> 5360.00 (53° 60min is a wrong notation
     // ;)
-    sprintf(lng, "%02d%s%c", atoi(lng) * (negative ? -1 : 1), s_min_nn(atoi(lng + decimalPos + 1), hp), negative ? 'W' : 'E');
+
+    int decLen = strlen(lng + decimalPos + 1);
+    int dec = atoi(lng + decimalPos + 1);
+
+    // make sure there are nine digits
+    int missingDigits = 9 - decLen;
+    if (missingDigits < 0)
+        for (int i = 0; i < missingDigits * -1; i++)
+            dec /= 10;
+    if (missingDigits > 0)
+        for (int i = 0; i < missingDigits; i++)
+            dec *= 10;
+    sprintf(lng, "%02d%s%c", atoi(lng) * (negative ? -1 : 1), s_min_nn(dec, hp), negative ? 'W' : 'E');
 }
 
 // creates the dao at the end of aprs message based on latitude and longitude
@@ -132,7 +147,7 @@ void create_dao_aprs(char *lat, char *lng, char *dao)
         if (lat[i] == '.')
             decimalPos = i;
     }
-    sprintf(dao, "!w%s", s_min_nn((int)(lat + decimalPos + 1), 2));
+    sprintf(dao, "!w%s", s_min_nn(atoi(lat + decimalPos + 1), 2));
 
     len = strlen(lng);
     decimalPos = 0;
@@ -141,7 +156,7 @@ void create_dao_aprs(char *lat, char *lng, char *dao)
         if (lng[i] == '.')
             decimalPos = i;
     }
-    sprintf(dao + 3, "%s!", s_min_nn((int)(lng + decimalPos + 1), 2));
+    sprintf(dao + 3, "%s!", s_min_nn(atoi(lng + decimalPos + 1), 2));
 }
 
 // adds a specified number of zeros to the begining of a number

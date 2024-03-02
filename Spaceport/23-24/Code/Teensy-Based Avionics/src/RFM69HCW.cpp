@@ -242,7 +242,6 @@ bool RFM69HCW::encode(char *message, EncodingType type)
                 }
             }
         }
-
         // get lat and long string for low or high precision
         if (data.precision == 'L')
         {
@@ -256,7 +255,6 @@ bool RFM69HCW::encode(char *message, EncodingType type)
             create_lat_aprs(data.lat, 1);
             create_long_aprs(data.lng, 1);
         }
-
         // get alt string
         int alt_int = max(-99999, min(999999, atoi(data.alt)));
         if (alt_int < 0)
