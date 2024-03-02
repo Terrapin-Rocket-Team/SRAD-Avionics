@@ -279,7 +279,7 @@ void State::determineStage()
         stageNumber = 3;
         recordLogData(INFO, "Drogue conditions detected.");
     }
-    else if (stageNumber == 3 && position.z() < 750 / 3 && timeAbsolute - timeSinceLaunch * 1000 > 12000) // This should be lowered
+    else if (stageNumber == 3 && position.z() < 750 / 3 && timeAbsolute - timeSinceLaunch > 12000) // This should be lowered
     {
         stageNumber = 4;
         recordLogData(INFO, "Main parachute conditions detected.");
@@ -346,7 +346,7 @@ void State::setCsvString(char *dest, const char *start, int startSize, bool head
 bool State::transmit()
 {
     char data[200];
-    snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", position(0), position(1), (int)(position(2) * 3.28084), (int)(velocity.magnitude() * 3.2808399), (int)heading_angle, 'H', stageNumber, "12:00:00");
+    snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", position(0), position(1), (int)(position(2) * 3.28084), (int)(velocity.magnitude() * 3.2808399), (int)heading_angle, 'H', stageNumber, (*gps)->get_time_of_day());
     bool b = radio->send(data, ENCT_TELEMETRY);
     return b;
 }
