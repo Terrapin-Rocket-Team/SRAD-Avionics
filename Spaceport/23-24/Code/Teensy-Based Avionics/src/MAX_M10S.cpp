@@ -166,14 +166,14 @@ void *MAX_M10S::getData()
 
 const char *MAX_M10S::getCsvHeader()
 {                                                                                                                         // incl G- for GPS
-    return "G-Lat (deg),G-Lon (deg),G-Alt (m),G-Speed (m/s),G-DispX (m),G-DispY (m),G-DispZ (m),G-Time (s),G-# of Sats,"; // trailing comma
+    return "G-Lat (deg),G-Lon (deg),G-Alt (m),G-Speed (m/s),G-DispX (m),G-DispY (m),G-DispZ (m),G-ToD (s),G-# of Sats,"; // trailing comma
 }
 char *MAX_M10S::getDataString()
 {
     // See State.cpp::setDataString() for comments on what these numbers mean. 15 for GPS.
-    const int size = 15 * 2 + 12 * 5 + 10 * 1 + 10;
+    const int size = 15 * 2 + 12 * 4 + 10 * 1 + 10 + 8;
     char *data = new char[size];
-    snprintf(data, size, "%.10f,%.10f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%d,", pos.x(), pos.y(), altitude, sqrt(pow(velocity.x(), 2) + pow(velocity.y(), 2) + pow(velocity.z(), 2)), displacement.x(), displacement.y(), displacement.z(), gps_time, fix_qual); // trailing comma
+    snprintf(data, size, "%.10f,%.10f,%.2f,%.2f,%.2f,%.2f,%.2f,%s,%d,", pos.x(), pos.y(), altitude, velocity.magnitude(), displacement.x(), displacement.y(), displacement.z(), gps_time, fix_qual); // trailing comma
     return data;
 }
 char *MAX_M10S::getStaticDataString()
