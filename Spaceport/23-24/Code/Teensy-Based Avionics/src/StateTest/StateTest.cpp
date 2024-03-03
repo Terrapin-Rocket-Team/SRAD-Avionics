@@ -82,8 +82,8 @@ static double radioTimer = 0;
 bool more = false;
 void loop()
 {
-    if (i % 20 == 0 || i++ % 20 == 1)//infinitely beep buzzer to indicate testing state. Please do NOT launch rocket with test code on the MCU......
-        digitalWrite(BUZZER, HIGH);  // buzzer is on for 200ms/2sec
+    //if (i % 20 == 0 || i++ % 20 == 1)//infinitely beep buzzer to indicate testing state. Please do NOT launch rocket with test code on the MCU......
+        //digitalWrite(BUZZER, HIGH);  // buzzer is on for 200ms/2sec
 
     if(Serial.available() > 0){
         ParseIncomingFakeSensorData(Serial.readStringUntil('\n'),baro,gps,fimu);
@@ -97,12 +97,12 @@ void loop()
     if (radio.mode() != RHGenericDriver::RHModeTx && more){
         more = !radio.sendBuffer();
     }
-    computer.timeAbsolute = millis();
+    computer.timeAbsolute = millis() / 1000.0;
     computer.updateState();
 
     char* stateStr = computer.getStateString();
     Serial.print("[][]");
     Serial.println(stateStr);
     delay(50);
-    digitalWrite(BUZZER, LOW);
+    //digitalWrite(BUZZER, LOW);
 }

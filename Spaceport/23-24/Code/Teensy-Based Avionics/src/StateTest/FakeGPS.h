@@ -48,7 +48,7 @@ public:
     imu::Vector<3> get_origin_pos() { return imu::Vector<3>(0, 0, 0); }
     imu::Vector<3> get_displace() { return imu::Vector<3>(0, 0, 0); }
     double get_gps_time(){return 0;}
-    int get_fix_qual(){return 0;}
+    int get_fix_qual(){return 6;}
     const char *getName() override { return "FakeGPS"; }
     void update() override {}
     char *get_time_of_day() override { return "00:00:00"; }
