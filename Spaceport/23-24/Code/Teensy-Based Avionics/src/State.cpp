@@ -129,7 +129,7 @@ void State::updateState()
     if (stageNumber > 4 && landingCounter > 50) // if landed and waited 5 seconds, don't update sensors.
         return;
     updateSensors();
-    if (useKF && (*gps)->get_fix_qual() > 4)
+    if (useKF && (*gps)->get_fix_qual() > 5 && stageNumber > 0)
     {
         GPS *gps = *this->gps;
         Barometer *baro = *this->baro;
@@ -308,9 +308,9 @@ void State::determineAccelerationMagnitude()
 
 void State::determineStage()
 {
-    if (stageNumber == 0 && (*imu)->get_acceleration().z() > 29 && (*baro)->get_rel_alt_ft() > 50)
+    if (stageNumber == 0 && (*imu)->get_acceleration().z() > 29 && (*baro)->get_rel_alt_ft() > 30)
     {
-        digitalWrite(33, HIGH);
+        // digitalWrite(33, HIGH);
         setRecordMode(FLIGHT);
         stageNumber = 1;
         timeOfLaunch = timeAbsolute;
@@ -327,7 +327,7 @@ void State::determineStage()
                 recordLogData(INFO, logData);
             }
         }
-        digitalWrite(33, LOW);
+        // digitalWrite(33, LOW);
     }
     else if (stageNumber == 1 && acceleration.z() < 10)
     {
@@ -410,7 +410,7 @@ void State::setCsvString(char *dest, const char *start, int startSize, bool head
 bool State::transmit()
 {
     char data[200];
-    snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", position(0), position(1), (int)(position(2) * 3.28084), (int)(velocity.magnitude() * 3.2808399), (int)heading_angle, 'H', stageNumber, launchTimeOfDay);
+    snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", (*gps)->get_pos().x(), (*gps)->get_pos().y(), (int)(*baro)->get_rel_alt_ft(), (int)(baroVelocity), (int)heading_angle, 'H', stageNumber, launchTimeOfDay);
     bool b = radio->send(data, ENCT_TELEMETRY);
     return b;
 }
