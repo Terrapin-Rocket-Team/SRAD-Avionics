@@ -16,6 +16,8 @@ State::State(bool useKalmanFilter)
     acceleration.z() = 0;
     apogee = 0;
     stageNumber = 0;
+    baroOldAltitude = 0;
+    baroVelocity = 0;
 
     baro = nullptr;
     gps = nullptr;
@@ -160,7 +162,7 @@ void State::updateState()
 
         if (baro)
         {
-            baroVelocity = ((baro)->get_rel_alt_m() - baroOldAltitude) / (millis() * 1000 - timeAbsolute);
+            baroVelocity = ((baro)->get_rel_alt_m() - baroOldAltitude) / (millis() / 1000.0 - timeAbsolute);
             baroOldAltitude = (baro)->get_rel_alt_m();
         }
 
@@ -175,8 +177,10 @@ void State::updateState()
         }
         if (*baro)
         {
-            velocity.z() = ((*baro)->get_rel_alt_m() - position.z()) / (millis() * 1000 - timeAbsolute);
+            velocity.z() = ((*baro)->get_rel_alt_m() - position.z()) / (millis() / 1000.0 - timeAbsolute);
             position.z() = (*baro)->get_rel_alt_m();
+            baroVelocity = ((*baro)->get_rel_alt_m() - baroOldAltitude) / (millis() / 1000.0 - timeAbsolute);
+            baroOldAltitude = (*baro)->get_rel_alt_m();
         }
         if (*imu)
         {
@@ -410,7 +414,7 @@ void State::setCsvString(char *dest, const char *start, int startSize, bool head
 bool State::transmit()
 {
     char data[200];
-    snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", (*gps)->get_pos().x(), (*gps)->get_pos().y(), (int)(*baro)->get_rel_alt_ft(), (int)(baroVelocity), (int)heading_angle, 'H', stageNumber, launchTimeOfDay);
+    snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", (*gps)->get_pos().x(), (*gps)->get_pos().y(), (int)(*baro)->get_rel_alt_ft(), (int)baroVelocity, (int)heading_angle, 'H', stageNumber, launchTimeOfDay);
     bool b = radio->send(data, ENCT_TELEMETRY);
     return b;
 }
