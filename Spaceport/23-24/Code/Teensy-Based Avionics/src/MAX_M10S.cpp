@@ -70,6 +70,9 @@ void MAX_M10S::update()
     if (!first_fix && fix_qual >= 3)
     {
         recordLogData(INFO, "GPS has first fix."); //Log this data when the new data logging branch is merged.
+        digitalWrite(33, HIGH);
+        delay(1000);
+        digitalWrite(33, LOW);
         first_fix = true;
         origin.x() = pos.x();
         origin.y() = pos.y();

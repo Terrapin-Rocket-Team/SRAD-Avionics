@@ -158,6 +158,12 @@ void State::updateState()
 
         orientation = imu->get_orientation();
 
+        if (baro)
+        {
+            baroVelocity = ((baro)->get_rel_alt_m() - baroOldAltitude) / (millis() * 1000 - timeAbsolute);
+            baroOldAltitude = (baro)->get_rel_alt_m();
+        }
+
     }
     else
     {
@@ -185,7 +191,7 @@ void State::updateState()
     if (stageNumber < 3)
         apogee = position.z();
     // backup case to dump data (25 minutes)
-    if (stageNumber > 0 && timeSinceLaunch > 180000 && stageNumber < 5)
+    if (stageNumber > 0 && timeSinceLaunch > 1500 && stageNumber < 5)
     {
         stageNumber = 5;
         setRecordMode(GROUND);
@@ -302,7 +308,7 @@ void State::determineAccelerationMagnitude()
 
 void State::determineStage()
 {
-    if (stageNumber == 0 && (*imu)->get_acceleration().z() > 19 && (*gps)->get_fix_qual() > 4)
+    if (stageNumber == 0 && (*imu)->get_acceleration().z() > 29 && (*baro)->get_rel_alt_ft() > 50)
     {
         digitalWrite(33, HIGH);
         setRecordMode(FLIGHT);
@@ -323,12 +329,12 @@ void State::determineStage()
         }
         digitalWrite(33, LOW);
     }
-    else if (stageNumber == 1 && acceleration.z() < 5)
+    else if (stageNumber == 1 && acceleration.z() < 10)
     {
         stageNumber = 2;
         recordLogData(INFO, "Coasting detected.");
     }
-    else if (stageNumber == 2 && velocity.z() <= 0 && timeSinceLaunch > 5)
+    else if (stageNumber == 2 && baroVelocity <= 0 && timeSinceLaunch > 15)
     {
         char logData[100];
         snprintf(logData, 100, "Apogee detected at %.2f m.", position.z());
@@ -336,12 +342,12 @@ void State::determineStage()
         stageNumber = 3;
         recordLogData(INFO, "Drogue conditions detected.");
     }
-    else if (stageNumber == 3 && position.z() < 750 / 3 && timeSinceLaunch > 15) // This should be lowered
+    else if (stageNumber == 3 && (*baro)->get_rel_alt_ft() < 1000 && timeSinceLaunch > 20) // This should be lowered
     {
         stageNumber = 4;
         recordLogData(INFO, "Main parachute conditions detected.");
     }
-    else if (stageNumber == 4 && velocity.z() > -0.5 && (*baro)->get_rel_alt_m() < 20 && timeSinceLaunch > 25)
+    else if (stageNumber == 4 && baroVelocity > -1 && (*baro)->get_rel_alt_ft() < 66 && timeSinceLaunch > 25)
     {
         stageNumber = 5;
         recordLogData(INFO, "Landing detected. Waiting for 5 seconds to dump data.");

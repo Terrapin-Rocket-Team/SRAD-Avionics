@@ -92,6 +92,8 @@ private:
     imu::Vector<3> velocity;       // in m/s
     imu::Vector<3> acceleration;   // in m/s^2
     imu::Quaternion orientation;   // in quaternion
+    double baroVelocity;           // in m/s
+    double baroOldAltitude;        // in m
 
     char *launchTimeOfDay = "00:00:00";
 
