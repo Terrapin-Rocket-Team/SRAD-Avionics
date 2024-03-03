@@ -35,6 +35,10 @@ void setup()
     pinMode(LED_BUILTIN, OUTPUT);
     pinMode(BUZZER, OUTPUT); //its very loud during testing
 
+    pinMode(0, OUTPUT); // RASPBERRY PI TURN ON
+    pinMode(1, OUTPUT); // RASPBERRY PI TURN ON
+
+
     digitalWrite(LED_BUILTIN, HIGH);
     delay(100);
     digitalWrite(LED_BUILTIN, LOW);
@@ -124,4 +128,13 @@ void loop()
     // Serial.print(" ms ");
 
     //times = millis();
+
+
+    // RASPBERRY PI TURN ON
+    if (time / 1000.0 > 600) {
+        digitalWrite(0, HIGH);
+    }
+    if (computer.getStageNum() == 1) {
+        digitalWrite(1, HIGH);
+    }
 }
