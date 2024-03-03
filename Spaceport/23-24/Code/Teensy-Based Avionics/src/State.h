@@ -1,6 +1,8 @@
 #ifndef STATE_H
 #define STATE_H
 
+#include "AbhiKalmanFilter.h"
+
 // Include all the sensor classes
 #include "Barometer.h"
 #include "GPS.h"
@@ -14,7 +16,7 @@ const char STAGES[][15] = {"Pre-Flight", "Boosting", "Coasting", "Drogue Descent
 class State
 {
 public:
-    State();
+    State(bool useKalmanFilter = true);
     ~State();
 
     // to be called after all applicable sensors have been added.
@@ -43,6 +45,7 @@ public:
     char *getStateString(); // This contains only the portions that define what the state thinks the rocket looks like. I recommend sending this over the radio during launches.
 
     bool transmit();
+    double timeAbsolute;           // in s since uC turned on
 
 private:
     static constexpr int NUM_MAX_SENSORS = 5; // update with the max number of expected sensors
@@ -85,13 +88,23 @@ private:
     double timeSinceLaunch;        // in s
     double timePreviousStage;      // in s
     double timeSincePreviousStage; // in s
-    double timeAbsolute;           // in s since uC turned on
     imu::Vector<3> position;       // in m from start position
     imu::Vector<3> velocity;       // in m/s
     imu::Vector<3> acceleration;   // in m/s^2
     imu::Quaternion orientation;   // in quaternion
 
     char *launchTimeOfDay = "00:00:00";
+
+        //Kalman Filter settings
+    bool useKF;
+    void initKF(bool useBaro, bool useGps, bool useImu);
+    akf::KFState *kfilter;
+    // time pos x y z vel x y z acc x y z
+    double *predictions;
+    // gps x y z barometer z
+    double *measurements;
+    // imu x y z
+    double *inputs;
 };
 
 #endif
