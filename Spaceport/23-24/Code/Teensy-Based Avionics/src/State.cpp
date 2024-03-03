@@ -1,7 +1,7 @@
 #include "State.h"
 
 #pragma region Constructor and Destructor
-State::State()
+State::State(bool useKalmanFilter)
 {
     timeAbsolute = millis();
     timePreviousStage = 0;
@@ -27,7 +27,7 @@ State::State()
 
     numSensors = 0;
     recordOwnFlightData = true;
-    for(int i = 0; i < NUM_MAX_SENSORS; i++)
+    for (int i = 0; i < NUM_MAX_SENSORS; i++)
         sensors[i] = nullptr;
 
     landingCounter = 0;
@@ -36,6 +36,15 @@ State::State()
     timeSinceLaunch = 0;
     timeSincePreviousStage = 0;
     heading_angle = 0;
+
+    useKF = useKalmanFilter;
+    // time pos x y z vel x y z acc x y z
+    predictions = new double[10]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    // gps x y z barometer z
+    measurements = new double[4]{1, 1, 1, 1};
+    // imu x y z
+    inputs = new double[3]{1, 1, 1};
+    kfilter = new akf::KFState();
 }
 State::~State()
 {
@@ -83,14 +92,18 @@ bool State::init(bool stateRecordsOwnFlightData)
     }
     numSensors = good;
     setCsvHeader();
+    if (useKF)
+    {
+        initKF(gps ? 1 : 0, baro ? 1 : 0, imu ? 1 : 0);
+    }
     return good == tryNumSensors;
 }
 
 void State::updateSensors()
 {
-    for(int i = 0; i < NUM_MAX_SENSORS; i++)
+    for (int i = 0; i < NUM_MAX_SENSORS; i++)
     {
-        if(sensors[i])
+        if (sensors[i])
             sensors[i]->update();
         Wire.beginTransmission(0x42);
         byte b = Wire.endTransmission();
@@ -113,23 +126,53 @@ void State::updateState()
     if (stageNumber > 4 && landingCounter > 50) // if landed and waited 5 seconds, don't update sensors.
         return;
     updateSensors();
-    if (*gps)
+    if (useKF)
     {
-        position = imu::Vector<3>((*gps)->get_pos().x(), (*gps)->get_pos().y(), (*gps)->get_alt());
-        velocity = (*gps)->get_velocity();
-        heading_angle = (*gps)->get_heading();
+        GPS *gps = *this->gps;
+        Barometer *baro = *this->baro;
+        IMU *imu = *this->imu;
+        // gps x y z barometer z
+        measurements[0] = gps->get_displace().x();
+        measurements[1] = gps->get_displace().y();
+        measurements[2] = gps->get_displace().z();
+        measurements[3] = baro->get_rel_alt_m();
+        // imu x y z
+        inputs[0] = imu->get_acceleration().x();
+        inputs[1] = imu->get_acceleration().y();
+        inputs[2] = imu->get_acceleration().z() - 9.76; // remove g
+        akf::updateFilter(kfilter, timeAbsolute / 1000.0, gps ? 1 : 0, baro ? 1 : 0, imu ? 1 : 0, measurements, inputs, &predictions);
+        // time, pos x, y, z, vel x, y, z, acc x, y, z
+        // ignore time return value.
+        position.x() = predictions[1];
+        position.y() = predictions[2];
+        position.z() = predictions[3];
+        velocity.x() = predictions[4];
+        velocity.y() = predictions[5];
+        velocity.z() = predictions[6];
+        acceleration.x() = predictions[7];
+        acceleration.y() = predictions[8];
+        acceleration.z() = predictions[9];
     }
-    if (*baro)
+    else
     {
-        velocity.z() = ((*baro)->get_rel_alt_m() - position.z()) / (millis() * 1000 - timeAbsolute);
-        position.z() = (*baro)->get_rel_alt_m();
+        if (*gps)
+        {
+            position = imu::Vector<3>((*gps)->get_pos().x(), (*gps)->get_pos().y(), (*gps)->get_alt());
+            velocity = (*gps)->get_velocity();
+            heading_angle = (*gps)->get_heading();
+        }
+        if (*baro)
+        {
+            velocity.z() = ((*baro)->get_rel_alt_m() - position.z()) / (millis() * 1000 - timeAbsolute);
+            position.z() = (*baro)->get_rel_alt_m();
+        }
+        if (*imu)
+        {
+            acceleration = (*imu)->get_acceleration();
+            orientation = (*imu)->get_orientation();
+        }
     }
-    if (*imu)
-    {
-        acceleration = (*imu)->get_acceleration();
-        orientation = (*imu)->get_orientation();
-    }
-    timeAbsolute = millis() / 1000.0;
+    // timeAbsolute = millis() / 1000.0;
     timeSinceLaunch = timeAbsolute - timeOfLaunch;
     determineAccelerationMagnitude();
     determineStage();
@@ -217,8 +260,7 @@ Sensor *State::getSensor(SensorType type)
     return nullptr;
 }
 
-
-//deprecated
+// deprecated
 Barometer *State::getBaro() { return *baro; }
 GPS *State::getGPS() { return *gps; }
 IMU *State::getIMU() { return *imu; }
@@ -318,11 +360,11 @@ void State::setCsvString(char *dest, const char *start, int startSize, bool head
 
     //---Determine required size for string
     int size = startSize + 1; // includes '\0' at end of string for the end of dataString to use
-    for(int i = 0; i < NUM_MAX_SENSORS; i++)
+    for (int i = 0; i < NUM_MAX_SENSORS; i++)
     {
-        if(sensors[i])
+        if (sensors[i])
         {
-            if(header)
+            if (header)
                 str[cursor] = sensors[i]->getCsvHeader();
             else
                 str[cursor] = sensors[i]->getDataString();
@@ -330,7 +372,7 @@ void State::setCsvString(char *dest, const char *start, int startSize, bool head
         }
     }
     dest = new char[size];
-    if(header)
+    if (header)
         csvHeader = dest;
     else
         dataString = dest;
@@ -338,16 +380,17 @@ void State::setCsvString(char *dest, const char *start, int startSize, bool head
     int j = 0;
     for (int i = 0; i < numCategories; i++)
     {
-        for (int k = 0; str[i][k] != '\0'; j++, k++) {// append all the data strings onto the main string
+        for (int k = 0; str[i][k] != '\0'; j++, k++)
+        { // append all the data strings onto the main string
             dest[j] = str[i][k];
         }
-        if (i >= 1 && !header){
+        if (i >= 1 && !header)
+        {
             delete[] str[i]; // delete all the heap arrays.
         }
     }
     delete[] str;
     dest[j - 1] = '\0'; // all strings have ',' at end so this gets rid of that and terminates it a character early.
-
 }
 
 #pragma endregion
@@ -358,4 +401,36 @@ bool State::transmit()
     snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", position(0), position(1), (int)(position(2) * 3.28084), (int)(velocity.magnitude() * 3.2808399), (int)heading_angle, 'H', stageNumber, launchTimeOfDay);
     bool b = radio->send(data, ENCT_TELEMETRY);
     return b;
+}
+
+void State::initKF(bool useBaro, bool useGps, bool useImu)
+{
+    double pr_n = 0.2;
+    double init_cov = 2;
+    double gps_cov = 36;
+    double baro_cov = 2;
+    double *initial_state = new double[6]{0, 0, 0, 0, 0, 0};
+    double *initial_input = new double[3]{0, 0, 0};
+    double *initial_covariance = new double[36]{init_cov, 0, 0, init_cov, 0, 0,
+                                                0, init_cov, 0, 0, init_cov, 0,
+                                                0, 0, init_cov, 0, 0, init_cov,
+                                                init_cov, 0, 0, init_cov, 0, 0,
+                                                0, init_cov, 0, 0, init_cov, 0,
+                                                0, 0, init_cov, 0, 0, init_cov};
+    double *measurement_covariance = new double[16]{gps_cov, 0, 0, 0,
+                                                    0, gps_cov, 0, 0,
+                                                    0, 0, gps_cov, 0,
+                                                    0, 0, 0, baro_cov};
+    double *process_noise_covariance = new double[36]{pr_n, 0, 0, 0, 0, 0,
+                                                      0, pr_n, 0, 0, 0, 0,
+                                                      0, 0, pr_n, 0, 0, 0,
+                                                      0, 0, 0, pr_n, 0, 0,
+                                                      0, 0, 0, 0, pr_n, 0,
+                                                      0, 0, 0, 0, 0, pr_n};
+    akf::init(kfilter, 6, 3, 4, initial_state, initial_input, initial_covariance, measurement_covariance, process_noise_covariance);
+    delete[] initial_state;
+    delete[] initial_input;
+    delete[] initial_covariance;
+    delete[] measurement_covariance;
+    delete[] process_noise_covariance;
 }
