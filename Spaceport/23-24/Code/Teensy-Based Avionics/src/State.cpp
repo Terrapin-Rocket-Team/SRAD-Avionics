@@ -112,13 +112,16 @@ void State::updateSensors()
             Wire.end();
             Wire.begin();
             recordLogData(ERROR, "I2C Error");
+            sensors[i]->update();
+            delay(10);
+            sensors[i]->update();
         }
     }
 }
 
 void State::updateState()
 {    
-    if(timeSinceLaunch > 0 && timeSinceLaunch < 2)
+    if(timeSinceLaunch > 0 && timeSinceLaunch < 2 )
         digitalWrite(33, HIGH);
     else{
         digitalWrite(33, LOW);
@@ -126,7 +129,7 @@ void State::updateState()
     if (stageNumber > 4 && landingCounter > 50) // if landed and waited 5 seconds, don't update sensors.
         return;
     updateSensors();
-    if (useKF)
+    if (useKF && (*gps)->get_fix_qual() > 4)
     {
         GPS *gps = *this->gps;
         Barometer *baro = *this->baro;
@@ -139,8 +142,8 @@ void State::updateState()
         // imu x y z
         inputs[0] = imu->get_acceleration().x();
         inputs[1] = imu->get_acceleration().y();
-        inputs[2] = imu->get_acceleration().z() - 9.76; // remove g
-        akf::updateFilter(kfilter, timeAbsolute / 1000.0, gps ? 1 : 0, baro ? 1 : 0, imu ? 1 : 0, measurements, inputs, &predictions);
+        inputs[2] = imu->get_acceleration().z(); // remove g
+        akf::updateFilter(kfilter, timeAbsolute, gps ? 1 : 0, baro ? 1 : 0, imu ? 1 : 0, measurements, inputs, &predictions);
         // time, pos x, y, z, vel x, y, z, acc x, y, z
         // ignore time return value.
         position.x() = predictions[1];
@@ -152,12 +155,15 @@ void State::updateState()
         acceleration.x() = predictions[7];
         acceleration.y() = predictions[8];
         acceleration.z() = predictions[9];
+
+        orientation = imu->get_orientation();
+
     }
     else
     {
         if (*gps)
         {
-            position = imu::Vector<3>((*gps)->get_pos().x(), (*gps)->get_pos().y(), (*gps)->get_alt());
+            position = imu::Vector<3>((*gps)->get_displace().x(), (*gps)->get_displace().y(), (*gps)->get_alt());
             velocity = (*gps)->get_velocity();
             heading_angle = (*gps)->get_heading();
         }
@@ -172,14 +178,14 @@ void State::updateState()
             orientation = (*imu)->get_orientation();
         }
     }
-    // timeAbsolute = millis() / 1000.0;
+    timeAbsolute = millis() / 1000.0;
     timeSinceLaunch = timeAbsolute - timeOfLaunch;
     determineAccelerationMagnitude();
     determineStage();
     if (stageNumber < 3)
         apogee = position.z();
     // backup case to dump data (25 minutes)
-    if (stageNumber > 0 && timeSinceLaunch > 180 && stageNumber < 5)
+    if (stageNumber > 0 && timeSinceLaunch > 180000 && stageNumber < 5)
     {
         stageNumber = 5;
         setRecordMode(GROUND);
@@ -220,13 +226,13 @@ char *State::getStateString()
 {
     delete[] stateString;
     stateString = new char[500]; // way oversized for right now.
-    snprintf(stateString, 500, "%.2f,%.2f,%s,%.2f|%.2f,%.2f,%.2f|%.2f,%.2f,%.2f|%.7f,%.7f,%.2f|%.2f,%.2f,%.2f,%.2f|%.2f",
+    snprintf(stateString, 500, "%.2f,%.2f,%s,%.2f|%.2f,%.2f,%.2f|%.2f,%.2f,%.2f|%.7f,%.7f,%.2f|%.2f,%.2f,%.2f,%.2f|%d",
              timeAbsolute, timeSinceLaunch, STAGES[stageNumber], timeSincePreviousStage,
              acceleration.x(), acceleration.y(), acceleration.z(),
              velocity.x(), velocity.y(), velocity.z(),
              position.x(), position.y(), position.z(),
              orientation.x(), orientation.y(), orientation.z(), orientation.w(),
-             apogee);
+             (*gps)->get_fix_qual());
     return stateString;
 }
 
@@ -296,7 +302,7 @@ void State::determineAccelerationMagnitude()
 
 void State::determineStage()
 {
-    if (stageNumber == 0 && acceleration.z() > 9)
+    if (stageNumber == 0 && (*imu)->get_acceleration().z() > 19 && (*gps)->get_fix_qual() > 4)
     {
         digitalWrite(33, HIGH);
         setRecordMode(FLIGHT);
@@ -417,8 +423,8 @@ void State::initKF(bool useBaro, bool useGps, bool useImu)
                                                 init_cov, 0, 0, init_cov, 0, 0,
                                                 0, init_cov, 0, 0, init_cov, 0,
                                                 0, 0, init_cov, 0, 0, init_cov};
-    double *measurement_covariance = new double[16]{gps_cov, 0, 0, 0,
-                                                    0, gps_cov, 0, 0,
+    double *measurement_covariance = new double[16]{4, 0, 0, 0,
+                                                    0, 4, 0, 0,
                                                     0, 0, gps_cov, 0,
                                                     0, 0, 0, baro_cov};
     double *process_noise_covariance = new double[36]{pr_n, 0, 0, 0, 0, 0,
