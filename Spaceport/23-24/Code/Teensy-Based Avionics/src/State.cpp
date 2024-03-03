@@ -47,6 +47,7 @@ State::~State()
 
 bool State::init(bool stateRecordsOwnFlightData)
 {
+
     recordOwnFlightData = stateRecordsOwnFlightData;
     char *logData = new char[100];
     int good = 0, tryNumSensors = 0;
@@ -97,13 +98,18 @@ void State::updateSensors()
         {
             Wire.end();
             Wire.begin();
-            Serial.println("I2C Error");
+            recordLogData(ERROR, "I2C Error");
         }
     }
 }
 
 void State::updateState()
-{
+{    
+    if(timeSinceLaunch > 0 && timeSinceLaunch < 2)
+        digitalWrite(33, HIGH);
+    else{
+        digitalWrite(33, LOW);
+    }
     if (stageNumber > 4 && landingCounter > 50) // if landed and waited 5 seconds, don't update sensors.
         return;
     updateSensors();
@@ -115,7 +121,7 @@ void State::updateState()
     }
     if (*baro)
     {
-        velocity.z() = ((*baro)->get_rel_alt_m() - position.z()) / (millis() - timeAbsolute);
+        velocity.z() = ((*baro)->get_rel_alt_m() - position.z()) / (millis() * 1000 - timeAbsolute);
         position.z() = (*baro)->get_rel_alt_m();
     }
     if (*imu)
@@ -123,14 +129,14 @@ void State::updateState()
         acceleration = (*imu)->get_acceleration();
         orientation = (*imu)->get_orientation();
     }
-    timeAbsolute = millis();
+    timeAbsolute = millis() / 1000.0;
     timeSinceLaunch = timeAbsolute - timeOfLaunch;
     determineAccelerationMagnitude();
     determineStage();
     if (stageNumber < 3)
         apogee = position.z();
     // backup case to dump data (25 minutes)
-    if (stageNumber > 0 && timeSinceLaunch > 1500000 && stageNumber < 5)
+    if (stageNumber > 0 && timeSinceLaunch > 180 && stageNumber < 5)
     {
         stageNumber = 5;
         setRecordMode(GROUND);
@@ -155,12 +161,12 @@ void State::setDataString()
     // Assuming 12 char/float (2 dec precision, leaving min value of -9,999,999.99), 30 char/string, 10 char/int
     // string * 1, float * 9, int * 0, 11 commas
     // 30 + 108 + 11 = 149
-    const int dataStartSize = 30 * 1 + 12 * 9 + 11;
+    const int dataStartSize = 30 * 1 + 12 * 9 + 12;
     char csvDataStart[dataStartSize];
     snprintf(
         csvDataStart, dataStartSize,
-        "%.2f,%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,", // trailing comma very important
-        timeAbsolute / 1000.0, STAGES[stageNumber],
+        "%.3f,%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,", // trailing comma very important
+        timeAbsolute, STAGES[stageNumber],
         position.x(), position.y(), position.z(),
         velocity.x(), velocity.y(), velocity.z(),
         acceleration.x(), acceleration.y(), acceleration.z());
@@ -172,7 +178,7 @@ char *State::getStateString()
     delete[] stateString;
     stateString = new char[500]; // way oversized for right now.
     snprintf(stateString, 500, "%.2f,%.2f,%s,%.2f|%.2f,%.2f,%.2f|%.2f,%.2f,%.2f|%.7f,%.7f,%.2f|%.2f,%.2f,%.2f,%.2f|%.2f",
-             timeAbsolute / 1000.0, timeSinceLaunch / 1000.0, STAGES[stageNumber], timeSincePreviousStage / 1000.0,
+             timeAbsolute, timeSinceLaunch, STAGES[stageNumber], timeSincePreviousStage,
              acceleration.x(), acceleration.y(), acceleration.z(),
              velocity.x(), velocity.y(), velocity.z(),
              position.x(), position.y(), position.z(),
@@ -250,6 +256,7 @@ void State::determineStage()
 {
     if (stageNumber == 0 && acceleration.z() > 9)
     {
+        digitalWrite(33, HIGH);
         setRecordMode(FLIGHT);
         stageNumber = 1;
         timeOfLaunch = timeAbsolute;
@@ -266,6 +273,7 @@ void State::determineStage()
                 recordLogData(INFO, logData);
             }
         }
+        digitalWrite(33, LOW);
     }
     else if (stageNumber == 1 && acceleration.z() < 5)
     {

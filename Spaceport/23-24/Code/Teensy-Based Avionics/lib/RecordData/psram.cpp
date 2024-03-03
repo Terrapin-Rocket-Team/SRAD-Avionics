@@ -72,16 +72,30 @@ bool PSRAM::dumpFlightData()
 
 bool PSRAM::dumpLogData()
 { // more complicated because data is stored in reverse order
-    if (!isSDReady() || !ready)
+    if (!isSDReady() || !ready){
+        digitalWrite(33, HIGH);
+        delay(200);
+        digitalWrite(33, LOW);
+        delay(200);
         return false;
+    }
 
     char buffer[2048]; // large buffer but the Teensy should be able to handle it. Buffer should be a multiple of 512 for SD card efficiency.
     char *writeCursor = memEnd;
     int i = 0;
     logFile = sd.open(logFileName, FILE_WRITE);
 
-    if (!logFile)
+    if (!logFile){
+        digitalWrite(33, HIGH);
+        delay(200);
+        digitalWrite(33, LOW);
+        delay(200);
+        digitalWrite(33, HIGH);
+        delay(200);
+        digitalWrite(33, LOW);
+        delay(200);
         return false;
+    }
     
     while (writeCursor >= cursorEnd)
     {
@@ -102,6 +116,19 @@ bool PSRAM::dumpLogData()
     logFile.close();
     cursorEnd = memEnd;
     dumped = true;
+        digitalWrite(33, HIGH);
+        delay(200);
+        digitalWrite(33, LOW);
+        delay(200);
+        digitalWrite(33, HIGH);
+        delay(200);
+        digitalWrite(33, LOW);
+        delay(200);
+        digitalWrite(33, HIGH);
+        delay(200);
+        digitalWrite(33, LOW);
+        delay(200);
+    
     return true;
 }
 

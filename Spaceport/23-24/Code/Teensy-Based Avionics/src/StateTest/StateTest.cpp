@@ -26,7 +26,7 @@ int i = 0;
 void setup()
 {
     pinMode(LED_BUILTIN, OUTPUT);
-    //pinMode(BUZZER, OUTPUT); //its very loud during testing
+    pinMode(BUZZER, OUTPUT); //its very loud during testing
 
     digitalWrite(LED_BUILTIN, HIGH);
     delay(1000);

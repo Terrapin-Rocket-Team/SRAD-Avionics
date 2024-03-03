@@ -32,11 +32,11 @@ void recordLogData(double timeStamp, LogType type, const char *data, Dest dest)
 
     if (dest == BOTH || dest == TO_USB)
     {
-        if (!Serial)
-            Serial.begin(9600);
+        // if (!Serial)
+        //     Serial.begin(9600);
 
-        Serial.print(logPrefix);
-        Serial.println(data);
+        // Serial.print(logPrefix);
+        // Serial.println(data);
     }
     if ((dest == BOTH || dest == TO_FILE) && isSDReady())
     {
@@ -61,13 +61,13 @@ void recordLogData(double timeStamp, LogType type, const char *data, Dest dest)
 void setRecordMode(Mode m)
 {
     if(mode == FLIGHT && m == GROUND){
-        if(ram->isReady() && isSDReady()){
-            ram->dumpFlightData();
-            ram->dumpLogData();
-        }
+        ram->dumpFlightData();
+        ram->dumpLogData();
         digitalWrite(LED_BUILTIN, HIGH);
+        digitalWrite(33, HIGH);
         delay(2000);
         digitalWrite(LED_BUILTIN, LOW);
+        digitalWrite(33, LOW);
     }
     mode = m;
 }
