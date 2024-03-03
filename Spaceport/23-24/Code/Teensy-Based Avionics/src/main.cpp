@@ -33,7 +33,7 @@ void setup()
     digitalWrite(BMP_ADDR_PIN, HIGH);
 
     pinMode(LED_BUILTIN, OUTPUT);
-    // pinMode(BUZZER, OUTPUT); //its very loud during testing
+    pinMode(BUZZER, OUTPUT); //its very loud during testing
 
     digitalWrite(LED_BUILTIN, HIGH);
     delay(100);
@@ -76,10 +76,22 @@ void setup()
     if (!computer.addSensor(&bno))
         recordLogData(INFO, "Failed to add BNO055 Sensor");
     computer.setRadio(&radio);
-    if (computer.init())
+    if (computer.init()){
         recordLogData(INFO, "All Sensors Initialized");
-    else
+        digitalWrite(BUZZER, HIGH);
+        delay(1000);
+        digitalWrite(BUZZER, LOW);
+    }
+    else{
         recordLogData(ERROR, "Some Sensors Failed to Initialize. Disabling those sensors.");
+        digitalWrite(BUZZER, HIGH);
+        delay(200);
+        digitalWrite(BUZZER, LOW);
+        delay(200);
+        digitalWrite(BUZZER, HIGH);
+        delay(200);
+        digitalWrite(BUZZER, LOW);
+    }
 
     digitalWrite(LED_BUILTIN, HIGH);
     delay(1000);
@@ -111,5 +123,5 @@ void loop()
     // Serial.print(millis() - time);
     // Serial.print(" ms ");
 
-    times = millis();
+    //times = millis();
 }
