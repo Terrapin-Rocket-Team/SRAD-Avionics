@@ -97,6 +97,7 @@ void loop()
     if (radio.mode() != RHGenericDriver::RHModeTx && more){
         more = !radio.sendBuffer();
     }
+    computer.timeAbsolute = millis();
     computer.updateState();
 
     char* stateStr = computer.getStateString();
