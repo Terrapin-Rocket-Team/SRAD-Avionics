@@ -88,7 +88,11 @@ bool RFM69HCW::tx(const char *message, int len)
     this->id = len / this->bufSize + (len % this->bufSize > 0);
     this->radio.setHeaderId(this->id);
 
+//ignore same address warning
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wrestrict"
     strcpy(this->msg, message);
+#pragma GCC diagnostic pop
 
     this->msgLen = len;
     this->totalPackets = 0;

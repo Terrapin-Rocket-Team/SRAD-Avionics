@@ -12,7 +12,7 @@
 #include "RTC.h"
 #include "RecordData.h"
 
-const char STAGES[][15] = {"Pre-Flight", "Boosting", "Coasting", "Drogue Descent", "Main Descent", "Post-Flight"};
+constexpr char STAGES[][15] = {"Pre-Flight", "Boosting", "Coasting", "Drogue Descent", "Main Descent", "Post-Flight"};
 class State
 {
 public:
@@ -95,7 +95,7 @@ private:
     double baroVelocity;           // in m/s
     double baroOldAltitude;        // in m
 
-    char *launchTimeOfDay = "00:00:00";
+    char launchTimeOfDay[9];
 
         //Kalman Filter settings
     bool useKF;

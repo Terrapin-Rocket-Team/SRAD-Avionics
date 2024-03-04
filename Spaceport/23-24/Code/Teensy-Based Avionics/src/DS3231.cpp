@@ -63,7 +63,7 @@ char *DS3231::getDataString()
     // See State.cpp::setDataString() for comments on what these numbers mean. 19 for the timestamp
     const int size = 19 * 1 + 12 * 1 + 2;
     char *data = new char[size];
-    snprintf(data, size, "%s,%d.%d,", getCurrentTime().timestamp().c_str(), getTimeSinceLaunch()[0], getTimeSinceLaunch()[1]); // trailing comma
+    snprintf(data, size, "%s,%d.%d,", getCurrentTime().timestamp().c_str(), (int)getTimeSinceLaunch()[0], (int)getTimeSinceLaunch()[1]); // trailing comma
     return data;
 }
 char *DS3231::getStaticDataString()
