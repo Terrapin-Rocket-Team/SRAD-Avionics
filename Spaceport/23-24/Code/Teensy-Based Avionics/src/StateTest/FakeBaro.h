@@ -12,19 +12,19 @@ public:
         temp = ntemp;
         alt = nalt;
     }
-    void *get_data() {return &alt; }
+    void *getData() {return &alt; }
     double get_temp() { return press; }
     double get_pressure() { return temp; }
     double get_rel_alt_m() { return alt; }
     bool initialize() { return true; }
 
-    const char *getcsvHeader()
+    const char *getCsvHeader()
     {                                                // incl  B- to indicate Barometer data
         return "B-Pres (hPa),B-Temp (C),B-Alt (m),"; // trailing commas are very important
     }
 
-    char *getdataString()
-    { // See State.cpp::setdataString() for comments on what these numbers mean
+    char *getDataString()
+    { // See State.cpp::setDataString() for comments on what these numbers mean
         // float x3
         const int size = 12 * 3 + 3;
         char *data = new char[size];
@@ -41,7 +41,8 @@ public:
     double get_temp_f(){return 0;}
     double get_rel_alt_ft() {return 0;}
     double get_pressure_atm() {return 0;}
-
+    const char *getName() { return "FakeBaro"; }
+    void update() {}
 private:
     double press, temp, alt;
 };

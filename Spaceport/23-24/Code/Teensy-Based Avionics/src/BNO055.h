@@ -2,8 +2,8 @@
 #include <Arduino.h>
 #include "IMU.h"
 
-
-class BNO055: public IMU {
+class BNO055 : public IMU
+{
 private:
     Adafruit_BNO055 bno;
     uint8_t SCK_pin;
@@ -15,7 +15,7 @@ private:
     imu::Vector<3> initial_mag_field;
 
 public:
-    BNO055(uint8_t SCK, uint8_t SDA); 
+    BNO055(uint8_t SCK, uint8_t SDA);
     void calibrate_bno();
     imu::Quaternion get_orientation();
     // gives linear_acceleration in m/s/s, which excludes gravity
@@ -25,11 +25,11 @@ public:
     imu::Vector<3> get_magnetometer();
     // gives it in rotations about the x, y, z (yaw, pitch, roll) axes
     imu::Vector<3> convert_to_euler(imu::Quaternion orientation);
-    void *get_data();
+    void *getData();
     bool initialize() override;
-    const char *getcsvHeader() override;
-    char *getdataString() override;
+    const char *getCsvHeader() override;
+    char *getDataString() override;
     char *getStaticDataString() override;
+    char const *getName() override;
+    void update() override;
 };
-
-
