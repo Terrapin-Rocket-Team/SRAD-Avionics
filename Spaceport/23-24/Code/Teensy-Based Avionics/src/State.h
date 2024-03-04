@@ -120,6 +120,6 @@ private:
 
     NOTE: sensors are pointers to sensor pointers. This allows them to be linked to the sensors[] so that changes in there affect the sensor variables.
     It does make some slightly weird sysntax to use the sensors, but it's not too bad.
-    Instead of if(gps) you use if(*gps) and instead of gps->get_pos() you use (*gps)->get_pos().
+    Instead of if(gps) you use if(*gps) and instead of gps->getPos() you use (*gps)->getPos().
 
 */

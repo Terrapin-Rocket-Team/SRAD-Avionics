@@ -39,7 +39,7 @@ void BNO055::calibrate_bno()
     }
 }
 
-imu::Quaternion BNO055::get_orientation()
+imu::Quaternion BNO055::getOrientation()
 {
     return orientation;
 }
@@ -49,12 +49,12 @@ imu::Vector<3> BNO055::get_acceleration()
     return acceleration_vec;
 }
 
-imu::Vector<3> BNO055::get_orientation_euler()
+imu::Vector<3> BNO055::getOrientationEuler()
 {
     return orientation_euler;
 }
 
-imu::Vector<3> BNO055::get_magnetometer()
+imu::Vector<3> BNO055::getMagnetometer()
 {
     return magnetometer;
 }

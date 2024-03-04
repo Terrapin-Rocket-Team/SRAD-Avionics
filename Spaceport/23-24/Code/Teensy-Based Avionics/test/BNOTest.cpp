@@ -26,10 +26,10 @@ void loop() {
     Serial.println(bno.get_acceleration().z());
 
     Serial.print("Orientation: ");
-    Serial.print(bno.get_orientation_euler().x());
+    Serial.print(bno.getOrientationEuler().x());
     Serial.print(", ");
-    Serial.print(bno.get_orientation_euler().y());
+    Serial.print(bno.getOrientationEuler().y());
     Serial.print(", ");
-    Serial.println(bno.get_orientation_euler().z());
+    Serial.println(bno.getOrientationEuler().z());
 
 }

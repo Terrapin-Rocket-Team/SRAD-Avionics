@@ -52,27 +52,27 @@ double BMP390::get_pressure()
     return pressure;
 }
 
-double BMP390::get_temp()
+double BMP390::getTemp()
 {
     return temp;
 }
 
-double BMP390::get_temp_f()
+double BMP390::getTempF()
 {
     return (temp * 9.0 / 5.0) + 32.0;
 }
 
-double BMP390::get_pressure_atm()
+double BMP390::getPressureAtm()
 {
     return pressure / SEALEVELPRESSURE_HPA;
 }
 
-double BMP390::get_rel_alt_m()
+double BMP390::getRelAltM()
 {
     return altitude;
 }
 
-double BMP390::get_rel_alt_ft()
+double BMP390::getRelAltFt()
 {
     return altitude * 3.28084;
 }

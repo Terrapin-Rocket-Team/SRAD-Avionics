@@ -19,7 +19,7 @@ public:
         ori.w() = qw;
     }
     bool initialize() { return true; }
-    imu::Quaternion get_orientation() { return ori; }
+    imu::Quaternion getOrientation() { return ori; }
     imu::Vector<3> get_acceleration() { return acc; }
 
     const char *getCsvHeader()
@@ -42,8 +42,8 @@ public:
         return data;
     }
 
-    imu::Vector<3> get_orientation_euler() { return imu::Vector<3>(0, 0, 0); }
-    imu::Vector<3> get_magnetometer() { return imu::Vector<3>(0, 0, 0); }
+    imu::Vector<3> getOrientationEuler() { return imu::Vector<3>(0, 0, 0); }
+    imu::Vector<3> getMagnetometer() { return imu::Vector<3>(0, 0, 0); }
     void *getData() { return nullptr; }
     const char *getName() { return "FakeIMU"; }
     void update() {}

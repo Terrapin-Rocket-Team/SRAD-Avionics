@@ -22,8 +22,8 @@ void loop() {
     Serial.print(bmp.get_pressure());
 
     Serial.print(", Temperature: ");
-    Serial.print(bmp.get_temp());
+    Serial.print(bmp.getTemp());
 
     Serial.print(", Altitude: ");
-    Serial.println(bmp.get_rel_alt_ft());
+    Serial.println(bmp.getRelAltFt());
 }

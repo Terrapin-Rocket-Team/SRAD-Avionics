@@ -17,12 +17,12 @@ private:
 public:
     BNO055(uint8_t SCK, uint8_t SDA);
     void calibrate_bno();
-    imu::Quaternion get_orientation();
+    imu::Quaternion getOrientation();
     // gives linear_acceleration in m/s/s, which excludes gravity
     imu::Vector<3> get_acceleration();
-    imu::Vector<3> get_orientation_euler();
+    imu::Vector<3> getOrientationEuler();
     // values in uT, micro Teslas
-    imu::Vector<3> get_magnetometer();
+    imu::Vector<3> getMagnetometer();
     // gives it in rotations about the x, y, z (yaw, pitch, roll) axes
     imu::Vector<3> convert_to_euler(imu::Quaternion orientation);
     void *getData();

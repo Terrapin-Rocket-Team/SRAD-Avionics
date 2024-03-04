@@ -21,11 +21,11 @@ private:
 public:
     BMP390(uint8_t SCK, uint8_t SDA);
     double get_pressure();
-    double get_temp();
-    double get_temp_f();
-    double get_pressure_atm();
-    double get_rel_alt_ft();
-    double get_rel_alt_m();
+    double getTemp();
+    double getTempF();
+    double getPressureAtm();
+    double getRelAltFt();
+    double getRelAltM();
     void *getData();
     bool initialize() override;
     const char *getCsvHeader() override;
