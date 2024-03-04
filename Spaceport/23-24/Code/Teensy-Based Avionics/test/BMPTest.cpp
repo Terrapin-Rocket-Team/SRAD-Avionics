@@ -19,7 +19,7 @@ void setup() {
 void loop() {
     delay(200);
     Serial.print("Pressure: ");
-    Serial.print(bmp.get_pressure());
+    Serial.print(bmp.getPressure());
 
     Serial.print(", Temperature: ");
     Serial.print(bmp.getTemp());

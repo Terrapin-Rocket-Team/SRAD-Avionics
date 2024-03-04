@@ -19,11 +19,11 @@ void setup() {
 void loop() {
     delay(200);
     Serial.print("Acceleration: ");
-    Serial.print(bno.get_acceleration().x());
+    Serial.print(bno.getAcceleration().x());
     Serial.print(", ");
-    Serial.print(bno.get_acceleration().y());
+    Serial.print(bno.getAcceleration().y());
     Serial.print(", ");
-    Serial.println(bno.get_acceleration().z());
+    Serial.println(bno.getAcceleration().z());
 
     Serial.print("Orientation: ");
     Serial.print(bno.getOrientationEuler().x());

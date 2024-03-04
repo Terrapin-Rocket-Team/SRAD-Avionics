@@ -6,20 +6,20 @@ class BNO055 : public IMU
 {
 private:
     Adafruit_BNO055 bno;
-    uint8_t SCK_pin;
-    uint8_t SDA_pin;
-    imu::Vector<3> acceleration_vec;
-    imu::Vector<3> orientation_euler;
+    uint8_t SCKPin;
+    uint8_t SDAPin;
+    imu::Vector<3> accelerationVec;
+    imu::Vector<3> orientationEuler;
     imu::Quaternion orientation;
     imu::Vector<3> magnetometer;
-    imu::Vector<3> initial_mag_field;
+    imu::Vector<3> initialMagField;
 
 public:
     BNO055(uint8_t SCK, uint8_t SDA);
     void calibrate_bno();
     imu::Quaternion getOrientation();
     // gives linear_acceleration in m/s/s, which excludes gravity
-    imu::Vector<3> get_acceleration();
+    imu::Vector<3> getAcceleration();
     imu::Vector<3> getOrientationEuler();
     // values in uT, micro Teslas
     imu::Vector<3> getMagnetometer();

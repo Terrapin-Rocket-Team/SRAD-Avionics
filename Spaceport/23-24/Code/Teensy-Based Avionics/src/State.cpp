@@ -143,9 +143,9 @@ void State::updateState()
         measurements[2] = gps->getDisplace().z();
         measurements[3] = baro->getRelAltM();
         // imu x y z
-        inputs[0] = imu->get_acceleration().x();
-        inputs[1] = imu->get_acceleration().y();
-        inputs[2] = imu->get_acceleration().z(); // remove g
+        inputs[0] = imu->getAcceleration().x();
+        inputs[1] = imu->getAcceleration().y();
+        inputs[2] = imu->getAcceleration().z(); // remove g
         akf::updateFilter(kfilter, timeAbsolute, gps ? 1 : 0, baro ? 1 : 0, imu ? 1 : 0, measurements, inputs, &predictions);
         // time, pos x, y, z, vel x, y, z, acc x, y, z
         // ignore time return value.
@@ -185,7 +185,7 @@ void State::updateState()
         }
         if (*imu)
         {
-            acceleration = (*imu)->get_acceleration();
+            acceleration = (*imu)->getAcceleration();
             orientation = (*imu)->getOrientation();
         }
     }
@@ -313,7 +313,7 @@ void State::determineAccelerationMagnitude()
 
 void State::determineStage()
 {
-    if (stageNumber == 0 && (*imu)->get_acceleration().z() > 29 && (*baro)->getRelAltFt() > 30)
+    if (stageNumber == 0 && (*imu)->getAcceleration().z() > 29 && (*baro)->getRelAltFt() > 30)
     {
         // digitalWrite(33, HIGH);
         setRecordMode(FLIGHT);

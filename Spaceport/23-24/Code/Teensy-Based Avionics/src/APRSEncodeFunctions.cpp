@@ -25,7 +25,7 @@ SOFTWARE.
 #include "APRSEncodeFunctions.h"
 
 // takes in decimal minutes and converts to MM.dddd
-char *s_min_nn(uint32_t min_nnnnn, int high_precision)
+char *sMin_nn(uint32_t min_nnnnn, int high_precision)
 {
     /* min_nnnnn: RawDegrees billionths is uint32_t by definition and is n'telth
      * degree (-> *= 6 -> nn.mmmmmm minutes) high_precision: 0: round at decimal
@@ -94,7 +94,7 @@ void create_lat_aprs(char *lat, bool hp)
     if (missingDigits > 0)
         for (int i = 0; i < missingDigits; i++)
             dec *= 10;
-    sprintf(lat, "%02d%s%c", atoi(lat) * (negative ? -1 : 1), s_min_nn(dec, hp), negative ? 'S' : 'N');
+    sprintf(lat, "%02d%s%c", atoi(lat) * (negative ? -1 : 1), sMin_nn(dec, hp), negative ? 'S' : 'N');
 }
 
 // creates the longitude string for the APRS message based on whether the GPS coordinates are high precision
@@ -128,7 +128,7 @@ void create_long_aprs(char *lng, bool hp)
     if (missingDigits > 0)
         for (int i = 0; i < missingDigits; i++)
             dec *= 10;
-    sprintf(lng, "%02d%s%c", atoi(lng) * (negative ? -1 : 1), s_min_nn(dec, hp), negative ? 'W' : 'E');
+    sprintf(lng, "%02d%s%c", atoi(lng) * (negative ? -1 : 1), sMin_nn(dec, hp), negative ? 'W' : 'E');
 }
 
 // creates the dao at the end of aprs message based on latitude and longitude
@@ -147,7 +147,7 @@ void create_dao_aprs(char *lat, char *lng, char *dao)
         if (lat[i] == '.')
             decimalPos = i;
     }
-    sprintf(dao, "!w%s", s_min_nn(atoi(lat + decimalPos + 1), 2));
+    sprintf(dao, "!w%s", sMin_nn(atoi(lat + decimalPos + 1), 2));
 
     len = strlen(lng);
     decimalPos = 0;
@@ -156,7 +156,7 @@ void create_dao_aprs(char *lat, char *lng, char *dao)
         if (lng[i] == '.')
             decimalPos = i;
     }
-    sprintf(dao + 3, "%s!", s_min_nn(atoi(lng + decimalPos + 1), 2));
+    sprintf(dao + 3, "%s!", sMin_nn(atoi(lng + decimalPos + 1), 2));
 }
 
 // adds a specified number of zeros to the begining of a number
