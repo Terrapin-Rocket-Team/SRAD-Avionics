@@ -7,7 +7,6 @@
 class FakeGPS : public GPS
 {
 public:
-    void read_gps() {}
     void feedData(double pos_x, double pos_y, double pos_z, double h)
     {
         if(initial_latitude == 0 || initial_longitude == 0){
@@ -47,7 +46,6 @@ public:
     void *getData() override { return nullptr; }
     imu::Vector<3> getOriginPos() { return imu::Vector<3>(0, 0, 0); }
     imu::Vector<3> getDisplace() { return imu::Vector<3>(0, 0, 0); }
-    double get_gps_time(){return 0;}
     int getFixQual(){return 6;}
     const char *getName() override { return "FakeGPS"; }
     void update() override {}

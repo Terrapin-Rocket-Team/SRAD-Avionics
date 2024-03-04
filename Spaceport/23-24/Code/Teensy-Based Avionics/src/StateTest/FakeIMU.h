@@ -20,7 +20,7 @@ public:
     }
     bool initialize() { return true; }
     imu::Quaternion getOrientation() { return ori; }
-    imu::Vector<3> get_acceleration() { return acc; }
+    imu::Vector<3> getAcceleration() { return acc; }
 
     const char *getCsvHeader()
     {                                                                                     // incl I- for IMU

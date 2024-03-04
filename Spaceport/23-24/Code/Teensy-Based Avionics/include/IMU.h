@@ -13,7 +13,7 @@ class IMU : public Sensor{
 public:
     virtual ~IMU() {}; //Virtual descructor. Very important
     virtual imu::Quaternion getOrientation() = 0;
-    virtual imu::Vector<3> get_acceleration() = 0;
+    virtual imu::Vector<3> getAcceleration() = 0;
     virtual imu::Vector<3> getOrientationEuler() = 0;
     virtual imu::Vector<3> getMagnetometer() = 0;
     virtual SensorType getType() override { return IMU_; }

@@ -11,8 +11,8 @@ class BMP390 : public Barometer
 {
 private:
     Adafruit_BMP3XX bmp;
-    uint8_t SCK_pin;
-    uint8_t SDA_pin;
+    uint8_t SCKPin;
+    uint8_t SDAPin;
     double groundPressure;
     double pressure; // hPa
     double temp;     // C
@@ -20,7 +20,7 @@ private:
 
 public:
     BMP390(uint8_t SCK, uint8_t SDA);
-    double get_pressure();
+    double getPressure();
     double getTemp();
     double getTempF();
     double getPressureAtm();

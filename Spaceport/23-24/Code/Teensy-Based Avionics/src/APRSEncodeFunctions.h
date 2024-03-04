@@ -37,7 +37,7 @@ SOFTWARE.
 // TODO
 #endif
 
-char *s_min_nn(uint32_t min_nnnnn, int high_precision);
+char *sMin_nn(uint32_t min_nnnnn, int highPrecision);//intentionally using snake_case for readability
 void create_lat_aprs(char *lat, bool hp);
 void create_long_aprs(char *lng, bool hp);
 void create_dao_aprs(char *lat, char *lng, char *dao);

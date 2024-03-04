@@ -7,7 +7,7 @@
 class Barometer: public Sensor{
 public:
     virtual ~Barometer() {}; //Virtual descructor. Very important
-    virtual double get_pressure() = 0;
+    virtual double getPressure() = 0;
     virtual double getTemp() = 0;
     virtual double getTempF() = 0;
     virtual double getPressureAtm() = 0;

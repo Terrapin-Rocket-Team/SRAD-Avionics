@@ -14,7 +14,7 @@ public:
     }
     void *getData() {return &alt; }
     double getTemp() { return press; }
-    double get_pressure() { return temp; }
+    double getPressure() { return temp; }
     double getRelAltM() { return alt; }
     bool initialize() { return true; }
 
@@ -28,7 +28,7 @@ public:
         // float x3
         const int size = 12 * 3 + 3;
         char *data = new char[size];
-        snprintf(data, size, "%.2f,%.2f,%.2f,", get_pressure(), getTemp(), getRelAltM()); // trailing comma
+        snprintf(data, size, "%.2f,%.2f,%.2f,", getPressure(), getTemp(), getRelAltM()); // trailing comma
         return data;
     }
     char *getStaticDataString()

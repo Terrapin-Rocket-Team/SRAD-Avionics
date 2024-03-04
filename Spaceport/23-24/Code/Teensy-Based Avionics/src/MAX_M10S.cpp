@@ -5,10 +5,10 @@ Constructor for Max-M10s
 */
 MAX_M10S::MAX_M10S(uint8_t SCK, uint8_t SDA, uint8_t address)
 {
-    SCK_pin = SCK;
-    SDA_pin = SDA;
+    SCKPin = SCK;
+    SDAPin = SDA;
 
-    first_fix = false;
+    hasFirstFix = false;
     origin.x() = 0;
     origin.y() = 0;
     origin.z() = 0;
@@ -21,10 +21,10 @@ MAX_M10S::MAX_M10S(uint8_t SCK, uint8_t SDA, uint8_t address)
     displacement.x() = 0;
     displacement.y() = 0;
     displacement.z() = 0;
-    irl_time.x() = 0;
-    irl_time.y() = 0;
-    irl_time.z() = 0;
-    fix_qual = 0;
+    irlTime.x() = 0;
+    irlTime.y() = 0;
+    irlTime.z() = 0;
+    fixQual = 0;
 }
 
 // need to update origin some how
@@ -66,14 +66,14 @@ void MAX_M10S::update()
 
     heading = m10s.getHeading();
     altitude = m10s.getAltitude() / 1000.0;
-    fix_qual = m10s.getSIV();
-    if (!first_fix && fix_qual >= 3)
+    fixQual = m10s.getSIV();
+    if (!hasFirstFix && fixQual >= 3)
     {
         recordLogData(INFO, "GPS has first fix."); //Log this data when the new data logging branch is merged.
         digitalWrite(33, HIGH);
         delay(1000);
         digitalWrite(33, LOW);
-        first_fix = true;
+        hasFirstFix = true;
         origin.x() = pos.x();
         origin.y() = pos.y();
         origin.z() = altitude;
@@ -142,7 +142,7 @@ imu::Vector<3> MAX_M10S::getOriginPos()
 
 bool MAX_M10S::get_first_fix()
 {
-    return first_fix;
+    return hasFirstFix;
 }
 
 /*
@@ -159,7 +159,7 @@ return the number of satellites to indicate quality of data
 */
 int MAX_M10S::getFixQual()
 {
-    return fix_qual;
+    return fixQual;
 }
 
 void *MAX_M10S::getData()
@@ -176,7 +176,7 @@ char *MAX_M10S::getDataString()
     // See State.cpp::setDataString() for comments on what these numbers mean. 15 for GPS.
     const int size = 15 * 2 + 12 * 4 + 10 * 1 + 10 + 8;
     char *data = new char[size];
-    snprintf(data, size, "%.10f,%.10f,%.2f,%.2f,%.2f,%.2f,%.2f,%s,%d,", pos.x(), pos.y(), altitude, velocity.magnitude(), displacement.x(), displacement.y(), displacement.z(), gps_time, fix_qual); // trailing comma
+    snprintf(data, size, "%.10f,%.10f,%.2f,%.2f,%.2f,%.2f,%.2f,%s,%d,", pos.x(), pos.y(), altitude, velocity.magnitude(), displacement.x(), displacement.y(), displacement.z(), gps_time, fixQual); // trailing comma
     return data;
 }
 char *MAX_M10S::getStaticDataString()
