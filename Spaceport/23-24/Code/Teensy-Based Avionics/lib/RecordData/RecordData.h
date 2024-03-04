@@ -2,13 +2,31 @@
 #define RECORD_DATA_H
 
 #include "psram.h"
-// #include "../State/State.h"
+#include "sdCard.h"
 
-extern int PRE_FLIGHT_DATA_DUMP_DURATION;
-extern int PRE_FLIGHT_TIME_SINCE_LAST_DUMP;
-extern int PRE_FLIGHT_TIME_OF_LAST_DUMP;
+extern PSRAM *ram;
 
-void recordData(char *data, int stage); //0 is preflight, 5 is postflight.
-void dataToPSRAM(char *data);
 
+enum LogType
+{
+    LOG,
+    ERROR,
+    WARNING,
+    INFO
+};
+enum Dest
+{
+    BOTH,
+    TO_USB,
+    TO_FILE
+};
+enum Mode
+{
+    FLIGHT,
+    GROUND
+};
+void recordFlightData(char *data); //0 is preflight, 5 is postflight.
+void recordLogData(LogType type, const char *data, Dest dest = BOTH);
+void recordLogData(double timeStamp, LogType type, const char *data, Dest dest = BOTH);
+void setRecordMode(Mode mode);//Will enable or disable the PSRAM based on the mode. If mode is GROUND, PSRAM will be disabled and all data in PSRAM will be written to the SD card. If mode is FLIGHT, PSRAM will be enabled.
 #endif

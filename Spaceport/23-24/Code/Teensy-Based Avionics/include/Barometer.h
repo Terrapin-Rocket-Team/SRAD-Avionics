@@ -13,7 +13,9 @@ public:
     virtual double get_pressure_atm() = 0;
     virtual double get_rel_alt_ft() = 0;
     virtual double get_rel_alt_m() = 0;
-    virtual void * get_data() = 0;
+
+    virtual const char* getTypeString() override { return "Barometer"; }
+    virtual SensorType getType() override { return BAROMETER_; }
 };
 
 

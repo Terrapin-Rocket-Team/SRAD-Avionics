@@ -22,12 +22,12 @@ public:
     imu::Quaternion get_orientation() { return ori; }
     imu::Vector<3> get_acceleration() { return acc; }
 
-    const char *getcsvHeader()
+    const char *getCsvHeader()
     {                                                                                     // incl I- for IMU
         return "I-AX (m/s/s),I-AY (m/s/s),I-AZ (m/s/s),I-QUATX,I-QUATY,I-QUATZ,I-QUATW,"; // trailing comma
     }
 
-    char *getdataString()
+    char *getDataString()
     {
         const int size = 12 * 7 + 10;
         char *data = new char[size];
@@ -44,7 +44,9 @@ public:
 
     imu::Vector<3> get_orientation_euler() { return imu::Vector<3>(0, 0, 0); }
     imu::Vector<3> get_magnetometer() { return imu::Vector<3>(0, 0, 0); }
-    void *get_data() { return nullptr; }
+    void *getData() { return nullptr; }
+    const char *getName() { return "FakeIMU"; }
+    void update() {}
 
 private:
     imu::Quaternion ori;
