@@ -102,7 +102,6 @@ void setup()
     digitalWrite(LED_BUILTIN, LOW);
     sendSDCardHeader(computer.getCsvHeader());
 }
-static double times;
 static bool more = false;
 void loop()
 {
@@ -122,12 +121,6 @@ void loop()
     last = time;
     computer.updateState();
     recordLogData(INFO, computer.getStateString(), TO_USB);
-    // Serial.print(millis() - times);
-    // Serial.print("/");
-    // Serial.print(millis() - time);
-    // Serial.print(" ms ");
-
-    //times = millis();
 
 
     // RASPBERRY PI TURN ON

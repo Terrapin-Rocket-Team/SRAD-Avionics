@@ -47,6 +47,7 @@ State::State(bool useKalmanFilter)
     // imu x y z
     inputs = new double[3]{1, 1, 1};
     kfilter = new akf::KFState();
+    strcpy(launchTimeOfDay, "00:00:00");
 }
 State::~State()
 {
@@ -319,7 +320,7 @@ void State::determineStage()
         stageNumber = 1;
         timeOfLaunch = timeAbsolute;
         timePreviousStage = timeAbsolute;
-        launchTimeOfDay = (*gps)->getTimeOfDay();
+        strcpy(launchTimeOfDay, (*gps)->getTimeOfDay());
         recordLogData(INFO, "Launch detected.");
         recordLogData(INFO, "Printing static data.");
         for (int i = 0; i < NUM_MAX_SENSORS; i++)
