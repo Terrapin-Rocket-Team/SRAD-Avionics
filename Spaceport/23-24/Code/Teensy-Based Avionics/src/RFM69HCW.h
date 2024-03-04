@@ -38,17 +38,25 @@ struct RadioSettings
 class RFM69HCW : public Radio
 {
 public:
-    RFM69HCW(const RadioSettings s, const APRSConfig config);
+    RFM69HCW(const RadioSettings *s, const APRSConfig *config);
     bool begin() override;
-    bool tx(const char *message) override;
+    bool tx(const char *message, int len = -1) override;
+    bool sendBuffer();
+    void endtx();
     const char *rx() override;
-    bool encode(char *message, EncodingType type) override;
-    bool decode(char *message, EncodingType type) override;
-    bool send(const char *message, EncodingType type) override;
+    bool busy();
+    bool encode(char *message, EncodingType type, int len = -1) override;
+    bool decode(char *message, EncodingType type, int len = -1) override;
+    bool send(const char *message, EncodingType type, int len = -1) override;
     const char *receive(EncodingType type) override;
     int RSSI() override;
     bool available();
     void set300KBPS();
+
+    // stores full messages, max length determined by platform
+    char msg[MSG_LEN + 1];
+    // length of msg for recieving binary messages
+    int msgLen = 0;
 
 private:
     RH_RF69 radio;
@@ -68,9 +76,7 @@ private:
     APRSConfig cfg;
     bool avail;
     int rssi;
-    int incomingMsgLen;
-    // stores full messages, max length determined by platform
-    char msg[MSG_LEN + 1];
+    int totalPackets;
 };
 
 #endif // RFM69HCW_H

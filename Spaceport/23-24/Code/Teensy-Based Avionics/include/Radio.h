@@ -33,11 +33,11 @@ class Radio
 public:
     virtual ~Radio(){}; // Virtual descructor. Very important
     virtual bool begin() = 0;
-    virtual bool tx(const char *message) = 0;
+    virtual bool tx(const char *message, int len = -1) = 0;
     virtual const char *rx() = 0;
-    virtual bool encode(char *message, EncodingType type) = 0;
-    virtual bool decode(char *message, EncodingType type) = 0;
-    virtual bool send(const char *message, EncodingType type) = 0;
+    virtual bool encode(char *message, EncodingType type, int len = -1) = 0;
+    virtual bool decode(char *message, EncodingType type, int len = -1) = 0;
+    virtual bool send(const char *message, EncodingType type, int len = -1) = 0;
     virtual const char *receive(EncodingType type) = 0;
     virtual int RSSI() = 0;
 };
