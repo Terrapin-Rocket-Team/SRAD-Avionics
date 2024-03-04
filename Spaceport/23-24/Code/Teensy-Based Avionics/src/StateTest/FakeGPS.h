@@ -21,11 +21,11 @@ public:
         heading = h;
     }
     bool initialize() override { return true; }
-    imu::Vector<2> get_pos() { return pos; }
-    double get_alt(){return alt;}
-    imu::Vector<3> get_velocity() {return imu::Vector<3>(0,0,0);}
+    imu::Vector<2> getPos() { return pos; }
+    double getAlt(){return alt;}
+    imu::Vector<3> getVelocity() {return imu::Vector<3>(0,0,0);}
 
-    double get_heading() override { return heading; }
+    double getHeading() override { return heading; }
 
     const char *getCsvHeader() override
     {                                                                                                                                                // incl G- for GPS
@@ -45,13 +45,13 @@ public:
     }
 
     void *getData() override { return nullptr; }
-    imu::Vector<3> get_origin_pos() { return imu::Vector<3>(0, 0, 0); }
-    imu::Vector<3> get_displace() { return imu::Vector<3>(0, 0, 0); }
+    imu::Vector<3> getOriginPos() { return imu::Vector<3>(0, 0, 0); }
+    imu::Vector<3> getDisplace() { return imu::Vector<3>(0, 0, 0); }
     double get_gps_time(){return 0;}
-    int get_fix_qual(){return 6;}
+    int getFixQual(){return 6;}
     const char *getName() override { return "FakeGPS"; }
     void update() override {}
-    char *get_time_of_day() override { return "00:00:00"; }
+    char *getTimeOfDay() override { return "00:00:00"; }
 
 private:
     imu::Vector<2> pos;

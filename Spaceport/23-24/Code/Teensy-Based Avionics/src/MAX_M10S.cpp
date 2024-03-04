@@ -97,7 +97,7 @@ void MAX_M10S::update()
 /*
 return altitude in m
 */
-double MAX_M10S::get_alt()
+double MAX_M10S::getAlt()
 {
     return altitude;
 }
@@ -105,12 +105,12 @@ double MAX_M10S::get_alt()
 /*
 returns the lat and long of the rocket to the 7th sig fig
 */
-imu::Vector<2> MAX_M10S::get_pos()
+imu::Vector<2> MAX_M10S::getPos()
 {
     return pos;
 } 
 
-double MAX_M10S::get_heading() {
+double MAX_M10S::getHeading() {
     return heading;
 }
 
@@ -118,7 +118,7 @@ double MAX_M10S::get_heading() {
 return the velocity (meters per second)
 there probably issues with floating points
 */
-imu::Vector<3> MAX_M10S::get_velocity()
+imu::Vector<3> MAX_M10S::getVelocity()
 {
     return velocity;
 }
@@ -127,7 +127,7 @@ imu::Vector<3> MAX_M10S::get_velocity()
 retern the displacement since the origin
 there is probably issues with floating point arithmetic
 */
-imu::Vector<3> MAX_M10S::get_displace()
+imu::Vector<3> MAX_M10S::getDisplace()
 {
     return displacement;
 }
@@ -135,7 +135,7 @@ imu::Vector<3> MAX_M10S::get_displace()
 /*
 returns vector of orginal position in lat(deg), lat(deg), and alti(m)
 */
-imu::Vector<3> MAX_M10S::get_origin_pos()
+imu::Vector<3> MAX_M10S::getOriginPos()
 {
     return origin;
 }
@@ -148,7 +148,7 @@ bool MAX_M10S::get_first_fix()
 /*
 time since in initialization in seconds
 */
-char *MAX_M10S::get_time_of_day()
+char *MAX_M10S::getTimeOfDay()
 {
     snprintf(gps_time, 9, "%02d:%02d:%02d", hr, min, sec);
     return gps_time;
@@ -157,7 +157,7 @@ char *MAX_M10S::get_time_of_day()
 /*
 return the number of satellites to indicate quality of data
 */
-int MAX_M10S::get_fix_qual()
+int MAX_M10S::getFixQual()
 {
     return fix_qual;
 }

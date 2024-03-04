@@ -28,15 +28,15 @@ private:
 
 public:
     MAX_M10S(uint8_t SCK, uint8_t SDA, uint8_t address);
-    double get_alt();
-    imu::Vector<3> get_velocity();
-    imu::Vector<2> get_pos();
-    imu::Vector<3> get_displace();
-    char *get_time_of_day();
+    double getAlt();
+    imu::Vector<3> getVelocity();
+    imu::Vector<2> getPos();
+    imu::Vector<3> getDisplace();
+    char *getTimeOfDay();
     bool get_first_fix();
-    imu::Vector<3> get_origin_pos();
-    int get_fix_qual();
-    double get_heading();
+    imu::Vector<3> getOriginPos();
+    int getFixQual();
+    double getHeading();
     void *getData();
 
     bool initialize() override;
