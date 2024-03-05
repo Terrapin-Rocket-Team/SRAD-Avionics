@@ -26,7 +26,6 @@ public:
     double getPressureAtm();
     double getRelAltFt();
     double getRelAltM();
-    void *getData();
     bool initialize() override;
     const char *getCsvHeader() override;
     char *getDataString() override;
