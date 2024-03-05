@@ -29,11 +29,11 @@ public:
     bool addSensor(Sensor *sensor, int sensorNum = 1);     // add more than one sensor of the same type, and specify which number this one is. 1 indexed. i.e. addSensor(gps, 2) adds the second GPS sensor.
     Sensor *getSensor(SensorType type, int sensorNum = 1); // get a sensor of a certain type. 1 indexed. i.e. getSensor(GPS, 1) gets the first GPS sensor.
 
-    // deprecated to improve flexibility and extendability |
+    // deprecated to improve flexibility and extendability
     Barometer *getBaro(); // |
     GPS *getGPS();        // |
     IMU *getIMU();        // |
-    // deprecated to improve flexibility and extendability |
+    // deprecated to improve flexibility and extendability
 
     Radio *getRadio();
     void setRadio(Radio *r);
@@ -51,7 +51,7 @@ private:
     // example if you have more than one of the same sensor type:
     // constexpr SensorType SENSOR_ORDER[] = {BAROMETER_, BAROMETER_, GPS_, IMU_}; or
     // constexpr SensorType SENSOR_ORDER[] = {BAROMETER_, GPS_, IMU_, BAROMETER_}; It doesn't what order they're in, as long as they're in the array.
-    static constexpr char SENSOR_NAMES[][10] = {"Barometer", "GPS", "IMU"/*, "Barometer 2"*/}; // make this array the same length as NUM_MAX_SENSORS and fill it with the names of the sensors in the same order as SENSOR_ORDER
+    static constexpr char SENSOR_NAMES[][10] = {"Barometer", "GPS", "IMU" /*, "Barometer 2"*/}; // make this array the same length as NUM_MAX_SENSORS and fill it with the names of the sensors in the same order as SENSOR_ORDER
 
     Sensor *sensors[NUM_MAX_SENSORS];
     int numSensors; // how many sensors are actually enabled
@@ -81,7 +81,7 @@ private:
     void determineStage();
     bool applySensorType(int i, int sensorNum); // assigns values to the sensor variables.
     void setCsvString(char *str, const char *start, int startSize, bool header);
-    bool sensorOK(Sensor* sensor);
+    bool sensorOK(Sensor *sensor);
 
     // State variables
     double apogee; // in m above start position
