@@ -7,7 +7,7 @@ BMP390::BMP390(uint8_t SCK, uint8_t SDA)
 {
     SCKPin = SCK;
     SDAPin = SDA;
-    
+
 }
 
 bool BMP390::initialize()
@@ -88,7 +88,7 @@ char *BMP390::getDataString()
     // float x3
     const int size = 12 * 3 + 3;
     char *data = new char[size];
-    snprintf(data, size, "%.2f,%.2f,%.2f,", pressure, temp, altitude); // trailing comma
+    snprintf(data, size, "%.2f,%.2f,%.2f,", pressure, temp, getRelAltFt()); // trailing comma
     return data;
 }
 
