@@ -1,7 +1,6 @@
 #include "State.h"
-
 #pragma region Constructor and Destructor
-State::State(bool useKalmanFilter)
+State::State(bool useKalmanFilter, bool stateRecordsOwnFlightData)
 {
     timeAbsolute = millis();
     timePreviousStage = 0;
@@ -28,7 +27,7 @@ State::State(bool useKalmanFilter)
     csvHeader = nullptr;
 
     numSensors = 0;
-    recordOwnFlightData = true;
+    recordOwnFlightData = stateRecordsOwnFlightData;
     for (int i = 0; i < NUM_MAX_SENSORS; i++)
         sensors[i] = nullptr;
 
@@ -57,10 +56,8 @@ State::~State()
 
 #pragma endregion
 
-bool State::init(bool stateRecordsOwnFlightData)
+bool State::init()
 {
-
-    recordOwnFlightData = stateRecordsOwnFlightData;
     char *logData = new char[100];
     int good = 0, tryNumSensors = 0;
     for (int i = 0; i < NUM_MAX_SENSORS; i++)
@@ -84,8 +81,14 @@ bool State::init(bool stateRecordsOwnFlightData)
                 strcat(logData, sensors[i]->getName());
                 strcat(logData, "] failed to initialize.");
                 recordLogData(ERROR, logData);
-                sensors[i] = nullptr;
             }
+        }
+        else
+        {
+            strcpy(logData, "Sensor [");
+            strcat(logData, SENSOR_NAMES[i]);
+            strcat(logData, "] was not added via addSensor().");
+            recordLogData(ERROR, logData);
         }
     }
     if (radio)
@@ -97,7 +100,7 @@ bool State::init(bool stateRecordsOwnFlightData)
     setCsvHeader();
     if (useKF)
     {
-        initKF(gps ? 1 : 0, baro ? 1 : 0, imu ? 1 : 0);
+        initKF();
     }
     return good == tryNumSensors;
 }
@@ -106,47 +109,56 @@ void State::updateSensors()
 {
     for (int i = 0; i < NUM_MAX_SENSORS; i++)
     {
-        if (sensors[i])
+        if (sensorOK(sensors[i]))
+        { // not nullptr and initialized
             sensors[i]->update();
-        Wire.beginTransmission(0x42);
-        byte b = Wire.endTransmission();
-        if (b != 0x00)
-        {
-            Wire.end();
-            Wire.begin();
-            recordLogData(ERROR, "I2C Error");
-            sensors[i]->update();
-            delay(10);
-            sensors[i]->update();
+            Wire.beginTransmission(0x42);//random address for testing the i2c bus
+            byte b = Wire.endTransmission();
+            if (b != 0x00)
+            {
+                Wire.end();
+                Wire.begin();
+                recordLogData(ERROR, "I2C Error");
+                sensors[i]->update();
+                delay(10);
+                sensors[i]->update();
+            }
         }
     }
 }
 
 void State::updateState()
-{    
-    if(timeSinceLaunch > 0 && timeSinceLaunch < 2 )
+{
+    if (timeSinceLaunch > 0 && timeSinceLaunch < 2)
         digitalWrite(33, HIGH);
-    else{
+    else
         digitalWrite(33, LOW);
-    }
+
     if (stageNumber > 4 && landingCounter > 50) // if landed and waited 5 seconds, don't update sensors.
         return;
+    
     updateSensors();
-    if (useKF && (*gps)->getFixQual() > 5 && stageNumber > 0)
+    if (useKF && sensorOK(gps) && gps->getHasFirstFix() && stageNumber > 0)
     {
-        GPS *gps = *this->gps;
-        Barometer *baro = *this->baro;
-        IMU *imu = *this->imu;
         // gps x y z barometer z
         measurements[0] = gps->getDisplace().x();
         measurements[1] = gps->getDisplace().y();
         measurements[2] = gps->getDisplace().z();
-        measurements[3] = baro->getRelAltM();
+        measurements[3] = sensorOK(baro) ? baro->getRelAltM() : 0;
         // imu x y z
-        inputs[0] = imu->getAcceleration().x();
-        inputs[1] = imu->getAcceleration().y();
-        inputs[2] = imu->getAcceleration().z(); // remove g
-        akf::updateFilter(kfilter, timeAbsolute, gps ? 1 : 0, baro ? 1 : 0, imu ? 1 : 0, measurements, inputs, &predictions);
+        if(sensorOK(imu))
+        {
+            inputs[0] = imu->getAcceleration().x();
+            inputs[1] = imu->getAcceleration().y();
+            inputs[2] = imu->getAcceleration().z();
+        }
+        else//If this is false, the filter is basically useless as far as I understand.
+        {
+            inputs[0] = 0;
+            inputs[1] = 0;
+            inputs[2] = 0;
+        }
+        akf::updateFilter(kfilter, timeAbsolute, sensorOK(gps) ? 1 : 0, sensorOK(baro) ? 1 : 0, sensorOK(imu) ? 1 : 0, measurements, inputs, &predictions);
         // time, pos x, y, z, vel x, y, z, acc x, y, z
         // ignore time return value.
         position.x() = predictions[1];
@@ -159,42 +171,43 @@ void State::updateState()
         acceleration.y() = predictions[8];
         acceleration.z() = predictions[9];
 
-        orientation = imu->getOrientation();
+        orientation = sensorOK(imu) ? imu->getOrientation() : imu::Quaternion(0, 0, 0, 1);
 
-        if (baro)
+        if (sensorOK(baro))
         {
-            baroVelocity = ((baro)->getRelAltM() - baroOldAltitude) / (millis() / 1000.0 - timeAbsolute);
-            baroOldAltitude = (baro)->getRelAltM();
+            baroVelocity = (baro->getRelAltM() - baroOldAltitude) / (millis() / 1000.0 - timeAbsolute);
+            baroOldAltitude = baro->getRelAltM();
         }
-
     }
     else
     {
-        if (*gps)
+        if (sensorOK(gps))
         {
-            position = imu::Vector<3>((*gps)->getDisplace().x(), (*gps)->getDisplace().y(), (*gps)->getAlt());
-            velocity = (*gps)->getVelocity();
-            heading_angle = (*gps)->getHeading();
+            position = imu::Vector<3>(gps->getDisplace().x(), gps->getDisplace().y(), gps->getAlt());
+            velocity = gps->getVelocity();
+            heading_angle = gps->getHeading();
         }
-        if (*baro)
+        if (sensorOK(baro))
         {
-            velocity.z() = ((*baro)->getRelAltM() - position.z()) / (millis() / 1000.0 - timeAbsolute);
-            position.z() = (*baro)->getRelAltM();
-            baroVelocity = ((*baro)->getRelAltM() - baroOldAltitude) / (millis() / 1000.0 - timeAbsolute);
-            baroOldAltitude = (*baro)->getRelAltM();
+            velocity.z() = (baro->getRelAltM() - position.z()) / (millis() / 1000.0 - timeAbsolute);
+            position.z() = baro->getRelAltM();
+            baroVelocity = (baro->getRelAltM() - baroOldAltitude) / (millis() / 1000.0 - timeAbsolute);
+            baroOldAltitude = baro->getRelAltM();
         }
-        if (*imu)
+        if (sensorOK(imu))
         {
-            acceleration = (*imu)->getAcceleration();
-            orientation = (*imu)->getOrientation();
+            acceleration = imu->getAcceleration();
+            orientation = imu->getOrientation();
         }
     }
     timeAbsolute = millis() / 1000.0;
-    timeSinceLaunch = timeAbsolute - timeOfLaunch;
     determineAccelerationMagnitude();
     determineStage();
+    if(stageNumber > 0)
+        timeSincePreviousStage = timeAbsolute - timePreviousStage;
     if (stageNumber < 3)
         apogee = position.z();
+
     // backup case to dump data (25 minutes)
     if (stageNumber > 0 && timeSinceLaunch > 1500 && stageNumber < 5)
     {
@@ -237,13 +250,13 @@ char *State::getStateString()
 {
     delete[] stateString;
     stateString = new char[500]; // way oversized for right now.
-    snprintf(stateString, 500, "%.2f,%.2f,%s,%.2f|%.2f,%.2f,%.2f|%.2f,%.2f,%.2f|%.7f,%.7f,%.2f|%.2f,%.2f,%.2f,%.2f|%d",
+    snprintf(stateString, 500, "%.2f,%.2f,%s,%.2f|%.2f,%.2f,%.2f|%.2f,%.2f,%.2f|%.7f,%.7f,%.2f|%.2f,%.2f,%.2f,%.2f|%.2f",
              timeAbsolute, timeSinceLaunch, STAGES[stageNumber], timeSincePreviousStage,
              acceleration.x(), acceleration.y(), acceleration.z(),
              velocity.x(), velocity.y(), velocity.z(),
              position.x(), position.y(), position.z(),
              orientation.x(), orientation.y(), orientation.z(), orientation.w(),
-             (*gps)->getFixQual());
+             apogee);
     return stateString;
 }
 
@@ -252,53 +265,74 @@ char *State::getCsvHeader() { return csvHeader; }
 int State::getStageNum() { return stageNumber; }
 
 #pragma region Getters and Setters for Sensors
+
 void State::setRadio(Radio *r) { radio = r; }
 Radio *State::getRadio() { return radio; }
-bool State::addSensor(Sensor *sensor)
+bool State::addSensor(Sensor *sensor, int sensorNum)
 {
+    int modifiedNum = sensorNum;
     for (int i = 0; i < NUM_MAX_SENSORS; i++)
     {
-        if (sensors[i] == nullptr)
+        if (SENSOR_ORDER[i] == sensor->getType() && --modifiedNum == 0)
         {
             sensors[i] = sensor;
-            return applySensorType(i);
+            return applySensorType(i, sensorNum);
         }
     }
     return false;
 }
 
-Sensor *State::getSensor(SensorType type)
+Sensor *State::getSensor(SensorType type, int sensorNum)
 {
     for (int i = 0; i < NUM_MAX_SENSORS; i++)
     {
-        if (sensors[i] && sensors[i]->getType() == type)
+        if (SENSOR_ORDER[i] == sensors[i]->getType() && --sensorNum == 0)
+        {
             return sensors[i];
+        }
     }
     return nullptr;
 }
 
 // deprecated
-Barometer *State::getBaro() { return *baro; }
-GPS *State::getGPS() { return *gps; }
-IMU *State::getIMU() { return *imu; }
+Barometer *State::getBaro() { return baro; }
+GPS *State::getGPS() { return gps; }
+IMU *State::getIMU() { return imu; }
 #pragma endregion
 
 #pragma region Helper Functions
 
-bool State::applySensorType(int i)
+bool State::applySensorType(int i, int sensorNum)
 {
     bool good = true;
     switch (sensors[i]->getType())
     {
     case BAROMETER_:
-        baro = (Barometer **)&sensors[i];
+
+        if (sensorNum == 1)
+            baro = (Barometer *)&sensors[i];
+        // else if (sensorNum == 2)//If you have more than one of the same type, add them like so.
+        //    baro2 = (Barometer *)&sensors[i];
+        else
+            good = false;
         break;
+
     case GPS_:
-        gps = (GPS **)&sensors[i];
+
+        if (sensorNum == 1)
+            gps = (GPS *)&sensors[i];
+        else
+            good = false;
         break;
+
     case IMU_:
-        imu = (IMU **)&sensors[i];
+
+        if (sensorNum == 1)
+            imu = (IMU *)&sensors[i];
+        else
+            good = false;
         break;
+
     default:
         good = false;
         break;
@@ -313,27 +347,34 @@ void State::determineAccelerationMagnitude()
 
 void State::determineStage()
 {
-    if (stageNumber == 0 && (*imu)->getAcceleration().z() > 29 && (*baro)->getRelAltFt() > 30)
+    if (stageNumber == 0 && 
+    (sensorOK(imu) || sensorOK(baro)) && 
+    (sensorOK(imu) ? imu->getAcceleration().z() > 29 : true) && 
+    (sensorOK(baro) ? baro->getRelAltFt() > 30 : true))
+    //if we are in preflight AND
+    //we have either the IMU OR the barometer AND
+    //imu is ok AND the z acceleration is greater than 29 ft/s^2 OR imu is not ok AND
+    //barometer is ok AND the relative altitude is greater than 30 ft OR baro is not ok
+
+    //essentially, if we have either sensor and they meet launch threshold, launch. Otherwise, it will never detect a launch.
     {
-        // digitalWrite(33, HIGH);
         setRecordMode(FLIGHT);
         stageNumber = 1;
         timeOfLaunch = timeAbsolute;
         timePreviousStage = timeAbsolute;
-        strcpy(launchTimeOfDay, (*gps)->getTimeOfDay());
+        strcpy(launchTimeOfDay, gps->getTimeOfDay());
         recordLogData(INFO, "Launch detected.");
         recordLogData(INFO, "Printing static data.");
         for (int i = 0; i < NUM_MAX_SENSORS; i++)
         {
-            if (sensors[i])
+            if (sensorOK(sensors[i]))
             {
                 char logData[200];
                 snprintf(logData, 200, "%s: %s", sensors[i]->getName(), sensors[i]->getStaticDataString());
                 recordLogData(INFO, logData);
             }
         }
-        // digitalWrite(33, LOW);
-    }
+    }//TODO: Add checks for each sensor being ok and decide what to do if they aren't.
     else if (stageNumber == 1 && acceleration.z() < 10)
     {
         stageNumber = 2;
@@ -347,12 +388,12 @@ void State::determineStage()
         stageNumber = 3;
         recordLogData(INFO, "Drogue conditions detected.");
     }
-    else if (stageNumber == 3 && (*baro)->getRelAltFt() < 1000 && timeSinceLaunch > 20) // This should be lowered
+    else if (stageNumber == 3 && baro->getRelAltFt() < 1000 && timeSinceLaunch > 20)
     {
         stageNumber = 4;
         recordLogData(INFO, "Main parachute conditions detected.");
     }
-    else if (stageNumber == 4 && baroVelocity > -1 && (*baro)->getRelAltFt() < 66 && timeSinceLaunch > 25)
+    else if (stageNumber == 4 && baroVelocity > -1 && baro->getRelAltFt() < 66 && timeSinceLaunch > 25)
     {
         stageNumber = 5;
         recordLogData(INFO, "Landing detected. Waiting for 5 seconds to dump data.");
@@ -379,12 +420,9 @@ void State::setCsvString(char *dest, const char *start, int startSize, bool head
     int size = startSize + 1; // includes '\0' at end of string for the end of dataString to use
     for (int i = 0; i < NUM_MAX_SENSORS; i++)
     {
-        if (sensors[i])
+        if (sensorOK(sensors[i]))
         {
-            if (header)
-                str[cursor] = sensors[i]->getCsvHeader();
-            else
-                str[cursor] = sensors[i]->getDataString();
+            str[cursor] = header ? sensors[i]->getCsvHeader() : sensors[i]->getDataString();
             size += strlen(str[cursor++]);
         }
     }
@@ -410,17 +448,24 @@ void State::setCsvString(char *dest, const char *start, int startSize, bool head
     dest[j - 1] = '\0'; // all strings have ',' at end so this gets rid of that and terminates it a character early.
 }
 
+bool State::sensorOK(Sensor *sensor)
+{
+    if (sensor && *sensor)// not nullptr and initialized
+        return true;
+    return false;
+}
+
 #pragma endregion
 
 bool State::transmit()
 {
     char data[200];
-    snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", (*gps)->getPos().x(), (*gps)->getPos().y(), (int)(*baro)->getRelAltFt(), (int)baroVelocity, (int)heading_angle, 'H', stageNumber, launchTimeOfDay);
+    snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", gps->getPos().x(), gps->getPos().y(), (int)baro->getRelAltFt(), (int)baroVelocity, (int)heading_angle, 'H', stageNumber, launchTimeOfDay);
     bool b = radio->send(data, ENCT_TELEMETRY);
     return b;
 }
 
-void State::initKF(bool useBaro, bool useGps, bool useImu)
+void State::initKF()
 {
     double pr_n = 0.2;
     double init_cov = 2;

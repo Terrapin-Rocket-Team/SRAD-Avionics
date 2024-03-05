@@ -5,18 +5,17 @@ Construtor for the BMP390 class, pass in the pin numbers for each of the I2C pin
 */
 BMP390::BMP390(uint8_t SCK, uint8_t SDA)
 {
-
     SCKPin = SCK;
     SDAPin = SDA;
+    
 }
 
 bool BMP390::initialize()
 {
-
     if (!bmp.begin_I2C())
     { // hardware I2C mode, can pass in address & alt Wire
         // Serial.println("Could not find a valid BMP390 sensor, check wiring!");
-        return false;
+        return initialized = false;
     }
 
     delay(1000);
@@ -39,14 +38,16 @@ bool BMP390::initialize()
         delay(25);
     }
     groundPressure = (startPressure / 100.0) / 100.0; // hPa
-    return true;
+    return initialized = true;
 }
+
 void BMP390::update()
 {
-    pressure = bmp.readPressure() / 100.0; // hPa
-    temp = bmp.readTemperature();          // C
+    pressure = bmp.readPressure() / 100.0;       // hPa
+    temp = bmp.readTemperature();                // C
     altitude = bmp.readAltitude(groundPressure); // m
 }
+
 double BMP390::getPressure()
 {
     return pressure;
@@ -77,13 +78,8 @@ double BMP390::getRelAltFt()
     return altitude * 3.28084;
 }
 
-void *BMP390::getData()
-{
-    return (void *)&altitude;
-}
-
 const char *BMP390::getCsvHeader()
-{ // incl  B- to indicate Barometer data  vvvv Why is this in ft and not m?
+{                                                 // incl  B- to indicate Barometer data  vvvv Why is this in ft and not m?
     return "B-Pres (hPa),B-Temp (C),B-Alt (ft),"; // trailing commas are very important
 }
 
@@ -92,7 +88,7 @@ char *BMP390::getDataString()
     // float x3
     const int size = 12 * 3 + 3;
     char *data = new char[size];
-    snprintf(data, size, "%.2f,%.2f,%.2f,", pressure, temp, altitude);//trailing comma
+    snprintf(data, size, "%.2f,%.2f,%.2f,", pressure, temp, altitude); // trailing comma
     return data;
 }
 

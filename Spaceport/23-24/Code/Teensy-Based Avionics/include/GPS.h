@@ -18,6 +18,7 @@ public:
     virtual char *getTimeOfDay() = 0;
     virtual int getFixQual() = 0;
     virtual double getHeading() = 0;
+    virtual bool getHasFirstFix() = 0;
 
     virtual const char *getTypeString() override { return "GPS"; }
     virtual SensorType getType() override { return GPS_; }

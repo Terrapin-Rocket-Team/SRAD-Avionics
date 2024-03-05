@@ -21,7 +21,6 @@ public:
     DateTime getPowerOnTime();
     DateTime getCurrentTime();
     DateTime setLaunchTime();
-    void *getData();
     bool initialize() override;
     const char *getCsvHeader() override;
     char *getDataString() override;

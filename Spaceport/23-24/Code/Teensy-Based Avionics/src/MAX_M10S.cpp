@@ -42,14 +42,14 @@ bool MAX_M10S::initialize()
         count++;
     }
     if (!m10s.begin())
-        return false;
+        return initialized = false;
 
     m10s.setI2COutput(COM_TYPE_UBX);            // Set the I2C port to output UBX only (turn off NMEA noise)
     m10s.setNavigationFrequency(10);            // Set the update rate to 10Hz
     m10s.setDynamicModel(DYN_MODEL_AIRBORNE4g); // Set the dynamic model to airborne with 4g acceleration
     m10s.setAutoPVT(true);                      // Enable automatic PVT reports
     m10s.saveConfiguration();                   // Save the current settings to flash and BBR
-    return true;
+    return initialized = true;
 }
 
 /*
@@ -57,7 +57,7 @@ used to update all instance variables
 */
 void MAX_M10S::update()
 {
-    if (!m10s.getPVT() || m10s.getInvalidLlh())
+    if (!initialized || !m10s.getPVT() || m10s.getInvalidLlh())
         return; // See if new data is available
     double time_last = time;
     time = millis() / 1000.0;
@@ -70,6 +70,8 @@ void MAX_M10S::update()
     if (!hasFirstFix && fixQual >= 3)
     {
         recordLogData(INFO, "GPS has first fix."); //Log this data when the new data logging branch is merged.
+
+        
         digitalWrite(33, HIGH);
         delay(1000);
         digitalWrite(33, LOW);
@@ -140,7 +142,7 @@ imu::Vector<3> MAX_M10S::getOriginPos()
     return origin;
 }
 
-bool MAX_M10S::get_first_fix()
+bool MAX_M10S::getHasFirstFix()
 {
     return hasFirstFix;
 }
@@ -162,15 +164,11 @@ int MAX_M10S::getFixQual()
     return fixQual;
 }
 
-void *MAX_M10S::getData()
-{
-    return (void *)&pos;
-}
-
 const char *MAX_M10S::getCsvHeader()
 {                                                                                                                         // incl G- for GPS
     return "G-Lat (deg),G-Lon (deg),G-Alt (m),G-Speed (m/s),G-DispX (m),G-DispY (m),G-DispZ (m),G-ToD (s),G-# of Sats,"; // trailing comma
 }
+
 char *MAX_M10S::getDataString()
 {
     // See State.cpp::setDataString() for comments on what these numbers mean. 15 for GPS.
@@ -179,6 +177,7 @@ char *MAX_M10S::getDataString()
     snprintf(data, size, "%.10f,%.10f,%.2f,%.2f,%.2f,%.2f,%.2f,%s,%d,", pos.x(), pos.y(), altitude, velocity.magnitude(), displacement.x(), displacement.y(), displacement.z(), gps_time, fixQual); // trailing comma
     return data;
 }
+
 char *MAX_M10S::getStaticDataString()
 {
     // See State.cpp::setDataString() for comments on what these numbers mean. 15 for GPS.

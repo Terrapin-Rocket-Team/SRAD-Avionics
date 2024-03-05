@@ -33,11 +33,9 @@ public:
     imu::Vector<2> getPos();
     imu::Vector<3> getDisplace();
     char *getTimeOfDay();
-    bool get_first_fix();
     imu::Vector<3> getOriginPos();
     int getFixQual();
     double getHeading();
-    void *getData();
 
     bool initialize() override;
     const char *getCsvHeader() override;
@@ -45,6 +43,7 @@ public:
     char *getStaticDataString() override;
     const char *getName() override;
     void update() override;
+    bool getHasFirstFix() override;
 };
 
 #endif // MAX_M10S_H
