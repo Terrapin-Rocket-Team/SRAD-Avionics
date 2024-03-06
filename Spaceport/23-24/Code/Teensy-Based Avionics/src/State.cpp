@@ -37,7 +37,7 @@ State::State(bool useKalmanFilter)
     timeOfLaunch = 0;
     timeSinceLaunch = 0;
     timeSincePreviousStage = 0;
-    heading_angle = 0;
+    headingAngle = 0;
 
     useKF = useKalmanFilter;
     // time pos x y z vel x y z acc x y z
@@ -174,7 +174,7 @@ void State::updateState()
         {
             position = imu::Vector<3>((*gps)->getDisplace().x(), (*gps)->getDisplace().y(), (*gps)->getAlt());
             velocity = (*gps)->getVelocity();
-            heading_angle = (*gps)->getHeading();
+            headingAngle = (*gps)->getHeading();
         }
         if (*baro)
         {
@@ -415,39 +415,39 @@ void State::setCsvString(char *dest, const char *start, int startSize, bool head
 bool State::transmit()
 {
     char data[200];
-    snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", (*gps)->getPos().x(), (*gps)->getPos().y(), (int)(*baro)->getRelAltFt(), (int)baroVelocity, (int)heading_angle, 'H', stageNumber, launchTimeOfDay);
+    snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", (*gps)->getPos().x(), (*gps)->getPos().y(), (int)(*baro)->getRelAltFt(), (int)baroVelocity, (int)headingAngle, 'H', stageNumber, launchTimeOfDay);
     bool b = radio->send(data, ENCT_TELEMETRY);
     return b;
 }
 
 void State::initKF(bool useBaro, bool useGps, bool useImu)
 {
-    double pr_n = 0.2;
-    double init_cov = 2;
-    double gps_cov = 36;
-    double baro_cov = 2;
-    double *initial_state = new double[6]{0, 0, 0, 0, 0, 0};
-    double *initial_input = new double[3]{0, 0, 0};
-    double *initial_covariance = new double[36]{init_cov, 0, 0, init_cov, 0, 0,
-                                                0, init_cov, 0, 0, init_cov, 0,
-                                                0, 0, init_cov, 0, 0, init_cov,
-                                                init_cov, 0, 0, init_cov, 0, 0,
-                                                0, init_cov, 0, 0, init_cov, 0,
-                                                0, 0, init_cov, 0, 0, init_cov};
-    double *measurement_covariance = new double[16]{4, 0, 0, 0,
+    double prN = 0.2;
+    double initCov = 2;
+    double gpsCov = 36;
+    double baroCov = 2;
+    double *initialState = new double[6]{0, 0, 0, 0, 0, 0};
+    double *initialInput = new double[3]{0, 0, 0};
+    double *initialCovariance = new double[36]{initCov, 0, 0, initCov, 0, 0,
+                                                0, initCov, 0, 0, initCov, 0,
+                                                0, 0, initCov, 0, 0, initCov,
+                                                initCov, 0, 0, initCov, 0, 0,
+                                                0, initCov, 0, 0, initCov, 0,
+                                                0, 0, initCov, 0, 0, initCov};
+    double *measurementCovariance = new double[16]{4, 0, 0, 0,
                                                     0, 4, 0, 0,
-                                                    0, 0, gps_cov, 0,
-                                                    0, 0, 0, baro_cov};
-    double *process_noise_covariance = new double[36]{pr_n, 0, 0, 0, 0, 0,
-                                                      0, pr_n, 0, 0, 0, 0,
-                                                      0, 0, pr_n, 0, 0, 0,
-                                                      0, 0, 0, pr_n, 0, 0,
-                                                      0, 0, 0, 0, pr_n, 0,
-                                                      0, 0, 0, 0, 0, pr_n};
-    akf::init(kfilter, 6, 3, 4, initial_state, initial_input, initial_covariance, measurement_covariance, process_noise_covariance);
-    delete[] initial_state;
-    delete[] initial_input;
-    delete[] initial_covariance;
-    delete[] measurement_covariance;
-    delete[] process_noise_covariance;
+                                                    0, 0, gpsCov, 0,
+                                                    0, 0, 0, baroCov};
+    double *processNoiseCovariance = new double[36]{prN, 0, 0, 0, 0, 0,
+                                                      0, prN, 0, 0, 0, 0,
+                                                      0, 0, prN, 0, 0, 0,
+                                                      0, 0, 0, prN, 0, 0,
+                                                      0, 0, 0, 0, prN, 0,
+                                                      0, 0, 0, 0, 0, prN};
+    akf::init(kfilter, 6, 3, 4, initialState, initialInput, initialCovariance, measurementCovariance, processNoiseCovariance);
+    delete[] initialState;
+    delete[] initialInput;
+    delete[] initialCovariance;
+    delete[] measurementCovariance;
+    delete[] processNoiseCovariance;
 }

@@ -140,7 +140,7 @@ imu::Vector<3> MAX_M10S::getOriginPos()
     return origin;
 }
 
-bool MAX_M10S::get_first_fix()
+bool MAX_M10S::getFirstFix()
 {
     return hasFirstFix;
 }

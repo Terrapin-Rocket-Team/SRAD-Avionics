@@ -71,6 +71,6 @@ char *DS3231::getStaticDataString()
     // See State.cpp::setDataString() for comments on what these numbers mean. 19 for the timestamps
     const int size = 47 + 10 * 1 + 19 * 2;
     char *data = new char[size];
-    snprintf(data, size, "millis_at_start: %d\npower_on_time: %s\nlaunch_time: %s\n", millisAtStart, powerOnTime.timestamp().c_str(), launchTime.timestamp().c_str());
+    snprintf(data, size, "millisAtStart: %d\npowerOnTime: %s\nlaunchTime: %s\n", millisAtStart, powerOnTime.timestamp().c_str(), launchTime.timestamp().c_str());
     return data;
 }

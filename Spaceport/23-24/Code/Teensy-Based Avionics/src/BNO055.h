@@ -16,9 +16,9 @@ private:
 
 public:
     BNO055(uint8_t SCK, uint8_t SDA);
-    void calibrate_bno();
+    void calibrateBno();
     imu::Quaternion getOrientation();
-    // gives linear_acceleration in m/s/s, which excludes gravity
+    // gives linearAcceleration in m/s/s, which excludes gravity
     imu::Vector<3> getAcceleration();
     imu::Vector<3> getOrientationEuler();
     // values in uT, micro Teslas
