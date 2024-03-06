@@ -16,15 +16,15 @@ private:
 
 public:
     BNO055(uint8_t SCK, uint8_t SDA);
-    void calibrate_bno();//unused?
-    imu::Quaternion getOrientation();
-    // gives linear_acceleration in m/s/s, which excludes gravity
-    imu::Vector<3> getAcceleration();
-    imu::Vector<3> getOrientationEuler();
+    void calibrateBno();
+    imu::Quaternion getOrientation() override;
+    // gives linearAcceleration in m/s/s, which excludes gravity
+    imu::Vector<3> getAcceleration() override;
+    imu::Vector<3> getOrientationEuler() override;
     // values in uT, micro Teslas
-    imu::Vector<3> getMagnetometer();
+    imu::Vector<3> getMagnetometer() override;
     // gives it in rotations about the x, y, z (yaw, pitch, roll) axes
-    imu::Vector<3> convert_to_euler(imu::Quaternion orientation);//unused?
+    imu::Vector<3> convertToEuler(const imu::Quaternion &orientation);
     bool initialize() override;
     const char *getCsvHeader() override;
     char *getDataString() override;

@@ -26,7 +26,7 @@ void BNO055::update()
     magnetometer = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
 }
 
-void BNO055::calibrate_bno()
+void BNO055::calibrateBno()
 {
     uint8_t system, gyro, accel, mag, i = 0;
     while ((system != 3) || (gyro != 3) || (accel != 3) || (mag != 3))
@@ -61,7 +61,7 @@ imu::Vector<3> BNO055::getMagnetometer()
     return magnetometer;
 }
 
-imu::Vector<3> convert_to_euler(imu::Quaternion orientation)
+imu::Vector<3> convertToEuler(const imu::Quaternion &orientation)
 {
     imu::Vector<3> euler = orientation.toEuler();
     // reverse the vector, since it returns in z, y, x

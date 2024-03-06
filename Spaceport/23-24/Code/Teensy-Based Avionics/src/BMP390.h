@@ -20,12 +20,12 @@ private:
 
 public:
     BMP390(uint8_t SCK, uint8_t SDA);
-    double getPressure();
-    double getTemp();
-    double getTempF();
-    double getPressureAtm();
-    double getRelAltFt();
-    double getRelAltM();
+    double getPressure() override;
+    double getTemp() override;
+    double getTempF() override;
+    double getPressureAtm() override;
+    double getRelAltFt() override;
+    double getRelAltM() override;
     bool initialize() override;
     const char *getCsvHeader() override;
     char *getDataString() override;

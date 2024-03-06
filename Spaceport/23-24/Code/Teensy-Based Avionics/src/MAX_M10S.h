@@ -28,14 +28,14 @@ private:
 
 public:
     MAX_M10S(uint8_t SCK, uint8_t SDA, uint8_t address);
-    double getAlt();
-    imu::Vector<3> getVelocity();
-    imu::Vector<2> getPos();
-    imu::Vector<3> getDisplace();
-    char *getTimeOfDay();
-    imu::Vector<3> getOriginPos();
-    int getFixQual();
-    double getHeading();
+    double getAlt() override;
+    imu::Vector<3> getVelocity() override;
+    imu::Vector<2> getPos() override;
+    imu::Vector<3> getDisplace() override;
+    char *getTimeOfDay() override;
+    imu::Vector<3> getOriginPos() override;
+    int getFixQual() override;
+    double getHeading() override;
 
     bool initialize() override;
     const char *getCsvHeader() override;

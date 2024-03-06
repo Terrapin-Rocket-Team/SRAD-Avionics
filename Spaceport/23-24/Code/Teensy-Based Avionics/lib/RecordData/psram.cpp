@@ -14,7 +14,7 @@ PSRAM::PSRAM()
 bool PSRAM::init()
 {
     uint8_t size = external_psram_size;
-    memBegin = cursorStart = (char *)(0x70000000);
+    memBegin = cursorStart = reinterpret_cast<char *>(0x70000000);
     memEnd = cursorEnd = memBegin + (size * 1048576);
 
     if (size > 0)
@@ -82,7 +82,7 @@ bool PSRAM::dumpLogData()
 
     char buffer[2048]; // large buffer but the Teensy should be able to handle it. Buffer should be a multiple of 512 for SD card efficiency.
     char *writeCursor = memEnd;
-    int i = 0;
+    int i;
     logFile = sd.open(logFileName, FILE_WRITE);
 
     if (!logFile){
