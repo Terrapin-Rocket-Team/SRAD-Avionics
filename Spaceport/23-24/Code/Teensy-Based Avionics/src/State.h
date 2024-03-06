@@ -81,7 +81,7 @@ private:
     void determineStage();
     bool applySensorType(int i, int sensorNum); // assigns values to the sensor variables.
     void setCsvString(char *str, const char *start, int startSize, bool header);
-    bool sensorOK(Sensor *sensor);
+    bool sensorOK(const Sensor *sensor);
 
     // State variables
     double apogee; // in m above start position

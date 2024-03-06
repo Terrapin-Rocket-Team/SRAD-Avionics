@@ -1,5 +1,7 @@
 #include "State.h"
 #pragma region Constructor and Destructor
+//cppcheck-suppress noCopyConstructor
+//cppcheck-suppress noOperatorEq
 State::State(bool useKalmanFilter, bool stateRecordsOwnFlightData)
 {
     timeAbsolute = millis();
@@ -186,7 +188,7 @@ void State::updateState()
         { 
             position = imu::Vector<3>(gps->getDisplace().x(), gps->getDisplace().y(), gps->getAlt());
             velocity = gps->getVelocity();
-            heading_angle = gps->getHeading();
+            headingAngle = gps->getHeading();
         }
         if (sensorOK(baro))
         {
@@ -311,9 +313,9 @@ bool State::applySensorType(int i, int sensorNum)
     case BAROMETER_:
 
         if (sensorNum == 1)
-            baro = (Barometer *)&sensors[i];
+            baro = reinterpret_cast<Barometer *>(&sensors[i]);//normally this would be a dynamic cast, but Arduino doesn't support it.
         // else if (sensorNum == 2)//If you have more than one of the same type, add them like so.
-        //    baro2 = (Barometer *)&sensors[i];
+        //    baro2 = reinterpret_cast<Barometer *>(&sensors[i]);
         else
             good = false;
         break;
@@ -321,7 +323,7 @@ bool State::applySensorType(int i, int sensorNum)
     case GPS_:
 
         if (sensorNum == 1)
-            gps = (GPS *)&sensors[i];
+            gps = reinterpret_cast<GPS *>(&sensors[i]);
         else
             good = false;
         break;
@@ -329,7 +331,7 @@ bool State::applySensorType(int i, int sensorNum)
     case IMU_:
 
         if (sensorNum == 1)
-            imu = (IMU *)&sensors[i];
+            imu = reinterpret_cast<IMU *>(&sensors[i]);
         else
             good = false;
         break;
@@ -449,7 +451,7 @@ void State::setCsvString(char *dest, const char *start, int startSize, bool head
     dest[j - 1] = '\0'; // all strings have ',' at end so this gets rid of that and terminates it a character early.
 }
 
-bool State::sensorOK(Sensor *sensor)
+bool State::sensorOK(const Sensor *sensor)
 {
     if (sensor && *sensor)// not nullptr and initialized
         return true;
@@ -461,7 +463,7 @@ bool State::sensorOK(Sensor *sensor)
 bool State::transmit()
 {
     char data[200];
-    snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", gps->getPos().x(), gps->getPos().y(), (int)baro->getRelAltFt(), (int)baroVelocity, (int)heading_angle, 'H', stageNumber, launchTimeOfDay);
+    snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", gps->getPos().x(), gps->getPos().y(), (int)baro->getRelAltFt(), (int)baroVelocity, (int)headingAngle, 'H', stageNumber, launchTimeOfDay);
 
     bool b = radio->send(data, ENCT_TELEMETRY);
     return b;
