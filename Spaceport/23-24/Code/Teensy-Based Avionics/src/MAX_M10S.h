@@ -23,7 +23,7 @@ private:
     bool hasFirstFix;              // whether or not gps has recieved first fix
     double heading;
     int hr, min, sec;
-    char gps_time[9];
+    char gpsTime[9];
     double time;
 
 public:

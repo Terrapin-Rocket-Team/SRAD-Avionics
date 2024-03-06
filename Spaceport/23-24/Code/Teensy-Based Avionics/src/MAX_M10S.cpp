@@ -65,7 +65,7 @@ void MAX_M10S::update()
 {
     if (!initialized || !m10s.getPVT() || m10s.getInvalidLlh())
         return; // See if new data is available
-    double time_last = time;
+    double timeLast = time;
     time = millis() / 1000.0;
     pos.x() = m10s.getLatitude() / 10000000.0;
     pos.y() = m10s.getLongitude() / 10000000.0;
@@ -89,9 +89,9 @@ void MAX_M10S::update()
 
     // updated before displacement and gps as the old values and new values are needed to get a
     // significant of a velocity
-    velocity.x() = (((pos.x() - origin.x()) * 111319.0) - displacement.x()) / (time - time_last);
-    velocity.y() = (((pos.y() - origin.y()) * 111319.0 * cos(pos.x() * PI / 180.0)) - displacement.y()) / (time - time_last);
-    velocity.z() = ((altitude)-displacement.z()) / (time - time_last);
+    velocity.x() = (((pos.x() - origin.x()) * 111319.0) - displacement.x()) / (time - timeLast);
+    velocity.y() = (((pos.y() - origin.y()) * 111319.0 * cos(pos.x() * PI / 180.0)) - displacement.y()) / (time - timeLast);
+    velocity.z() = ((altitude)-displacement.z()) / (time - timeLast);
 
     displacement.x() = (pos.x() - origin.x()) * 111319.0;
     displacement.y() = (pos.y() - origin.y()) * 111319.0 * cos(pos.x() * PI / 180.0);
@@ -158,8 +158,8 @@ time since in initialization in seconds
 */
 char *MAX_M10S::getTimeOfDay()
 {
-    snprintf(gps_time, 9, "%02d:%02d:%02d", hr, min, sec);
-    return gps_time;
+    snprintf(gpsTime, 9, "%02d:%02d:%02d", hr, min, sec);
+    return gpsTime;
 }
 
 /*
@@ -180,7 +180,7 @@ char *MAX_M10S::getDataString()
     // See State.cpp::setDataString() for comments on what these numbers mean. 15 for GPS.
     const int size = 15 * 2 + 12 * 4 + 10 * 1 + 10 + 8;
     char *data = new char[size];
-    snprintf(data, size, "%.10f,%.10f,%.2f,%.2f,%.2f,%.2f,%.2f,%s,%d,", pos.x(), pos.y(), altitude, velocity.magnitude(), displacement.x(), displacement.y(), displacement.z(), gps_time, fixQual); // trailing comma
+    snprintf(data, size, "%.10f,%.10f,%.2f,%.2f,%.2f,%.2f,%.2f,%s,%d,", pos.x(), pos.y(), altitude, velocity.magnitude(), displacement.x(), displacement.y(), displacement.z(), gpsTime, fixQual); // trailing comma
     return data;
 }
 

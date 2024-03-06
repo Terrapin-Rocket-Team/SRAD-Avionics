@@ -7,16 +7,16 @@
 class FakeGPS : public GPS
 {
 public:
-    void feedData(double pos_x, double pos_y, double pos_z, double h)
+    void feedData(double posX, double posY, double posZ, double h)
     {
         if(initialLatitude == 0 || initialLongitude == 0){
-            initialLatitude = pos_x;
-            initialLongitude = pos_y;
-            initAltitude = pos_z;
+            initialLatitude = posX;
+            initialLongitude = posY;
+            initAltitude = posZ;
         }
-        pos.x() = (pos_x - initialLatitude) * 111319;
-        pos.y() = (pos_y - initialLongitude) * 111319 * cos(pos_x * 3.14159 / 180);
-        alt = pos_z - initAltitude; // hacky way to store initial altitude
+        pos.x() = (posX - initialLatitude) * 111319;
+        pos.y() = (posY - initialLongitude) * 111319 * cos(posX * 3.14159 / 180);
+        alt = posZ - initAltitude;//hacky way to store initial altitude
         heading = h;
     }
     bool initialize() override { return true; }
