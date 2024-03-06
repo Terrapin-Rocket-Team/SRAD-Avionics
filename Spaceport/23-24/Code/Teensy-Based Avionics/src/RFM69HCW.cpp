@@ -88,7 +88,11 @@ bool RFM69HCW::tx(const char *message, int len)
     this->id = len / this->bufSize + (len % this->bufSize > 0);
     this->radio.setHeaderId(this->id);
 
+//ignore same address warning
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wrestrict"
     strcpy(this->msg, message);
+#pragma GCC diagnostic pop
 
     this->msgLen = len;
     this->totalPackets = 0;
@@ -246,36 +250,36 @@ bool RFM69HCW::encode(char *message, EncodingType type)
         if (data.precision == 'L')
         {
             strcpy(data.dao, "");
-            create_lat_aprs(data.lat, 0);
-            create_long_aprs(data.lng, 0);
+            createLatAprs(data.lat, 0);
+            createLongAprs(data.lng, 0);
         }
         else if (data.precision == 'H')
         {
-            create_dao_aprs(data.lat, data.lng, data.dao);
-            create_lat_aprs(data.lat, 1);
-            create_long_aprs(data.lng, 1);
+            createDaoAprs(data.lat, data.lng, data.dao);
+            createLatAprs(data.lat, 1);
+            createLongAprs(data.lng, 1);
         }
         // get alt string
-        int alt_int = max(-99999, min(999999, atoi(data.alt)));
-        if (alt_int < 0)
+        int altInt = max(-99999, min(999999, atoi(data.alt)));
+        if (altInt < 0)
         {
             strcpy(data.alt, "/A=-");
-            padding(alt_int * -1, 5, data.alt, 4);
+            padding(altInt * -1, 5, data.alt, 4);
         }
         else
         {
             strcpy(data.alt, "/A=");
-            padding(alt_int, 6, data.alt, 3);
+            padding(altInt, 6, data.alt, 3);
         }
 
         // get course/speed strings
         // TODO add speed zero counter (makes decoding more complex)
-        int spd_int = max(0, min(999, atoi(data.spd)));
-        int hdg_int = max(0, min(360, atoi(data.hdg)));
-        if (hdg_int == 0)
-            hdg_int = 360;
-        padding(spd_int, 3, data.spd);
-        padding(hdg_int, 3, data.hdg);
+        int spdInt = max(0, min(999, atoi(data.spd)));
+        int hdgInt = max(0, min(360, atoi(data.hdg)));
+        if (hdgInt == 0)
+            hdgInt = 360;
+        padding(spdInt, 3, data.spd);
+        padding(hdgInt, 3, data.hdg);
 
         APRSMsg aprs;
 

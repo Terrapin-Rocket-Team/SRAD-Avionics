@@ -5,10 +5,10 @@ Constructor for Max-M10s
 */
 MAX_M10S::MAX_M10S(uint8_t SCK, uint8_t SDA, uint8_t address)
 {
-    SCK_pin = SCK;
-    SDA_pin = SDA;
+    SCKPin = SCK;
+    SDAPin = SDA;
 
-    first_fix = false;
+    hasFirstFix = false;
     origin.x() = 0;
     origin.y() = 0;
     origin.z() = 0;
@@ -21,10 +21,10 @@ MAX_M10S::MAX_M10S(uint8_t SCK, uint8_t SDA, uint8_t address)
     displacement.x() = 0;
     displacement.y() = 0;
     displacement.z() = 0;
-    irl_time.x() = 0;
-    irl_time.y() = 0;
-    irl_time.z() = 0;
-    fix_qual = 0;
+    irlTime.x() = 0;
+    irlTime.y() = 0;
+    irlTime.z() = 0;
+    fixQual = 0;
 }
 
 // need to update origin some how
@@ -59,21 +59,21 @@ void MAX_M10S::update()
 {
     if (!m10s.getPVT() || m10s.getInvalidLlh())
         return; // See if new data is available
-    double time_last = time;
+    double timeLast = time;
     time = millis() / 1000.0;
     pos.x() = m10s.getLatitude() / 10000000.0;
     pos.y() = m10s.getLongitude() / 10000000.0;
 
     heading = m10s.getHeading();
     altitude = m10s.getAltitude() / 1000.0;
-    fix_qual = m10s.getSIV();
-    if (!first_fix && fix_qual >= 3)
+    fixQual = m10s.getSIV();
+    if (!hasFirstFix && fixQual >= 3)
     {
         recordLogData(INFO, "GPS has first fix."); //Log this data when the new data logging branch is merged.
         digitalWrite(33, HIGH);
         delay(1000);
         digitalWrite(33, LOW);
-        first_fix = true;
+        hasFirstFix = true;
         origin.x() = pos.x();
         origin.y() = pos.y();
         origin.z() = altitude;
@@ -81,9 +81,9 @@ void MAX_M10S::update()
 
     // updated before displacement and gps as the old values and new values are needed to get a
     // significant of a velocity
-    velocity.x() = (((pos.x() - origin.x()) * 111319.0) - displacement.x()) / (time - time_last);
-    velocity.y() = (((pos.y() - origin.y()) * 111319.0 * cos(pos.x() * PI / 180.0)) - displacement.y()) / (time - time_last);
-    velocity.z() = ((altitude)-displacement.z()) / (time - time_last);
+    velocity.x() = (((pos.x() - origin.x()) * 111319.0) - displacement.x()) / (time - timeLast);
+    velocity.y() = (((pos.y() - origin.y()) * 111319.0 * cos(pos.x() * PI / 180.0)) - displacement.y()) / (time - timeLast);
+    velocity.z() = ((altitude)-displacement.z()) / (time - timeLast);
 
     displacement.x() = (pos.x() - origin.x()) * 111319.0;
     displacement.y() = (pos.y() - origin.y()) * 111319.0 * cos(pos.x() * PI / 180.0);
@@ -97,7 +97,7 @@ void MAX_M10S::update()
 /*
 return altitude in m
 */
-double MAX_M10S::get_alt()
+double MAX_M10S::getAlt()
 {
     return altitude;
 }
@@ -105,12 +105,12 @@ double MAX_M10S::get_alt()
 /*
 returns the lat and long of the rocket to the 7th sig fig
 */
-imu::Vector<2> MAX_M10S::get_pos()
+imu::Vector<2> MAX_M10S::getPos()
 {
     return pos;
 } 
 
-double MAX_M10S::get_heading() {
+double MAX_M10S::getHeading() {
     return heading;
 }
 
@@ -118,7 +118,7 @@ double MAX_M10S::get_heading() {
 return the velocity (meters per second)
 there probably issues with floating points
 */
-imu::Vector<3> MAX_M10S::get_velocity()
+imu::Vector<3> MAX_M10S::getVelocity()
 {
     return velocity;
 }
@@ -127,7 +127,7 @@ imu::Vector<3> MAX_M10S::get_velocity()
 retern the displacement since the origin
 there is probably issues with floating point arithmetic
 */
-imu::Vector<3> MAX_M10S::get_displace()
+imu::Vector<3> MAX_M10S::getDisplace()
 {
     return displacement;
 }
@@ -135,31 +135,31 @@ imu::Vector<3> MAX_M10S::get_displace()
 /*
 returns vector of orginal position in lat(deg), lat(deg), and alti(m)
 */
-imu::Vector<3> MAX_M10S::get_origin_pos()
+imu::Vector<3> MAX_M10S::getOriginPos()
 {
     return origin;
 }
 
-bool MAX_M10S::get_first_fix()
+bool MAX_M10S::getFirstFix()
 {
-    return first_fix;
+    return hasFirstFix;
 }
 
 /*
 time since in initialization in seconds
 */
-char *MAX_M10S::get_time_of_day()
+char *MAX_M10S::getTimeOfDay()
 {
-    snprintf(gps_time, 9, "%02d:%02d:%02d", hr, min, sec);
-    return gps_time;
+    snprintf(gpsTime, 9, "%02d:%02d:%02d", hr, min, sec);
+    return gpsTime;
 }
 
 /*
 return the number of satellites to indicate quality of data
 */
-int MAX_M10S::get_fix_qual()
+int MAX_M10S::getFixQual()
 {
-    return fix_qual;
+    return fixQual;
 }
 
 void *MAX_M10S::getData()
@@ -176,7 +176,7 @@ char *MAX_M10S::getDataString()
     // See State.cpp::setDataString() for comments on what these numbers mean. 15 for GPS.
     const int size = 15 * 2 + 12 * 4 + 10 * 1 + 10 + 8;
     char *data = new char[size];
-    snprintf(data, size, "%.10f,%.10f,%.2f,%.2f,%.2f,%.2f,%.2f,%s,%d,", pos.x(), pos.y(), altitude, velocity.magnitude(), displacement.x(), displacement.y(), displacement.z(), gps_time, fix_qual); // trailing comma
+    snprintf(data, size, "%.10f,%.10f,%.2f,%.2f,%.2f,%.2f,%.2f,%s,%d,", pos.x(), pos.y(), altitude, velocity.magnitude(), displacement.x(), displacement.y(), displacement.z(), gpsTime, fixQual); // trailing comma
     return data;
 }
 char *MAX_M10S::getStaticDataString()
