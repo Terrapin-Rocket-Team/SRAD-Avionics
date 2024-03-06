@@ -24,7 +24,7 @@ void BNO055::update()
     orientationEuler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
     magnetometer = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
 }
-void BNO055::calibrate_bno()
+void BNO055::calibrateBno()
 {
     uint8_t system, gyro, accel, mag, i = 0;
     while ((system != 3) || (gyro != 3) || (accel != 3) || (mag != 3))

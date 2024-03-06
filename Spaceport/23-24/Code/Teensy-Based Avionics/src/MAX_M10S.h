@@ -33,7 +33,7 @@ public:
     imu::Vector<2> getPos();
     imu::Vector<3> getDisplace();
     char *getTimeOfDay();
-    bool get_first_fix();
+    bool getFirstFix();
     imu::Vector<3> getOriginPos();
     int getFixQual();
     double getHeading();

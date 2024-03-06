@@ -38,9 +38,9 @@ SOFTWARE.
 #endif
 
 char *sMin_nn(uint32_t min_nnnnn, int highPrecision);//intentionally using snake_case for readability
-void create_lat_aprs(char *lat, bool hp);
-void create_long_aprs(char *lng, bool hp);
-void create_dao_aprs(char *lat, char *lng, char *dao);
+void createLatAprs(char *lat, bool hp);
+void createLongAprs(char *lng, bool hp);
+void createDaoAprs(char *lat, char *lng, char *dao);
 void padding(unsigned int number, unsigned int width, char *output, int offset = 0);
 int numDigits(unsigned int num);
 

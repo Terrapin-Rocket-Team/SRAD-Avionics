@@ -52,7 +52,7 @@ private:
     Sensor *sensors[NUM_MAX_SENSORS];
     int numSensors; // how many sensors are actually enabled
 
-    double heading_angle; // in degrees
+    double headingAngle; // in degrees
     
     char *csvHeader;
     char *dataString;
