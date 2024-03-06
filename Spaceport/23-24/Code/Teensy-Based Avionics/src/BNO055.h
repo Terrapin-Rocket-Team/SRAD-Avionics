@@ -24,7 +24,7 @@ public:
     // values in uT, micro Teslas
     imu::Vector<3> getMagnetometer();
     // gives it in rotations about the x, y, z (yaw, pitch, roll) axes
-    imu::Vector<3> convert_to_euler(imu::Quaternion orientation);
+    imu::Vector<3> convertToEuler(imu::Quaternion orientation);
     void *getData();
     bool initialize() override;
     const char *getCsvHeader() override;

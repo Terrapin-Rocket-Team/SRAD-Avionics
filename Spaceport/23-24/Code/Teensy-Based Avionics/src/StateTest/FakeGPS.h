@@ -7,16 +7,16 @@
 class FakeGPS : public GPS
 {
 public:
-    void feedData(double pos_x, double pos_y, double pos_z, double h)
+    void feedData(double posX, double posY, double posZ, double h)
     {
-        if(initial_latitude == 0 || initial_longitude == 0){
-            initial_latitude = pos_x;
-            initial_longitude = pos_y;
-            init_alt = pos_z;
+        if(initialLatitude == 0 || initialLongitude == 0){
+            initialLatitude = posX;
+            initialLongitude = posY;
+            initAltitude = posZ;
         }
-        pos.x() = (pos_x - initial_latitude) * 111319;
-        pos.y() = (pos_y - initial_longitude) * 111319 * cos(pos_x * 3.14159 / 180);
-        alt = pos_z - init_alt;//hacky way to store initial altitude
+        pos.x() = (posX - initialLatitude) * 111319;
+        pos.y() = (posY - initialLongitude) * 111319 * cos(posX * 3.14159 / 180);
+        alt = posZ - initAltitude;//hacky way to store initial altitude
         heading = h;
     }
     bool initialize() override { return true; }
@@ -54,8 +54,8 @@ public:
 private:
     imu::Vector<2> pos;
     double alt, heading;
-    double initial_latitude = 0;
-    double initial_longitude = 0;
-    double init_alt = 0;
+    double initialLatitude = 0;
+    double initialLongitude = 0;
+    double initAltitude = 0;
 };
 #endif
