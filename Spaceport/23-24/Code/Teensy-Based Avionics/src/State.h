@@ -97,7 +97,7 @@ private:
     imu::Quaternion orientation;   // in quaternion
     double baroVelocity;           // in m/s
     double baroOldAltitude;        // in m
-    double heading_angle;          // in degrees
+    double headingAngle;          // in degrees
 
     char launchTimeOfDay[9];
 

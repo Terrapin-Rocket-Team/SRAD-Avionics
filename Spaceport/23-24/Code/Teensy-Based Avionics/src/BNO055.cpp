@@ -61,7 +61,9 @@ imu::Vector<3> BNO055::getMagnetometer()
     return magnetometer;
 }
 
+
 imu::Vector<3> convertToEuler(const imu::Quaternion &orientation)
+
 {
     imu::Vector<3> euler = orientation.toEuler();
     // reverse the vector, since it returns in z, y, x
