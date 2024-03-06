@@ -25,6 +25,12 @@ MAX_M10S::MAX_M10S(uint8_t SCK, uint8_t SDA, uint8_t address)
     irlTime.y() = 0;
     irlTime.z() = 0;
     fixQual = 0;
+    heading = 0;
+    hr = 0;
+    min = 0;
+    sec = 0;
+    time = 0;
+    strcpy(gpsTime, "00:00:00");
 }
 
 // need to update origin some how

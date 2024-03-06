@@ -17,7 +17,7 @@ class State
 public:
     // useKalmanFilter: whether or not to use the Kalman Filter. If false, the state will use the raw sensor data.
     // stateRecordsOwnData: whether or not the state should call recordFlightData() itself. If false, other funcitons must call recordFlightData() to record the state's data.
-    State(bool useKalmanFilter = true, bool stateRecordsOwnData = true);
+    explicit State(bool useKalmanFilter = true, bool stateRecordsOwnData = true);
     ~State();
 
     // to be called after all applicable sensors have been added.

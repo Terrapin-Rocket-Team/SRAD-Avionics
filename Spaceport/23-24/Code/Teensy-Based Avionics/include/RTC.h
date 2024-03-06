@@ -18,7 +18,6 @@ public:
     virtual DateTime setLaunchTime() = 0;
     virtual DateTime getPowerOnTime() = 0;
     virtual DateTime getCurrentTime() = 0;
-    virtual void * getData() = 0;
     virtual SensorType getType() override { return RTC_; }
     virtual const char *getTypeString() override { return "RTC"; }
 };

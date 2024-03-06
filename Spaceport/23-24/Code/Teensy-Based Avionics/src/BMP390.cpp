@@ -7,7 +7,10 @@ BMP390::BMP390(uint8_t SCK, uint8_t SDA)
 {
     SCKPin = SCK;
     SDAPin = SDA;
-
+    groundPressure = 0;
+    pressure = 0;
+    temp = 0;
+    altitude = 0;
 }
 
 bool BMP390::initialize()

@@ -21,6 +21,7 @@ State::State(bool useKalmanFilter, bool stateRecordsOwnFlightData)
     baro = nullptr;
     gps = nullptr;
     imu = nullptr;
+    radio = nullptr;
 
     stateString = nullptr;
     dataString = nullptr;
