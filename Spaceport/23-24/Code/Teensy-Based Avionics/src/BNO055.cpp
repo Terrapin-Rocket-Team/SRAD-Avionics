@@ -2,8 +2,8 @@
 
 BNO055::BNO055(uint8_t SCK, uint8_t SDA)
 {
-    SCK_pin = SCK;
-    SDA_pin = SDA;
+    SCKPin = SCK;
+    SDAPin = SDA;
 }
 
 bool BNO055::initialize()
@@ -14,17 +14,17 @@ bool BNO055::initialize()
     }
     bno.setExtCrystalUse(true);
 
-    initial_mag_field = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
+    initialMagField = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
     return true;
 }
 void BNO055::update()
 {
     orientation = bno.getQuat();
-    acceleration_vec = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
-    orientation_euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
+    accelerationVec = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+    orientationEuler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
     magnetometer = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
 }
-void BNO055::calibrate_bno()
+void BNO055::calibrateBno()
 {
     uint8_t system, gyro, accel, mag, i = 0;
     while ((system != 3) || (gyro != 3) || (accel != 3) || (mag != 3))
@@ -39,27 +39,27 @@ void BNO055::calibrate_bno()
     }
 }
 
-imu::Quaternion BNO055::get_orientation()
+imu::Quaternion BNO055::getOrientation()
 {
     return orientation;
 }
 
-imu::Vector<3> BNO055::get_acceleration()
+imu::Vector<3> BNO055::getAcceleration()
 {
-    return acceleration_vec;
+    return accelerationVec;
 }
 
-imu::Vector<3> BNO055::get_orientation_euler()
+imu::Vector<3> BNO055::getOrientationEuler()
 {
-    return orientation_euler;
+    return orientationEuler;
 }
 
-imu::Vector<3> BNO055::get_magnetometer()
+imu::Vector<3> BNO055::getMagnetometer()
 {
     return magnetometer;
 }
 
-imu::Vector<3> convert_to_euler(imu::Quaternion orientation)
+imu::Vector<3> convertToEuler(imu::Quaternion orientation)
 {
     imu::Vector<3> euler = orientation.toEuler();
     // reverse the vector, since it returns in z, y, x
@@ -70,7 +70,7 @@ imu::Vector<3> convert_to_euler(imu::Quaternion orientation)
 // will give back a pointer to a linear acceleration vector
 void *BNO055::getData()
 {
-    return (void *)&acceleration_vec;
+    return (void *)&accelerationVec;
 }
 
 const char *BNO055::getCsvHeader()
@@ -83,7 +83,7 @@ char *BNO055::getDataString()
     // See State.cpp::setDataString() for comments on what these numbers mean
     const int size = 12 * 10 + 10;
     char *data = new char[size];
-    snprintf(data, size, "%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,", acceleration_vec.x(), acceleration_vec.y(), acceleration_vec.z(), orientation_euler.x(), orientation_euler.y(), orientation_euler.z(), orientation.x(), orientation.y(), orientation.z(), orientation.w()); // trailing comma"
+    snprintf(data, size, "%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,", accelerationVec.x(), accelerationVec.y(), accelerationVec.z(), orientationEuler.x(), orientationEuler.y(), orientationEuler.z(), orientation.x(), orientation.y(), orientation.z(), orientation.w()); // trailing comma"
     return data;
 }
 
@@ -92,7 +92,7 @@ char *BNO055::getStaticDataString()
     // See State.cpp::setDataString() for comments on what these numbers mean
     const int size = 30 + 12 * 3;
     char *data = new char[size];
-    snprintf(data, size, "Initial Magnetic Field (uT): %.2f,%.2f,%.2f\n", initial_mag_field.x(), initial_mag_field.y(), initial_mag_field.z());
+    snprintf(data, size, "Initial Magnetic Field (uT): %.2f,%.2f,%.2f\n", initialMagField.x(), initialMagField.y(), initialMagField.z());
     return data;
 }
 

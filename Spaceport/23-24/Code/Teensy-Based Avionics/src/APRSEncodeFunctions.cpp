@@ -25,10 +25,10 @@ SOFTWARE.
 #include "APRSEncodeFunctions.h"
 
 // takes in decimal minutes and converts to MM.dddd
-char *s_min_nn(uint32_t min_nnnnn, int high_precision)
+char *sMin_nn(uint32_t min_nnnnn, int highPrecision)
 {
     /* min_nnnnn: RawDegrees billionths is uint32_t by definition and is n'telth
-     * degree (-> *= 6 -> nn.mmmmmm minutes) high_precision: 0: round at decimal
+     * degree (-> *= 6 -> nn.mmmmmm minutes) highPrecision: 0: round at decimal
      * position 2. 1: round at decimal position 4. 2: return decimal position 3-4
      * as base91 encoded char
      */
@@ -37,7 +37,7 @@ char *s_min_nn(uint32_t min_nnnnn, int high_precision)
 
     min_nnnnn = min_nnnnn * 0.006;
 
-    if (high_precision)
+    if (highPrecision)
     {
         if ((min_nnnnn % 10) >= 5 && min_nnnnn < 6000000 - 5)
         {
@@ -54,7 +54,7 @@ char *s_min_nn(uint32_t min_nnnnn, int high_precision)
         }
     }
 
-    if (high_precision < 2)
+    if (highPrecision < 2)
         sprintf(buf, "%02u.%02u", (unsigned int)((min_nnnnn / 100000) % 100), (unsigned int)((min_nnnnn / 1000) % 100));
     else
         sprintf(buf, "%c", (char)((min_nnnnn % 1000) / 11) + 33);
@@ -64,7 +64,7 @@ char *s_min_nn(uint32_t min_nnnnn, int high_precision)
 }
 
 // creates the latitude string for the APRS message based on whether the GPS coordinates are high precision
-void create_lat_aprs(char *lat, bool hp)
+void createLatAprs(char *lat, bool hp)
 {
     bool negative = lat[0] == '-';
 
@@ -94,11 +94,11 @@ void create_lat_aprs(char *lat, bool hp)
     if (missingDigits > 0)
         for (int i = 0; i < missingDigits; i++)
             dec *= 10;
-    sprintf(lat, "%02d%s%c", atoi(lat) * (negative ? -1 : 1), s_min_nn(dec, hp), negative ? 'S' : 'N');
+    sprintf(lat, "%02d%s%c", atoi(lat) * (negative ? -1 : 1), sMin_nn(dec, hp), negative ? 'S' : 'N');
 }
 
 // creates the longitude string for the APRS message based on whether the GPS coordinates are high precision
-void create_long_aprs(char *lng, bool hp)
+void createLongAprs(char *lng, bool hp)
 {
     bool negative = lng[0] == '-';
 
@@ -128,11 +128,11 @@ void create_long_aprs(char *lng, bool hp)
     if (missingDigits > 0)
         for (int i = 0; i < missingDigits; i++)
             dec *= 10;
-    sprintf(lng, "%02d%s%c", atoi(lng) * (negative ? -1 : 1), s_min_nn(dec, hp), negative ? 'W' : 'E');
+    sprintf(lng, "%02d%s%c", atoi(lng) * (negative ? -1 : 1), sMin_nn(dec, hp), negative ? 'W' : 'E');
 }
 
 // creates the dao at the end of aprs message based on latitude and longitude
-void create_dao_aprs(char *lat, char *lng, char *dao)
+void createDaoAprs(char *lat, char *lng, char *dao)
 {
     // !DAO! extension, use Base91 format for best precision
     // /1.1 : scale from 0-99 to 0-90 for base91, int(... + 0.5): round to nearest
@@ -147,7 +147,7 @@ void create_dao_aprs(char *lat, char *lng, char *dao)
         if (lat[i] == '.')
             decimalPos = i;
     }
-    sprintf(dao, "!w%s", s_min_nn(atoi(lat + decimalPos + 1), 2));
+    sprintf(dao, "!w%s", sMin_nn(atoi(lat + decimalPos + 1), 2));
 
     len = strlen(lng);
     decimalPos = 0;
@@ -156,7 +156,7 @@ void create_dao_aprs(char *lat, char *lng, char *dao)
         if (lng[i] == '.')
             decimalPos = i;
     }
-    sprintf(dao + 3, "%s!", s_min_nn(atoi(lng + decimalPos + 1), 2));
+    sprintf(dao + 3, "%s!", sMin_nn(atoi(lng + decimalPos + 1), 2));
 }
 
 // adds a specified number of zeros to the begining of a number

@@ -12,7 +12,7 @@
 #include "RTC.h"
 #include "RecordData.h"
 
-const char STAGES[][15] = {"Pre-Flight", "Boosting", "Coasting", "Drogue Descent", "Main Descent", "Post-Flight"};
+constexpr char STAGES[][15] = {"Pre-Flight", "Boosting", "Coasting", "Drogue Descent", "Main Descent", "Post-Flight"};
 class State
 {
 public:
@@ -52,7 +52,7 @@ private:
     Sensor *sensors[NUM_MAX_SENSORS];
     int numSensors; // how many sensors are actually enabled
 
-    double heading_angle; // in degrees
+    double headingAngle; // in degrees
     
     char *csvHeader;
     char *dataString;
@@ -95,7 +95,7 @@ private:
     double baroVelocity;           // in m/s
     double baroOldAltitude;        // in m
 
-    char *launchTimeOfDay = "00:00:00";
+    char launchTimeOfDay[9];
 
         //Kalman Filter settings
     bool useKF;
@@ -120,6 +120,6 @@ private:
 
     NOTE: sensors are pointers to sensor pointers. This allows them to be linked to the sensors[] so that changes in there affect the sensor variables.
     It does make some slightly weird sysntax to use the sensors, but it's not too bad.
-    Instead of if(gps) you use if(*gps) and instead of gps->get_pos() you use (*gps)->get_pos().
+    Instead of if(gps) you use if(*gps) and instead of gps->getPos() you use (*gps)->getPos().
 
 */

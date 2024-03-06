@@ -6,8 +6,8 @@ Construtor for the BMP390 class, pass in the pin numbers for each of the I2C pin
 BMP390::BMP390(uint8_t SCK, uint8_t SDA)
 {
 
-    SCK_pin = SCK;
-    SDA_pin = SDA;
+    SCKPin = SCK;
+    SDAPin = SDA;
 }
 
 bool BMP390::initialize()
@@ -47,32 +47,32 @@ void BMP390::update()
     temp = bmp.readTemperature();          // C
     altitude = bmp.readAltitude(groundPressure); // m
 }
-double BMP390::get_pressure()
+double BMP390::getPressure()
 {
     return pressure;
 }
 
-double BMP390::get_temp()
+double BMP390::getTemp()
 {
     return temp;
 }
 
-double BMP390::get_temp_f()
+double BMP390::getTempF()
 {
     return (temp * 9.0 / 5.0) + 32.0;
 }
 
-double BMP390::get_pressure_atm()
+double BMP390::getPressureAtm()
 {
     return pressure / SEALEVELPRESSURE_HPA;
 }
 
-double BMP390::get_rel_alt_m()
+double BMP390::getRelAltM()
 {
     return altitude;
 }
 
-double BMP390::get_rel_alt_ft()
+double BMP390::getRelAltFt()
 {
     return altitude * 3.28084;
 }

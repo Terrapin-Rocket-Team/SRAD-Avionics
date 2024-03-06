@@ -37,7 +37,7 @@ State::State(bool useKalmanFilter)
     timeOfLaunch = 0;
     timeSinceLaunch = 0;
     timeSincePreviousStage = 0;
-    heading_angle = 0;
+    headingAngle = 0;
 
     useKF = useKalmanFilter;
     // time pos x y z vel x y z acc x y z
@@ -47,6 +47,7 @@ State::State(bool useKalmanFilter)
     // imu x y z
     inputs = new double[3]{1, 1, 1};
     kfilter = new akf::KFState();
+    strcpy(launchTimeOfDay, "00:00:00");
 }
 State::~State()
 {
@@ -131,20 +132,20 @@ void State::updateState()
     if (stageNumber > 4 && landingCounter > 50) // if landed and waited 5 seconds, don't update sensors.
         return;
     updateSensors();
-    if (useKF && (*gps)->get_fix_qual() > 5 && stageNumber > 0)
+    if (useKF && (*gps)->getFixQual() > 5 && stageNumber > 0)
     {
         GPS *gps = *this->gps;
         Barometer *baro = *this->baro;
         IMU *imu = *this->imu;
         // gps x y z barometer z
-        measurements[0] = gps->get_displace().x();
-        measurements[1] = gps->get_displace().y();
-        measurements[2] = gps->get_displace().z();
-        measurements[3] = baro->get_rel_alt_m();
+        measurements[0] = gps->getDisplace().x();
+        measurements[1] = gps->getDisplace().y();
+        measurements[2] = gps->getDisplace().z();
+        measurements[3] = baro->getRelAltM();
         // imu x y z
-        inputs[0] = imu->get_acceleration().x();
-        inputs[1] = imu->get_acceleration().y();
-        inputs[2] = imu->get_acceleration().z(); // remove g
+        inputs[0] = imu->getAcceleration().x();
+        inputs[1] = imu->getAcceleration().y();
+        inputs[2] = imu->getAcceleration().z(); // remove g
         akf::updateFilter(kfilter, timeAbsolute, gps ? 1 : 0, baro ? 1 : 0, imu ? 1 : 0, measurements, inputs, &predictions);
         // time, pos x, y, z, vel x, y, z, acc x, y, z
         // ignore time return value.
@@ -158,12 +159,12 @@ void State::updateState()
         acceleration.y() = predictions[8];
         acceleration.z() = predictions[9];
 
-        orientation = imu->get_orientation();
+        orientation = imu->getOrientation();
 
         if (baro)
         {
-            baroVelocity = ((baro)->get_rel_alt_m() - baroOldAltitude) / (millis() / 1000.0 - timeAbsolute);
-            baroOldAltitude = (baro)->get_rel_alt_m();
+            baroVelocity = ((baro)->getRelAltM() - baroOldAltitude) / (millis() / 1000.0 - timeAbsolute);
+            baroOldAltitude = (baro)->getRelAltM();
         }
 
     }
@@ -171,21 +172,21 @@ void State::updateState()
     {
         if (*gps)
         {
-            position = imu::Vector<3>((*gps)->get_displace().x(), (*gps)->get_displace().y(), (*gps)->get_alt());
-            velocity = (*gps)->get_velocity();
-            heading_angle = (*gps)->get_heading();
+            position = imu::Vector<3>((*gps)->getDisplace().x(), (*gps)->getDisplace().y(), (*gps)->getAlt());
+            velocity = (*gps)->getVelocity();
+            headingAngle = (*gps)->getHeading();
         }
         if (*baro)
         {
-            velocity.z() = ((*baro)->get_rel_alt_m() - position.z()) / (millis() / 1000.0 - timeAbsolute);
-            position.z() = (*baro)->get_rel_alt_m();
-            baroVelocity = ((*baro)->get_rel_alt_m() - baroOldAltitude) / (millis() / 1000.0 - timeAbsolute);
-            baroOldAltitude = (*baro)->get_rel_alt_m();
+            velocity.z() = ((*baro)->getRelAltM() - position.z()) / (millis() / 1000.0 - timeAbsolute);
+            position.z() = (*baro)->getRelAltM();
+            baroVelocity = ((*baro)->getRelAltM() - baroOldAltitude) / (millis() / 1000.0 - timeAbsolute);
+            baroOldAltitude = (*baro)->getRelAltM();
         }
         if (*imu)
         {
-            acceleration = (*imu)->get_acceleration();
-            orientation = (*imu)->get_orientation();
+            acceleration = (*imu)->getAcceleration();
+            orientation = (*imu)->getOrientation();
         }
     }
     timeAbsolute = millis() / 1000.0;
@@ -242,7 +243,7 @@ char *State::getStateString()
              velocity.x(), velocity.y(), velocity.z(),
              position.x(), position.y(), position.z(),
              orientation.x(), orientation.y(), orientation.z(), orientation.w(),
-             (*gps)->get_fix_qual());
+             (*gps)->getFixQual());
     return stateString;
 }
 
@@ -312,14 +313,14 @@ void State::determineAccelerationMagnitude()
 
 void State::determineStage()
 {
-    if (stageNumber == 0 && (*imu)->get_acceleration().z() > 29 && (*baro)->get_rel_alt_ft() > 30)
+    if (stageNumber == 0 && (*imu)->getAcceleration().z() > 29 && (*baro)->getRelAltFt() > 30)
     {
         // digitalWrite(33, HIGH);
         setRecordMode(FLIGHT);
         stageNumber = 1;
         timeOfLaunch = timeAbsolute;
         timePreviousStage = timeAbsolute;
-        launchTimeOfDay = (*gps)->get_time_of_day();
+        strcpy(launchTimeOfDay, (*gps)->getTimeOfDay());
         recordLogData(INFO, "Launch detected.");
         recordLogData(INFO, "Printing static data.");
         for (int i = 0; i < NUM_MAX_SENSORS; i++)
@@ -346,12 +347,12 @@ void State::determineStage()
         stageNumber = 3;
         recordLogData(INFO, "Drogue conditions detected.");
     }
-    else if (stageNumber == 3 && (*baro)->get_rel_alt_ft() < 1000 && timeSinceLaunch > 20) // This should be lowered
+    else if (stageNumber == 3 && (*baro)->getRelAltFt() < 1000 && timeSinceLaunch > 20) // This should be lowered
     {
         stageNumber = 4;
         recordLogData(INFO, "Main parachute conditions detected.");
     }
-    else if (stageNumber == 4 && baroVelocity > -1 && (*baro)->get_rel_alt_ft() < 66 && timeSinceLaunch > 25)
+    else if (stageNumber == 4 && baroVelocity > -1 && (*baro)->getRelAltFt() < 66 && timeSinceLaunch > 25)
     {
         stageNumber = 5;
         recordLogData(INFO, "Landing detected. Waiting for 5 seconds to dump data.");
@@ -414,39 +415,39 @@ void State::setCsvString(char *dest, const char *start, int startSize, bool head
 bool State::transmit()
 {
     char data[200];
-    snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", (*gps)->get_pos().x(), (*gps)->get_pos().y(), (int)(*baro)->get_rel_alt_ft(), (int)baroVelocity, (int)heading_angle, 'H', stageNumber, launchTimeOfDay);
+    snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", (*gps)->getPos().x(), (*gps)->getPos().y(), (int)(*baro)->getRelAltFt(), (int)baroVelocity, (int)headingAngle, 'H', stageNumber, launchTimeOfDay);
     bool b = radio->send(data, ENCT_TELEMETRY);
     return b;
 }
 
 void State::initKF(bool useBaro, bool useGps, bool useImu)
 {
-    double pr_n = 0.2;
-    double init_cov = 2;
-    double gps_cov = 36;
-    double baro_cov = 2;
-    double *initial_state = new double[6]{0, 0, 0, 0, 0, 0};
-    double *initial_input = new double[3]{0, 0, 0};
-    double *initial_covariance = new double[36]{init_cov, 0, 0, init_cov, 0, 0,
-                                                0, init_cov, 0, 0, init_cov, 0,
-                                                0, 0, init_cov, 0, 0, init_cov,
-                                                init_cov, 0, 0, init_cov, 0, 0,
-                                                0, init_cov, 0, 0, init_cov, 0,
-                                                0, 0, init_cov, 0, 0, init_cov};
-    double *measurement_covariance = new double[16]{4, 0, 0, 0,
+    double prN = 0.2;
+    double initCov = 2;
+    double gpsCov = 36;
+    double baroCov = 2;
+    double *initialState = new double[6]{0, 0, 0, 0, 0, 0};
+    double *initialInput = new double[3]{0, 0, 0};
+    double *initialCovariance = new double[36]{initCov, 0, 0, initCov, 0, 0,
+                                                0, initCov, 0, 0, initCov, 0,
+                                                0, 0, initCov, 0, 0, initCov,
+                                                initCov, 0, 0, initCov, 0, 0,
+                                                0, initCov, 0, 0, initCov, 0,
+                                                0, 0, initCov, 0, 0, initCov};
+    double *measurementCovariance = new double[16]{4, 0, 0, 0,
                                                     0, 4, 0, 0,
-                                                    0, 0, gps_cov, 0,
-                                                    0, 0, 0, baro_cov};
-    double *process_noise_covariance = new double[36]{pr_n, 0, 0, 0, 0, 0,
-                                                      0, pr_n, 0, 0, 0, 0,
-                                                      0, 0, pr_n, 0, 0, 0,
-                                                      0, 0, 0, pr_n, 0, 0,
-                                                      0, 0, 0, 0, pr_n, 0,
-                                                      0, 0, 0, 0, 0, pr_n};
-    akf::init(kfilter, 6, 3, 4, initial_state, initial_input, initial_covariance, measurement_covariance, process_noise_covariance);
-    delete[] initial_state;
-    delete[] initial_input;
-    delete[] initial_covariance;
-    delete[] measurement_covariance;
-    delete[] process_noise_covariance;
+                                                    0, 0, gpsCov, 0,
+                                                    0, 0, 0, baroCov};
+    double *processNoiseCovariance = new double[36]{prN, 0, 0, 0, 0, 0,
+                                                      0, prN, 0, 0, 0, 0,
+                                                      0, 0, prN, 0, 0, 0,
+                                                      0, 0, 0, prN, 0, 0,
+                                                      0, 0, 0, 0, prN, 0,
+                                                      0, 0, 0, 0, 0, prN};
+    akf::init(kfilter, 6, 3, 4, initialState, initialInput, initialCovariance, measurementCovariance, processNoiseCovariance);
+    delete[] initialState;
+    delete[] initialInput;
+    delete[] initialCovariance;
+    delete[] measurementCovariance;
+    delete[] processNoiseCovariance;
 }

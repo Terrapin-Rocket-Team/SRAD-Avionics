@@ -13,9 +13,9 @@ public:
         alt = nalt;
     }
     void *getData() {return &alt; }
-    double get_temp() { return press; }
-    double get_pressure() { return temp; }
-    double get_rel_alt_m() { return alt; }
+    double getTemp() { return press; }
+    double getPressure() { return temp; }
+    double getRelAltM() { return alt; }
     bool initialize() { return true; }
 
     const char *getCsvHeader()
@@ -28,7 +28,7 @@ public:
         // float x3
         const int size = 12 * 3 + 3;
         char *data = new char[size];
-        snprintf(data, size, "%.2f,%.2f,%.2f,", get_pressure(), get_temp(), get_rel_alt_m()); // trailing comma
+        snprintf(data, size, "%.2f,%.2f,%.2f,", getPressure(), getTemp(), getRelAltM()); // trailing comma
         return data;
     }
     char *getStaticDataString()
@@ -38,9 +38,9 @@ public:
         return data;
     }
 
-    double get_temp_f(){return 0;}
-    double get_rel_alt_ft() {return 0;}
-    double get_pressure_atm() {return 0;}
+    double getTempF(){return 0;}
+    double getRelAltFt() {return 0;}
+    double getPressureAtm() {return 0;}
     const char *getName() { return "FakeBaro"; }
     void update() {}
 private:
