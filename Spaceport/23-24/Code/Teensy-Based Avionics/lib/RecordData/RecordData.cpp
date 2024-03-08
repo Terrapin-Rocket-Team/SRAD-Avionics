@@ -32,6 +32,9 @@ void recordLogData(double timeStamp, LogType type, const char *data, Dest dest)
 
     if (dest == BOTH || dest == TO_USB)
     {
+        // if (!Serial){
+        //     Serial.begin(9600);
+        // }
         Serial.print(logPrefix);
         Serial.println(data);
     }
@@ -49,9 +52,6 @@ void recordLogData(double timeStamp, LogType type, const char *data, Dest dest)
         }
         else if (ram->isReady()) // while in flight, print to PSRAM for later dumping to SD card.
         {
-            // if (!Serial){
-            //     Serial.begin(9600);
-            // }
             ram->print(logPrefix, false);
             ram->println(data, false);
         }
