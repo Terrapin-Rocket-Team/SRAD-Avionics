@@ -71,7 +71,7 @@ bool State::init()
             if (sensors[i]->initialize())
             {
                 good++;
-                strcpy(logData, sensors[i]->getTypeString()); // This is a lot for just some logging...
+             strcpy(logData, sensors[i]->getTypeString()); // This is a lot for just some logging...
                 strcat(logData, " [");
                 strcat(logData, sensors[i]->getName());
                 strcat(logData, "] initialized.");
@@ -204,6 +204,7 @@ void State::updateState()
         }
     }
     timeAbsolute = millis() / 1000.0;
+    timeSinceLaunch = timeAbsolute - timeOfLaunch;
     determineAccelerationMagnitude();
     determineStage();
     if(stageNumber > 0)
@@ -313,9 +314,9 @@ bool State::applySensorType(int i, int sensorNum)
     case BAROMETER_:
 
         if (sensorNum == 1)
-            baro = reinterpret_cast<Barometer *>(&sensors[i]);//normally this would be a dynamic cast, but Arduino doesn't support it.
+            baro = reinterpret_cast<Barometer *>(sensors[i]);//normally this would be a dynamic cast, but Arduino doesn't support it.
         // else if (sensorNum == 2)//If you have more than one of the same type, add them like so.
-        //    baro2 = reinterpret_cast<Barometer *>(&sensors[i]);
+        //    baro2 = reinterpret_cast<Barometer *>(sensors[i]);
         else
             good = false;
         break;
@@ -323,7 +324,7 @@ bool State::applySensorType(int i, int sensorNum)
     case GPS_:
 
         if (sensorNum == 1)
-            gps = reinterpret_cast<GPS *>(&sensors[i]);
+            gps = reinterpret_cast<GPS *>(sensors[i]);
         else
             good = false;
         break;
@@ -331,7 +332,7 @@ bool State::applySensorType(int i, int sensorNum)
     case IMU_:
 
         if (sensorNum == 1)
-            imu = reinterpret_cast<IMU *>(&sensors[i]);
+            imu = reinterpret_cast<IMU *>(sensors[i]);
         else
             good = false;
         break;
@@ -352,8 +353,8 @@ void State::determineStage()
 {
     if (stageNumber == 0 && 
     (sensorOK(imu) || sensorOK(baro)) && 
-    (sensorOK(imu) ? imu->getAcceleration().z() > 29 : true) && 
-    (sensorOK(baro) ? baro->getRelAltFt() > 30 : true))
+    (sensorOK(imu) ? imu->getAcceleration().z() > 9 : true) && 
+    (sensorOK(baro) ? baro->getRelAltM() > 1 : true))
     //if we are in preflight AND
     //we have either the IMU OR the barometer AND
     //imu is ok AND the z acceleration is greater than 29 ft/s^2 OR imu is not ok AND
@@ -463,8 +464,7 @@ bool State::sensorOK(const Sensor *sensor)
 bool State::transmit()
 {
     char data[200];
-    snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", gps->getPos().x(), gps->getPos().y(), (int)baro->getRelAltFt(), (int)baroVelocity, (int)headingAngle, 'H', stageNumber, launchTimeOfDay);
-
+    snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", sensorOK(gps) ? gps->getPos().x() : 0, sensorOK(gps) ? gps->getPos().y() : 0, sensorOK(baro) ? (int)baro->getRelAltFt() : 0, (int)baroVelocity, (int)headingAngle, 'H', stageNumber, launchTimeOfDay);
     bool b = radio->send(data, ENCT_TELEMETRY);
     return b;
 }

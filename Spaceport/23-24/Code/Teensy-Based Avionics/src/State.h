@@ -47,11 +47,11 @@ public:
 
 private:
     static constexpr int NUM_MAX_SENSORS = 3;                              // update with the max number of expected sensors.
-    static constexpr SensorType SENSOR_ORDER[] = {BAROMETER_, GPS_, IMU_}; // make this array the same length as NUM_MAX_SENSORS and fill it.
+    SensorType SENSOR_ORDER[NUM_MAX_SENSORS] = {BAROMETER_, GPS_, IMU_}; // make this array the same length as NUM_MAX_SENSORS and fill it.
     // example if you have more than one of the same sensor type:
     // constexpr SensorType SENSOR_ORDER[] = {BAROMETER_, BAROMETER_, GPS_, IMU_}; or
     // constexpr SensorType SENSOR_ORDER[] = {BAROMETER_, GPS_, IMU_, BAROMETER_}; It doesn't what order they're in, as long as they're in the array.
-    static constexpr char SENSOR_NAMES[][10] = {"Barometer", "GPS", "IMU" /*, "Barometer 2"*/}; // make this array the same length as NUM_MAX_SENSORS and fill it with the names of the sensors in the same order as SENSOR_ORDER
+    const char SENSOR_NAMES[NUM_MAX_SENSORS][10] = {"Barometer", "GPS", "IMU" /*, "Barometer 2"*/}; // make this array the same length as NUM_MAX_SENSORS and fill it with the names of the sensors in the same order as SENSOR_ORDER
 
     Sensor *sensors[NUM_MAX_SENSORS];
     int numSensors; // how many sensors are actually enabled
