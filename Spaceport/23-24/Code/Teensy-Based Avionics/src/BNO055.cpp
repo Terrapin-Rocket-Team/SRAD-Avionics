@@ -10,13 +10,14 @@ bool BNO055::initialize()
 {
     if (!bno.begin())
     {
-        return false;
+        return initialized = false;
     }
     bno.setExtCrystalUse(true);
 
     initialMagField = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
-    return true;
+    return initialized = true;
 }
+
 void BNO055::update()
 {
     orientation = bno.getQuat();
@@ -24,6 +25,7 @@ void BNO055::update()
     orientationEuler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
     magnetometer = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
 }
+
 void BNO055::calibrateBno()
 {
     uint8_t system, gyro, accel, mag, i = 0;
@@ -59,18 +61,14 @@ imu::Vector<3> BNO055::getMagnetometer()
     return magnetometer;
 }
 
-imu::Vector<3> convertToEuler(imu::Quaternion orientation)
+
+imu::Vector<3> convertToEuler(const imu::Quaternion &orientation)
+
 {
     imu::Vector<3> euler = orientation.toEuler();
     // reverse the vector, since it returns in z, y, x
     euler = imu::Vector<3>(euler.x(), euler.y(), euler.z());
     return euler;
-}
-
-// will give back a pointer to a linear acceleration vector
-void *BNO055::getData()
-{
-    return (void *)&accelerationVec;
 }
 
 const char *BNO055::getCsvHeader()

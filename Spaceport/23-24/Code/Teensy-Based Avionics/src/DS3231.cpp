@@ -50,10 +50,6 @@ DateTime DS3231::setLaunchTime() {
     return launchTime;
 }
 
-void * DS3231::getData() { //sec since launch, cast to void pointer
-    return ((void *)(millis()));
-}
-
 const char *DS3231::getCsvHeader()
 {
     return "R-CurTime,R-Time Since Launch,"; // trailing comma

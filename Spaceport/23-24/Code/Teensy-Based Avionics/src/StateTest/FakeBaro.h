@@ -12,18 +12,18 @@ public:
         temp = ntemp;
         alt = nalt;
     }
-    void *getData() {return &alt; }
-    double getTemp() { return press; }
-    double getPressure() { return temp; }
-    double getRelAltM() { return alt; }
-    bool initialize() { return true; }
+    void *getData() override { return &alt; }
+    double getTemp() override { return press; }
+    double getPressure() override { return temp; }
+    double getRelAltM() override { return alt; }
+    bool initialize() override { return true; }
 
-    const char *getCsvHeader()
+    const char *getCsvHeader() override
     {                                                // incl  B- to indicate Barometer data
         return "B-Pres (hPa),B-Temp (C),B-Alt (m),"; // trailing commas are very important
     }
 
-    char *getDataString()
+    char *getDataString() override
     { // See State.cpp::setDataString() for comments on what these numbers mean
         // float x3
         const int size = 12 * 3 + 3;
@@ -31,19 +31,20 @@ public:
         snprintf(data, size, "%.2f,%.2f,%.2f,", getPressure(), getTemp(), getRelAltM()); // trailing comma
         return data;
     }
-    char *getStaticDataString()
+    char *getStaticDataString() override
     {
         char *data = new char[9];
         snprintf(data, 9, "%s\n", "Testing");
         return data;
     }
 
-    double getTempF(){return 0;}
-    double getRelAltFt() {return 0;}
-    double getPressureAtm() {return 0;}
-    const char *getName() { return "FakeBaro"; }
-    void update() {}
+    double getTempF() override { return 0; }
+    double getRelAltFt() override { return 0; }
+    double getPressureAtm() override { return 0; }
+    const char *getName() override { return "FakeBaro"; }
+    void update() override {}
+
 private:
-    double press, temp, alt;
+    double press = 0, temp = 0, alt = 0;
 };
 #endif

@@ -20,9 +20,9 @@ public:
         heading = h;
     }
     bool initialize() override { return true; }
-    imu::Vector<2> getPos() { return pos; }
-    double getAlt(){return alt;}
-    imu::Vector<3> getVelocity() {return imu::Vector<3>(0,0,0);}
+    imu::Vector<2> getPos() override { return pos; }
+    double getAlt() override { return alt; }
+    imu::Vector<3> getVelocity() override { return imu::Vector<3>(0, 0, 0); }
 
     double getHeading() override { return heading; }
 
@@ -43,17 +43,16 @@ public:
         return data;
     }
 
-    void *getData() override { return nullptr; }
-    imu::Vector<3> getOriginPos() { return imu::Vector<3>(0, 0, 0); }
-    imu::Vector<3> getDisplace() { return imu::Vector<3>(0, 0, 0); }
-    int getFixQual(){return 6;}
+    imu::Vector<3> getOriginPos() override { return imu::Vector<3>(0, 0, 0); }
+    imu::Vector<3> getDisplace() override { return imu::Vector<3>(0, 0, 0); }
+    int getFixQual() override { return 6; }
     const char *getName() override { return "FakeGPS"; }
     void update() override {}
     char *getTimeOfDay() override { return "00:00:00"; }
 
 private:
-    imu::Vector<2> pos;
-    double alt, heading;
+    imu::Vector<2> pos = imu::Vector<2>(0, 0);
+    double alt = 0, heading = 0;
     double initialLatitude = 0;
     double initialLongitude = 0;
     double initAltitude = 0;

@@ -14,7 +14,7 @@ DS3231 rtc();               // I2C Address 0x68
 APRSConfig config = {"KC3UTM", "APRS", "WIDE1-1", '[', '/'};
 RadioSettings settings = {433.775, true, false, &hardware_spi, 10, 31, 32};
 RFM69HCW radio = {settings, config};
-State computer;
+State computer;// = useKalmanFilter = true, stateRecordsOwnData = true
 uint32_t radioTimer = millis();
 
 PSRAM *ram;
