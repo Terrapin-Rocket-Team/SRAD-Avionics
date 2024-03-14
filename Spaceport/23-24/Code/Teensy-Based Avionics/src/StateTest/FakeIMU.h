@@ -44,7 +44,6 @@ public:
 
     imu::Vector<3> getOrientationEuler() override { return imu::Vector<3>(0, 0, 0); }
     imu::Vector<3> getMagnetometer() override { return imu::Vector<3>(0, 0, 0); }
-    void *getData() override { return nullptr; }
     const char *getName() override { return "FakeIMU"; }
     void update() override {}
 
