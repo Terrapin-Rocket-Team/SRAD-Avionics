@@ -156,7 +156,7 @@ bool MAX_M10S::getHasFirstFix()
 /*
 time since in initialization in seconds
 */
-char *MAX_M10S::getTimeOfDay()
+const char *MAX_M10S::getTimeOfDay()
 {
     snprintf(gpsTime, 9, "%02d:%02d:%02d", hr, min, sec);
     return gpsTime;
