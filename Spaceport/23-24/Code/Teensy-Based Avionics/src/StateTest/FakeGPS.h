@@ -48,7 +48,7 @@ public:
     int getFixQual() override { return 6; }
     const char *getName() override { return "FakeGPS"; }
     void update() override {}
-    char *getTimeOfDay() override { return "00:00:00"; }
+    const char *getTimeOfDay() override { return "00:00:00"; }
     bool getHasFirstFix() override { return true; }
 
 private:
