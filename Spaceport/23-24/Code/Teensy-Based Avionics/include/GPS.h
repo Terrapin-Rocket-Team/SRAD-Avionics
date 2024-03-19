@@ -15,7 +15,7 @@ public:
     virtual imu::Vector<2> getPos() = 0;
     virtual imu::Vector<3> getOriginPos() = 0;
     virtual imu::Vector<3> getDisplace() = 0;
-    virtual char *getTimeOfDay() = 0;
+    virtual const char *getTimeOfDay() = 0;
     virtual int getFixQual() = 0;
     virtual double getHeading() = 0;
     virtual bool getHasFirstFix() = 0;

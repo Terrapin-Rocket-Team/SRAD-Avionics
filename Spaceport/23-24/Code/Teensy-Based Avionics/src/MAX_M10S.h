@@ -32,7 +32,7 @@ public:
     imu::Vector<3> getVelocity() override;
     imu::Vector<2> getPos() override;
     imu::Vector<3> getDisplace() override;
-    char *getTimeOfDay() override;
+    const char *getTimeOfDay() override;
     imu::Vector<3> getOriginPos() override;
     int getFixQual() override;
     double getHeading() override;

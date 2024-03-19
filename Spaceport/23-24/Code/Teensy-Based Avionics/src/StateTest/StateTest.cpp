@@ -82,9 +82,6 @@ static double radioTimer = 0;
 bool more = false;
 void loop()
 {
-    //if (i % 20 == 0 || i++ % 20 == 1)//infinitely beep buzzer to indicate testing state. Please do NOT launch rocket with test code on the MCU......
-        //digitalWrite(BUZZER, HIGH);  // buzzer is on for 200ms/2sec
-
     if(Serial.available() > 0){
         ParseIncomingFakeSensorData(Serial.readStringUntil('\n'),baro,gps,fimu);
         Serial.clear();
@@ -104,5 +101,4 @@ void loop()
     Serial.print("[][]");
     Serial.println(stateStr);
     delay(50);
-    //digitalWrite(BUZZER, LOW);
 }
