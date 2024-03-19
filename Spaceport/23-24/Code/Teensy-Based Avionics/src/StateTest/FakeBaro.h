@@ -12,7 +12,6 @@ public:
         temp = ntemp;
         alt = nalt;
     }
-    void *getData() override { return &alt; }
     double getTemp() override { return press; }
     double getPressure() override { return temp; }
     double getRelAltM() override { return alt; }
