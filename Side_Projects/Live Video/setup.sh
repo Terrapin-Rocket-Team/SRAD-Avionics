@@ -126,6 +126,8 @@ chmod +x tests/localsave1080p.sh
 chmod +x tests/localsave1080pv2.sh
 chmod +x tests/networkstream.sh
 
+crontab crontab-config
+
 mkdir -p /home/${SUDO_USER}/video
 
 echo "Setup complete!"
