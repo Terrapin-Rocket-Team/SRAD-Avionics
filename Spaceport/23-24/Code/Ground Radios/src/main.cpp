@@ -38,15 +38,31 @@ void loop() {
 
     int phase = Serial.read();
 
-    if (phase != -1 && phase != lastCycle) {
+    if (phase != -1) {
         lastCycle = phase;
 
         if (phase == 1) {
             curSystem = &radio1;
+            digitalWrite(BUZZER, HIGH);
+            delay(200);
+            digitalWrite(BUZZER, LOW);
+            delay(100);
         } else if (phase == 2) {
             curSystem = &radio2;
+            digitalWrite(BUZZER, HIGH);
+            delay(1000);
+            digitalWrite(BUZZER, LOW);
+            delay(100);
         } else {
             curSystem = &radio3;
+            digitalWrite(BUZZER, HIGH);
+            delay(100);
+            digitalWrite(BUZZER, LOW);
+            delay(100);
+            digitalWrite(BUZZER, HIGH);
+            delay(100);
+            digitalWrite(BUZZER, LOW);
+            delay(100);
         }
     }
     else {
@@ -54,28 +70,43 @@ void loop() {
         // delay(200);
         // digitalWrite(BUZZER, LOW);
         // delay(200);
-        delay(50);
+        // delay(50);
     }
 
-    if (curSystem->availableX()) {
-        if (phase == 1) {
-            Serial.print(curSystem->receiveX(ENCT_GROUNDSTATION));
-        } else {
-            Serial.print(curSystem->rxX());
+    // if (curSystem->availableX()) {
+    //     if (phase == 1) {
+    //         Serial.print(curSystem->receiveX(ENCT_GROUNDSTATION));
+    //     } else {
+    //         Serial.print(curSystem->rxX());
+    //     }
+    // }
+
+    // need this so that it sends even if it doesn't receive
+    if (phase == 1) {
+        const char *msg = curSystem->receiveX(ENCT_GROUNDSTATION);
+        if (strcmp(msg, "") != 0) {
+            Serial.print(msg);
         }
-    }
+    } 
+    else {
+        const char *msg = curSystem->rxX();
 
-    const char *msg = curSystem->rxX();
-
-    if (strcmp(msg, "Failed to receive message") != 0 && strcmp(msg, "No message available") != 0) {
-
-        if (phase == 1) {
-            Serial.print("1: ");
-        } 
-        else {
+        if (strcmp(msg, "Failed to receive message") != 0 && strcmp(msg, "No message available") != 0) {
             Serial.print(msg);
         }
     }
+
+    // const char *msg = curSystem->rxX();
+
+    // if (strcmp(msg, "Failed to receive message") != 0 && strcmp(msg, "No message available") != 0) {
+
+    //     if (phase == 1) {
+    //         Serial.print("1: ");
+    //     } 
+    //     else {
+    //         Serial.print(msg);
+    //     }
+    // }
 
 
 
