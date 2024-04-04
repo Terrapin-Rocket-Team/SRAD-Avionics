@@ -107,6 +107,20 @@ bool RFM69HCW::tx(const char *message)
     return true;
 }
 
+const char *RFM69HCW::rxX()
+{
+    String letters[40] = {"a", "b", "c", "d", "e", "f","g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"};
+
+    int lens = random(0, 100);
+    int val = random(0, 40);
+    String str = "";
+    for (int i = 0; i < lens; i++)
+    {
+        str += letters[val];
+    }
+    return str.c_str();
+}
+
 /*
 Receive function
 Most basic receiving method, simply checks for a message and returns a pointer to it
@@ -529,6 +543,12 @@ const char *RFM69HCW::receive(EncodingType type)
     return "";
 }
 
+const char *RFM69HCW::receiveX(EncodingType type)
+{
+    int lens = random(100, 999);
+    return ("s\r\nSource:123,Destination:321,Path:555,Type:999,Data:!3624.12N/07624.12S[123/" + String(lens) + "/A=100054/S1/11:33:26,RSSI:-56\r\ne\r\n").c_str();
+}
+
 /*
 Returns true if a there is a new message
 */
@@ -536,6 +556,11 @@ bool RFM69HCW::available()
 {
     rx();
     return this->avail;
+}
+
+bool RFM69HCW::availableX()
+{
+    return true;
 }
 
 /*

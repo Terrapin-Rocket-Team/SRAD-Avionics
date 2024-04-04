@@ -3,6 +3,8 @@
 #include "RFM69HCW.h"
 #include "Radio.h"
 
+#define BUZZER 33
+
 APRSConfig config = {"KC3UTM", "APRS", "WIDE1-1", '[', '/'};
 RadioSettings settings1 = {433.775, false, false, &hardware_spi, 10, 31, 32};
 RadioSettings settings2 = {915.775, false, false, &hardware_spi, 10, 31, 32};       //change pins
@@ -16,13 +18,19 @@ RFM69HCW *curSystem = &radio1;
 
 void setup() {
 
-    Serial.begin(921600);      // 921600 baud rate (https://lucidar.me/en/serialib/most-used-baud-rates-table/)
+    Serial.begin(9600);      // 921600 baud rate (https://lucidar.me/en/serialib/most-used-baud-rates-table/)
 
     radio1.begin();
     radio2.begin();
     radio3.begin();
 
     lastCycle = Serial.read();  
+    pinMode(BUZZER, OUTPUT);
+
+    digitalWrite(BUZZER, HIGH);
+    delay(1000);
+    digitalWrite(BUZZER, LOW);
+    delay(1000);
 
 }
 
@@ -41,26 +49,33 @@ void loop() {
             curSystem = &radio3;
         }
     }
+    else {
+        // digitalWrite(BUZZER, HIGH);
+        // delay(200);
+        // digitalWrite(BUZZER, LOW);
+        // delay(200);
+        delay(50);
+    }
 
-    if (curSystem->available()) {
+    if (curSystem->availableX()) {
         if (phase == 1) {
-            Serial.print(curSystem->receive(ENCT_GROUNDSTATION));
+            Serial.print(curSystem->receiveX(ENCT_GROUNDSTATION));
         } else {
-            Serial.print(curSystem->rx());
+            Serial.print(curSystem->rxX());
         }
     }
 
-    // const char *msg = curSystem->rx();
+    const char *msg = curSystem->rxX();
 
-    // if (strcmp(msg, "Failed to receive message") != 0 && strcmp(msg, "No message available") != 0) {
+    if (strcmp(msg, "Failed to receive message") != 0 && strcmp(msg, "No message available") != 0) {
 
-    //     if (phase == 1) {
-    //         Serial.print("1: ");
-    //     } 
-    //     else {
-    //         Serial.print(msg);
-    //     }
-    // }
+        if (phase == 1) {
+            Serial.print("1: ");
+        } 
+        else {
+            Serial.print(msg);
+        }
+    }
 
 
 

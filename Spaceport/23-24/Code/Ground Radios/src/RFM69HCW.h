@@ -42,12 +42,15 @@ public:
     bool begin() override;
     bool tx(const char *message) override;
     const char *rx() override;
+    const char *rxX();
     bool encode(char *message, EncodingType type) override;
     bool decode(char *message, EncodingType type) override;
     bool send(const char *message, EncodingType type) override;
     const char *receive(EncodingType type) override;
+    const char *receiveX(EncodingType type);
     int RSSI() override;
     bool available();
+    bool availableX();
     void set300KBPS();
 
 private:
