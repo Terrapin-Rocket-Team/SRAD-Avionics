@@ -52,6 +52,7 @@ public:
     bool available();
     bool availableX();
     void set300KBPS();
+    String letter;
 
 private:
     RH_RF69 radio;

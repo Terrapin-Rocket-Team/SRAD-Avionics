@@ -30,6 +30,10 @@ RFM69HCW::RFM69HCW(const RadioSettings s, const APRSConfig config) : radio(s.cs,
 
     this->settings = s;
     this->cfg = config;
+
+    String letters[40] = {"a", "b", "c", "d", "e", "f","g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"};
+    int val = random(0, 40);
+    this->letter = letters[val];
 }
 
 /*
@@ -109,14 +113,11 @@ bool RFM69HCW::tx(const char *message)
 
 const char *RFM69HCW::rxX()
 {
-    String letters[40] = {"a", "b", "c", "d", "e", "f","g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"};
-
     int lens = random(0, 100);
-    int val = random(0, 40);
     String str = "";
     for (int i = 0; i < lens; i++)
     {
-        str += letters[val];
+        str += letter;
     }
     return str.c_str();
 }

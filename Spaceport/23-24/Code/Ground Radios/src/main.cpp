@@ -13,12 +13,12 @@ RFM69HCW radio1 = {settings1, config};
 RFM69HCW radio2 = {settings2, config};
 RFM69HCW radio3 = {settings3, config};
 
-int lastCycle = 1;
+int lastCycle = -1;
 RFM69HCW *curSystem = &radio1;
 
 void setup() {
 
-    Serial.begin(9600);      // 921600 baud rate (https://lucidar.me/en/serialib/most-used-baud-rates-table/)
+    Serial.begin(115200);      // 921600 baud rate (https://lucidar.me/en/serialib/most-used-baud-rates-table/)
 
     radio1.begin();
     radio2.begin();
@@ -43,70 +43,70 @@ void loop() {
 
         if (phase == 1) {
             curSystem = &radio1;
-            digitalWrite(BUZZER, HIGH);
-            delay(200);
-            digitalWrite(BUZZER, LOW);
-            delay(100);
+            // digitalWrite(BUZZER, HIGH);
+            // delay(200);
+            // digitalWrite(BUZZER, LOW);
+            // delay(100);
         } else if (phase == 2) {
             curSystem = &radio2;
-            digitalWrite(BUZZER, HIGH);
-            delay(1000);
-            digitalWrite(BUZZER, LOW);
-            delay(100);
+            // digitalWrite(BUZZER, HIGH);
+            // delay(1000);
+            // digitalWrite(BUZZER, LOW);
+            // delay(100);
         } else {
             curSystem = &radio3;
-            digitalWrite(BUZZER, HIGH);
-            delay(100);
-            digitalWrite(BUZZER, LOW);
-            delay(100);
-            digitalWrite(BUZZER, HIGH);
-            delay(100);
-            digitalWrite(BUZZER, LOW);
-            delay(100);
+            // digitalWrite(BUZZER, HIGH);
+            // delay(100);
+            // digitalWrite(BUZZER, LOW);
+            // delay(100);
+            // digitalWrite(BUZZER, HIGH);
+            // delay(100);
+            // digitalWrite(BUZZER, LOW);
+            // delay(100);
         }
     }
-    else {
+    // else {
         // digitalWrite(BUZZER, HIGH);
         // delay(200);
         // digitalWrite(BUZZER, LOW);
         // delay(200);
         // delay(50);
-    }
-
-    // if (curSystem->availableX()) {
-    //     if (phase == 1) {
-    //         Serial.print(curSystem->receiveX(ENCT_GROUNDSTATION));
-    //     } else {
-    //         Serial.print(curSystem->rxX());
-    //     }
     // }
+
+    if (lastCycle == 1) {
+        Serial.print("a");
+    }
+    else if (lastCycle == 2) {
+        Serial.print("b");
+    }
+    else if (lastCycle == 3) {
+        Serial.print("c");
+    }
+    else {
+        Serial.print("Invalid phase");
+    }
 
     // need this so that it sends even if it doesn't receive
-    if (phase == 1) {
-        const char *msg = curSystem->receiveX(ENCT_GROUNDSTATION);
-        if (strcmp(msg, "") != 0) {
-            Serial.print(msg);
-        }
-    } 
-    else {
-        const char *msg = curSystem->rxX();
-
-        if (strcmp(msg, "Failed to receive message") != 0 && strcmp(msg, "No message available") != 0) {
-            Serial.print(msg);
-        }
-    }
-
-    // const char *msg = curSystem->rxX();
-
-    // if (strcmp(msg, "Failed to receive message") != 0 && strcmp(msg, "No message available") != 0) {
-
-    //     if (phase == 1) {
-    //         Serial.print("1: ");
+    // if (curSystem->availableX()) {
+    //     if (lastCycle == 1) {
+    //         const char *msg = curSystem->receiveX(ENCT_GROUNDSTATION);
+    //         if (strcmp(msg, "") != 0) {
+    //             Serial.print(msg);
+    //         }
     //     } 
+    //     else if (lastCycle == 2 || lastCycle == 3) {
+    //         const char *msg = curSystem->rxX();
+
+    //         if (strcmp(msg, "Failed to receive message") != 0 && strcmp(msg, "No message available") != 0) {
+    //             Serial.print(msg);
+    //         }
+    //     }
     //     else {
-    //         Serial.print(msg);
+    //         Serial.print("Invalid phase");
+    //         // delay(100);
     //     }
     // }
+
 
 
 
