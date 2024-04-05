@@ -62,11 +62,6 @@ public:
     // length of msg for recieving binary messages
     int msgLen = 0;
 
-    // stores full messages, max length determined by platform
-    char msg[MSG_LEN + 1];
-    // length of msg for recieving binary messages
-    int msgLen = 0;
-
 private:
     RH_RF69 radio;
     // all radios should have the same networkID

@@ -333,12 +333,12 @@ bool RFM69HCW::encode(char *message, EncodingType type, int len)
         if (altInt < 0)
         {
             strcpy(data.alt, "/A=-");
-            APRSMsg::padding(alt_int * -1, 5, data.alt, 4);
+            APRSMsg::padding(altInt * -1, 5, data.alt, 4);
         }
         else
         {
             strcpy(data.alt, "/A=");
-            APRSMsg::padding(alt_int, 6, data.alt, 3);
+            APRSMsg::padding(altInt, 6, data.alt, 3);
         }
 
         // get course/speed strings
