@@ -24,6 +24,9 @@ SOFTWARE.
 
 #include "APRSMsg.h"
 
+char *s_min_nn(uint32_t min_nnnnn, int high_precision);
+int numDigits(unsigned int num);
+
 APRSMsg::APRSMsg() : _body()
 {
 }
