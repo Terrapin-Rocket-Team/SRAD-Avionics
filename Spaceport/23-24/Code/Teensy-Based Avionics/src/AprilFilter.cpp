@@ -48,7 +48,7 @@ LinearKalmanFilter initializeFilter(){
   return new LinearKalmanFilter(X, U, P, get_F(0), get_G(0), R);
 }
 
-Matrix iterateFilter(LinearKalmanFilter kf, int dt, double* input, double* measurement, int has_gps, int has_barometer){
+double* iterateFilter(LinearKalmanFilter kf, int dt, double* input, double* measurement, int has_gps, int has_barometer){
   Matrix meas = Matrix(4, 1, measurement);
   Matrix inp = Matrix(3, 1, input);
   Matrix state = kf.iterate(meas, inp, get_F(dt), get_G(dt), get_H(has_gps, has_barometer));
