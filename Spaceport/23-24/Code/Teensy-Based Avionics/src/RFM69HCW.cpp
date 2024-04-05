@@ -131,6 +131,9 @@ void RFM69HCW::endtx()
     this->radio.setHeaderId(this->id);
 }
 
+RHGenericDriver::RHMode RFM69HCW::mode() { return radio.mode(); }
+
+
 // partially adapted from RadioHead library
 bool RFM69HCW::txs(const char *message, int len)
 {

@@ -13,7 +13,7 @@ MAX_M10S gps(13, 12, 0x42); // I2C Address 0x42
 DS3231 rtc();               // I2C Address 0x68
 APRSConfig config = {"KC3UTM", "APRS", "WIDE1-1", '[', '/'};
 RadioSettings settings = {915.0, true, false, &hardware_spi, 10, 31, 32};
-RFM69HCW radio = {settings, config};
+RFM69HCW radio = {&settings, &config};
 State computer;// = useKalmanFilter = true, stateRecordsOwnData = true
 uint32_t radioTimer = millis();
 
