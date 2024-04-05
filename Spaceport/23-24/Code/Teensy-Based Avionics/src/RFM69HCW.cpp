@@ -1,5 +1,13 @@
 #include "RFM69HCW.h"
 
+#ifndef max
+int max(int a, int b);
+#endif
+
+#ifndef min
+int min(int a, int b);
+#endif
+
 /*
 Constructor
     - frequency in hertz
@@ -64,6 +72,10 @@ bool RFM69HCW::begin()
     this->radio.setThisAddress(this->addr);
     this->radio.setHeaderId(this->id);
 
+    // configure unlimited packet length mode, don't do this for now
+    // this->radio.spiWrite(0x37, 0b00000000);                // Packet format (0x37) set to 00000000 (see manual for meaning of each bit)
+    // this->radio.spiWrite(RH_RF69_REG_38_PAYLOADLENGTH, 0); // Payload length (0x38) set to 0
+
     if (this->settings.highBitrate) // Note: not working
     {
         // the default bitrate of 4.8kbps should be fine unless we want high bitrate for video
@@ -91,11 +103,11 @@ bool RFM69HCW::tx(const char *message, int len)
         return false;
 
     // reset variables for tx
-    this->id = 0x00;
+    this->totalPackets = 0x00;
 
     // get number of packets for this message, and set this radio's id to that value so the receiver knows how many packets to expect
     this->totalPackets = len / this->bufSize + (len % this->bufSize > 0);
-    this->radio.setHeaderId(this->id);
+    this->radio.setHeaderId(this->totalPackets);
     sendBuffer();
 
     if (message != nullptr)
@@ -113,6 +125,68 @@ bool RFM69HCW::sendBuffer()
 }
 
 void RFM69HCW::endtx()
+{
+    this->msgLen = -1;
+    this->id = 0x00;
+    this->radio.setHeaderId(this->id);
+}
+
+// partially adapted from RadioHead library
+bool RFM69HCW::txs(const char *message, int len)
+{
+    // figure out how long the message should be
+    if (len > 0)
+        this->msgLen = len > MSG_LEN ? MSG_LEN : len;
+    else if (this->msgLen == -1)
+        return false;
+
+    if (message != nullptr)
+        memcpy(this->msg, message, len);
+
+    this->radio.waitPacketSent(); // Make sure we dont interrupt an outgoing message
+    this->radio.setModeIdle();    // Prevent RX while filling the fifo
+
+    if (!this->radio.waitCAD())
+        return false; // Check channel activity
+
+    ATOMIC_BLOCK_START;
+    this->settings.spi->beginTransaction();
+    digitalWrite(this->settings.cs, LOW);
+    this->settings.spi->transfer(RH_RF69_REG_00_FIFO | RH_RF69_SPI_WRITE_MASK); // Send the start address with the write mask on
+    this->settings.spi->transfer(this->msgLen + 1);                             // Include length of headers
+    // First the header
+    this->settings.spi->transfer(this->toAddr); // type of transmitter that should receive this message
+    // Now the payload
+    while (this->msgIndex++ != this->msgLen && !this->radio.spiRead(RH_RF69_IRQFLAGS2_FIFOFULL)) // these conditions need to be verified
+        this->settings.spi->transfer(this->msg[this->msgIndex]);
+    digitalWrite(this->settings.cs, HIGH);
+    this->settings.spi->endTransaction();
+    ATOMIC_BLOCK_END;
+
+    this->radio.setModeTx(); // Start the transmitter
+    return true;
+}
+
+bool RFM69HCW::txT()
+{
+    if (!this->radio.spiRead(RH_RF69_IRQFLAGS2_FIFONOTEMPTY) || !this->radio.spiRead(RH_RF69_FIFOTHRESH_FIFOTHRESHOLD))
+    {
+        // this is basically tx without preprocessing and no toAddr byte
+        ATOMIC_BLOCK_START;
+        this->settings.spi->beginTransaction();
+        digitalWrite(this->settings.cs, LOW);
+        this->settings.spi->transfer(RH_RF69_REG_00_FIFO | RH_RF69_SPI_WRITE_MASK);                  // Send the start address with the write mask on
+        while (this->msgIndex++ != this->msgLen && !this->radio.spiRead(RH_RF69_IRQFLAGS2_FIFOFULL)) // these conditions need to be verified
+            this->settings.spi->transfer(this->msg[this->msgIndex]);
+        digitalWrite(this->settings.cs, HIGH);
+        this->settings.spi->endTransaction();
+        ATOMIC_BLOCK_END;
+        return this->radio.spiRead(RH_RF69_IRQFLAGS2_PACKETSENT);
+    }
+    return false;
+}
+
+void RFM69HCW::txe() // try to get rid of this one
 {
     this->msgLen = -1;
     this->id = 0x00;
