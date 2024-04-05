@@ -96,6 +96,7 @@ bool RFM69HCW::tx(const char *message, int len)
     // get number of packets for this message, and set this radio's id to that value so the receiver knows how many packets to expect
     this->totalPackets = len / this->bufSize + (len % this->bufSize > 0);
     this->radio.setHeaderId(this->id);
+    sendBuffer();
 
     if (message != nullptr)
         memcpy(this->msg, message, len);
@@ -240,7 +241,6 @@ bool RFM69HCW::encode(char *message, EncodingType type, int len)
 
             delete[] currentVal;
         }
-
         // get lat and long string for low or high precision
         if (data.precision == 'L')
         {
@@ -254,10 +254,9 @@ bool RFM69HCW::encode(char *message, EncodingType type, int len)
             APRSMsg::formatLat(data.lat, 1);
             APRSMsg::formatLong(data.lng, 1);
         }
-
         // get alt string
-        int alt_int = max(-99999, min(999999, atoi(data.alt)));
-        if (alt_int < 0)
+        int altInt = max(-99999, min(999999, atoi(data.alt)));
+        if (altInt < 0)
         {
             strcpy(data.alt, "/A=-");
             APRSMsg::padding(alt_int * -1, 5, data.alt, 4);

@@ -1,0 +1,16 @@
+//A list of warnings and errors that cppcheck should not look for.
+//format for suppressions are [errorId]:[file]:[line#]
+//file and line# are optional, and errorId and file may include * or ? wildcards.
+
+//everything in .pio
+*:*/.pio/*
+
+shadowVariable:*
+
+*:*/lib/RadioHead/*
+
+//This seems to be a bug with cppcheck where everything is "unused"
+unusedFunction:*
+
+//While technically faster, the strange format is unintuitive for new people and would be more trouble than it's worth.
+useInitializationList:*

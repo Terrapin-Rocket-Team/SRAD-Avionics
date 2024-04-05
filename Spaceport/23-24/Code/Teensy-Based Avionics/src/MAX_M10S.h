@@ -10,38 +10,40 @@ class MAX_M10S : public GPS
 {
 private:
     SFE_UBLOX_GNSS m10s;
-    uint8_t SCK_pin;
-    uint8_t SDA_pin;
-    uint8_t i2c_address;
+    uint8_t SCKPin;
+    uint8_t SDAPin;
+    uint8_t i2cAddress;
     imu::Vector<2> pos;          // latitude and longitude
     double altitude;             // alti in mm
     imu::Vector<3> velocity;     // m per s
     imu::Vector<3> displacement; // m from starting location
     imu::Vector<3> origin;       // lat(deg), long(deg), alti(m) of the original location
-    double gps_time;             // time since start of program in seconds
-    int fix_qual;                // num of connections to satellites
-    imu::Vector<3> irl_time;     // returns the current hour, min, and sec
-    bool first_fix;              // whether or not gps has recieved first fix
+    int fixQual;                // num of connections to satellites
+    imu::Vector<3> irlTime;     // returns the current hour, min, and sec
+    bool hasFirstFix;              // whether or not gps has recieved first fix
     double heading;
+    int hr, min, sec;
+    char gpsTime[9];
+    double time;
 
 public:
     MAX_M10S(uint8_t SCK, uint8_t SDA, uint8_t address);
-    void read_gps();
-    double get_alt();
-    imu::Vector<3> get_velocity();
-    imu::Vector<2> get_pos();
-    imu::Vector<3> get_displace();
-    double get_gps_time();
-    bool get_first_fix();
-    imu::Vector<3> get_irl_time();
-    imu::Vector<3> get_origin_pos();
-    int get_fix_qual();
-    double get_heading();
-    void *get_data();
+    double getAlt() override;
+    imu::Vector<3> getVelocity() override;
+    imu::Vector<2> getPos() override;
+    imu::Vector<3> getDisplace() override;
+    const char *getTimeOfDay() override;
+    imu::Vector<3> getOriginPos() override;
+    int getFixQual() override;
+    double getHeading() override;
+
     bool initialize() override;
-    const char *getcsvHeader() override;
-    char *getdataString() override;
+    const char *getCsvHeader() override;
+    char *getDataString() override;
     char *getStaticDataString() override;
+    const char *getName() override;
+    void update() override;
+    bool getHasFirstFix() override;
 };
 
 #endif // MAX_M10S_H

@@ -18,16 +18,16 @@ public:
         ori.z() = qz;
         ori.w() = qw;
     }
-    bool initialize() { return true; }
-    imu::Quaternion get_orientation() { return ori; }
-    imu::Vector<3> get_acceleration() { return acc; }
+    bool initialize() override { return true; }
+    imu::Quaternion getOrientation() override { return ori; }
+    imu::Vector<3> getAcceleration() override { return acc; }
 
-    const char *getcsvHeader()
+    const char *getCsvHeader() override
     {                                                                                     // incl I- for IMU
         return "I-AX (m/s/s),I-AY (m/s/s),I-AZ (m/s/s),I-QUATX,I-QUATY,I-QUATZ,I-QUATW,"; // trailing comma
     }
 
-    char *getdataString()
+    char *getDataString() override
     {
         const int size = 12 * 7 + 10;
         char *data = new char[size];
@@ -35,20 +35,21 @@ public:
         return data;
     }
 
-    char *getStaticDataString()
+    char *getStaticDataString() override
     {
         char *data = new char[9];
         snprintf(data, 9, "%s\n", "Testing");
         return data;
     }
 
-    imu::Vector<3> get_orientation_euler() { return imu::Vector<3>(0, 0, 0); }
-    imu::Vector<3> get_magnetometer() { return imu::Vector<3>(0, 0, 0); }
-    void *get_data() { return nullptr; }
+    imu::Vector<3> getOrientationEuler() override { return imu::Vector<3>(0, 0, 0); }
+    imu::Vector<3> getMagnetometer() override { return imu::Vector<3>(0, 0, 0); }
+    const char *getName() override { return "FakeIMU"; }
+    void update() override {}
 
 private:
-    imu::Quaternion ori;
-    imu::Vector<3> acc;
+    imu::Quaternion ori = imu::Quaternion(1, 0, 0, 0);
+    imu::Vector<3> acc = imu::Vector<3>(0, 0, 0);
 };
 
 #endif

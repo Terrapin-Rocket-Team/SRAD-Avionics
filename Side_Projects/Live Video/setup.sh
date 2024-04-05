@@ -14,7 +14,7 @@ echo "Checking dependencies..."
 sleep 1
 
 echo -n "Checking for git..."
-if [ ! type git &> /dev/null ]
+if ! type git &> /dev/null
 then
     echo "Not Found"
     echo "Installing git..."
@@ -24,7 +24,7 @@ else
 fi
 
 echo -n "Checking for cmake..."
-if [ ! type cmake &> /dev/null ]
+if ! type cmake &> /dev/null
 then
     echo "Not Found"
     echo "Installing cmake..."
@@ -34,7 +34,7 @@ else
 fi
 
 echo -n "Checking for ffmpeg..."
-if [ ! type ffmpeg &> /dev/null]
+if ! type ffmpeg &> /dev/null
 then
     echo "Not Found"
     echo "Installing ffmpeg..."
@@ -44,7 +44,7 @@ else
 fi
 
 echo -n "Checking for perl..."
-if [ ! type perl &> /dev/null ]
+if ! type perl &> /dev/null
 then
     echo "Not Found"
     echo "Installing perl..."
@@ -54,31 +54,35 @@ else
 fi
 
 echo -n "Checking for libcamera..."
-if [ ! type libcamera-vid &> /dev/null ]
+if ! type libcamera-vid &> /dev/null
 then
     echo "Not Found"
     echo "Installing libcamera..."
-    apt install libcamera-apps
+    apt install libcamera-apps -y
 else
     echo "Found"
 fi
 
 echo -n "Checking for netcat..."
-if [ ! type nc &> /dev/null ]
+if ! type nc &> /dev/null
 then
     echo "Not Found"
     echo "Installing netcat..."
-    apt install netcat-traditional
+    apt install netcat-traditional -y
 else
     echo "Found"
 fi
 
 echo -n "Checking for Boost 1.74..."
-if [ ! -d /usr/include/boost || ! -f /usr/lib/aarch64-linux-gnu/libboost_program_options.so ]
+if [ ! -d /usr/include/boost ] || [ ! -f /usr/lib/aarch64-linux-gnu/libboost_program_options.so ]
 then
     echo "Not Found"
     echo "Installing Boost 1.74"
-    apt install libboost1.74-all-dev
+    apt install libboost1.74-all-dev -y
+else
+    echo "Found"
+fi
+
 echo "Getting AV1 encoder..."
 sleep 1
 
@@ -118,9 +122,12 @@ sleep 1
 cd ../../
 
 chmod +x tests/localsave.sh
+chmod +x tests/localsave1080p.sh
+chmod +x tests/localsave1080pv2.sh
 chmod +x tests/networkstream.sh
 
-cd ~
-mkdir -p video
+crontab crontab-config
 
-echo "Setup complete"
+mkdir -p /home/${SUDO_USER}/video
+
+echo "Setup complete!"

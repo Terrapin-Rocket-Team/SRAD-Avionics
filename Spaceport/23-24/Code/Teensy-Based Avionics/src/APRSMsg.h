@@ -146,8 +146,8 @@ class APRSMsg
 {
 public:
     APRSMsg();
-    APRSMsg(APRSMsg &other_msg);
-    APRSMsg &operator=(APRSMsg &other_msg);
+    APRSMsg(APRSMsg &otherMsg);
+    APRSMsg &operator=(APRSMsg &otherMsg);
     virtual ~APRSMsg();
 
     const char *getSource();

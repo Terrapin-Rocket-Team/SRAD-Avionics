@@ -1,7 +1,7 @@
 // The header for the Real Time Clock sensor. The Subclass will be DS3231.cpp in >>src folder 
 // We'll need both a .cpp and .h file in src 
 // Make sure to include a virtual destructor: virtual ~RTC() {}' in public:...
-// also, include getcsvHeader() and getdataString() --> refer to Barometer.h for example.
+// also, include getCsvHeader() and getDataString() --> refer to Barometer.h for example.
 
 #ifndef RTC_H
 #define RTC_H
@@ -18,7 +18,8 @@ public:
     virtual DateTime setLaunchTime() = 0;
     virtual DateTime getPowerOnTime() = 0;
     virtual DateTime getCurrentTime() = 0;
-    virtual void * getData() = 0;
+    virtual SensorType getType() override { return RTC_; }
+    virtual const char *getTypeString() override { return "RTC"; }
 };
 
 #endif 

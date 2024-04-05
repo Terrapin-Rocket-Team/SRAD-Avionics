@@ -6,21 +6,23 @@
 #include <imumaths.h>
 #include "Sensor.h"
 
-
-class GPS : public Sensor{
+class GPS : public Sensor
+{
 public:
-    virtual ~GPS() {}; //Virtual descructor. Very important
-    virtual void * get_data() = 0;
-    virtual void read_gps() = 0;
-    virtual double get_alt() = 0;
-    virtual imu::Vector<3> get_velocity() = 0;
-    virtual imu::Vector<2> get_pos() = 0;
-    virtual imu::Vector<3> get_origin_pos() = 0;
-    virtual imu::Vector<3> get_displace() = 0;
-    virtual double get_gps_time() = 0;
-    virtual int get_fix_qual() = 0;
-    virtual double get_heading() = 0;
+    virtual ~GPS(){}; // Virtual descructor. Very important
+    virtual double getAlt() = 0;
+    virtual imu::Vector<3> getVelocity() = 0;
+    virtual imu::Vector<2> getPos() = 0;
+    virtual imu::Vector<3> getOriginPos() = 0;
+    virtual imu::Vector<3> getDisplace() = 0;
+    virtual const char *getTimeOfDay() = 0;
+    virtual int getFixQual() = 0;
+    virtual double getHeading() = 0;
+    virtual bool getHasFirstFix() = 0;
+
+    virtual const char *getTypeString() override { return "GPS"; }
+    virtual SensorType getType() override { return GPS_; }
+
 };
 
-
-#endif 
+#endif

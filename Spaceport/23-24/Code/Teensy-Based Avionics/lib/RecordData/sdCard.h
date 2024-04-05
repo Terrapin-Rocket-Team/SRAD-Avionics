@@ -3,14 +3,15 @@
 
 #include "SdFat.h"
 
-#define COMPACT_WALKBACK_COUNT 50
 
 extern SdFs sd;
 extern FsFile logFile;
-extern String logFileName;
+extern FsFile flightDataFile;
+extern char logFileName[];
+extern char flightDataFileName[];
 
-bool setupSDCard(String csvHeader);  // Initializes the sensor
+bool setupSDCard(); // Initializes the sensor
 bool isSDReady();  // Returns whether the sensor is initialized
-
+void sendSDCardHeader(const char *csvHeader); // Sends the header to the SD card
 
 #endif
