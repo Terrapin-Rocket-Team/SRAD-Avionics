@@ -15,17 +15,18 @@ private:
 public:
     DS3231(); // constructor
     void onLaunch();
-    imu::Vector<2> getTimeOn(); // ms
-    imu::Vector<2> getTimeSinceLaunch(); // ms
-    DateTime getLaunchTime(); 
-    DateTime getPowerOnTime();
-    DateTime getCurrentTime();
-    DateTime setLaunchTime();
-    void *getData();
+    imu::Vector<2> getTimeOn() override; // ms
+    imu::Vector<2> getTimeSinceLaunch() override; // ms
+    DateTime getLaunchTime() override; 
+    DateTime getPowerOnTime() override;
+    DateTime getCurrentTime() override;
+    DateTime setLaunchTime() override;
     bool initialize() override;
-    const char *getcsvHeader() override;
-    char *getdataString() override;
+    const char *getCsvHeader() override;
+    char *getDataString() override;
     char *getStaticDataString() override;
+    const char *getName() override { return "DS3231"; }
+    void update() override {}
 };
 
 # endif

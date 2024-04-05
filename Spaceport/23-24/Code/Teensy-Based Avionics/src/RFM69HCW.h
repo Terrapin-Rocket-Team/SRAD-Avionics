@@ -52,6 +52,12 @@ public:
     int RSSI() override;
     bool available();
     void set300KBPS();
+    RHGenericDriver::RHMode mode();
+
+    // stores full messages, max length determined by platform
+    char msg[MSG_LEN + 1];
+    // length of msg for recieving binary messages
+    int msgLen = 0;
 
     // stores full messages, max length determined by platform
     char msg[MSG_LEN + 1];

@@ -1,177 +1,144 @@
 #include "psram.h"
 
-char *psramNextLoc = 0;
-char *psram_memory_begin = NULL, *psram_memory_end = NULL;
-bool PSRAMDumped = false;
-bool PSRAMReady = false;
+PSRAM::PSRAM()
+{
+    ready = false;
+    dumped = false;
 
-char *psram_memory_cur = NULL;
+    cursorStart = nullptr;
+    cursorEnd = nullptr;
+    memBegin = nullptr;
+    memEnd = nullptr;
+}
 
-std::vector<String> previousRowsPSRAM = {};
-bool isLaunchedPSRAM = false;
-
-bool setupPSRAM(const char *csvHeader)
+bool PSRAM::init()
 {
     uint8_t size = external_psram_size;
-    psram_memory_begin = (char *)(0x70000000);
-    psram_memory_end = psram_memory_begin + (size * 1048576);
-    psramNextLoc = psram_memory_begin;
-    psram_memory_cur = psram_memory_begin;
+    memBegin = cursorStart = reinterpret_cast<char *>(0x70000000);
+    memEnd = cursorEnd = memBegin + (size * 1048576);
 
     if (size > 0)
     {
-        Serial.println(F("PSRAM Ready"));
-        PSRAMReady = true;
-        psramPrintln(csvHeader);
-    }
-    else
-    {
-        Serial.println(F("PSRAM not found"));
-        return false;
+        ready = true;
     }
 
-    return true;
+    return ready;
 }
-void psramPrintln(const char *data)
+void PSRAM::println(const char *data, bool isFlightData)
 {
-    psramPrint(data);
-    *psramNextLoc = '\n';
-    psramNextLoc++;
+    if (ready)
+    {
+        print(data, isFlightData);
+        print("\n", isFlightData);
+    }
 }
 
 // Write string to FRAM
-void psramPrint(const char *data)
+void PSRAM::print(const char *data, bool isFlightData)
 {
-    for (int i = 0; data[i] != '\0'; i++)
-    {
-        *psramNextLoc = data[i];
-        psramNextLoc++;
-    }
-}
-// Write newline to FRAM
-void psramPrintln()
-{
-    *psramNextLoc = '\n';
-    psramNextLoc++;
-}
-
-// Dump FRAM to SD Card
-bool PSRAMDumpToSD()
-{
-    if (isSDReady() && PSRAMReady)
-    {
-        //   Serial.print("Dumping to SD...");
-        String curStr = "";
-        float startTime = micros() / (1000000.0f);
-        for (; psram_memory_cur < psramNextLoc; psram_memory_cur++)
+    if (ready)
+        for (int i = 0; data[i] != '\0'; i++)
         {
-            char nextByte = *psram_memory_cur;
-            curStr = curStr + nextByte;
-            if (nextByte == '\n')
+            if (isFlightData)
             {
-                logFile = sd.open(logFileName, FILE_WRITE);
-                if (logFile)
-                {
-                    logFile.print(curStr);
-                    logFile.close(); // close the file
-                }
-                if (!isLaunchedPSRAM)
-                {
-                    if (previousRowsPSRAM.size() >= COMPACT_WALKBACK_COUNT)
-                    {
-                        previousRowsPSRAM.erase(previousRowsPSRAM.begin());
-                    }
-                    previousRowsPSRAM.push_back(String(curStr));
-                }
-                curStr = "";
+                *cursorStart = data[i];
+                cursorStart++;
             }
-
-            float curTime = micros() / (1000000.0f);
-            if ((curTime - startTime) > PSRAM_DUMP_TIMEOUT)
+            else
             {
-                // Serial.println("SD Timeout");
-                return false;
+                *cursorEnd = data[i];
+                cursorEnd--;
             }
         }
-        // Serial.println("Dumped");
-    }
+}
 
-    psramNextLoc = psram_memory_begin;
-    PSRAMDumped = true;
-    psram_memory_cur = psram_memory_begin;
+// Dump FRAM to SD Card. Only to be called after flight has landed or timeout is reached.
+bool PSRAM::dumpFlightData()
+{
+    if (isSDReady() && ready)
+    {
+        flightDataFile = sd.open(flightDataFileName, FILE_WRITE);
+        if (flightDataFile)
+        {
+            flightDataFile.write(memBegin, cursorStart - memBegin);
+            flightDataFile.close();
+        }
+        else return false;
+    } else return false;
+
+    cursorStart = memBegin;
     return true;
 }
 
-void PSRAMPreLaunchDump()
-{
-    if (PSRAMReady)
-    {
-        String curStr = "";
-        for (char *i = psram_memory_begin; i < psramNextLoc; i++)
-        {
-            char nextByte = *i;
-            curStr = curStr + nextByte;
-            if (nextByte == '\n')
-            {
-                if (!isLaunchedPSRAM)
-                {
-                    if (previousRowsPSRAM.size() >= COMPACT_WALKBACK_COUNT)
-                    {
-                        previousRowsPSRAM.erase(previousRowsPSRAM.begin());
-                    }
-                    previousRowsPSRAM.push_back(String(curStr));
-                }
-                curStr = "";
-            }
-        }
+bool PSRAM::dumpLogData()
+{ // more complicated because data is stored in reverse order
+    if (!isSDReady() || !ready){
+        digitalWrite(33, HIGH);
+        delay(200);
+        digitalWrite(33, LOW);
+        delay(200);
+        return false;
     }
 
-    psramNextLoc = psram_memory_begin;
-    PSRAMDumped = true;
+    char buffer[2048]; // large buffer but the Teensy should be able to handle it. Buffer should be a multiple of 512 for SD card efficiency.
+    char *writeCursor = memEnd;
+    int i;
+    logFile = sd.open(logFileName, FILE_WRITE);
+
+    if (!logFile){
+        digitalWrite(33, HIGH);
+        delay(200);
+        digitalWrite(33, LOW);
+        delay(200);
+        digitalWrite(33, HIGH);
+        delay(200);
+        digitalWrite(33, LOW);
+        delay(200);
+        return false;
+    }
+    
+    while (writeCursor >= cursorEnd)
+    {
+
+        for (i = 0; i < 2048; i++)
+        {
+            if (writeCursor <= cursorEnd)
+            {
+                buffer[i] = '\0';
+                writeCursor--;
+                break;
+            }
+            buffer[i] = *writeCursor--;
+        }
+        logFile.write(buffer, i);
+    }
+
+    logFile.close();
+    cursorEnd = memEnd;
+    dumped = true;
+        digitalWrite(33, HIGH);
+        delay(200);
+        digitalWrite(33, LOW);
+        delay(200);
+        digitalWrite(33, HIGH);
+        delay(200);
+        digitalWrite(33, LOW);
+        delay(200);
+        digitalWrite(33, HIGH);
+        delay(200);
+        digitalWrite(33, LOW);
+        delay(200);
+    
+    return true;
 }
 
 // Returns whether the FRAM is initialized
-bool isPSRAMReady()
+bool PSRAM::isReady()
 {
-    return PSRAMReady;
+    return ready;
 }
 
-// Returns whether the FRAM has been dumped
-bool isPSRAMDumped()
+int PSRAM::getFreeSpace()
 {
-    return PSRAMDumped;
-}
-
-// Returns the next free memory location in FRAM
-char *getPSRAMNextLoc()
-{
-    return psramNextLoc;
-}
-
-// Returns true if next location is at 90% of total capacity
-float getPSRAMCapacity()
-{
-    return (psramNextLoc - psram_memory_begin) / (float)(psram_memory_end - psram_memory_begin);
-}
-
-// Adds the specified number of blank values to the CSV row. Argument is # of blank values to insert
-void insertBlankValuesPSRAM(int numValues)
-{
-    if (isPSRAMReady())
-    {
-        for (int i = 0; i < numValues; i++)
-        {
-            psramPrint(","); // Have blank data when sensor not found
-        }
-    }
-}
-
-void resetPSRAMDumpStatus()
-{
-    PSRAMDumped = false;
-}
-
-void psramMarkLiftoff()
-{
-    isLaunchedPSRAM = true;
+    return cursorEnd - cursorStart;
 }
