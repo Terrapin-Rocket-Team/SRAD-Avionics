@@ -88,7 +88,7 @@ bool RFM69HCW::tx(const char *message, int len)
     this->id = len / this->bufSize + (len % this->bufSize > 0);
     this->radio.setHeaderId(this->id);
 
-//ignore same address warning
+// ignore same address warning
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wrestrict"
     strcpy(this->msg, message);
@@ -115,6 +115,8 @@ bool RFM69HCW::sendBuffer()
         return true;
     memcpy(this->buf, this->msg + this->totalPackets * this->bufSize, min(this->bufSize, this->msgLen - this->totalPackets * this->bufSize));
     this->radio.send(this->buf, min(this->bufSize, this->msgLen - this->totalPackets * this->bufSize));
+    if (this->radio.headerId() == this->totalPackets)
+        this->radio.setHeaderId(0xff);
     this->totalPackets++;
     return this->totalPackets == this->id;
 }
@@ -145,8 +147,11 @@ const char *RFM69HCW::rx()
             if (this->totalPackets == 0)
             {
                 this->totalPackets = this->radio.headerId();
-                if (this->totalPackets == 0)
-                    return "Error parsing message";
+                if (this->totalPackets <= 0 || this->totalPackets == 0xff)
+                {
+                    this->totalPackets = 0;
+                    return 0;
+                }
                 memcpy(this->msg, this->buf, receivedLen);
                 this->msg[receivedLen] = '\0';
             }
