@@ -14,13 +14,15 @@ DS3231 rtc();               // I2C Address 0x68
 APRSConfig config = {"KC3UTM", "APRS", "WIDE1-1", '[', '/'};
 RadioSettings settings = {433.775, true, false, &hardware_spi, 10, 31, 32};
 RFM69HCW radio = {settings, config};
-State computer;// = useKalmanFilter = true, stateRecordsOwnData = true
+State computer; // = useKalmanFilter = true, stateRecordsOwnData = true
 uint32_t radioTimer = millis();
 
 PSRAM *ram;
 
 #define BUZZER 33
 #define BMP_ADDR_PIN 36
+#define RPI_PWR 0
+#define RPI_VIDEO 1
 
 static double last = 0; // for better timing than "delay(100)"
 
@@ -33,11 +35,10 @@ void setup()
     digitalWrite(BMP_ADDR_PIN, HIGH);
 
     pinMode(LED_BUILTIN, OUTPUT);
-    pinMode(BUZZER, OUTPUT); //its very loud during testing
+    pinMode(BUZZER, OUTPUT); // its very loud during testing
 
-    pinMode(0, OUTPUT); // RASPBERRY PI TURN ON
-    pinMode(1, OUTPUT); // RASPBERRY PI TURN ON
-
+    pinMode(RPI_PWR, OUTPUT);   // RASPBERRY PI TURN ON
+    pinMode(RPI_VIDEO, OUTPUT); // RASPBERRY PI TURN ON
 
     digitalWrite(LED_BUILTIN, HIGH);
     delay(100);
@@ -80,13 +81,15 @@ void setup()
     if (!computer.addSensor(&bno))
         recordLogData(INFO, "Failed to add BNO055 Sensor");
     computer.setRadio(&radio);
-    if (computer.init()){
+    if (computer.init())
+    {
         recordLogData(INFO, "All Sensors Initialized");
         digitalWrite(BUZZER, HIGH);
         delay(1000);
         digitalWrite(BUZZER, LOW);
     }
-    else{
+    else
+    {
         recordLogData(ERROR, "Some Sensors Failed to Initialize. Disabling those sensors.");
         digitalWrite(BUZZER, HIGH);
         delay(200);
@@ -112,7 +115,8 @@ void loop()
         more = computer.transmit();
         radioTimer = time;
     }
-    if (radio.mode() != RHGenericDriver::RHModeTx && more){
+    if (radio.mode() != RHGenericDriver::RHModeTx && more)
+    {
         more = !radio.sendBuffer();
     }
     if (time - last < 100)
@@ -122,12 +126,13 @@ void loop()
     computer.updateState();
     recordLogData(INFO, computer.getStateString(), TO_USB);
 
-
     // RASPBERRY PI TURN ON
-    if (time / 1000.0 > 600) {
-        digitalWrite(0, HIGH);
+    if (time / 1000.0 > 600)
+    {
+        digitalWrite(RPI_PWR, HIGH);
     }
-    if (computer.getStageNum() == 1) {
-        digitalWrite(1, HIGH);
+    if (computer.getStageNum() == 1)
+    {
+        digitalWrite(RPI_VIDEO, LOW);
     }
 }
