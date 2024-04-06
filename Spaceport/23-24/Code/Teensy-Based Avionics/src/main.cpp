@@ -40,6 +40,9 @@ void setup()
     pinMode(RPI_PWR, OUTPUT);   // RASPBERRY PI TURN ON
     pinMode(RPI_VIDEO, OUTPUT); // RASPBERRY PI TURN ON
 
+    digitalWrite(RPI_PWR, LOW);
+    digitalWrite(RPI_VIDEO, HIGH);
+
     digitalWrite(LED_BUILTIN, HIGH);
     delay(100);
     digitalWrite(LED_BUILTIN, LOW);
