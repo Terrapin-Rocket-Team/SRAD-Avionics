@@ -353,8 +353,8 @@ void State::determineStage()
 {
     if (stageNumber == 0 && 
     (sensorOK(imu) || sensorOK(baro)) && 
-    (sensorOK(imu) ? imu->getAcceleration().z() > 9 : true) && 
-    (sensorOK(baro) ? baro->getRelAltM() > 1 : true))
+    (sensorOK(imu) ? imu->getAcceleration().z() > 25 : true) && 
+    (sensorOK(baro) ? baro->getRelAltFt() > 60 : true))
     //if we are in preflight AND
     //we have either the IMU OR the barometer AND
     //imu is ok AND the z acceleration is greater than 29 ft/s^2 OR imu is not ok AND
