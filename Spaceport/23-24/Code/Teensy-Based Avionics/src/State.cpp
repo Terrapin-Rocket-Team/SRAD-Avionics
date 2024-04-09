@@ -48,7 +48,6 @@ State::State(bool useKalmanFilter, bool stateRecordsOwnFlightData)
     measurements = new double[4]{1, 1, 1, 1};
     // imu x y z
     inputs = new double[3]{1, 1, 1};
-    kfilter = new akf::KFState();
     strcpy(launchTimeOfDay, "00:00:00");
     useKF = useKalmanFilter;
     // time pos x y z vel x y z acc x y z
@@ -112,7 +111,7 @@ bool State::init()
         if (!radio->begin())
             radio = nullptr;
     }
-    setcsvHeader();
+    setCsvHeader();
     numSensors = good;
 
     return good == tryNumSensors;
@@ -140,7 +139,7 @@ void State::updateSensors()
     }
 }
 
-void State::updateState()
+void State::updateState(double newTimeAbsolute)
 {
     if (timeSinceLaunch > 0 && timeSinceLaunch < 2)
         digitalWrite(33, HIGH);
@@ -153,7 +152,9 @@ void State::updateState()
     if (newTimeAbsolute != -1)
         timeAbsolute = newTimeAbsolute;
     else
-        settimeAbsolute();
+        timeAbsolute = millis() / 1000.0;
+    
+    
     updateSensors();
     if (useKF && sensorOK(gps) && gps->getHasFirstFix() && stageNumber > 0)
     {
@@ -175,7 +176,8 @@ void State::updateState()
             inputs[1] = 0;
             inputs[2] = 0;
         }
-        akf::updateFilter(kfilter, timeAbsolute, sensorOK(gps) ? 1 : 0, sensorOK(baro) ? 1 : 0, sensorOK(imu) ? 1 : 0, measurements, inputs, &predictions);
+        delete[] predictions;
+        predictions = iterateFilter(*kfilter, timeAbsolute - lastTimeAbsolute, inputs, measurements, sensorOK(gps) ? 1 : 0, sensorOK(baro) ? 1 : 0);
         // time, pos x, y, z, vel x, y, z, acc x, y, z
         // ignore time return value.
         position.x() = predictions[1];
@@ -483,36 +485,4 @@ bool State::transmit()
     snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", sensorOK(gps) ? gps->getPos().x() : 0, sensorOK(gps) ? gps->getPos().y() : 0, sensorOK(baro) ? (int)baro->getRelAltFt() : 0, (int)baroVelocity, (int)headingAngle, 'H', stageNumber, launchTimeOfDay);
     bool b = radio->send(data, ENCT_TELEMETRY);
     return b;
-}
-
-void State::initKF()
-{
-    double prN = 0.2;
-    double initCov = 2;
-    double gpsCov = 36;
-    double baroCov = 2;
-    double *initialState = new double[6]{0, 0, 0, 0, 0, 0};
-    double *initialInput = new double[3]{0, 0, 0};
-    double *initialCovariance = new double[36]{initCov, 0, 0, initCov, 0, 0,
-                                                0, initCov, 0, 0, initCov, 0,
-                                                0, 0, initCov, 0, 0, initCov,
-                                                initCov, 0, 0, initCov, 0, 0,
-                                                0, initCov, 0, 0, initCov, 0,
-                                                0, 0, initCov, 0, 0, initCov};
-    double *measurementCovariance = new double[16]{4, 0, 0, 0,
-                                                    0, 4, 0, 0,
-                                                    0, 0, gpsCov, 0,
-                                                    0, 0, 0, baroCov};
-    double *processNoiseCovariance = new double[36]{prN, 0, 0, 0, 0, 0,
-                                                      0, prN, 0, 0, 0, 0,
-                                                      0, 0, prN, 0, 0, 0,
-                                                      0, 0, 0, prN, 0, 0,
-                                                      0, 0, 0, 0, prN, 0,
-                                                      0, 0, 0, 0, 0, prN};
-    akf::init(kfilter, 6, 3, 4, initialState, initialInput, initialCovariance, measurementCovariance, processNoiseCovariance);
-    delete[] initialState;
-    delete[] initialInput;
-    delete[] initialCovariance;
-    delete[] measurementCovariance;
-    delete[] processNoiseCovariance;
 }
