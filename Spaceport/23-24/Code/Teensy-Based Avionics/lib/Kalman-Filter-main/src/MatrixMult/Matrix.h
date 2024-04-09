@@ -1,10 +1,8 @@
-#include <iostream>
-#include <cmath>
-
 #ifndef MATRIX_H
 #define MATRIX_H
 
-
+#include <iostream>
+#include <cmath>
 class Matrix {
   
 public:
