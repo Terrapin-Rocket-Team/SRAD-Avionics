@@ -1,39 +1,73 @@
 #include "RecordData.h"
 
-int PRE_FLIGHT_DATA_DUMP_DURATION = 60;  // in seconds
-int PRE_FLIGHT_TIME_SINCE_LAST_DUMP = 0; // in seconds
-int PRE_FLIGHT_TIME_OF_LAST_DUMP = 0;    // in seconds
-
-void recordData(char *data, int stage)
+static const char *logTypeStrings[] = {"LOG", "ERROR", "WARNING", "INFO"};
+static Mode mode = GROUND;
+void recordFlightData(char *data)
 {
-    if (stage == 0)
+    if(!isSDReady())
+        return;
+    if (mode == GROUND)
     {
-        dataToPSRAM(data);
-        PRE_FLIGHT_TIME_SINCE_LAST_DUMP = (millis() / 1000) - PRE_FLIGHT_TIME_OF_LAST_DUMP;
-        if (PRE_FLIGHT_TIME_SINCE_LAST_DUMP > PRE_FLIGHT_DATA_DUMP_DURATION)
+        flightDataFile = sd.open(flightDataFileName, FILE_WRITE); // during preflight, print to SD card constantly. ignore PSRAM for this stage.
+        if (flightDataFile)
         {
-            String dumped = PSRAMDumpToSD();
-            if (dumped == "Dumped")
-            {
-                resetPSRAMDumpStatus();
-                PRE_FLIGHT_TIME_OF_LAST_DUMP = millis() / 1000;
-            }
+            flightDataFile.println(data);
+            flightDataFile.close();
         }
     }
-    else if (stage > 4)
+    else if(ram->isReady())
+        ram->println(data); // while in flight, print to PSRAM for later dumping to SD card.
+}
+
+void recordLogData(LogType type, const char *data, Dest dest)
+{
+    recordLogData(millis() / 1000.0, type, data, dest);
+}
+
+void recordLogData(double timeStamp, LogType type, const char *data, Dest dest)
+{
+    int size = 15 + 7; // 15 for the timestamp and extra chars, 7 for the log type
+    char logPrefix[size];
+    snprintf(logPrefix, size, "%.3f - [%s] ", timeStamp, logTypeStrings[type]);
+
+    if (dest == BOTH || dest == TO_USB)
     {
-        if (!isPSRAMDumped())
-            PSRAMDumpToSD();
+        // if (!Serial){
+        //     Serial.begin(9600);
+        // }
+        Serial.print(logPrefix);
+        Serial.println(data);
     }
-    else
+    if ((dest == BOTH || dest == TO_FILE) && isSDReady())
     {
-        psramMarkLiftoff(); // TODO this should only have to run the first time
-        dataToPSRAM(data);
+        if (mode == GROUND)
+        {
+            logFile = sd.open(logFileName, FILE_WRITE); // during preflight, print to SD card constantly. ignore PSRAM for this stage. With both files printing, may be bad...
+            if (logFile)
+            {
+                logFile.print(logPrefix);
+                logFile.println(data);
+                logFile.close();
+            }
+        }
+        else if (ram->isReady()) // while in flight, print to PSRAM for later dumping to SD card.
+        {
+            ram->print(logPrefix, false);
+            ram->println(data, false);
+        }
     }
 }
 
-void dataToPSRAM(char *data)
+void setRecordMode(Mode m)
 {
-    if (isPSRAMReady())
-        psramPrintln(data);
+    if(mode == FLIGHT && m == GROUND){
+        ram->dumpFlightData();
+        ram->dumpLogData();
+        digitalWrite(LED_BUILTIN, HIGH);
+        digitalWrite(33, HIGH);
+        delay(2000);
+        digitalWrite(LED_BUILTIN, LOW);
+        digitalWrite(33, LOW);
+    }
+    mode = m;
 }

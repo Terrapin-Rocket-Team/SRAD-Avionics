@@ -16,14 +16,14 @@
 //     delete[] str;
 // }
 
-// void loop() {
-//     delay(200);
-//     Serial.print("Pressure: ");
-//     Serial.print(bmp.get_pressure());
+void loop() {
+    delay(200);
+    Serial.print("Pressure: ");
+    Serial.print(bmp.getPressure());
 
-//     Serial.print(", Temperature: ");
-//     Serial.print(bmp.get_temp());
+    Serial.print(", Temperature: ");
+    Serial.print(bmp.getTemp());
 
-//     Serial.print(", Altitude: ");
-//     Serial.println(bmp.get_rel_alt_ft());
-// }
+    Serial.print(", Altitude: ");
+    Serial.println(bmp.getRelAltFt());
+}

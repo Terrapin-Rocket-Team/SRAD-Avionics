@@ -16,20 +16,20 @@
 //     delete[] str;
 // }
 
-// void loop() {
-//     delay(200);
-//     Serial.print("Acceleration: ");
-//     Serial.print(bno.get_acceleration().x());
-//     Serial.print(", ");
-//     Serial.print(bno.get_acceleration().y());
-//     Serial.print(", ");
-//     Serial.println(bno.get_acceleration().z());
+void loop() {
+    delay(200);
+    Serial.print("Acceleration: ");
+    Serial.print(bno.getAcceleration().x());
+    Serial.print(", ");
+    Serial.print(bno.getAcceleration().y());
+    Serial.print(", ");
+    Serial.println(bno.getAcceleration().z());
 
-//     Serial.print("Orientation: ");
-//     Serial.print(bno.get_orientation_euler().x());
-//     Serial.print(", ");
-//     Serial.print(bno.get_orientation_euler().y());
-//     Serial.print(", ");
-//     Serial.println(bno.get_orientation_euler().z());
+    Serial.print("Orientation: ");
+    Serial.print(bno.getOrientationEuler().x());
+    Serial.print(", ");
+    Serial.print(bno.getOrientationEuler().y());
+    Serial.print(", ");
+    Serial.println(bno.getOrientationEuler().z());
 
 // }
