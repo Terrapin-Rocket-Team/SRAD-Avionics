@@ -18,7 +18,7 @@ public:
         ori.z() = qz;
         ori.w() = qw;
     }
-    bool initialize() override { return true; }
+    bool initialize() override { return initialized = true; }
     imu::Quaternion getOrientation() override { return ori; }
     imu::Vector<3> getAcceleration() override { return acc; }
 

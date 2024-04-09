@@ -4,16 +4,15 @@
 #include "FakeGPS.h"
 #include "FakeIMU.h"
 #include "TestUtils.h"
-#include <RecordData.h>
+#include "RecordData.h"
 #include <exception>
 #include "RFM69HCW.h"
 
 FakeBaro baro;
 FakeGPS gps;
 FakeIMU fimu;//"imu" is the namespace of the vector stuff :/
-State computer(true);
-
-
+State computer(true, true);
+PSRAM *ram;
 
 int i = 0;
 
@@ -63,7 +62,9 @@ void setup()
     computer.addSensor(&baro);
     computer.addSensor(&gps);
     computer.addSensor(&fimu);
-    computer.setRadio(&radio);
+    //computer.setRadio(&radio);
+    Serial.println(FreeMem());
+    Serial.println(sizeof(Matrix));
     if (computer.init())
         recordLogData(INFO, "All Sensors Initialized");
     else
@@ -76,21 +77,21 @@ void setup()
     sendSDCardHeader(computer.getCsvHeader());
     while(Serial.available() == 0);
 }
-static double radioTimer = 0;
-bool more = false;
 void loop()
 {
-    if (i % 20 == 0 || i++ % 20 == 1)//infinitely beep buzzer to indicate testing state. Please do NOT launch rocket with test code on the MCU......
-        digitalWrite(BUZZER, HIGH);  // buzzer is on for 200ms/2sec
-    double t = 0;
+    double t = 1838.75;
     if(Serial.available() > 0){
-        t = ParseIncomingFakeSensorData(Serial.readStringUntil('\n'),baro,gps,fimu);
+        t = ParseIncomingFakeSensorData(Serial.readStringUntil('\n'), baro, gps, fimu);
+        computer.updateState(t - 1838.76); // starting time of fake data
+        Serial.print("asdf");
+        char *stateStr = computer.getStateString();
+        Serial.print("[][]");
+        Serial.println(stateStr);
+        delay(50);
     }
-    computer.timeAbsolute = t - 1838.76;//starting time of fake data
-    computer.updateState();
+    else{
+        delay(1000);
+        Serial.println("[][]");
+    }
 
-    char* stateStr = computer.getStateString();
-    Serial.print("[][]");
-    Serial.println(stateStr);
-    delay(50);
 }

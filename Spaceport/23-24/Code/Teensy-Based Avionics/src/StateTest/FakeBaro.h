@@ -15,7 +15,7 @@ public:
     double getTemp() override { return press; }
     double getPressure() override { return temp; }
     double getRelAltM() override { return alt; }
-    bool initialize() override { return true; }
+    bool initialize() override { return initialized = true; }
 
     const char *getCsvHeader() override
     {                                                // incl  B- to indicate Barometer data

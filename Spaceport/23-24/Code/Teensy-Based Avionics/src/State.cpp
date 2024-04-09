@@ -1,7 +1,7 @@
 #include "State.h"
 #pragma region Constructor and Destructor
-//cppcheck-suppress noCopyConstructor
-//cppcheck-suppress noOperatorEq
+// cppcheck-suppress noCopyConstructor
+// cppcheck-suppress noOperatorEq
 State::State(bool useKalmanFilter, bool stateRecordsOwnFlightData)
 {
     timeAbsolute = millis();
@@ -56,7 +56,7 @@ State::State(bool useKalmanFilter, bool stateRecordsOwnFlightData)
     measurements = new double[4]{1, 1, 1, 1};
     // imu x y z
     inputs = new double[3]{1, 1, 1};
-    kfilter = initializeFilter();
+    //kfilter = initializeFilter();
 }
 
 State::~State()
@@ -83,7 +83,7 @@ bool State::init()
             if (sensors[i]->initialize())
             {
                 good++;
-             strcpy(logData, sensors[i]->getTypeString()); // This is a lot for just some logging...
+                strcpy(logData, sensors[i]->getTypeString()); // This is a lot for just some logging...
                 strcat(logData, " [");
                 strcat(logData, sensors[i]->getName());
                 strcat(logData, "] initialized.");
@@ -111,7 +111,9 @@ bool State::init()
         if (!radio->begin())
             radio = nullptr;
     }
+    Serial.println("Initializing state");
     setCsvHeader();
+    Serial.println("Initialized state");
     numSensors = good;
 
     return good == tryNumSensors;
@@ -124,7 +126,7 @@ void State::updateSensors()
         if (sensorOK(sensors[i]))
         { // not nullptr and initialized
             sensors[i]->update();
-            Wire.beginTransmission(0x42);//random address for testing the i2c bus
+            Wire.beginTransmission(0x42); // random address for testing the i2c bus
             byte b = Wire.endTransmission();
             if (b != 0x00)
             {
@@ -148,15 +150,19 @@ void State::updateState(double newTimeAbsolute)
 
     if (stageNumber > 4 && landingCounter > 50) // if landed and waited 5 seconds, don't update sensors.
         return;
-    
+
     if (newTimeAbsolute != -1)
         timeAbsolute = newTimeAbsolute;
     else
         timeAbsolute = millis() / 1000.0;
-    
-    
+
+    Serial.println(timeAbsolute);
     updateSensors();
-    if (useKF && sensorOK(gps) && gps->getHasFirstFix() && stageNumber > 0)
+    Serial.println("Updating state");
+    Serial.println(useKF);
+    Serial.println(sensorOK(gps));
+    Serial.println(gps->getHasFirstFix());
+    if (useKF && sensorOK(gps) && gps->getHasFirstFix() /* && stageNumber > 0*/)
     {
         // gps x y z barometer z
         measurements[0] = gps->getDisplace().x();
@@ -164,20 +170,22 @@ void State::updateState(double newTimeAbsolute)
         measurements[2] = gps->getDisplace().z();
         measurements[3] = sensorOK(baro) ? baro->getRelAltM() : 0;
         // imu x y z
-        if(sensorOK(imu))
+        if (sensorOK(imu))
         {
             inputs[0] = imu->getAcceleration().x();
             inputs[1] = imu->getAcceleration().y();
             inputs[2] = imu->getAcceleration().z();
         }
-        else//If this is false, the filter is basically useless as far as I understand.
+        else // If this is false, the filter is basically useless as far as I understand.
         {
             inputs[0] = 0;
             inputs[1] = 0;
             inputs[2] = 0;
         }
         delete[] predictions;
+        Serial.println("Predicting");
         predictions = iterateFilter(*kfilter, timeAbsolute - lastTimeAbsolute, inputs, measurements, sensorOK(gps) ? 1 : 0, sensorOK(baro) ? 1 : 0);
+        Serial.println("Predicted");
         // time, pos x, y, z, vel x, y, z, acc x, y, z
         // ignore time return value.
         position.x() = predictions[1];
@@ -200,17 +208,18 @@ void State::updateState(double newTimeAbsolute)
     }
     else
     {
+        Serial.println("Not predicting");
         if (sensorOK(gps))
-        { 
+        {
             position = imu::Vector<3>(gps->getDisplace().x(), gps->getDisplace().y(), gps->getAlt());
             velocity = gps->getVelocity();
             headingAngle = gps->getHeading();
         }
         if (sensorOK(baro))
         {
-            velocity.z() = (baro->getRelAltM() - position.z()) / (millis() / 1000.0 - timeAbsolute);
+            velocity.z() = (baro->getRelAltM() - position.z()) / (millis() / 1000.0 - lastTimeAbsolute);
             position.z() = baro->getRelAltM();
-            baroVelocity = (baro->getRelAltM() - baroOldAltitude) / (millis() / 1000.0 - timeAbsolute);
+            baroVelocity = (baro->getRelAltM() - baroOldAltitude) / (millis() / 1000.0 - lastTimeAbsolute);
             baroOldAltitude = baro->getRelAltM();
         }
         if (sensorOK(imu))
@@ -219,11 +228,10 @@ void State::updateState(double newTimeAbsolute)
             orientation = imu->getOrientation();
         }
     }
-    timeAbsolute = millis() / 1000.0;
     timeSinceLaunch = timeAbsolute - timeOfLaunch;
     determineAccelerationMagnitude();
     determineStage();
-    if(stageNumber > 0)
+    if (stageNumber > 0)
         timeSincePreviousStage = timeAbsolute - timePreviousStage;
     if (stageNumber < 3)
         apogee = position.z();
@@ -332,7 +340,7 @@ bool State::applySensorType(int i, int sensorNum)
     case BAROMETER_:
 
         if (sensorNum == 1)
-            baro = reinterpret_cast<Barometer *>(sensors[i]);//normally this would be a dynamic cast, but Arduino doesn't support it.
+            baro = reinterpret_cast<Barometer *>(sensors[i]); // normally this would be a dynamic cast, but Arduino doesn't support it.
         // else if (sensorNum == 2)//If you have more than one of the same type, add them like so.
         //    baro2 = reinterpret_cast<Barometer *>(sensors[i]);
         else
@@ -369,16 +377,16 @@ void State::determineAccelerationMagnitude()
 
 void State::determineStage()
 {
-    if (stageNumber == 0 && 
-    (sensorOK(imu) || sensorOK(baro)) && 
-    (sensorOK(imu) ? imu->getAcceleration().z() > 25 : true) && 
-    (sensorOK(baro) ? baro->getRelAltFt() > 60 : true))
-    //if we are in preflight AND
-    //we have either the IMU OR the barometer AND
-    //imu is ok AND the z acceleration is greater than 29 ft/s^2 OR imu is not ok AND
-    //barometer is ok AND the relative altitude is greater than 30 ft OR baro is not ok
+    if (stageNumber == 0 &&
+        (sensorOK(imu) || sensorOK(baro)) &&
+        (sensorOK(imu) ? imu->getAcceleration().z() > 25 : true) &&
+        (sensorOK(baro) ? baro->getRelAltFt() > 60 : true))
+    // if we are in preflight AND
+    // we have either the IMU OR the barometer AND
+    // imu is ok AND the z acceleration is greater than 29 ft/s^2 OR imu is not ok AND
+    // barometer is ok AND the relative altitude is greater than 30 ft OR baro is not ok
 
-    //essentially, if we have either sensor and they meet launch threshold, launch. Otherwise, it will never detect a launch.
+    // essentially, if we have either sensor and they meet launch threshold, launch. Otherwise, it will never detect a launch.
     {
         setRecordMode(FLIGHT);
         stageNumber = 1;
@@ -396,7 +404,7 @@ void State::determineStage()
                 recordLogData(INFO, logData);
             }
         }
-    }//TODO: Add checks for each sensor being ok and decide what to do if they aren't.
+    } // TODO: Add checks for each sensor being ok and decide what to do if they aren't.
     else if (stageNumber == 1 && acceleration.z() < 10)
     {
         stageNumber = 2;
@@ -472,7 +480,7 @@ void State::setCsvString(char *dest, const char *start, int startSize, bool head
 
 bool State::sensorOK(const Sensor *sensor)
 {
-    if (sensor && *sensor)// not nullptr and initialized
+    if (sensor && *sensor) // not nullptr and initialized
         return true;
     return false;
 }
