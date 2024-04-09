@@ -19,7 +19,7 @@ public:
         alt = posZ - initAltitude;//hacky way to store initial altitude
         heading = h;
     }
-    bool initialize() override { return true; }
+    bool initialize() override { return initialized = true; }
     imu::Vector<2> getPos() override { return pos; }
     double getAlt() override { return alt; }
     imu::Vector<3> getVelocity() override { return imu::Vector<3>(0, 0, 0); }
