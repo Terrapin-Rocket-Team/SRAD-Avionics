@@ -24,7 +24,6 @@ public:
     // to be called after all applicable sensors have been added.
     // Returns false if any sensor failed to init. check data log for failed sensor. Disables sensor if failed.
     bool init();
-    void settimeAbsolute();
     void updateState(double newTimeAbsolute = -1);
     int getStageNum();
     // sensor functions
@@ -103,18 +102,6 @@ private:
     double headingAngle;          // in degrees
 
     char launchTimeOfDay[9];
-
-    // Kalman Filter settings
-    bool useKF;
-    void initKF();
-    akf::KFState *kfilter;
-    // time pos x y z vel x y z acc x y z
-    double *predictions;
-    // gps x y z barometer z
-    double *measurements;
-    // imu x y z
-    double *inputs;
-
 
     //Kalman Filter settings
     bool useKF;
