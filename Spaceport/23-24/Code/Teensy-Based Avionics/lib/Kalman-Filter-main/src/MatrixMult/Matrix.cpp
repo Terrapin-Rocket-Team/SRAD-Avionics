@@ -1,4 +1,4 @@
-#include "Matrix.h"
+#include "./Matrix.h"
 
 //Default constructor
 Matrix::Matrix(){

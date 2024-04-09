@@ -1,8 +1,7 @@
-#include "../../MatrixMult/Matrix.h"
-
 #ifndef LINEARKALMANFILTER_H
 #define LINEARKALMANFILTER_H
 
+#include "../../MatrixMult/Matrix.h"
 typedef struct {
     Matrix F; // State Transition Matrix
     Matrix G; // Control Matrix

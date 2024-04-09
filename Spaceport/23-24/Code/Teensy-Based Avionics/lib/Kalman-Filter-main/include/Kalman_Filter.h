@@ -4,10 +4,9 @@
 //Included as an arduino library
 
 //Include all the filters
-#include "Filters/filters.h"
+#include "../src/Filters/filters.h"
 
 //Include Matrix Mult
-#include "MatrixMult/Matrix.h"
-#include "MatrixMult/Matrix.cpp"
+#include "../src/MatrixMult/Matrix.h"
 
 #endif

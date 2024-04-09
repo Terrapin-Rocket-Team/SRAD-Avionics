@@ -1,7 +1,8 @@
 #ifndef STATE_H
 #define STATE_H
 
-#include "AbhiKalmanFilter.h"
+#include "AprilFilter.h"
+#include "Kalman_Filter.h"
 
 // Include all the sensor classes
 #include "Barometer.h"
@@ -28,7 +29,7 @@ public:
     // Retruns false if any sensor failed to init. check for getSensor == nullptr to see which sensor failed. Disables sensor if failed.
     bool init();
     void settimeAbsolute();
-    void updateState();
+    void updateState(double newTimeAbsolute = -1);
     int getStageNum();
 
 
@@ -62,6 +63,7 @@ public:
     void determineapogee(double zPosition);
 
 private:
+    int lastTimeAbsolute;
     char *dataString;
     char *stateString;
     char *csvHeader;
@@ -81,8 +83,7 @@ private:
 
     //Kalman Filter settings
     bool useKF;
-    void initKF(bool useBaro, bool useGps, bool useImu);
-    akf::KFState *kfilter;
+    LinearKalmanFilter *kfilter;
     // time pos x y z vel x y z acc x y z
     double *predictions;
     // gps x y z barometer z

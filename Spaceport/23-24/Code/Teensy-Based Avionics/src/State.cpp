@@ -31,7 +31,7 @@ State::State(bool useKalmanFilter)
     measurements = new double[4]{1, 1, 1, 1};
     // imu x y z
     inputs = new double[3]{1, 1, 1};
-    kfilter = new akf::KFState();
+    kfilter = initializeFilter();
 }
 
 State::~State()
@@ -90,9 +90,6 @@ bool State::init()
     setcsvHeader();
     numSensors = good;
 
-    if (useKF)
-        initKF(baro, gps, imu);
-
     return good == tryNumSensors;
 }
 void State::determineaccelerationMagnitude(imu::Vector<3> accel)
@@ -125,9 +122,12 @@ void State::updateSensors()
     if (baro)
         baro->get_rel_alt_m();
 }
-void State::updateState()
+void State::updateState(double newTimeAbsolute)
 {
-    //settimeAbsolute();
+    if (newTimeAbsolute != -1)
+        timeAbsolute = newTimeAbsolute;
+    else
+        settimeAbsolute();
     updateSensors();
     if (useKF)
     {
@@ -140,18 +140,16 @@ void State::updateState()
         inputs[0] = imu->get_acceleration().x();
         inputs[1] = imu->get_acceleration().y();
         inputs[2] = imu->get_acceleration().z();//add G cuz imu removes it.
-        akf::updateFilter(kfilter, timeAbsolute, gps ? 1 : 0, baro ? 1 : 0, imu ? 1 : 0, measurements, inputs, &predictions);
+        delete[] predictions;
+        predictions = iterateFilter(*kfilter, timeAbsolute - lastTimeAbsolute, inputs, measurements, gps ? 1 : 0, baro ? 1 : 0);
         // time, pos x, y, z, vel x, y, z, acc x, y, z
         //ignore time return value.
-        position.x() = predictions[1];
-        position.y() = predictions[2];
-        position.z() = predictions[3];
-        velocity.x() = predictions[4];
-        velocity.y() = predictions[5];
-        velocity.z() = predictions[6];
-        acceleration.x() = predictions[7];
-        acceleration.y() = predictions[8];
-        acceleration.z() = predictions[9];
+        position.x() = predictions[0];
+        position.y() = predictions[1];
+        position.z() = predictions[2];
+        velocity.x() = predictions[3];
+        velocity.y() = predictions[4];
+        velocity.z() = predictions[5];
     }
     else
     {
@@ -209,13 +207,15 @@ void State::updateState()
         digitalWrite(LED_BUILTIN, LOW);
     }
     setdataString();
+
+    lastTimeAbsolute = timeAbsolute;
 }
 
 void State::setcsvHeader()
 {
     int numCategories = numSensors + 1;
     char csvHeaderStart[] = "Time,Stage,PX,PY,PZ,VX,VY,VZ,AX,AY,AZ,";
-    const char **headers = new char *[numCategories];
+    const char **headers = new const char *[numCategories];
     headers[0] = csvHeaderStart;
     for (int i = 1; i < numCategories; i++)
         headers[i] = nullptr;
@@ -273,15 +273,14 @@ void State::setdataString()
     int numCategories = numSensors + 1;
     const int dataStartSize = 30 * 1 + 12 * 9 + 11;
     char csvDataStart[dataStartSize];
-    int used = snprintf(
+    snprintf(
         csvDataStart, dataStartSize,
         "%.2f,%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,", // trailing comma very important
         timeAbsolute / 1000, STAGES[stageNumber],
         position.x(), position.y(), position.z(),
         velocity.x(), velocity.y(), velocity.z(),
         acceleration.x(), acceleration.y(), acceleration.z());
-    // Serial.print(used);//Just curious
-    const char **data = new char *[numCategories];
+    const char **data = new const char *[numCategories];
     data[0] = csvDataStart;
     for (int i = 1; i < numCategories; i++)
         data[i] = nullptr;
@@ -362,37 +361,5 @@ GPS *State::getGPS() { return gps; }
 IMU *State::getIMU() { return imu; }
 LightSensor *State::getLS() { return lisens; }
 RTC *State::getRTC() { return rtc; }
-
-#pragma endregion
-
-#pragma region Private Helper methods
-
-void State::initKF(bool useBaro, bool useGps, bool useImu)
-{
-    double *initial_state = new double[6]{0, 0, 0, 0, 0, 0};
-    double *initial_input = new double[3]{0, 0, 0};
-    double *initial_covariance = new double[36]{1, 0, 0, 1, 0, 0,
-                                                0, 1, 0, 0, 1, 0,
-                                                0, 0, 1, 0, 0, 1,
-                                                1, 0, 0, 1, 0, 0,
-                                                0, 1, 0, 0, 1, 0,
-                                                0, 0, 1, 0, 0, 1};
-    double *measurement_covariance = new double[16]{1, 0, 0, 0,
-                                                    0, 1, 0, 0,
-                                                    0, 0, 1, 0,
-                                                    0, 0, 0, 1};
-    double *process_noise_covariance = new double[36]{.03, 0, 0, 0, 0, 0,
-                                                      0, .03, 0, 0, 0, 0,
-                                                      0, 0, .03, 0, 0, 0,
-                                                      0, 0, 0, .03, 0, 0,
-                                                      0, 0, 0, 0, .03, 0,
-                                                      0, 0, 0, 0, 0, .03};
-    akf::init(kfilter, 6, 3, 4, initial_state, initial_input, initial_covariance, measurement_covariance, process_noise_covariance);
-    delete[] initial_state;
-    delete[] initial_input;
-    delete[] initial_covariance;
-    delete[] measurement_covariance;
-    delete[] process_noise_covariance;
-}
 
 #pragma endregion
