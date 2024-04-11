@@ -6,17 +6,16 @@
 #include <RHGenericDriver.h>
 
 RHGenericDriver::RHGenericDriver()
-    :
-    _mode(RHModeInitialising),
-    _thisAddress(RH_BROADCAST_ADDRESS),
-    _txHeaderTo(RH_BROADCAST_ADDRESS),
-    _txHeaderFrom(RH_BROADCAST_ADDRESS),
-    _txHeaderId(0),
-    _txHeaderFlags(0),
-    _rxBad(0),
-    _rxGood(0),
-    _txGood(0),
-    _cad_timeout(0)
+    : _mode(RHModeInitialising),
+      _thisAddress(RH_BROADCAST_ADDRESS),
+      _txHeaderTo(RH_BROADCAST_ADDRESS),
+      _txHeaderFrom(RH_BROADCAST_ADDRESS),
+      _txHeaderId(0),
+      _txHeaderFlags(0),
+      _rxBad(0),
+      _rxGood(0),
+      _txGood(0),
+      _cad_timeout(0)
 {
 }
 
@@ -29,11 +28,11 @@ bool RHGenericDriver::init()
 void RHGenericDriver::waitAvailable(uint16_t polldelay)
 {
     while (!available())
-      {
-	YIELD;
-	if (polldelay)
-	  delay(polldelay);
-      }
+    {
+        YIELD;
+        if (polldelay)
+            delay(polldelay);
+    }
 }
 
 // Blocks until a valid message is received or timeout expires
@@ -45,12 +44,12 @@ bool RHGenericDriver::waitAvailableTimeout(uint16_t timeout, uint16_t polldelay)
     while ((millis() - starttime) < timeout)
     {
         if (available())
-	{
-           return true;
-	}
-	YIELD;
-	if (polldelay)
-	  delay(polldelay);
+        {
+            return true;
+        }
+        YIELD;
+        if (polldelay)
+            delay(polldelay);
     }
     return false;
 }
@@ -58,7 +57,7 @@ bool RHGenericDriver::waitAvailableTimeout(uint16_t timeout, uint16_t polldelay)
 bool RHGenericDriver::waitPacketSent()
 {
     while (_mode == RHModeTx)
-	YIELD; // Wait for any previous transmit to finish
+        YIELD; // Wait for any previous transmit to finish
     return true;
 }
 
@@ -68,8 +67,8 @@ bool RHGenericDriver::waitPacketSent(uint16_t timeout)
     while ((millis() - starttime) < timeout)
     {
         if (_mode != RHModeTx) // Any previous transmit finished?
-           return true;
-	YIELD;
+            return true;
+        YIELD;
     }
     return false;
 }
@@ -78,7 +77,7 @@ bool RHGenericDriver::waitPacketSent(uint16_t timeout)
 bool RHGenericDriver::waitCAD()
 {
     if (!_cad_timeout)
-	return true;
+        return true;
 
     // Wait for any channel activity to finish or timeout
     // Sophisticated DCF function...
@@ -88,12 +87,12 @@ bool RHGenericDriver::waitCAD()
     unsigned long t = millis();
     while (isChannelActive())
     {
-         if (millis() - t > _cad_timeout) 
-	     return false;
+        if (millis() - t > _cad_timeout)
+            return false;
 #if (RH_PLATFORM == RH_PLATFORM_STM32) // stdlib on STMF103 gets confused if random is redefined
-	 delay(_random(1, 10) * 100);
+        delay(_random(1, 10) * 100);
 #else
-         delay(random(1, 10) * 100); // Should these values be configurable? Macros?
+        delay(random(1, 10) * 100); // Should these values be configurable? Macros?
 #endif
     }
 
@@ -162,36 +161,36 @@ int16_t RHGenericDriver::lastRssi()
     return _lastRssi;
 }
 
-RHGenericDriver::RHMode  RHGenericDriver::mode()
+RHGenericDriver::RHMode RHGenericDriver::mode()
 {
     return _mode;
 }
 
-void  RHGenericDriver::setMode(RHMode mode)
+void RHGenericDriver::setMode(RHMode mode)
 {
     _mode = mode;
 }
 
-bool  RHGenericDriver::sleep()
+bool RHGenericDriver::sleep()
 {
     return false;
 }
 
 // Diagnostic help
-void RHGenericDriver::printBuffer(const char* prompt, const uint8_t* buf, uint8_t len)
+void RHGenericDriver::printBuffer(const char *prompt, const uint8_t *buf, uint8_t len)
 {
 #ifdef RH_HAVE_SERIAL
     Serial.println(prompt);
     uint8_t i;
     for (i = 0; i < len; i++)
     {
-	if (i % 16 == 15)
-	    Serial.println(buf[i], HEX);
-	else
-	{
-	    Serial.print(buf[i], HEX);
-	    Serial.print(' ');
-	}
+        if (i % 16 == 15)
+            Serial.println(buf[i], HEX);
+        else
+        {
+            Serial.print(buf[i], HEX);
+            Serial.print(' ');
+        }
     }
     Serial.println("");
 #endif
@@ -222,6 +221,7 @@ void RHGenericDriver::setCADTimeout(unsigned long cad_timeout)
 // get linking complaints from the default code generated for pure virtual functions
 extern "C" void __cxa_pure_virtual()
 {
-    while (1);
+    while (1)
+        ;
 }
 #endif
