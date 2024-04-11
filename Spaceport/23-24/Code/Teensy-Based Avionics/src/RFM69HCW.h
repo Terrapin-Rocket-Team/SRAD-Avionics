@@ -42,11 +42,13 @@ public:
     bool tx(const char *message, int len = -1) override;
     bool sendBuffer();
     void endtx();
-    bool txs(const char *message, int len = -1);
-    bool txT();
-    void txe();
+    bool txs(const char *message, int len = -1); // tx start
+    bool txf();                                  // tx fill
+    void txe();                                  // tx end
     const char *rx() override;
-    void rxL();
+    void rxl(); // rx long
+    void rxi(); // rx interrupt
+    void rxe(); // rx end
     bool busy();
     bool encode(char *message, EncodingType type, int len = -1) override;
     bool decode(char *message, EncodingType type, int len = -1) override;
@@ -56,6 +58,11 @@ public:
     bool available();
     void set300KBPS();
     RHGenericDriver::RHMode mode();
+    void interrupt();
+    static void i0();
+    static void i1();
+    static void i2();
+    static void i3();
 
     // stores full messages, max length determined by platform
     char msg[MSG_LEN + 1];
@@ -82,6 +89,9 @@ private:
     int rssi;
     int totalPackets;
     int msgIndex = 0;
+
+    static RFM69HCW *devices[];
+    static int numInts;
 };
 
 #endif // RFM69HCW_H
