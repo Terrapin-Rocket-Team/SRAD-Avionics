@@ -143,6 +143,8 @@ bool RFM69HCW::tx(const char *message, int len)
 
 bool RFM69HCW::sendBuffer()
 {
+    if (this->radio.headerId() == this->totalPackets)
+        this->radio.setHeaderId(0xff);
     memcpy(this->buf, this->msg + this->id * this->bufSize, min(this->bufSize, this->msgLen - this->id * this->bufSize));
     this->radio.send(this->buf, min(this->bufSize, this->msgLen - this->id * this->bufSize));
     this->id++;
@@ -236,8 +238,11 @@ const char *RFM69HCW::rx()
             if (this->totalPackets == 0)
             {
                 this->totalPackets = this->radio.headerId();
-                if (this->totalPackets <= 0)
+                if (this->totalPackets <= 0 || this->totalPackets == 0xff)
+                {
+                    this->totalPackets = 0;
                     return 0;
+                }
                 this->msgLen = 0;
                 this->rssi = 0;
             }
