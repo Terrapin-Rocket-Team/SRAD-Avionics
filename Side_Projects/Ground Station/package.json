@@ -1,7 +1,7 @@
 {
   "name": "terp-rockets-ground-station",
   "productName": "Terp Rockets Ground Station",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Ground station application for the Terrapin Rocket Team at University of Maryland",
   "main": "main.js",
   "scripts": {
@@ -17,7 +17,18 @@
     "electron-squirrel-startup": "^1.0.0",
     "serialport": "^12.0.0"
   },
-  "config": {},
+  "config": {
+    "forge": {
+      "packagerConfig": {
+        "icon": "assets/logo"
+      },
+      "makers": [
+        {
+          "name": "@electron-forge/maker-zip"
+        }
+      ]
+    }
+  },
   "devDependencies": {
     "@electron-forge/cli": "^6.4.2",
     "@electron-forge/maker-deb": "^6.4.2",
