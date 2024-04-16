@@ -11,7 +11,7 @@
 FakeBaro baro;
 FakeGPS gps;
 FakeIMU fimu;//"imu" is the namespace of the vector stuff :/
-State computer(true, true);
+State* computer;
 PSRAM *ram;
 
 int i = 0;
@@ -22,6 +22,7 @@ int i = 0;
 
 void setup()
 {
+    FreeMem();
     pinMode(LED_BUILTIN, OUTPUT);
     pinMode(BUZZER, OUTPUT); //its very loud during testing
 
@@ -30,7 +31,7 @@ void setup()
     digitalWrite(LED_BUILTIN, LOW);
 
     ram = new PSRAM(); // init after the SD card for better data logging.
-
+    computer = new State();
     // The SD card MUST be initialized first to allow proper data logging.
     if (setupSDCard())
     {
@@ -59,13 +60,11 @@ void setup()
     else
         recordLogData(ERROR, "PSRAM Failed to Initialize");
 
-    computer.addSensor(&baro);
-    computer.addSensor(&gps);
-    computer.addSensor(&fimu);
+    computer->addSensor(&baro);
+    computer->addSensor(&gps);
+    computer->addSensor(&fimu);
     //computer.setRadio(&radio);
-    Serial.println(FreeMem());
-    Serial.println(sizeof(Matrix));
-    if (computer.init())
+    if (computer->init())
         recordLogData(INFO, "All Sensors Initialized");
     else
         recordLogData(ERROR, "Some Sensors Failed to Initialize. Disabling those sensors.");
@@ -74,7 +73,7 @@ void setup()
     delay(1000);
     digitalWrite(LED_BUILTIN, LOW);
 
-    sendSDCardHeader(computer.getCsvHeader());
+    sendSDCardHeader(computer->getCsvHeader());
     while(Serial.available() == 0);
 }
 void loop()
@@ -82,9 +81,9 @@ void loop()
     double t = 1838.75;
     if(Serial.available() > 0){
         t = ParseIncomingFakeSensorData(Serial.readStringUntil('\n'), baro, gps, fimu);
-        computer.updateState(t - 1838.76); // starting time of fake data
+        computer->updateState(t - 1838.76); // starting time of fake data
         Serial.print("asdf");
-        char *stateStr = computer.getStateString();
+        char *stateStr = computer->getStateString();
         Serial.print("[][]");
         Serial.println(stateStr);
         delay(50);

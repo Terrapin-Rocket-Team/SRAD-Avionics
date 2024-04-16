@@ -41,20 +41,12 @@ double ParseIncomingFakeSensorData(String line, FakeBaro& baro, FakeGPS& gps, Fa
     return (double)columns[timeAbsoluteCol].toFloat();
 }
 
-uint32_t FreeMem(){ // for Teensy 3.0
-    uint32_t stackTop;
-    uint32_t heapTop;
+extern unsigned long _heap_start;
+extern unsigned long _heap_end;
+extern char *__brkval;
 
-    // current position of the stack.
-    stackTop = (uint32_t) &stackTop;
-
-    // current position of heap.
-    void* hTop = malloc(1000);
-    heapTop = (uint32_t) hTop;
-    free(hTop);
-
-    // The difference is (approximately) the free, available ram.
-    return stackTop - heapTop;
+void FreeMem(){
+        Serial.println((char *)&_heap_end - __brkval);
 }
 
 #endif
