@@ -112,6 +112,9 @@ private:
     double *measurements;
     // imu x y z
     double *inputs;
+    uint32_t FreeMem();
+
+    
 };
 
 #endif

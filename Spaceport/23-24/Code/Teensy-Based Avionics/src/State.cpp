@@ -4,6 +4,7 @@
 // cppcheck-suppress noOperatorEq
 State::State(bool useKalmanFilter, bool stateRecordsOwnFlightData)
 {
+    lastTimeAbsolute = 0;
     timeAbsolute = millis();
     timePreviousStage = 0;
     position.x() = 0;
@@ -56,7 +57,7 @@ State::State(bool useKalmanFilter, bool stateRecordsOwnFlightData)
     measurements = new double[4]{1, 1, 1, 1};
     // imu x y z
     inputs = new double[3]{1, 1, 1};
-    //kfilter = initializeFilter();
+    kfilter = initializeFilter();
 }
 
 State::~State()
@@ -162,6 +163,8 @@ void State::updateState(double newTimeAbsolute)
     Serial.println(useKF);
     Serial.println(sensorOK(gps));
     Serial.println(gps->getHasFirstFix());
+    measurements = new double[4]{0, 0, 0, 0};
+    inputs = new double[3]{0, 0, 0};
     if (useKF && sensorOK(gps) && gps->getHasFirstFix() /* && stageNumber > 0*/)
     {
         // gps x y z barometer z
@@ -445,7 +448,6 @@ void State::setCsvString(char *dest, const char *start, int startSize, bool head
     str[0] = start;
     int cursor = 1;
     delete[] dest;
-
     //---Determine required size for string
     int size = startSize + 1; // includes '\0' at end of string for the end of dataString to use
     for (int i = 0; i < NUM_MAX_SENSORS; i++)
@@ -456,17 +458,21 @@ void State::setCsvString(char *dest, const char *start, int startSize, bool head
             size += strlen(str[cursor++]);
         }
     }
+    Serial.println(FreeMem());
     dest = new char[size];
     if (header)
         csvHeader = dest;
     else
         dataString = dest;
+    Serial.println(4);
     //---Fill data String
     int j = 0;
     for (int i = 0; i < numCategories; i++)
     {
+        Serial.println(5);
         for (int k = 0; str[i][k] != '\0'; j++, k++)
         { // append all the data strings onto the main string
+
             dest[j] = str[i][k];
         }
         if (i >= 1 && !header)
@@ -493,4 +499,11 @@ bool State::transmit()
     snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", sensorOK(gps) ? gps->getPos().x() : 0, sensorOK(gps) ? gps->getPos().y() : 0, sensorOK(baro) ? (int)baro->getRelAltFt() : 0, (int)baroVelocity, (int)headingAngle, 'H', stageNumber, launchTimeOfDay);
     bool b = radio->send(data, ENCT_TELEMETRY);
     return b;
+}
+extern unsigned long _heap_start;
+extern unsigned long _heap_end;
+extern char *__brkval;
+uint32_t State::FreeMem()
+{
+    return (char *)&_heap_end - __brkval;
 }
