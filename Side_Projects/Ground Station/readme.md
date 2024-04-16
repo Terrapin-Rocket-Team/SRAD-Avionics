@@ -1,5 +1,5 @@
 # Terp Rockets Ground Station
-An [Electron](https://www.electronjs.org/) based ground station user interface to display and log APRS messages recieved over serial. This folder will be kept up to date with the latest ground station release. Build instructions can be found below, or more detailed instructions are available in the /docs directory. If you have any questions or would like to contribute, please contact Joseph Hauerstein on Slack or at jhauerst@terpmail.umd.edu.
+An [Electron](https://www.electronjs.org/) based ground station user interface to display and log APRS messages recieved over serial
 
 ## Installation
 The easiest way to install is to download the executable for your platform if it is available for the latest release. However, you can also build the application from source.

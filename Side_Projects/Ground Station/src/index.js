@@ -1,5 +1,3 @@
-//TODO: preserve gui state (charts) when switching to settings
-
 window.onload = () => {
   //app control button listeners
   document.getElementById("reload").addEventListener("click", () => {
@@ -15,13 +13,17 @@ window.onload = () => {
     api.openDebug();
   });
 
+  let switcherState = 0;
   //listener that switches to the charts in the diagrams panel
   document.getElementById("switcher-graphs").addEventListener("click", () => {
     const highlight = document.getElementById("switcher-highlight");
     highlight.style.top = 0;
 
-    document.getElementById("chart-wrapper").classList.toggle("active");
-    document.getElementById("map-wrapper").classList.toggle("active");
+    if (switcherState) {
+      document.getElementById("chart-wrapper").classList.toggle("active");
+      document.getElementById("map-wrapper").classList.toggle("active");
+      switcherState = 0;
+    }
   });
 
   //listener that switches to the map in the diagrams panel
@@ -31,8 +33,13 @@ window.onload = () => {
 
     refreshMap(14);
 
-    document.getElementById("chart-wrapper").classList.toggle("active");
-    document.getElementById("map-wrapper").classList.toggle("active");
+    if (!switcherState) {
+      refreshMap(14);
+
+      document.getElementById("chart-wrapper").classList.toggle("active");
+      document.getElementById("map-wrapper").classList.toggle("active");
+      switcherState = 1;
+    }
   });
 
   //create map and chart elements
@@ -109,7 +116,9 @@ window.onload = () => {
   let spd = document.getElementById("speed");
   let hdg = document.getElementById("heading");
 
-  let size = document.getElementById("data").offsetWidth * 0.31;
+  let size =
+    document.getElementById("data").offsetWidth * 0.15 +
+    document.getElementById("data").offsetWidth * 0.15;
 
   alt.setAttribute("data-width", size);
   alt.setAttribute("data-height", size);
@@ -122,14 +131,29 @@ window.onload = () => {
   let spdwr = document.getElementById("spd-wrapper");
 
   //persistent variables for the api data event handler
-  let counter = 0;
   let lastCoords = [];
   let lastStage = 0;
   let lastAlt = 0;
-  let apogeeCounter = 0;
+  let apogeeTime = 0;
   let tPlusSet = false;
   let chartState = "seconds";
-  let startTime = 0;
+
+  // load previous data if it exists
+  {
+    altG.data.datasets[0].data = sessionStorage.getItem("altData")
+      ? JSON.parse(sessionStorage.getItem("altData"))
+      : [];
+    spdG.data.datasets[0].data = sessionStorage.getItem("spdData")
+      ? JSON.parse(sessionStorage.getItem("spdData"))
+      : [];
+
+    if (
+      sessionStorage.getItem("apogee") &&
+      parseInt(sessionStorage.getItem("apogee"))
+    )
+      document.getElementById("apogee").textContent =
+        parseInt(sessionStorage.getItem("apogee")) + " ft";
+  }
 
   api.on("data", (data) => {
     let msg = new APRSMessage(data);
@@ -164,33 +188,35 @@ window.onload = () => {
       serialEl.title = "No Signal";
     }
 
-    const processCharts = () => {
-      let altData = altG.data.datasets[0].data;
-      let spdData = spdG.data.datasets[0].data;
-      let altLabels = altG.data.labels;
-      let spdLabels = spdG.data.labels;
+    //set T+
+    if (!tPlusSet && msg.getStageNumber() > 0) {
+      let t = document.getElementById("t");
+      let time = Date.now() - msg.getT0ms();
 
-      if (counter > 120 && counter < 120 * 60 && chartState != "minutes") {
-        if (altData && spdData && altLabels && spdLabels) {
-          for (let i = 0; i < counter - 1; i++) {
-            altData[i].x =
-              (altData[i].x / 60) % 1 > 0
-                ? (altData[i].x / 60).toFixed(2)
-                : altData[i].x / 60;
-            spdData[i].x =
-              (spdData[i].x / 60) % 1 > 0
-                ? (spdData[i].x / 60).toFixed(2)
-                : spdData[i].x / 60;
-            altLabels[i] =
-              (altLabels[i] / 60) % 1 > 0
-                ? (altLabels[i] / 60).toFixed(2)
-                : altLabels[i] / 60;
-            spdLabels[i] =
-              (spdLabels[i] / 60) % 1 > 0
-                ? (spdLabels[i] / 60).toFixed(2)
-                : spdLabels[i] / 60;
-          }
-        }
+      tPlusSet = true;
+      t.textContent = mstohhmmss(time);
+      let ts = time / 1000;
+
+      if (altG.data.datasets[0].data.length === 0)
+        altG.data.datasets[0].data = [{ x: ts, y: null }];
+      if (spdG.data.datasets[0].data.length === 0)
+        spdG.data.datasets[0].data = [{ x: ts, y: null }];
+
+      setInterval(() => {
+        t.textContent = mstohhmmss(Date.now() - msg.getT0ms());
+      }, 10);
+    }
+    if (tPlusSet) {
+      //update charts
+      let time = Date.now() - msg.getT0ms();
+      let ts = time / 1000;
+
+      if (ts > 120 && ts < 120 * 60 && chartState != "minutes") {
+        let altData = altG.data.datasets[0].data;
+        let spdData = spdG.data.datasets[0].data;
+        let altLabels = altG.data.labels;
+        let spdLabels = spdG.data.labels;
+
         altwr.innerHTML = '<canvas id="alt-graph" class="chart"></canvas>';
         spdwr.innerHTML = '<canvas id="spd-graph" class="chart"></canvas>';
 
@@ -200,32 +226,13 @@ window.onload = () => {
         spdG.data.datasets[0].data = spdData;
         altG.data.labels = altLabels;
         spdG.data.labels = spdLabels;
-        altG.options.scales.x.min = startTime;
-        spdG.options.scales.x.min = startTime;
-        altG.options.scales.x.suggestedMax = counter + 10;
-        spdG.options.scales.x.suggestedMax = counter + 10;
         chartState = "minutes";
-      } else if (counter > 120 * 60 && chartState != "hours") {
-        if (altData && spdData && altLabels && spdLabels) {
-          for (let i = 0; i < counter - 1; i++) {
-            altData[i].x =
-              (altData[i].x / 3600) % 1 > 0
-                ? (altData[i].x / 3600).toFixed(2)
-                : altData[i].x / 3600;
-            spdData[i].x =
-              (spdData[i].x / 3600) % 1 > 0
-                ? (spdData[i].x / 3600).toFixed(2)
-                : spdData[i].x / 3600;
-            altLabels[i] =
-              (altLabels[i] / 3600) % 1 > 0
-                ? (altLabels[i] / 3600).toFixed(2)
-                : altLabels[i] / 3600;
-            spdLabels[i] =
-              (spdLabels[i] / 3600) % 1 > 0
-                ? (spdLabels[i] / 3600).toFixed(2)
-                : spdLabels[i] / 3600;
-          }
-        }
+      } else if (ts > 120 * 60 && chartState != "hours") {
+        let altData = altG.data.datasets[0].data;
+        let spdData = spdG.data.datasets[0].data;
+        let altLabels = altG.data.labels;
+        let spdLabels = spdG.data.labels;
+
         altwr.innerHTML = '<canvas id="alt-graph" class="chart"></canvas>';
         spdwr.innerHTML = '<canvas id="spd-graph" class="chart"></canvas>';
 
@@ -235,72 +242,49 @@ window.onload = () => {
         spdG.data.datasets[0].data = spdData;
         altG.data.labels = altLabels;
         spdG.data.labels = spdLabels;
-        altG.options.scales.x.min = startTime;
-        spdG.options.scales.x.min = startTime;
-        altG.options.scales.x.suggestedMax = counter + 10;
-        spdG.options.scales.x.suggestedMax = counter + 10;
         chartState = "hours";
       }
-    };
 
-    //set T+
-    if (!tPlusSet) {
-      let time = Date.now() - msg.getT0ms();
-      let t = document.getElementById("t");
-      t.textContent = mstohhmmss(time);
+      let factor =
+        chartState == "minutes" ? 30 : chartState == "hours" ? 320 : 1;
 
-      tPlusSet = true;
+      let interval = parseInt(
+        (ts - altG.data.datasets[0].data[0].x + 5 * factor) / 4
+      );
 
-      counter = parseInt(time / 1000);
-
-      let arr = [];
-      let arr1 = [];
-      for (let i = 0; i < counter + 10; i++) {
-        if (i < counter) arr[i] = { x: i, y: null };
-        arr1[i] = i;
+      let arrL = [];
+      for (let i = 0; i < 5; i++) {
+        arrL[i] = Math.floor(altG.data.datasets[0].data[0].x) + i * interval;
       }
-      //must create a deep copy of arr and arr1 or the altitude and speed graphs will show the same data
-      altG.data.datasets[0].data = JSON.parse(JSON.stringify(arr));
-      spdG.data.datasets[0].data = JSON.parse(JSON.stringify(arr));
-      altG.data.labels = JSON.parse(JSON.stringify(arr1));
-      spdG.data.labels = JSON.parse(JSON.stringify(arr1));
 
-      startTime = counter;
+      altG.options.scales.x.min = arrL[0] < 0 ? 0 : arrL[0];
+      spdG.options.scales.x.min = arrL[0] < 0 ? 0 : arrL[0];
+      altG.options.scales.x.suggestedMax = ts + 10 * factor;
+      spdG.options.scales.x.suggestedMax = ts + 10 * factor;
 
-      processCharts();
+      altG.data.labels = JSON.parse(JSON.stringify(arrL));
+      spdG.data.labels = JSON.parse(JSON.stringify(arrL));
 
-      setInterval(() => {
-        let time = Date.now() - msg.getT0ms();
-        t.textContent = mstohhmmss(time);
-        counter++;
-
-        let factor = chartState == "minutes" ? 60 : 3600;
-        let label =
-          (counter / factor) % 1 > 0
-            ? (counter / factor).toFixed(2)
-            : counter / factor;
-
-        altG.data.labels.push(label);
-        spdG.data.labels.push(label);
-        altG.options.scales.x.max = counter + 10;
-        spdG.options.scales.x.max = counter + 10;
-
-        processCharts();
-      }, 1000);
-    }
-
-    //update charts
-    if (counter > 0) {
-      spdG.data.datasets[0].data.push({
-        x: counter,
-        y: msg.getSpeed() ? msg.getSpeed() : 0,
-      });
       altG.data.datasets[0].data.push({
-        x: counter,
+        x: ts,
         y: msg.getAlt() ? msg.getAlt() : 0,
       });
-      spdG.update();
+      spdG.data.datasets[0].data.push({
+        x: ts,
+        y: msg.getSpeed() ? msg.getSpeed() : 0,
+      });
+
+      sessionStorage.setItem(
+        "altData",
+        JSON.stringify(altG.data.datasets[0].data)
+      );
+      sessionStorage.setItem(
+        "spdData",
+        JSON.stringify(spdG.data.datasets[0].data)
+      );
+
       altG.update();
+      spdG.update();
     }
 
     //update map
@@ -362,18 +346,21 @@ window.onload = () => {
       lastStage = sn;
     }
 
-    if (msg.getAlt() > lastAlt) {
+    // apogee check
+    if (msg.getAlt() >= lastAlt) {
       lastAlt = msg.getAlt();
-      apogeeCounter = 0;
+      apogeeTime = Date.now();
     }
-    if (msg.getAlt() < lastAlt) apogeeCounter++;
-    if (apogeeCounter === 3) alert("Apogee at " + lastAlt + "ft");
+    if (Date.now() - apogeeTime > 6000) {
+      document.getElementById("apogee").textContent = lastAlt + " ft";
+      sessionStorage.setItem("apogee", lastAlt);
+    }
 
     setTimeout(() => {
       recvStatus.setAttribute("src", "./images/recv_off.svg");
       recvStatus.setAttribute("title", "No Message");
       recvStatus.setAttribute("alt", "Off");
-    }, 600);
+    }, 10);
   });
 
   //update UI if serial connection is lost

@@ -374,19 +374,33 @@ body {
   position: absolute;
   bottom: 0;
   left: 0;
-  padding: 5vh 15vw 5vh 10vw;
+  padding: 2.5vh 0 3vh 0;
   width: 100%;
   font-size: 3.2vh;
+  display: grid;
+  align-items: center;
+  grid-template-columns: 33% 33% 33%;
 }
 
-#lat-long {
+#text-data > span {
   display: block;
-  float: left;
+  text-align: center;
 }
 
-#t-plus {
+span#apogee-cont {
+  text-align: left;
+  margin-left: 5vw;
+}
+
+#long {
   display: block;
-  float: right;
+  padding-left: 30%;
+}
+
+#apogee {
+  text-align: center;
+  display: block;
+  margin-left: -4vw;
 }
 
 #stage {
