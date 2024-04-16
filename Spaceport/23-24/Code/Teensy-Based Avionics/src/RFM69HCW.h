@@ -22,6 +22,9 @@ Settings:
 - uint8_t cs CS pin
 - uint8_t irq IRQ pin
 - uint8_t rst RST pin
+- uint8_t ff FifoFull pin
+- uint8_t fne FifoNotEmpty pin
+- uint8_t fl FifoLevel pin
 */
 struct RadioSettings
 {
@@ -32,6 +35,9 @@ struct RadioSettings
     uint8_t cs;
     uint8_t irq;
     uint8_t rst;
+    uint8_t ff;
+    uint8_t fne;
+    uint8_t fl;
 };
 
 class RFM69HCW : public Radio
@@ -43,11 +49,11 @@ public:
     bool sendBuffer();
     void endtx();
     bool txs(const char *message, int len = -1); // tx start
-    bool txf();                                  // tx fill
+    bool txI();                                  // tx Interrupt
     void txe();                                  // tx end
     const char *rx() override;
     void rxl(); // rx long
-    void rxi(); // rx interrupt
+    void rxI(); // rx interrupt
     void rxe(); // rx end
     bool busy();
     bool encode(char *message, EncodingType type, int len = -1) override;
@@ -59,10 +65,6 @@ public:
     void set300KBPS();
     RHGenericDriver::RHMode mode();
     void interrupt();
-    static void i0();
-    static void i1();
-    static void i2();
-    static void i3();
 
     // stores full messages, max length determined by platform
     char msg[MSG_LEN + 1];
@@ -70,6 +72,14 @@ public:
     int msgLen = 0;
 
 private:
+    static void i0();
+    static void i1();
+    static void i2();
+    static void i3();
+    bool FifoFull();
+    bool FifoNotEmpty();
+    bool FifoLevel();
+
     RH_RF69 radio;
     // all radios should have the same networkID
     const uint8_t networkID = 0x01;
@@ -89,6 +99,7 @@ private:
     int rssi;
     int totalPackets;
     int msgIndex = 0;
+    RHGenericDriver::RHMode mode = RHGenericDriver::RHModeIdle;
 
     static RFM69HCW *devices[];
     static int numInts;
