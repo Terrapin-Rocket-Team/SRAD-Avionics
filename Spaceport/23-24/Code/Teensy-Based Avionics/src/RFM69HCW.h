@@ -54,31 +54,36 @@ public:
     const char *rx() override;
     void rxl(); // rx long
     void rxI(); // rx interrupt
-    void rxe(); // rx end
+    void rxs(); // rx end
     bool busy();
     bool encode(char *message, EncodingType type, int len = -1) override;
     bool decode(char *message, EncodingType type, int len = -1) override;
     bool send(const char *message, EncodingType type, int len = -1) override;
     const char *receive(EncodingType type) override;
     int RSSI() override;
+    int waitForRSSI();
     bool available();
     void set300KBPS();
-    RHGenericDriver::RHMode mode();
+    // RHGenericDriver::RHMode mode();
     void interrupt();
 
     // stores full messages, max length determined by platform
     char msg[MSG_LEN + 1];
     // length of msg for recieving binary messages
     int msgLen = 0;
+    bool FifoLevel();
 
 private:
     static void i0();
     static void i1();
     static void i2();
     static void i3();
+    static void itr0();
+    static void itr1();
+    static void itr2();
+    static void itr3();
     bool FifoFull();
     bool FifoNotEmpty();
-    bool FifoLevel();
 
     RH_RF69 radio;
     // all radios should have the same networkID

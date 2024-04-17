@@ -6,7 +6,7 @@
 #define PATH "WIDE1-1"
 
 APRSConfig config = {CALLSIGN, TOCALL, PATH, '[', '/'};
-RadioSettings settings = {433.775, true, false, &hardware_spi, 10, 2, 9};
+RadioSettings settings = {433.775, true, false, &hardware_spi, 10, 2, 9, 8, 4, 3};
 RFM69HCW transmit = {&settings, &config};
 
 void setup()
