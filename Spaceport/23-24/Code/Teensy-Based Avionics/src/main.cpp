@@ -115,12 +115,12 @@ void loop()
 
     if (time - radioTimer >= 2000)
     {
-        more = computer.transmit();
+        //more = computer.transmit();
         radioTimer = time;
     }
     if (radio.mode() != RHGenericDriver::RHModeTx && more)
     {
-        more = !radio.sendBuffer();
+        //more = !radio.sendBuffer();
     }
     if (time - last < 100)
         return;

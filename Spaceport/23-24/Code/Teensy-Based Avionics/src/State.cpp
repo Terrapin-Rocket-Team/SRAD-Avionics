@@ -57,7 +57,7 @@ State::State(bool useKalmanFilter, bool stateRecordsOwnFlightData)
     measurements = new double[4]{1, 1, 1, 1};
     // imu x y z
     inputs = new double[3]{1, 1, 1};
-    kfilter = initializeFilter();
+    kfilter = nullptr;
 }
 
 State::~State()
@@ -112,9 +112,9 @@ bool State::init()
         if (!radio->begin())
             radio = nullptr;
     }
-    Serial.println("Initializing state");
     setCsvHeader();
-    Serial.println("Initialized state");
+    if(useKF)
+        kfilter = initializeFilter();
     numSensors = good;
 
     return good == tryNumSensors;
@@ -144,34 +144,29 @@ void State::updateSensors()
 
 void State::updateState(double newTimeAbsolute)
 {
-    if (timeSinceLaunch > 0 && timeSinceLaunch < 2)
-        digitalWrite(33, HIGH);
-    else
-        digitalWrite(33, LOW);
+    //if (timeSinceLaunch > 0 && timeSinceLaunch < 2)
+        //digitalWrite(33, HIGH);
+    //else
+        //digitalWrite(33, LOW);
 
     if (stageNumber > 4 && landingCounter > 50) // if landed and waited 5 seconds, don't update sensors.
         return;
 
+    lastTimeAbsolute = timeAbsolute;
     if (newTimeAbsolute != -1)
         timeAbsolute = newTimeAbsolute;
     else
         timeAbsolute = millis() / 1000.0;
 
-    Serial.println(timeAbsolute);
     updateSensors();
-    Serial.println("Updating state");
-    Serial.println(useKF);
-    Serial.println(sensorOK(gps));
-    Serial.println(gps->getHasFirstFix());
-    measurements = new double[4]{0, 0, 0, 0};
+    measurements = new double[3]{0, 0, 0};
     inputs = new double[3]{0, 0, 0};
-    if (useKF && sensorOK(gps) && gps->getHasFirstFix() /* && stageNumber > 0*/)
+    if (kfilter && sensorOK(gps) && gps->getHasFirstFix() /* && stageNumber > 0*/)
     {
         // gps x y z barometer z
         measurements[0] = gps->getDisplace().x();
         measurements[1] = gps->getDisplace().y();
-        measurements[2] = gps->getDisplace().z();
-        measurements[3] = sensorOK(baro) ? baro->getRelAltM() : 0;
+        measurements[2] = sensorOK(baro) ? baro->getRelAltM() : 0;
         // imu x y z
         if (sensorOK(imu))
         {
@@ -186,20 +181,18 @@ void State::updateState(double newTimeAbsolute)
             inputs[2] = 0;
         }
         delete[] predictions;
-        Serial.println("Predicting");
         predictions = iterateFilter(*kfilter, timeAbsolute - lastTimeAbsolute, inputs, measurements, sensorOK(gps) ? 1 : 0, sensorOK(baro) ? 1 : 0);
-        Serial.println("Predicted");
         // time, pos x, y, z, vel x, y, z, acc x, y, z
         // ignore time return value.
-        position.x() = predictions[1];
-        position.y() = predictions[2];
-        position.z() = predictions[3];
-        velocity.x() = predictions[4];
-        velocity.y() = predictions[5];
-        velocity.z() = predictions[6];
-        acceleration.x() = predictions[7];
-        acceleration.y() = predictions[8];
-        acceleration.z() = predictions[9];
+        position.x() = predictions[0];
+        position.y() = predictions[1];
+        position.z() = predictions[2];
+        velocity.x() = predictions[3];
+        velocity.y() = predictions[4];
+        velocity.z() = predictions[5];
+        acceleration.x() = inputs[0];
+        acceleration.y() = inputs[1];
+        acceleration.z() = inputs[2];
 
         orientation = sensorOK(imu) ? imu->getOrientation() : imu::Quaternion(0, 0, 0, 1);
 
@@ -211,7 +204,6 @@ void State::updateState(double newTimeAbsolute)
     }
     else
     {
-        Serial.println("Not predicting");
         if (sensorOK(gps))
         {
             position = imu::Vector<3>(gps->getDisplace().x(), gps->getDisplace().y(), gps->getAlt());
@@ -253,7 +245,6 @@ void State::updateState(double newTimeAbsolute)
     if (recordOwnFlightData)
         recordFlightData(dataString);
 
-    lastTimeAbsolute = timeAbsolute;
 }
 
 void State::setCsvHeader()
@@ -458,18 +449,15 @@ void State::setCsvString(char *dest, const char *start, int startSize, bool head
             size += strlen(str[cursor++]);
         }
     }
-    Serial.println(FreeMem());
     dest = new char[size];
     if (header)
         csvHeader = dest;
     else
         dataString = dest;
-    Serial.println(4);
     //---Fill data String
     int j = 0;
     for (int i = 0; i < numCategories; i++)
     {
-        Serial.println(5);
         for (int k = 0; str[i][k] != '\0'; j++, k++)
         { // append all the data strings onto the main string
 
