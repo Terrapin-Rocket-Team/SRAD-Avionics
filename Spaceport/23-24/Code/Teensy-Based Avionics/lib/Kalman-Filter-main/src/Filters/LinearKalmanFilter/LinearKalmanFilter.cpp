@@ -1,6 +1,6 @@
 #include "LinearKalmanFilter.h"
 #include "../../MatrixMult/Matrix.h"
-
+#include <Arduino.h>//debugging temp
 LinearKalmanFilter::LinearKalmanFilter(Matrix X, Matrix U, Matrix P, Matrix F, Matrix G, Matrix R){
     state.X = X;
     state.U = U;
@@ -32,8 +32,9 @@ void LinearKalmanFilter::covariance_extrapolate(){
     state.P = state.F*state.P*state.F.T() + state.Q;
 }
 
-void LinearKalmanFilter::calculate_initial_values(){    
-    state.Q = (state.G*0.2*0.2)*state.G.T();
+void LinearKalmanFilter::calculate_initial_values(){
+    state.Q = Matrix::ident(state.X.getRows());
+    state.Q = state.Q * 0.03;
     predict_state();
     covariance_extrapolate();
 }
@@ -43,11 +44,10 @@ Matrix LinearKalmanFilter::iterate(Matrix measurement, Matrix control, Matrix F,
     state.G = G;
     state.H = H;
     state.U = control;
-    state.Q = (state.G*1.2*1.2)*state.G.T();
+    predict_state();
+    covariance_extrapolate();
     calculate_kalman_gain();
     estimate_state(measurement);
     covariance_update();
-    predict_state();
-    covariance_extrapolate();
     return state.X;
 }
