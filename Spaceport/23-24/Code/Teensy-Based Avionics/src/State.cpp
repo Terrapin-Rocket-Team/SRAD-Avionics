@@ -161,7 +161,7 @@ void State::updateState(double newTimeAbsolute)
     updateSensors();
     measurements = new double[3]{0, 0, 0};
     inputs = new double[3]{0, 0, 0};
-    if (kfilter && sensorOK(gps) && gps->getHasFirstFix() /* && stageNumber > 0*/)
+    if (kfilter /* && sensorOK(gps) && gps->getHasFirstFix() && stageNumber > 0*/)
     {
         // gps x y z barometer z
         measurements[0] = gps->getDisplace().x();
@@ -181,7 +181,7 @@ void State::updateState(double newTimeAbsolute)
             inputs[2] = 0;
         }
         delete[] predictions;
-        predictions = iterateFilter(*kfilter, timeAbsolute - lastTimeAbsolute, inputs, measurements, sensorOK(gps) ? 1 : 0, sensorOK(baro) ? 1 : 0);
+        predictions = iterateFilter(kfilter, timeAbsolute - lastTimeAbsolute, inputs, measurements);
         // time, pos x, y, z, vel x, y, z, acc x, y, z
         // ignore time return value.
         position.x() = predictions[0];
@@ -212,7 +212,7 @@ void State::updateState(double newTimeAbsolute)
         }
         if (sensorOK(baro))
         {
-            velocity.z() = (baro->getRelAltM() - position.z()) / (millis() / 1000.0 - lastTimeAbsolute);
+            velocity.z() = (baro->getRelAltM() - baroOldAltitude) / (millis() / 1000.0 - lastTimeAbsolute);
             position.z() = baro->getRelAltM();
             baroVelocity = (baro->getRelAltM() - baroOldAltitude) / (millis() / 1000.0 - lastTimeAbsolute);
             baroOldAltitude = baro->getRelAltM();
@@ -373,8 +373,8 @@ void State::determineStage()
 {
     if (stageNumber == 0 &&
         (sensorOK(imu) || sensorOK(baro)) &&
-        (sensorOK(imu) ? imu->getAcceleration().z() > 25 : true) &&
-        (sensorOK(baro) ? baro->getRelAltFt() > 60 : true))
+        (sensorOK(imu) ? imu->getAcceleration().z() > 10 : true) &&
+        (sensorOK(baro) ? baro->getRelAltFt() > 10 : true))
     // if we are in preflight AND
     // we have either the IMU OR the barometer AND
     // imu is ok AND the z acceleration is greater than 29 ft/s^2 OR imu is not ok AND
