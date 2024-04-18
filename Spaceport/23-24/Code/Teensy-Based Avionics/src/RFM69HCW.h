@@ -52,26 +52,21 @@ public:
     bool txI();                                  // tx Interrupt
     void txe();                                  // tx end
     const char *rx() override;
-    void rxl(); // rx long
     void rxI(); // rx interrupt
     void rxs(); // rx end
-    bool busy();
+    bool idle();
     bool encode(char *message, EncodingType type, int len = -1) override;
     bool decode(char *message, EncodingType type, int len = -1) override;
     bool send(const char *message, EncodingType type, int len = -1) override;
     const char *receive(EncodingType type) override;
     int RSSI() override;
-    int waitForRSSI();
     bool available();
     void set300KBPS();
-    // RHGenericDriver::RHMode mode();
-    void interrupt();
 
     // stores full messages, max length determined by platform
     char msg[MSG_LEN + 1];
     // length of msg for recieving binary messages
     int msgLen = 0;
-    bool FifoLevel();
 
 private:
     static void i0();
@@ -84,6 +79,7 @@ private:
     static void itr3();
     bool FifoFull();
     bool FifoNotEmpty();
+    bool FifoLevel();
 
     RH_RF69 radio;
     // all radios should have the same networkID
@@ -101,6 +97,7 @@ private:
     uint8_t bufSize = RH_RF69_MAX_MESSAGE_LEN;
     APRSConfig cfg;
     bool avail;
+    bool busy;
     int rssi;
     int totalPackets;
     int msgIndex = 0;
