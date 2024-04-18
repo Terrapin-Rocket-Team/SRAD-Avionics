@@ -81,30 +81,14 @@ class APRSMessage {
    * @returns {Date} a Date object containing the date of T0
    */
   getT0() {
-    return new Date(
-      new Date()
-        .toString()
-        .match(
-          /[A-Z][a-z][a-z] [A-Z][a-z][a-z] [0-9][0-9] [0-9][0-9][0-9][0-9] /g
-        )[0] +
-        " " +
-        this.body.t0
-    );
+    return this.body.t0Date;
   }
 
   /**
    * @returns {Number} the T0 time in milliseconds
    */
   getT0ms() {
-    return new Date(
-      new Date()
-        .toString()
-        .match(
-          /[A-Z][a-z][a-z] [A-Z][a-z][a-z] [0-9][0-9] [0-9][0-9][0-9][0-9] /g
-        )[0] +
-        " " +
-        this.body.t0
-    ).getTime();
+    return this.body.t0Date.getTime();
   }
 
   /**
@@ -137,7 +121,7 @@ class APRSMessage {
       csv =
         "Source,Destination,Path,Type,Raw Body,Latitude,Longitude,Heading,Speed,Altitude,Stage,T0,Signal Strength\r\n";
     }
-    console.log(this.rawBody);
+    // console.log(this.rawBody);
     csv += `${this.src},${this.dest},${this.path},${this.type},${
       this.rawBody
     },${this.body.toCSV()},${this.rssi}\r\n`;
@@ -161,6 +145,7 @@ class APRSBody {
       this.alt = body.alt;
       this.stage = body.stage;
       this.t0 = body.t0;
+      this.t0Date = this.dateFromT0(this.t0);
     }
     if (typeof body === "string") {
       this.lat = body.match(/(?<=!)[^\/]+(?=\/)/g)
@@ -184,6 +169,9 @@ class APRSBody {
       this.t0 = body.match(/(?<=\/)[0-9][0-9]:[0-9][0-9]:[0-9][0-9]/g)
         ? body.match(/(?<=\/)[0-9][0-9]:[0-9][0-9]:[0-9][0-9]/g)[0]
         : "";
+
+      // only want to have to do this once
+      this.t0Date = this.dateFromT0(this.t0);
     }
   }
   /**
@@ -192,6 +180,9 @@ class APRSBody {
    */
   decodeBody(rawBody) {
     //based on a specific radio module library, will not work with other libraries
+    let time0 = rawBody.match(/(?<=\/)[0-9][0-9]:[0-9][0-9]:[0-9][0-9]/g)
+      ? rawBody.match(/(?<=\/)[0-9][0-9]:[0-9][0-9]:[0-9][0-9]/g)[0]
+      : "";
     return {
       lat: rawBody.match(/(?<=!)[^\/]+(?=\/)/g)
         ? rawBody.match(/(?<=!)[^\/]+(?=\/)/g)[0]
@@ -211,25 +202,58 @@ class APRSBody {
       stage: rawBody.match(/(?<=\/)S[0-9]+(?=\/)/g)
         ? rawBody.match(/(?<=\/)S[0-9]+(?=\/)/g)[0]
         : "",
-      t0: rawBody.match(/(?<=\/)[0-9][0-9]:[0-9][0-9]:[0-9][0-9]/g)
-        ? rawBody.match(/(?<=\/)[0-9][0-9]:[0-9][0-9]:[0-9][0-9]/g)[0]
-        : "",
+      t0: time0,
+      t0Date: this.dateFromT0(time0),
     };
   }
   /**
    * @returns {string} the APRS body object as a string
    */
   toString() {
-    return `${this.getLatLongDecimalFormatted().replace(" ", "/")} and ${
-      this.alt
-    } at ${this.heading}\u00b0 ${
-      this.speed
-    } ft/s during stage ${this.stage.substring(1)}, T0 was at ${this.t0}`;
+    return `${this.getLatLongDecimalFormatted()} and ${this.alt} at ${
+      this.heading
+    }\u00b0 ${this.speed} ft/s during stage ${this.stage.substring(
+      1
+    )}, T0 was at ${this.t0Date.toLocaleString()}`;
   }
 
   toCSV() {
     let ll = this.getLatLongDecimal();
     return `${ll[0]},${ll[1]},${this.heading},${this.speed},${this.alt},${this.stage},${this.t0}`;
+  }
+
+  toJSON() {
+    // remove t0Date from JSON
+    let result = {};
+    for (let x in this) {
+      if (x !== "t0Date") {
+        result[x] = this[x];
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Creates a Date object from a t0 time in UTC
+   * @returns {Date} the Date object
+   */
+  dateFromT0(time0) {
+    return new Date( // 2
+      new Date()
+        .toString()
+        .match(
+          /[A-Z][a-z][a-z] [A-Z][a-z][a-z] [0-9][0-9] [0-9][0-9][0-9][0-9] /g
+        )[0] +
+        new Date( // 1
+          new Date()
+            .toISOString()
+            .match(
+              /^([+-][0-9][0-9])?[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T/g
+            )[0] +
+            time0 +
+            "Z"
+        ).toTimeString() // 1 - get local t0
+    ); // 2 get local date and combine with local t0
   }
 
   /**

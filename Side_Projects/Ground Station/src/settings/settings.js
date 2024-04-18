@@ -46,6 +46,7 @@ window.onload = () => {
     debugScale = document.getElementById("debug-scale-selected"),
     debugToggle = document.getElementById("debug-toggle"),
     noGUIToggle = document.getElementById("noGUI-toggle"),
+    //tileToggle = document.getElementById("tile-toggle"), //added tile toggling here
     cacheMaxSize = document.getElementById("cacheMaxSize-input"),
     baudRate = document.getElementById("baudRate-input");
 
@@ -56,6 +57,7 @@ window.onload = () => {
     debugScale.textContent = config.debugScale.toFixed(2);
     setToggle(config.debug, debugToggle);
     setToggle(config.noGUI, noGUIToggle);
+    //setToggle(config.noGUI, tileToggle); //added tile toggling here
     cacheMaxSize.value = config.cacheMaxSize;
     baudRate.value = config.baudRate;
   });
