@@ -23,7 +23,6 @@ void setup()
 
 void loop()
 {
-    // Serial.println(receive.FifoLevel());
     if (receive.available())
     {
         Serial.println(receive.receive(ENCT_GROUNDSTATION));
