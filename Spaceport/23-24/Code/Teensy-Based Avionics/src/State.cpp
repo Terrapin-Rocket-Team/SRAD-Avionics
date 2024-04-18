@@ -144,10 +144,10 @@ void State::updateSensors()
 
 void State::updateState(double newTimeAbsolute)
 {
-    //if (timeSinceLaunch > 0 && timeSinceLaunch < 2)
-        //digitalWrite(33, HIGH);
-    //else
-        //digitalWrite(33, LOW);
+    if (timeSinceLaunch > 0 && timeSinceLaunch < 2)
+        digitalWrite(33, HIGH);
+    else
+        digitalWrite(33, LOW);
 
     if (stageNumber > 4 && landingCounter > 50) // if landed and waited 5 seconds, don't update sensors.
         return;
@@ -161,7 +161,7 @@ void State::updateState(double newTimeAbsolute)
     updateSensors();
     measurements = new double[3]{0, 0, 0};
     inputs = new double[3]{0, 0, 0};
-    if (kfilter /* && sensorOK(gps) && gps->getHasFirstFix() && stageNumber > 0*/)
+    if (kfilter && sensorOK(gps) && gps->getHasFirstFix() && stageNumber > 0)
     {
         // gps x y z barometer z
         measurements[0] = gps->getDisplace().x();
@@ -182,8 +182,7 @@ void State::updateState(double newTimeAbsolute)
         }
         delete[] predictions;
         predictions = iterateFilter(kfilter, timeAbsolute - lastTimeAbsolute, inputs, measurements);
-        // time, pos x, y, z, vel x, y, z, acc x, y, z
-        // ignore time return value.
+        // pos x, y, z, vel x, y, z
         position.x() = predictions[0];
         position.y() = predictions[1];
         position.z() = predictions[2];
@@ -373,8 +372,8 @@ void State::determineStage()
 {
     if (stageNumber == 0 &&
         (sensorOK(imu) || sensorOK(baro)) &&
-        (sensorOK(imu) ? imu->getAcceleration().z() > 10 : true) &&
-        (sensorOK(baro) ? baro->getRelAltFt() > 10 : true))
+        (sensorOK(imu) ? imu->getAcceleration().z() > 15 : true) &&
+        (sensorOK(baro) ? baro->getRelAltFt() > 60 : true))
     // if we are in preflight AND
     // we have either the IMU OR the barometer AND
     // imu is ok AND the z acceleration is greater than 29 ft/s^2 OR imu is not ok AND
