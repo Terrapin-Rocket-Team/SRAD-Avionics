@@ -63,11 +63,7 @@ void setRecordMode(Mode m)
     if(mode == FLIGHT && m == GROUND){
         ram->dumpFlightData();
         ram->dumpLogData();
-        digitalWrite(LED_BUILTIN, HIGH);
-        digitalWrite(33, HIGH);
-        delay(2000);
-        digitalWrite(LED_BUILTIN, LOW);
-        digitalWrite(33, LOW);
+        bb.aonoff(LED_BUILTIN, 2000);//turn on LED for 2 seconds to indicate that the PSRAM is being dumped to the SD card.
     }
     mode = m;
 }
