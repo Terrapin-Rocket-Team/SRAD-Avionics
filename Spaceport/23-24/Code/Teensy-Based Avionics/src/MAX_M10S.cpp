@@ -73,14 +73,11 @@ void MAX_M10S::update()
     heading = m10s.getHeading();
     altitude = m10s.getAltitude() / 1000.0;
     fixQual = m10s.getSIV();
-    if (!hasFirstFix && fixQual >= 3)
+    if (!hasFirstFix && fixQual >= 4)
     {
-        recordLogData(INFO, "GPS has first fix."); //Log this data when the new data logging branch is merged.
+        recordLogData(INFO, "GPS has first fix."); // Log this data when the new data logging branch is merged.
 
-        
-        digitalWrite(33, HIGH);
-        delay(1000);
-        digitalWrite(33, LOW);
+        bb.aonoff(33, 1000);
         hasFirstFix = true;
         origin.x() = pos.x();
         origin.y() = pos.y();
@@ -89,6 +86,7 @@ void MAX_M10S::update()
 
     // updated before displacement and gps as the old values and new values are needed to get a
     // significant of a velocity
+    if(hasFirstFix){
     velocity.x() = (((pos.x() - origin.x()) * 111319.0) - displacement.x()) / (time - timeLast);
     velocity.y() = (((pos.y() - origin.y()) * 111319.0 * cos(pos.x() * PI / 180.0)) - displacement.y()) / (time - timeLast);
     velocity.z() = ((altitude)-displacement.z()) / (time - timeLast);
@@ -97,9 +95,23 @@ void MAX_M10S::update()
     displacement.y() = (pos.y() - origin.y()) * 111319.0 * cos(pos.x() * PI / 180.0);
     displacement.z() = (altitude - origin.z());
 
-    hr = m10s.getHour();
-    min = m10s.getMinute();
-    sec = m10s.getSecond();
+        hr = m10s.getHour();
+        min = m10s.getMinute();
+        sec = m10s.getSecond();
+    }
+    else
+    {
+        velocity.x() = 0;
+        velocity.y() = 0;
+        velocity.z() = 0;
+        displacement.x() = 0;
+        displacement.y() = 0;
+        displacement.z() = 0;
+        hr = 0;
+        min = 0;
+        sec = 0;
+
+    }
 }
 
 /*
@@ -116,9 +128,10 @@ returns the lat and long of the rocket to the 7th sig fig
 imu::Vector<2> MAX_M10S::getPos()
 {
     return pos;
-} 
+}
 
-double MAX_M10S::getHeading() {
+double MAX_M10S::getHeading()
+{
     return heading;
 }
 
@@ -171,7 +184,7 @@ int MAX_M10S::getFixQual()
 }
 
 const char *MAX_M10S::getCsvHeader()
-{                                                                                                                         // incl G- for GPS
+{                                                                                                                        // incl G- for GPS
     return "G-Lat (deg),G-Lon (deg),G-Alt (m),G-Speed (m/s),G-DispX (m),G-DispY (m),G-DispZ (m),G-ToD (s),G-# of Sats,"; // trailing comma
 }
 

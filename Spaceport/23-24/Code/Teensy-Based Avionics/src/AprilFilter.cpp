@@ -35,7 +35,7 @@ Matrix get_H()
 
 LinearKalmanFilter *initializeFilter()
 {
-  double pv = 1.0;
+  double pv = 100.0;
   double *x = new double[6]{0, 0, 0, 0, 0, 0};
   Matrix *X = new Matrix(6, 1, x);
   double *u = new double[3]{0, 0, 0};
@@ -51,10 +51,10 @@ LinearKalmanFilter *initializeFilter()
   double *r = new double[16]{
       1.0, 0, 0,
       0, 1.0, 0,
-      0, 0, 1.0};
+      0, 0, 0.5};
 
   Matrix *R = new Matrix(3, 3, r);
-  double qv = 0.03;
+  double qv = 0.1;
   double *q = new double[36]{
       qv, 0, 0, 0, 0, 0,
       0, qv, 0, 0, 0, 0,

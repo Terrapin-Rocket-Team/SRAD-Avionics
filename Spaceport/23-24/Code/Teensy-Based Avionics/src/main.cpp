@@ -6,6 +6,7 @@
 #include "DS3231.h"
 #include "RFM69HCW.h"
 #include "RecordData.h"
+#include "BlinkBuzz.h"
 
 BNO055 bno(13, 12);         // I2C Address 0x29
 BMP390 bmp(13, 12);         // I2C Address 0x77
@@ -26,9 +27,16 @@ PSRAM *ram;
 
 static double last = 0; // for better timing than "delay(100)"
 
+//BlinkBuzz setup
+
+int allowedPins[] = {LED_BUILTIN, BUZZER};
+BlinkBuzz bb(allowedPins, 2, true);
+
 void setup()
 {
-    recordLogData(INFO, "Initializing Avionics System. 10 second delay to prevent unnecessary file generation.", TO_USB);
+
+    bb.onoff(BUZZER, 200, 3, 100);
+    recordLogData(INFO, "Initializing Avionics System. 5 second delay to prevent unnecessary file generation.", TO_USB);
     delay(5000);
 
     pinMode(BMP_ADDR_PIN, OUTPUT);
@@ -43,9 +51,7 @@ void setup()
     digitalWrite(RPI_PWR, LOW);
     digitalWrite(RPI_VIDEO, HIGH);
 
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(100);
-    digitalWrite(LED_BUILTIN, LOW);
+    bb.onoff(LED_BUILTIN, 100);
     ram = new PSRAM(); // init after the SD card for better data logging.
 
     // The SD card MUST be initialized first to allow proper data logging.
@@ -53,21 +59,13 @@ void setup()
     {
 
         recordLogData(INFO, "SD Card Initialized");
-        digitalWrite(BUZZER, HIGH);
-        delay(1000);
-        digitalWrite(BUZZER, LOW);
+        bb.onoff(BUZZER, 1000);
     }
     else
     {
         recordLogData(ERROR, "SD Card Failed to Initialize");
 
-        digitalWrite(BUZZER, HIGH);
-        delay(200);
-        digitalWrite(BUZZER, LOW);
-        delay(200);
-        digitalWrite(BUZZER, HIGH);
-        delay(200);
-        digitalWrite(BUZZER, LOW);
+        bb.onoff(BUZZER, 200, 3);
     }
 
     // The PSRAM must be initialized before the sensors to allow for proper data logging.
@@ -87,30 +85,21 @@ void setup()
     if (computer.init())
     {
         recordLogData(INFO, "All Sensors Initialized");
-        digitalWrite(BUZZER, HIGH);
-        delay(1000);
-        digitalWrite(BUZZER, LOW);
+        bb.onoff(BUZZER, 1000);
     }
     else
     {
         recordLogData(ERROR, "Some Sensors Failed to Initialize. Disabling those sensors.");
-        digitalWrite(BUZZER, HIGH);
-        delay(200);
-        digitalWrite(BUZZER, LOW);
-        delay(200);
-        digitalWrite(BUZZER, HIGH);
-        delay(200);
-        digitalWrite(BUZZER, LOW);
+        bb.onoff(BUZZER, 200, 3);
     }
 
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(1000);
-    digitalWrite(LED_BUILTIN, LOW);
+    bb.onoff(LED_BUILTIN, 1000);
     sendSDCardHeader(computer.getCsvHeader());
 }
 static bool more = false;
 void loop()
 {
+    bb.update();
     double time = millis();
 
     if (time - radioTimer >= 2000)
