@@ -31,10 +31,21 @@ static double last = 0; // for better timing than "delay(100)"
 
 int allowedPins[] = {LED_BUILTIN, BUZZER};
 BlinkBuzz bb(allowedPins, 2, true);
+extern unsigned long _heap_start;
+extern unsigned long _heap_end;
+extern char *__brkval;
+
+void FreeMem()
+{
+    Serial.print((char *)&_heap_end - __brkval);
+    Serial.print(" | ");
+}
 
 void setup()
 {
 
+    pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(BUZZER, OUTPUT); // its very loud during testing
     bb.onoff(BUZZER, 200, 3, 100);
     recordLogData(INFO, "Initializing Avionics System. 5 second delay to prevent unnecessary file generation.", TO_USB);
     delay(5000);
@@ -42,8 +53,6 @@ void setup()
     pinMode(BMP_ADDR_PIN, OUTPUT);
     digitalWrite(BMP_ADDR_PIN, HIGH);
 
-    pinMode(LED_BUILTIN, OUTPUT);
-    pinMode(BUZZER, OUTPUT); // its very loud during testing
 
     pinMode(RPI_PWR, OUTPUT);   // RASPBERRY PI TURN ON
     pinMode(RPI_VIDEO, OUTPUT); // RASPBERRY PI TURN ON
@@ -92,8 +101,6 @@ void setup()
         recordLogData(ERROR, "Some Sensors Failed to Initialize. Disabling those sensors.");
         bb.onoff(BUZZER, 200, 3);
     }
-
-    bb.onoff(LED_BUILTIN, 1000);
     sendSDCardHeader(computer.getCsvHeader());
 }
 static bool more = false;
@@ -104,18 +111,19 @@ void loop()
 
     if (time - radioTimer >= 500)
     {
-        more = computer.transmit();
+        //more = computer.transmit();
         radioTimer = time;
     }
     if (radio.mode() != RHGenericDriver::RHModeTx && more)
     {
-        more = !radio.sendBuffer();
+        //more = !radio.sendBuffer();
     }
     if (time - last < 100)
         return;
 
     last = time;
     computer.updateState();
+    FreeMem();
     recordLogData(INFO, computer.getStateString(), TO_USB);
 
     // RASPBERRY PI TURN ON
@@ -128,3 +136,4 @@ void loop()
         digitalWrite(RPI_VIDEO, LOW);
     }
 }
+

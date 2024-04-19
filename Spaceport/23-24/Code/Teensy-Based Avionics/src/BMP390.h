@@ -17,6 +17,7 @@ private:
     double pressure; // hPa
     double temp;     // C
     double altitude; // m
+    double prevReadings[20];
 
 public:
     BMP390(uint8_t SCK, uint8_t SDA);
@@ -32,6 +33,7 @@ public:
     char *getStaticDataString() override;
     char const *getName() override;
     void update() override;
+    void setBiasCorrectionMode(bool mode) override;
 };
 
 #endif // BMP390_H

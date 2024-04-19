@@ -211,4 +211,7 @@ const char *MAX_M10S::getName()
     return "MAX_M10S";
 }
 
-// Danny S.
+void MAX_M10S::setBiasCorrectionMode(bool mode)
+{
+    biasCorrectionMode = mode;
+}

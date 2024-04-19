@@ -15,13 +15,34 @@ bool BNO055::initialize()
     bno.setExtCrystalUse(true);
 
     initialMagField = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
+    imu::Vector<3> read = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+    for (int i = 0; i < 20; i++)
+    {
+        prevReadings[i] = read;
+    }
     return initialized = true;
 }
 
 void BNO055::update()
 {
+    if(biasCorrectionMode)
+    {
+        imu::Vector<3> read = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+        imu::Vector<3> sum = 0;
+        for(int i = 0; i < 19; i++)
+        {
+            prevReadings[i] = prevReadings[i + 1];
+            if(i < 17)//ignore last 2 readings to avoid accidentally including launch readings
+            sum = sum + prevReadings[i];
+        }
+        prevReadings[19] = read;
+        accelerationVec = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL) - (sum / 17.0);
+    }
+    else
+    {
+        accelerationVec = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+    }
     orientation = bno.getQuat();
-    accelerationVec = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
     orientationEuler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
     magnetometer = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
 }
@@ -97,4 +118,9 @@ char *BNO055::getStaticDataString()
 const char *BNO055::getName()
 {
     return "BNO055";
+}
+
+void BNO055::setBiasCorrectionMode(bool mode)
+{
+    biasCorrectionMode = mode;
 }

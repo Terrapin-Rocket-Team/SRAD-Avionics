@@ -44,6 +44,7 @@ public:
     const char *getName() override;
     void update() override;
     bool getHasFirstFix() override;
+    void setBiasCorrectionMode(bool mode) override;
 };
 
 #endif // MAX_M10S_H
