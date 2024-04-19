@@ -25,18 +25,18 @@ bool BNO055::initialize()
 
 void BNO055::update()
 {
-    if(biasCorrectionMode)
+    if (biasCorrectionMode)
     {
         imu::Vector<3> read = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
         imu::Vector<3> sum = 0;
-        for(int i = 0; i < 19; i++)
+        for (int i = 0; i < 19; i++)
         {
             prevReadings[i] = prevReadings[i + 1];
-            if(i < 17)//ignore last 2 readings to avoid accidentally including launch readings
-            sum = sum + prevReadings[i];
+            if (i < 10) // ignore last 2 readings to avoid accidentally including launch readings
+                sum = sum + prevReadings[i];
         }
         prevReadings[19] = read;
-        accelerationVec = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL) - (sum / 17.0);
+        accelerationVec = read - (sum / 10.0);
     }
     else
     {
@@ -81,7 +81,6 @@ imu::Vector<3> BNO055::getMagnetometer()
 {
     return magnetometer;
 }
-
 
 imu::Vector<3> convertToEuler(const imu::Quaternion &orientation)
 

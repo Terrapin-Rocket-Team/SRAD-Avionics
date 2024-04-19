@@ -82,22 +82,40 @@ void MAX_M10S::update()
         origin.x() = pos.x();
         origin.y() = pos.y();
         origin.z() = altitude;
+
+        for (int i = 0; i < 20; i++)
+        {
+            prevReadings[i] = origin;
+        }
     }
 
     // updated before displacement and gps as the old values and new values are needed to get a
     // significant of a velocity
-    if(hasFirstFix){
-    velocity.x() = (((pos.x() - origin.x()) * 111319.0) - displacement.x()) / (time - timeLast);
-    velocity.y() = (((pos.y() - origin.y()) * 111319.0 * cos(pos.x() * PI / 180.0)) - displacement.y()) / (time - timeLast);
-    velocity.z() = ((altitude)-displacement.z()) / (time - timeLast);
+    if (hasFirstFix)
+    {
+        velocity.x() = (((pos.x() - origin.x()) * 111319.0) - displacement.x()) / (time - timeLast);
+        velocity.y() = (((pos.y() - origin.y()) * 111319.0 * cos(pos.x() * PI / 180.0)) - displacement.y()) / (time - timeLast);
+        velocity.z() = ((altitude)-displacement.z()) / (time - timeLast);
 
-    displacement.x() = (pos.x() - origin.x()) * 111319.0;
-    displacement.y() = (pos.y() - origin.y()) * 111319.0 * cos(pos.x() * PI / 180.0);
-    displacement.z() = (altitude - origin.z());
+        displacement.x() = (pos.x() - origin.x()) * 111319.0;
+        displacement.y() = (pos.y() - origin.y()) * 111319.0 * cos(pos.x() * PI / 180.0);
+        displacement.z() = (altitude - origin.z());
 
         hr = m10s.getHour();
         min = m10s.getMinute();
         sec = m10s.getSecond();
+        if (biasCorrectionMode)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                prevReadings[i] = prevReadings[i + 1];
+            }
+            origin.x() = pos.x();
+            origin.y() = pos.y();
+            origin.z() = altitude;
+            prevReadings[10] = origin;
+            origin = prevReadings[0];
+        }
     }
     else
     {
@@ -110,7 +128,6 @@ void MAX_M10S::update()
         hr = 0;
         min = 0;
         sec = 0;
-
     }
 }
 

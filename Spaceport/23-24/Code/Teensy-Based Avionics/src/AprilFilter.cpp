@@ -63,7 +63,7 @@ LinearKalmanFilter *initializeFilter()
       0, 0, 0, 0, qv, 0,
       0, 0, 0, 0, 0, qv};
   Matrix *Q = new Matrix(6, 6, q);
-  return new LinearKalmanFilter(*X, *U, *P, get_F(0.1), get_G(0.01), *R, *Q);
+  return new LinearKalmanFilter(*X, *U, *P, get_F(0.1), get_G(0.1), *R, *Q);
 }
 
 double *iterateFilter(LinearKalmanFilter *kf, double dt, double *input, double *measurement)
