@@ -51,12 +51,6 @@ State::State(bool useKalmanFilter, bool stateRecordsOwnFlightData)
     inputs = new double[3]{1, 1, 1};
     strcpy(launchTimeOfDay, "00:00:00");
     useKF = useKalmanFilter;
-    // time pos x y z vel x y z acc x y z
-    predictions = new double[10]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    // gps x y z barometer z
-    measurements = new double[4]{1, 1, 1, 1};
-    // imu x y z
-    inputs = new double[3]{1, 1, 1};
     kfilter = nullptr;
 }
 
@@ -154,6 +148,8 @@ void State::updateState(double newTimeAbsolute)
         timeAbsolute = millis() / 1000.0;
 
     updateSensors();
+    delete[] measurements;
+    delete[] inputs;
     measurements = new double[3]{0, 0, 0};
     inputs = new double[3]{0, 0, 0};
     if (kfilter && sensorOK(gps) && gps->getHasFirstFix() && stageNumber > 0)
@@ -391,6 +387,7 @@ void State::determineStage()
                 char logData[200];
                 snprintf(logData, 200, "%s: %s", sensors[i]->getName(), sensors[i]->getStaticDataString());
                 recordLogData(INFO, logData);
+                sensors[i]->setBiasCorrectionMode(false);
             }
         }
     } // TODO: Add checks for each sensor being ok and decide what to do if they aren't.

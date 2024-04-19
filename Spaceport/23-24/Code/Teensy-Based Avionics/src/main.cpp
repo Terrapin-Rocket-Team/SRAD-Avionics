@@ -13,7 +13,7 @@ BMP390 bmp(13, 12);         // I2C Address 0x77
 MAX_M10S gps(13, 12, 0x42); // I2C Address 0x42
 DS3231 rtc();               // I2C Address 0x68
 APRSConfig config = {"KC3UTM", "APRS", "WIDE1-1", '[', '/'};
-RadioSettings settings = {433.775, true, false, &hardware_spi, 10, 31, 32};
+RadioSettings settings = {915.0, true, false, &hardware_spi, 10, 31, 32};
 RFM69HCW radio = {settings, config};
 State computer; // = useKalmanFilter = true, stateRecordsOwnData = true
 uint32_t radioTimer = millis();
@@ -28,7 +28,6 @@ PSRAM *ram;
 static double last = 0; // for better timing than "delay(100)"
 
 //BlinkBuzz setup
-
 int allowedPins[] = {LED_BUILTIN, BUZZER};
 BlinkBuzz bb(allowedPins, 2, true);
 extern unsigned long _heap_start;
@@ -37,8 +36,10 @@ extern char *__brkval;
 
 void FreeMem()
 {
-    Serial.print((char *)&_heap_end - __brkval);
-    Serial.print(" | ");
+    void *heapTop = malloc(50);
+    Serial.print((long)heapTop);
+    Serial.print(" ");
+    free(heapTop);
 }
 
 void setup()
@@ -123,9 +124,7 @@ void loop()
 
     last = time;
     computer.updateState();
-    FreeMem();
     recordLogData(INFO, computer.getStateString(), TO_USB);
-
     // RASPBERRY PI TURN ON
     if (time / 1000.0 > 600)
     {

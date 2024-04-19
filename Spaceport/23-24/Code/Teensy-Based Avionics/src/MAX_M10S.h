@@ -25,6 +25,7 @@ private:
     int hr, min, sec;
     char gpsTime[9];
     double time;
+    imu::Vector<3> prevReadings[11];
 
 public:
     MAX_M10S(uint8_t SCK, uint8_t SDA, uint8_t address);
