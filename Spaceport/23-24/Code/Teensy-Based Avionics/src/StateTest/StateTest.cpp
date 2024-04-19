@@ -20,6 +20,9 @@ int i = 0;
 
 #define BUZZER 33
 
+int allowedPins[] = {LED_BUILTIN, BUZZER};
+BlinkBuzz bb(allowedPins, 2, true);
+
 void setup()
 {
     FreeMem();

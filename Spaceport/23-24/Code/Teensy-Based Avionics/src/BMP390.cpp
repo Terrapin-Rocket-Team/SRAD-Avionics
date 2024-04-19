@@ -41,11 +41,27 @@ bool BMP390::initialize()
         delay(25);
     }
     groundPressure = (startPressure / 100.0) / 100.0; // hPa
+    for(int i = 0; i < 20; i++)
+    {
+        prevReadings[i] = groundPressure;
+    }
     return initialized = true;
 }
 
 void BMP390::update()
 {
+    if(biasCorrectionMode)
+    {
+        double sum = 0;
+        for(int i = 0; i < 19; i++)
+        {
+            prevReadings[i] = prevReadings[i + 1];
+            if(i < 17)//ignore last 2 readings to avoid accidentally including launch readings
+            sum += prevReadings[i];
+        }
+        prevReadings[19] = bmp.readPressure() / 100.0;
+        groundPressure = sum / 17.0;
+    }
     pressure = bmp.readPressure() / 100.0;       // hPa
     temp = bmp.readTemperature();                // C
     altitude = bmp.readAltitude(groundPressure); // m
@@ -106,4 +122,9 @@ char *BMP390::getStaticDataString()
 const char *BMP390::getName()
 {
     return "BMP390";
+}
+
+void BMP390::setBiasCorrectionMode(bool mode)
+{
+    biasCorrectionMode = mode;
 }
