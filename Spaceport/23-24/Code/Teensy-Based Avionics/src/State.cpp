@@ -148,12 +148,10 @@ void State::updateState(double newTimeAbsolute)
         timeAbsolute = millis() / 1000.0;
 
     updateSensors();
-    delete[] measurements;
-    delete[] inputs;
-    measurements = new double[3]{0, 0, 0};
-    inputs = new double[3]{0, 0, 0};
     if (kfilter && sensorOK(gps) && gps->getHasFirstFix() && stageNumber > 0)
     {
+    measurements = new double[3]{0, 0, 0};
+    inputs = new double[3]{0, 0, 0};
         // gps x y z barometer z
         measurements[0] = gps->getDisplace().x();
         measurements[1] = gps->getDisplace().y();
