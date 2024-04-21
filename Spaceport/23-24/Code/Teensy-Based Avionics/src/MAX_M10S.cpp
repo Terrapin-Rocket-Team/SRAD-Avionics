@@ -83,7 +83,7 @@ void MAX_M10S::update()
         origin.y() = pos.y();
         origin.z() = altitude;
 
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < 11; i++)
         {
             prevReadings[i] = origin;
         }
