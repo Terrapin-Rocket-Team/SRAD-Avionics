@@ -13,7 +13,7 @@ BMP390 bmp(13, 12);         // I2C Address 0x77
 MAX_M10S gps(13, 12, 0x42); // I2C Address 0x42
 DS3231 rtc();               // I2C Address 0x68
 APRSConfig config = {"KC3UTM", "APRS", "WIDE1-1", '[', '/'};
-RadioSettings settings = {915.0, true, false, &hardware_spi, 10, 31, 32};
+RadioSettings settings = {433.775, true, false, &hardware_spi, 10, 31, 32};
 RFM69HCW radio = {settings, config};
 State computer; // = useKalmanFilter = true, stateRecordsOwnData = true
 uint32_t radioTimer = millis();
@@ -27,7 +27,7 @@ PSRAM *ram;
 
 static double last = 0; // for better timing than "delay(100)"
 
-//BlinkBuzz setup
+// BlinkBuzz setup
 int allowedPins[] = {LED_BUILTIN, BUZZER};
 BlinkBuzz bb(allowedPins, 2, true);
 extern unsigned long _heap_start;
@@ -47,13 +47,12 @@ void setup()
 
     pinMode(LED_BUILTIN, OUTPUT);
     pinMode(BUZZER, OUTPUT); // its very loud during testing
-    bb.onoff(BUZZER, 200, 3, 100);
+    bb.onoff(BUZZER, 100, 4, 100);
     recordLogData(INFO, "Initializing Avionics System. 5 second delay to prevent unnecessary file generation.", TO_USB);
     delay(5000);
 
     pinMode(BMP_ADDR_PIN, OUTPUT);
     digitalWrite(BMP_ADDR_PIN, HIGH);
-
 
     pinMode(RPI_PWR, OUTPUT);   // RASPBERRY PI TURN ON
     pinMode(RPI_VIDEO, OUTPUT); // RASPBERRY PI TURN ON
@@ -105,6 +104,8 @@ void setup()
     sendSDCardHeader(computer.getCsvHeader());
 }
 static bool more = false;
+static bool first = false;
+static bool second = false;
 void loop()
 {
     bb.update();
@@ -112,12 +113,12 @@ void loop()
 
     if (time - radioTimer >= 500)
     {
-        //more = computer.transmit();
+        more = computer.transmit();
         radioTimer = time;
     }
     if (radio.mode() != RHGenericDriver::RHModeTx && more)
     {
-        //more = !radio.sendBuffer();
+        more = !radio.sendBuffer();
     }
     if (time - last < 100)
         return;
@@ -126,13 +127,31 @@ void loop()
     computer.updateState();
     recordLogData(INFO, computer.getStateString(), TO_USB);
     // RASPBERRY PI TURN ON
-    if (time / 1000.0 > 600)
+    if (time / 1000.0 > 810)
     {
         digitalWrite(RPI_PWR, HIGH);
+        if (!first)
+        {
+            bb.aonoff(BUZZER, 100, 2);
+            first = true;
+        }
     }
-    if (computer.getStageNum() == 1)
+    if (computer.getStageNum() >= 1)
     {
         digitalWrite(RPI_VIDEO, LOW);
+        if (!second)
+        {
+            bb.aonoff(BUZZER, 100, 3);
+            second = true;
+        }
     }
+    // if (time / 1000.0 > 180)
+    // {
+    //     digitalWrite(RPI_VIDEO, LOW);
+    //     if (!second)
+    //     {
+    //         bb.aonoff(BUZZER, 100, 3);
+    //         second = true;
+    //     }
+    // }
 }
-
