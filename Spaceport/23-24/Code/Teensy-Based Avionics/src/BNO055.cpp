@@ -14,6 +14,17 @@ bool BNO055::initialize()
     }
     bno.setExtCrystalUse(true);
 
+    // set to +-16g range
+    adafruit_bno055_opmode_t mode = bno.getMode();
+    bno.setMode(OPERATION_MODE_CONFIG);
+    delay(25);
+    Wire.beginTransmission(0x29);//BNO055 address
+    Wire.write(0x08);//ACC_CONFIG register address on BNO055
+    Wire.write(0b11);//set to +-16g range
+    Wire.endTransmission(true); // send stop
+    bno.setMode(mode);
+    delay(25);
+
     initialMagField = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
     imu::Vector<3> read = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
     for (int i = 0; i < 20; i++)
