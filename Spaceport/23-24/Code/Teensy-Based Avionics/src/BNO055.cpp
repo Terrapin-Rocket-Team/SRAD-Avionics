@@ -14,14 +14,46 @@ bool BNO055::initialize()
     }
     bno.setExtCrystalUse(true);
 
+    // set to +-16g range
+    adafruit_bno055_opmode_t mode = bno.getMode();
+    bno.setMode(OPERATION_MODE_CONFIG);
+    delay(25);
+    Wire.beginTransmission(0x29);//BNO055 address
+    Wire.write(0x08);//ACC_CONFIG register address on BNO055
+    Wire.write(0b11);//set to +-16g range
+    Wire.endTransmission(true); // send stop
+    bno.setMode(mode);
+    delay(25);
+
     initialMagField = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
+    imu::Vector<3> read = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+    for (int i = 0; i < 20; i++)
+    {
+        prevReadings[i] = read;
+    }
     return initialized = true;
 }
 
 void BNO055::update()
 {
+    if (biasCorrectionMode)
+    {
+        imu::Vector<3> read = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+        imu::Vector<3> sum = 0;
+        for (int i = 0; i < 19; i++)
+        {
+            prevReadings[i] = prevReadings[i + 1];
+            if (i < 10) // ignore last 2 readings to avoid accidentally including launch readings
+                sum = sum + prevReadings[i];
+        }
+        prevReadings[19] = read;
+        accelerationVec = read - (sum / 10.0);
+    }
+    else
+    {
+        accelerationVec = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+    }
     orientation = bno.getQuat();
-    accelerationVec = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
     orientationEuler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
     magnetometer = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
 }
@@ -61,7 +93,6 @@ imu::Vector<3> BNO055::getMagnetometer()
     return magnetometer;
 }
 
-
 imu::Vector<3> convertToEuler(const imu::Quaternion &orientation)
 
 {
@@ -97,4 +128,9 @@ char *BNO055::getStaticDataString()
 const char *BNO055::getName()
 {
     return "BNO055";
+}
+
+void BNO055::setBiasCorrectionMode(bool mode)
+{
+    biasCorrectionMode = mode;
 }

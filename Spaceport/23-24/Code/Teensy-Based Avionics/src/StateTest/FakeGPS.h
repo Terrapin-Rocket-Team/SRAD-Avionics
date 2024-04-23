@@ -19,7 +19,7 @@ public:
         alt = posZ - initAltitude;//hacky way to store initial altitude
         heading = h;
     }
-    bool initialize() override { return true; }
+    bool initialize() override { return initialized = true; }
     imu::Vector<2> getPos() override { return pos; }
     double getAlt() override { return alt; }
     imu::Vector<3> getVelocity() override { return imu::Vector<3>(0, 0, 0); }
@@ -44,7 +44,7 @@ public:
     }
 
     imu::Vector<3> getOriginPos() override { return imu::Vector<3>(0, 0, 0); }
-    imu::Vector<3> getDisplace() override { return imu::Vector<3>(0, 0, 0); }
+    imu::Vector<3> getDisplace() override { return imu::Vector<3>(pos.x(),pos.y(),alt); }
     int getFixQual() override { return 6; }
     const char *getName() override { return "FakeGPS"; }
     void update() override {}

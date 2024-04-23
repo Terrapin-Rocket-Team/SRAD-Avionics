@@ -15,7 +15,7 @@ public:
     double getTemp() override { return press; }
     double getPressure() override { return temp; }
     double getRelAltM() override { return alt; }
-    bool initialize() override { return true; }
+    bool initialize() override { return initialized = true; }
 
     const char *getCsvHeader() override
     {                                                // incl  B- to indicate Barometer data
@@ -38,7 +38,7 @@ public:
     }
 
     double getTempF() override { return 0; }
-    double getRelAltFt() override { return 0; }
+    double getRelAltFt() override { return alt *3.29; }
     double getPressureAtm() override { return 0; }
     const char *getName() override { return "FakeBaro"; }
     void update() override {}
