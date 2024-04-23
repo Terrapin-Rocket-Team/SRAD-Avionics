@@ -2,6 +2,7 @@
 #define PSRAM_H
 
 #include "sdCard.h"
+#include "BlinkBuzz.h"
 
 extern "C" uint8_t external_psram_size;
 class PSRAM

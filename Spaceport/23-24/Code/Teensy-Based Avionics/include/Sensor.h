@@ -34,9 +34,12 @@ public:
 
     virtual bool isInitialized() { return initialized; } // Returns whether the sensor has been initialized or not
 
+    virtual void setBiasCorrectionMode(bool mode) = 0; // Sets whether the sensor should be in bias correction mode or not
+
     virtual explicit operator bool() const { return initialized; } // Returns whether the sensor has been initialized or not
 protected:
     bool initialized = false;
+    bool biasCorrectionMode = true;
 };
 
 #endif // SENSOR_H

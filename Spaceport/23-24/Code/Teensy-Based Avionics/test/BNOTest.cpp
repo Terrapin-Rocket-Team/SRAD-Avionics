@@ -1,20 +1,20 @@
-#include <Arduino.h>
-#include "BNO055.h"
+// #include <Arduino.h>
+// #include "BNO055.h"
 
-BNO055 bno(13, 12);     
+// BNO055 bno(13, 12);     
 
-void setup() {
-    Serial.begin(9600);
-    while (!Serial);
-    Serial.println("BNO055 test");
+// void setup() {
+//     Serial.begin(9600);
+//     while (!Serial);
+//     Serial.println("BNO055 test");
     
-    bno.initialize();
-    Serial.println("BNO055 initialized");
-    delay(1000);
-    char* str = bno.getStaticDataString();
-    Serial.println(str);
-    delete[] str;
-}
+//     bno.initialize();
+//     Serial.println("BNO055 initialized");
+//     delay(1000);
+//     char* str = bno.getStaticDataString();
+//     Serial.println(str);
+//     delete[] str;
+// }
 
 void loop() {
     delay(200);
@@ -32,4 +32,4 @@ void loop() {
     Serial.print(", ");
     Serial.println(bno.getOrientationEuler().z());
 
-}
+// }
