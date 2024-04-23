@@ -6,7 +6,6 @@
 
 extern PSRAM *ram;
 
-
 enum LogType
 {
     LOG,

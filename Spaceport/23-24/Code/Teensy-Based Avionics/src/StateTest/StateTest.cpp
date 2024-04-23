@@ -4,7 +4,7 @@
 #include "FakeGPS.h"
 #include "FakeIMU.h"
 #include "TestUtils.h"
-#include <RecordData.h>
+#include "RecordData.h"
 #include <exception>
 #include "RFM69HCW.h"
 
@@ -12,9 +12,6 @@ FakeBaro baro;
 FakeGPS gps;
 FakeIMU fimu;//"imu" is the namespace of the vector stuff :/
 State computer;
-APRSConfig config = {"KC3UTM", "APRS", "WIDE1-1", '[', '/'};
-RadioSettings settings = {433.775, true, false, &hardware_spi, 10, 31, 32};
-RFM69HCW radio = {settings, config};
 PSRAM *ram;
 
 int i = 0;
@@ -23,8 +20,12 @@ int i = 0;
 
 #define BUZZER 33
 
+int allowedPins[] = {LED_BUILTIN, BUZZER};
+BlinkBuzz bb(allowedPins, 2, true);
+
 void setup()
 {
+    FreeMem();
     pinMode(LED_BUILTIN, OUTPUT);
     pinMode(BUZZER, OUTPUT); //its very loud during testing
 
@@ -33,7 +34,6 @@ void setup()
     digitalWrite(LED_BUILTIN, LOW);
 
     ram = new PSRAM(); // init after the SD card for better data logging.
-
     // The SD card MUST be initialized first to allow proper data logging.
     if (setupSDCard())
     {
@@ -65,7 +65,7 @@ void setup()
     computer.addSensor(&baro);
     computer.addSensor(&gps);
     computer.addSensor(&fimu);
-    computer.setRadio(&radio);
+    //computer.setRadio(&radio);
     if (computer.init())
         recordLogData(INFO, "All Sensors Initialized");
     else
@@ -78,27 +78,15 @@ void setup()
     sendSDCardHeader(computer.getCsvHeader());
     while(Serial.available() == 0);
 }
-static double radioTimer = 0;
-bool more = false;
 void loop()
 {
+    double t = 1838.75;
     if(Serial.available() > 0){
-        ParseIncomingFakeSensorData(Serial.readStringUntil('\n'),baro,gps,fimu);
-        Serial.clear();
+        t = ParseIncomingFakeSensorData(Serial.readStringUntil('\n'), baro, gps, fimu);
+        computer.updateState(t - 1838.76); // starting time of fake data
+        char *stateStr = computer.getStateString();
+        Serial.print("[][]");
+        Serial.println(stateStr);
+        delay(40);
     }
-    if (millis() - radioTimer >= 1200)
-    {
-        more = computer.transmit();
-        radioTimer = millis();
-    }
-    if (radio.mode() != RHGenericDriver::RHModeTx && more){
-        more = !radio.sendBuffer();
-    }
-    computer.timeAbsolute = millis() / 1000.0;
-    computer.updateState();
-
-    char* stateStr = computer.getStateString();
-    Serial.print("[][]");
-    Serial.println(stateStr);
-    delay(50);
 }

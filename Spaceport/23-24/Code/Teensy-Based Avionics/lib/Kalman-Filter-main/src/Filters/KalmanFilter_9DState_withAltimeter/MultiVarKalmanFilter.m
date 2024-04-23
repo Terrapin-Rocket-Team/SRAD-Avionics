@@ -1,0 +1,115 @@
+classdef MultiVarKalmanFilter
+    properties
+        F % State Transition Matrix
+        X % State Vector
+        H % Observation Matrix
+        P % Estimate Covariance Matrix
+        R % Measurement Uncertainty Matrix
+        K % Kalman Gain
+        Q % Process Noise Matrix
+        VarMat %Sensor Variances Matrix
+        Z  %measurement vector
+        w % Omega factor for altimeter barometer merging
+        dT %current timestep
+        vn
+        wn
+
+    end
+    
+    methods
+        % Constructor
+        function obj = MultiVarKalmanFilter(X, P, dT ,VarMat)
+            %sets state vector, covariance matrix and
+            %timestep
+            obj.X = X';
+            obj.P = P;
+            obj.dT=dT;
+            obj.VarMat = VarMat;
+            obj.w = VarMat(7)/(VarMat(7)+VarMat(3));
+            
+            %initializes State transition matrix
+            obj.F = zeros([9,9]);
+            obj.F = obj.F + diag(ones([9,1]))+diag(ones([6,1])*dT,3)+diag(ones([3,1])*((dT^2)/2),6);
+            obj.w = (VarMat(7))/(VarMat(7)+VarMat(3));
+            %obj.G = zeros([9,7]); obj.G(1,1) =1; obj.G(2,2) =1; obj.G(3,3) = obj.w; obj.G(3,7)=obj.w-1; obj.G(4,4) = dT; obj.G(5,5) = dT; obj.G(6,6) = dT; obj.G(7,4)=1;obj.G(8,5)=1;obj.G(9,6)=1;
+            obj.P = eye(9)*500;
+            obj.Q = [obj.VarMat(1), 0, 0, 0, 0, 0,0,0,0;
+                     0, obj.VarMat(2), 0, 0, 0, 0,0,0,0;
+                     0, 0, (obj.w^2)*VarMat(3)+ ((1-obj.w)^2)*VarMat(7), 0, 0, 0,0,0,0;
+                     0, 0, 0, obj.dT*obj.VarMat(4),0,0,0,0,0;
+                     0, 0, 0, 0, obj.dT*obj.VarMat(5),0,0,0,0;
+                     0, 0, 0, 0, 0, dT*obj.VarMat(6),0,0,0;
+                     0, 0, 0, 0, 0, 0, obj.VarMat(4), 0, 0;
+                     0, 0, 0, 0, 0, 0, 0, obj.VarMat(5), 0;
+                     0, 0, 0, 0, 0, 0, 0, 0, obj.VarMat(6);];
+            obj.H = zeros(7,9); obj.H(1,1) =1; obj.H(2,2)=1;obj.H(3,3);obj.H(7,3)=1;obj.H(4,7);obj.H(5,8)=1;obj.H(6,9)=1;
+
+        end
+
+        function obj = predictState(obj) %state extrapolation equation
+            obj.X = obj.F * obj.X ;
+        end
+        
+        function obj = estimateState(obj) %state update equation
+            obj.X = obj.X + obj.K*(obj.Z - obj.H*obj.X);
+        end
+
+        function obj = calculateKalmanGain(obj) %kalman gain
+            obj.K = obj.P * obj.H' * inv((obj.H * obj.P * obj.H' + obj.R));
+        end
+
+        function obj = covarianceUpdate(obj) %covariance update
+            n = 9;
+            obj.P = (eye(n) - obj.K*obj.H)*obj.P*(eye(n) - obj.K*obj.H)' + obj.K*obj.R*obj.K';
+        end
+
+        function obj = covarianceExtrapolate(obj) %covariance extrapolation equation
+            obj.P = obj.F*obj.P*obj.F'+ obj.Q;
+        end
+        
+        function obj = calculateInitialValues(obj, dt)
+            obj.dT = dt;
+            obj = predictState(obj);
+            obj = covarianceExtrapolate(obj);
+        end
+
+        function obj = measure(obj)
+            obj.Z = obj.H*obj.X;
+        end
+
+        function obj = iterate(obj, dT, measurement, control)
+            % Update step
+            obj.Z = measurement;
+            %Obj.U = control;
+            obj.dT = dT;
+
+            obj.Q = [obj.VarMat(1), 0, 0, 0, 0, 0,0,0,0;
+                     0, obj.VarMat(2), 0, 0, 0, 0,0,0,0;
+                     0, 0, (obj.w^2)*obj.VarMat(3)+ ((1-obj.w)^2)*obj.VarMat(7), 0, 0, 0,0,0,0;
+                     0, 0, 0, obj.dT*obj.VarMat(4),0,0,0,0,0;
+                     0, 0, 0, 0, obj.dT*obj.VarMat(5),0,0,0,0;
+                     0, 0, 0, 0, 0, dT*obj.VarMat(6),0,0,0;
+                     0, 0, 0, 0, 0, 0, obj.VarMat(4), 0, 0;
+                     0, 0, 0, 0, 0, 0, 0, obj.VarMat(5), 0;
+                     0, 0, 0, 0, 0, 0, 0, 0, obj.VarMat(6);];
+
+            obj.F = zeros([9,9]);
+            obj.F = obj.F + diag(ones([9,1]))+diag(ones([6,1])*obj.dT,3)+diag(ones([3,1])*((obj.dT^2)/2),6);
+
+            %obj.G = zeros([9,7]); obj.G(1,1) =1; obj.G(2,2) =1; obj.G(3,3) = obj.w; obj.G(3,7)=obj.w-1; obj.G(4,4) = obj.dT; obj.G(5,5) = obj.dT; obj.G(6,6) = T; obj.G(7,4)=1;obj.G(8,5)=1;obj.G(9,6)=1;
+
+            obj.R = zeros(7) + diag(obj.VarMat);
+
+            obj.H = zeros(7,9); obj.H(1,1) =1; obj.H(2,2)=1;obj.H(3,3);obj.H(7,3)=1;obj.H(4,7);obj.H(5,8)=1;obj.H(6,9)=1;
+
+
+            obj = calculateKalmanGain(obj);
+            obj = estimateState(obj);
+            obj = covarianceUpdate(obj);
+
+            % Predict step
+            obj = predictState(obj);
+            obj = covarianceExtrapolate(obj);
+        end
+    end
+end

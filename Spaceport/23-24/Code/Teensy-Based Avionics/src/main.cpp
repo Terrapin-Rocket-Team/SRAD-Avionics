@@ -6,6 +6,7 @@
 #include "DS3231.h"
 #include "RFM69HCW.h"
 #include "RecordData.h"
+#include "BlinkBuzz.h"
 
 BNO055 bno(13, 12);         // I2C Address 0x29
 BMP390 bmp(13, 12);         // I2C Address 0x77
@@ -26,16 +27,32 @@ PSRAM *ram;
 
 static double last = 0; // for better timing than "delay(100)"
 
+// BlinkBuzz setup
+int allowedPins[] = {LED_BUILTIN, BUZZER};
+BlinkBuzz bb(allowedPins, 2, true);
+extern unsigned long _heap_start;
+extern unsigned long _heap_end;
+extern char *__brkval;
+
+void FreeMem()
+{
+    void *heapTop = malloc(50);
+    Serial.print((long)heapTop);
+    Serial.print(" ");
+    free(heapTop);
+}
+
 void setup()
 {
-    recordLogData(INFO, "Initializing Avionics System. 10 second delay to prevent unnecessary file generation.", TO_USB);
+
+    pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(BUZZER, OUTPUT); // its very loud during testing
+    bb.onoff(BUZZER, 100, 4, 100);
+    recordLogData(INFO, "Initializing Avionics System. 5 second delay to prevent unnecessary file generation.", TO_USB);
     delay(5000);
 
     pinMode(BMP_ADDR_PIN, OUTPUT);
     digitalWrite(BMP_ADDR_PIN, HIGH);
-
-    pinMode(LED_BUILTIN, OUTPUT);
-    pinMode(BUZZER, OUTPUT); // its very loud during testing
 
     pinMode(RPI_PWR, OUTPUT);   // RASPBERRY PI TURN ON
     pinMode(RPI_VIDEO, OUTPUT); // RASPBERRY PI TURN ON
@@ -43,9 +60,7 @@ void setup()
     digitalWrite(RPI_PWR, LOW);
     digitalWrite(RPI_VIDEO, HIGH);
 
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(100);
-    digitalWrite(LED_BUILTIN, LOW);
+    bb.onoff(LED_BUILTIN, 100);
     ram = new PSRAM(); // init after the SD card for better data logging.
 
     // The SD card MUST be initialized first to allow proper data logging.
@@ -53,21 +68,13 @@ void setup()
     {
 
         recordLogData(INFO, "SD Card Initialized");
-        digitalWrite(BUZZER, HIGH);
-        delay(1000);
-        digitalWrite(BUZZER, LOW);
+        bb.onoff(BUZZER, 1000);
     }
     else
     {
         recordLogData(ERROR, "SD Card Failed to Initialize");
 
-        digitalWrite(BUZZER, HIGH);
-        delay(200);
-        digitalWrite(BUZZER, LOW);
-        delay(200);
-        digitalWrite(BUZZER, HIGH);
-        delay(200);
-        digitalWrite(BUZZER, LOW);
+        bb.onoff(BUZZER, 200, 3);
     }
 
     // The PSRAM must be initialized before the sensors to allow for proper data logging.
@@ -87,33 +94,24 @@ void setup()
     if (computer.init())
     {
         recordLogData(INFO, "All Sensors Initialized");
-        digitalWrite(BUZZER, HIGH);
-        delay(1000);
-        digitalWrite(BUZZER, LOW);
+        bb.onoff(BUZZER, 1000);
     }
     else
     {
         recordLogData(ERROR, "Some Sensors Failed to Initialize. Disabling those sensors.");
-        digitalWrite(BUZZER, HIGH);
-        delay(200);
-        digitalWrite(BUZZER, LOW);
-        delay(200);
-        digitalWrite(BUZZER, HIGH);
-        delay(200);
-        digitalWrite(BUZZER, LOW);
+        bb.onoff(BUZZER, 200, 3);
     }
-
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(1000);
-    digitalWrite(LED_BUILTIN, LOW);
     sendSDCardHeader(computer.getCsvHeader());
 }
 static bool more = false;
+static bool first = false;
+static bool second = false;
 void loop()
 {
+    bb.update();
     double time = millis();
 
-    if (time - radioTimer >= 2000)
+    if (time - radioTimer >= 500)
     {
         more = computer.transmit();
         radioTimer = time;
@@ -128,14 +126,32 @@ void loop()
     last = time;
     computer.updateState();
     recordLogData(INFO, computer.getStateString(), TO_USB);
-
     // RASPBERRY PI TURN ON
-    if (time / 1000.0 > 600)
+    if (time / 1000.0 > 810)
     {
         digitalWrite(RPI_PWR, HIGH);
+        if (!first)
+        {
+            bb.aonoff(BUZZER, 100, 2);
+            first = true;
+        }
     }
-    if (computer.getStageNum() == 1)
+    if (computer.getStageNum() >= 1)
     {
         digitalWrite(RPI_VIDEO, LOW);
+        if (!second)
+        {
+            bb.aonoff(BUZZER, 100, 3);
+            second = true;
+        }
     }
+    // if (time / 1000.0 > 180)
+    // {
+    //     digitalWrite(RPI_VIDEO, LOW);
+    //     if (!second)
+    //     {
+    //         bb.aonoff(BUZZER, 100, 3);
+    //         second = true;
+    //     }
+    // }
 }

@@ -1,7 +1,8 @@
 #ifndef STATE_H
 #define STATE_H
 
-#include "AbhiKalmanFilter.h"
+#include "AprilFilter.h"
+#include "Kalman_Filter.h"
 
 // Include all the sensor classes
 #include "Barometer.h"
@@ -23,7 +24,7 @@ public:
     // to be called after all applicable sensors have been added.
     // Returns false if any sensor failed to init. check data log for failed sensor. Disables sensor if failed.
     bool init();
-    void updateState();
+    void updateState(double newTimeAbsolute = -1);
     int getStageNum();
     // sensor functions
     bool addSensor(Sensor *sensor, int sensorNum = 1);     // add more than one sensor of the same type, and specify which number this one is. 1 indexed. i.e. addSensor(gps, 2) adds the second GPS sensor.
@@ -46,6 +47,7 @@ public:
     double timeAbsolute; // in s since uC turned on
 
 private:
+    int lastTimeAbsolute;
     static constexpr int NUM_MAX_SENSORS = 3;                              // update with the max number of expected sensors.
     SensorType SENSOR_ORDER[NUM_MAX_SENSORS] = {BAROMETER_, GPS_, IMU_}; // make this array the same length as NUM_MAX_SENSORS and fill it.
     // example if you have more than one of the same sensor type:
@@ -101,16 +103,18 @@ private:
 
     char launchTimeOfDay[9];
 
-    // Kalman Filter settings
+    //Kalman Filter settings
     bool useKF;
-    void initKF();
-    akf::KFState *kfilter;
+    LinearKalmanFilter *kfilter;
     // time pos x y z vel x y z acc x y z
     double *predictions;
     // gps x y z barometer z
     double *measurements;
     // imu x y z
     double *inputs;
+    uint32_t FreeMem();
+
+    
 };
 
 #endif

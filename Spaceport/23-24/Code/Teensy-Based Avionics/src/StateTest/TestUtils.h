@@ -7,6 +7,7 @@
 #include "FakeIMU.h"
 
 //column numbers, 0 indexed
+int timeAbsoluteCol = 0;
 int numColums = 17;
 int AX = 3;//m/s/s
 int AY = 4;
@@ -23,8 +24,8 @@ int GY = 14;
 int GZ = 16;//Z is up
 int GH = 13;
 
-void ParseIncomingFakeSensorData(String line, FakeBaro& baro, FakeGPS& gps, FakeIMU& fimu){
-    if(line.length() == 0) return;
+double ParseIncomingFakeSensorData(String line, FakeBaro& baro, FakeGPS& gps, FakeIMU& fimu){
+    if(line.length() == 0) return 0;
     String columns[numColums];
     int cursor = 0;
     for(unsigned int j = 0;j < line.length();j++){
@@ -36,23 +37,16 @@ void ParseIncomingFakeSensorData(String line, FakeBaro& baro, FakeGPS& gps, Fake
     }
     baro.feedData((double)columns[BAlt].toFloat(),(double)columns[BTemp].toFloat(),(double)columns[BPres].toFloat());
     gps.feedData((double)columns[GX].toFloat(), (double)columns[GY].toFloat(), (double)columns[GZ].toFloat(), (double)columns[GH].toFloat());
-    fimu.feedData((double)columns[AX].toFloat(), (double)columns[AY].toFloat(), (double)columns[AZ].toFloat(), (double)columns[OX].toFloat(), (double)columns[OY].toFloat(), (double)columns[OZ].toFloat(), (double)columns[OW].toFloat());
+    fimu.feedData((double)columns[AX].toFloat(), (double)columns[AY].toFloat(), (double)columns[AZ].toFloat() - 9.8, (double)columns[OX].toFloat(), (double)columns[OY].toFloat(), (double)columns[OZ].toFloat(), (double)columns[OW].toFloat());
+    return (double)columns[timeAbsoluteCol].toFloat();
 }
 
-uint32_t FreeMem(){ // for Teensy 3.0
-    uint32_t stackTop;
-    uint32_t heapTop;
+extern unsigned long _heap_start;
+extern unsigned long _heap_end;
+extern char *__brkval;
 
-    // current position of the stack.
-    stackTop = (uint32_t) &stackTop;
-
-    // current position of heap.
-    void* hTop = malloc(1000);
-    heapTop = (uint32_t) hTop;
-    free(hTop);
-
-    // The difference is (approximately) the free, available ram.
-    return stackTop - heapTop;
+void FreeMem(){
+        Serial.println((char *)&_heap_end - __brkval);
 }
 
 #endif
