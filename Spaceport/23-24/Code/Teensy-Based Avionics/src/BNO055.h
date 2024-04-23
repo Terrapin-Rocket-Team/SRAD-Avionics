@@ -13,6 +13,7 @@ private:
     imu::Quaternion orientation;
     imu::Vector<3> magnetometer;
     imu::Vector<3> initialMagField;
+    imu::Vector<3> prevReadings[20];
 
 public:
     BNO055(uint8_t SCK, uint8_t SDA);
@@ -31,4 +32,5 @@ public:
     char *getStaticDataString() override;
     char const *getName() override;
     void update() override;
+    void setBiasCorrectionMode(bool mode) override;
 };
