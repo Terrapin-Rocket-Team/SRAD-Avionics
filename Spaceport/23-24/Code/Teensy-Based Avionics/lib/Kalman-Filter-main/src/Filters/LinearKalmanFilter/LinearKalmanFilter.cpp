@@ -1,5 +1,4 @@
 #include "LinearKalmanFilter.h"
-#include "Matrix.h"
 LinearKalmanFilter::LinearKalmanFilter(Matrix X, Matrix U, Matrix P, Matrix F, Matrix G, Matrix R, Matrix Q)
 {
     state.X = X;
