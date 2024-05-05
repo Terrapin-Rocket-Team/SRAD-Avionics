@@ -237,7 +237,7 @@ bool RFM69HCW::txs(const char *message, int len)
 
 bool RFM69HCW::txI()
 {
-    if (busy)
+    if (this->busy)
     {
         ATOMIC_BLOCK_START;
         // Start spi transaction
