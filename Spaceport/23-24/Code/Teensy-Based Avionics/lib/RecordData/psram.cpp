@@ -73,10 +73,7 @@ bool PSRAM::dumpFlightData()
 bool PSRAM::dumpLogData()
 { // more complicated because data is stored in reverse order
     if (!isSDReady() || !ready){
-        digitalWrite(33, HIGH);
-        delay(200);
-        digitalWrite(33, LOW);
-        delay(200);
+        bb.aonoff(33, 200);
         return false;
     }
 
@@ -86,14 +83,7 @@ bool PSRAM::dumpLogData()
     logFile = sd.open(logFileName, FILE_WRITE);
 
     if (!logFile){
-        digitalWrite(33, HIGH);
-        delay(200);
-        digitalWrite(33, LOW);
-        delay(200);
-        digitalWrite(33, HIGH);
-        delay(200);
-        digitalWrite(33, LOW);
-        delay(200);
+        bb.aonoff(33, 200, 3);
         return false;
     }
     
@@ -116,19 +106,7 @@ bool PSRAM::dumpLogData()
     logFile.close();
     cursorEnd = memEnd;
     dumped = true;
-        digitalWrite(33, HIGH);
-        delay(200);
-        digitalWrite(33, LOW);
-        delay(200);
-        digitalWrite(33, HIGH);
-        delay(200);
-        digitalWrite(33, LOW);
-        delay(200);
-        digitalWrite(33, HIGH);
-        delay(200);
-        digitalWrite(33, LOW);
-        delay(200);
-    
+    bb.aonoff(33, 200, 5);
     return true;
 }
 

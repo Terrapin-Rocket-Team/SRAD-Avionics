@@ -1,14 +1,15 @@
 {
   "name": "terp-rockets-ground-station",
   "productName": "Terp Rockets Ground Station",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Ground station application for the Terrapin Rocket Team at University of Maryland",
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron-forge start",
     "package": "electron-forge package",
-    "make": "electron-forge make"
+    "make": "electron-forge make",
+    "make-icons": "node assets/generateIcons.js"
   },
   "author": "Joseph Hauerstein",
   "license": "ISC",
@@ -19,7 +20,7 @@
   "config": {
     "forge": {
       "packagerConfig": {
-        "icon": "assets/icon"
+        "icon": "assets/logo"
       },
       "makers": [
         {
@@ -34,6 +35,9 @@
     "@electron-forge/maker-rpm": "^6.4.2",
     "@electron-forge/maker-squirrel": "^6.4.2",
     "@electron-forge/maker-zip": "^6.4.2",
-    "electron": "^26.3.0"
+    "@fiahfy/icns": "^0.0.7",
+    "convert-svg-to-png": "^0.6.4",
+    "electron": "^26.3.0",
+    "png-to-ico": "^2.1.8"
   }
 }

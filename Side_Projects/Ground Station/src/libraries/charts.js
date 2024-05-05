@@ -9,58 +9,69 @@
  * @returns {Chart} the charts.js chart object
  */
 const createChart = (id, name, xUnits, yUnits, xConvert, yConvert) => {
-  return new Chart(document.getElementById(id), {
-    type: "line",
-    data: {
-      labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-      datasets: [
-        {
-          label: name,
-          data: [],
-          xAxisID: "x",
-          yAxisID: "y",
-        },
-      ],
-    },
-    options: {
-      aspectRatio: 1.6,
-      maintainAspectRatio: false,
-      animation: false,
-      plugins: {
-        legend: {
-          display: false,
-        },
-        tooltip: {
-          enabled: false,
-        },
+  return new Chart(
+    document.getElementById(id),
+    (ChartOptions = {
+      type: "line",
+      data: {
+        labels: [0, 2, 4, 6, 8],
+        datasets: [
+          {
+            label: name,
+            data: [
+              { x: 0, y: null },
+              { x: 8, y: null },
+            ],
+            xAxisID: "x",
+            yAxisID: "y",
+          },
+        ],
       },
-      scales: {
-        x: {
-          ticks: {
-            callback: (value) =>
-              `${
-                (value * xConvert) % 1 > 0
-                  ? (value * xConvert).toFixed(2)
-                  : value * xConvert
-              } ${xUnits}`,
+      options: {
+        aspectRatio: 1.6,
+        maintainAspectRatio: false,
+        animation: false,
+        plugins: {
+          legend: {
+            display: false,
+          },
+          tooltip: {
+            enabled: false,
           },
         },
-        y: {
-          beginAtZero: true,
-          ticks: {
-            callback: (value) => `${value * yConvert} ${yUnits}`,
+        scales: {
+          x: {
+            type: "linear",
+            afterTickToLabelConversion: function (axis) {
+              axis.ticks.forEach((tick) => {
+                tick.label = `${roundTo(tick.value * xConvert, 1)} ${xUnits}`;
+              });
+            },
+            ticks: {
+              count: 5,
+            },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: (value) => `${value * yConvert} ${yUnits}`,
+            },
+          },
+        },
+        elements: {
+          point: {
+            radius: 0,
+          },
+          line: {
+            backgroundColor: "#000",
+            borderColor: "#000",
           },
         },
       },
-      elements: {
-        point: {
-          radius: 0,
-        },
-        line: {
-          backgroundColor: "#000",
-          borderColor: "#000",
-        },
-      },
-    },
-  });
+    })
+  );
+};
+
+const roundTo = (n, d) => {
+  return Math.round(n * Math.pow(10, d)) / Math.pow(10, d);
 };

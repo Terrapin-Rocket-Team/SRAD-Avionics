@@ -58,6 +58,10 @@ class API extends EventEmitter {
       this.emit("radio-close");
     });
 
+    ipcRenderer.on("close", (event, data) => {
+      this.emit("close");
+    }); // unused
+
     //app control
     this.close = () => ipcRenderer.send("close");
     this.minimize = () => ipcRenderer.send("minimize");

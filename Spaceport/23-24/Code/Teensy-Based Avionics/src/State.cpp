@@ -1,9 +1,10 @@
 #include "State.h"
 #pragma region Constructor and Destructor
-//cppcheck-suppress noCopyConstructor
-//cppcheck-suppress noOperatorEq
+// cppcheck-suppress noCopyConstructor
+// cppcheck-suppress noOperatorEq
 State::State(bool useKalmanFilter, bool stateRecordsOwnFlightData)
 {
+    lastTimeAbsolute = 0;
     timeAbsolute = millis();
     timePreviousStage = 0;
     position.x() = 0;
@@ -48,13 +49,19 @@ State::State(bool useKalmanFilter, bool stateRecordsOwnFlightData)
     measurements = new double[4]{1, 1, 1, 1};
     // imu x y z
     inputs = new double[3]{1, 1, 1};
-    kfilter = new akf::KFState();
     strcpy(launchTimeOfDay, "00:00:00");
+    useKF = useKalmanFilter;
+    kfilter = nullptr;
 }
+
 State::~State()
 {
     delete[] csvHeader;
     delete[] stateString;
+    delete[] predictions;
+    delete[] measurements;
+    delete[] inputs;
+    delete kfilter;
 }
 
 #pragma endregion
@@ -71,7 +78,7 @@ bool State::init()
             if (sensors[i]->initialize())
             {
                 good++;
-             strcpy(logData, sensors[i]->getTypeString()); // This is a lot for just some logging...
+                strcpy(logData, sensors[i]->getTypeString()); // This is a lot for just some logging...
                 strcat(logData, " [");
                 strcat(logData, sensors[i]->getName());
                 strcat(logData, "] initialized.");
@@ -99,12 +106,11 @@ bool State::init()
         if (!radio->begin())
             radio = nullptr;
     }
+    if (useKF)
+        kfilter = initializeFilter();
     numSensors = good;
     setCsvHeader();
-    if (useKF)
-    {
-        initKF();
-    }
+
     return good == tryNumSensors;
 }
 
@@ -115,7 +121,7 @@ void State::updateSensors()
         if (sensorOK(sensors[i]))
         { // not nullptr and initialized
             sensors[i]->update();
-            Wire.beginTransmission(0x42);//random address for testing the i2c bus
+            Wire.beginTransmission(0x42); // random address for testing the i2c bus
             byte b = Wire.endTransmission();
             if (b != 0x00)
             {
@@ -130,49 +136,51 @@ void State::updateSensors()
     }
 }
 
-void State::updateState()
+void State::updateState(double newTimeAbsolute)
 {
-    if (timeSinceLaunch > 0 && timeSinceLaunch < 2)
-        digitalWrite(33, HIGH);
-    else
-        digitalWrite(33, LOW);
-
-    if (stageNumber > 4 && landingCounter > 50) // if landed and waited 5 seconds, don't update sensors.
+    if (stageNumber > 4 && landingCounter > 300) // if landed and waited 5 seconds, don't update sensors.
         return;
-    
+
+    lastTimeAbsolute = timeAbsolute;
+    if (newTimeAbsolute != -1)
+        timeAbsolute = newTimeAbsolute;
+    else
+        timeAbsolute = millis() / 1000.0;
+
     updateSensors();
-    if (useKF && sensorOK(gps) && gps->getHasFirstFix() && stageNumber > 0)
+    if (kfilter && sensorOK(gps) && gps->getHasFirstFix() && stageNumber > 0)
     {
+        measurements = new double[3]{0, 0, 0};
+        inputs = new double[3]{0, 0, 0};
         // gps x y z barometer z
         measurements[0] = gps->getDisplace().x();
         measurements[1] = gps->getDisplace().y();
-        measurements[2] = gps->getDisplace().z();
-        measurements[3] = sensorOK(baro) ? baro->getRelAltM() : 0;
+        measurements[2] = sensorOK(baro) ? baro->getRelAltM() : 0;
         // imu x y z
-        if(sensorOK(imu))
+        if (sensorOK(imu))
         {
             inputs[0] = imu->getAcceleration().x();
             inputs[1] = imu->getAcceleration().y();
             inputs[2] = imu->getAcceleration().z();
         }
-        else//If this is false, the filter is basically useless as far as I understand.
+        else // If this is false, the filter is basically useless as far as I understand.
         {
             inputs[0] = 0;
             inputs[1] = 0;
             inputs[2] = 0;
         }
-        akf::updateFilter(kfilter, timeAbsolute, sensorOK(gps) ? 1 : 0, sensorOK(baro) ? 1 : 0, sensorOK(imu) ? 1 : 0, measurements, inputs, &predictions);
-        // time, pos x, y, z, vel x, y, z, acc x, y, z
-        // ignore time return value.
-        position.x() = predictions[1];
-        position.y() = predictions[2];
-        position.z() = predictions[3];
-        velocity.x() = predictions[4];
-        velocity.y() = predictions[5];
-        velocity.z() = predictions[6];
-        acceleration.x() = predictions[7];
-        acceleration.y() = predictions[8];
-        acceleration.z() = predictions[9];
+        delete[] predictions;
+        predictions = iterateFilter(kfilter, timeAbsolute - lastTimeAbsolute, inputs, measurements);
+        // pos x, y, z, vel x, y, z
+        position.x() = predictions[0];
+        position.y() = predictions[1];
+        position.z() = predictions[2];
+        velocity.x() = predictions[3];
+        velocity.y() = predictions[4];
+        velocity.z() = predictions[5];
+        acceleration.x() = inputs[0];
+        acceleration.y() = inputs[1];
+        acceleration.z() = inputs[2];
 
         orientation = sensorOK(imu) ? imu->getOrientation() : imu::Quaternion(0, 0, 0, 1);
 
@@ -185,16 +193,16 @@ void State::updateState()
     else
     {
         if (sensorOK(gps))
-        { 
+        {
             position = imu::Vector<3>(gps->getDisplace().x(), gps->getDisplace().y(), gps->getAlt());
             velocity = gps->getVelocity();
             headingAngle = gps->getHeading();
         }
         if (sensorOK(baro))
         {
-            velocity.z() = (baro->getRelAltM() - position.z()) / (millis() / 1000.0 - timeAbsolute);
+            velocity.z() = (baro->getRelAltM() - baroOldAltitude) / (millis() / 1000.0 - lastTimeAbsolute);
             position.z() = baro->getRelAltM();
-            baroVelocity = (baro->getRelAltM() - baroOldAltitude) / (millis() / 1000.0 - timeAbsolute);
+            baroVelocity = (baro->getRelAltM() - baroOldAltitude) / (millis() / 1000.0 - lastTimeAbsolute);
             baroOldAltitude = baro->getRelAltM();
         }
         if (sensorOK(imu))
@@ -203,11 +211,15 @@ void State::updateState()
             orientation = imu->getOrientation();
         }
     }
-    timeAbsolute = millis() / 1000.0;
-    timeSinceLaunch = timeAbsolute - timeOfLaunch;
+
+    if (stageNumber == 0)
+        timeSinceLaunch = 0;
+    else
+        timeSinceLaunch = timeAbsolute - timeOfLaunch;
+
     determineAccelerationMagnitude();
     determineStage();
-    if(stageNumber > 0)
+    if (stageNumber > 0)
         timeSincePreviousStage = timeAbsolute - timePreviousStage;
     if (stageNumber < 3)
         apogee = position.z();
@@ -314,7 +326,7 @@ bool State::applySensorType(int i, int sensorNum)
     case BAROMETER_:
 
         if (sensorNum == 1)
-            baro = reinterpret_cast<Barometer *>(sensors[i]);//normally this would be a dynamic cast, but Arduino doesn't support it.
+            baro = reinterpret_cast<Barometer *>(sensors[i]); // normally this would be a dynamic cast, but Arduino doesn't support it.
         // else if (sensorNum == 2)//If you have more than one of the same type, add them like so.
         //    baro2 = reinterpret_cast<Barometer *>(sensors[i]);
         else
@@ -351,21 +363,23 @@ void State::determineAccelerationMagnitude()
 
 void State::determineStage()
 {
-    if (stageNumber == 0 && 
-    (sensorOK(imu) || sensorOK(baro)) && 
-    (sensorOK(imu) ? imu->getAcceleration().z() > 9 : true) && 
-    (sensorOK(baro) ? baro->getRelAltM() > 1 : true))
-    //if we are in preflight AND
-    //we have either the IMU OR the barometer AND
-    //imu is ok AND the z acceleration is greater than 29 ft/s^2 OR imu is not ok AND
-    //barometer is ok AND the relative altitude is greater than 30 ft OR baro is not ok
+    if (stageNumber == 0 &&
+        (sensorOK(imu) || sensorOK(baro)) &&
+        (sensorOK(imu) ? abs(imu->getAcceleration().z()) > 25 : true) &&
+        (sensorOK(baro) ? baro->getRelAltFt() > 60 : true))
+    // if we are in preflight AND
+    // we have either the IMU OR the barometer AND
+    // imu is ok AND the z acceleration is greater than 29 ft/s^2 OR imu is not ok AND
+    // barometer is ok AND the relative altitude is greater than 30 ft OR baro is not ok
 
-    //essentially, if we have either sensor and they meet launch threshold, launch. Otherwise, it will never detect a launch.
+    // essentially, if we have either sensor and they meet launch threshold, launch. Otherwise, it will never detect a launch.
     {
+        bb.aonoff(33, 200);
         setRecordMode(FLIGHT);
         stageNumber = 1;
         timeOfLaunch = timeAbsolute;
         timePreviousStage = timeAbsolute;
+        timeSinceLaunch = 0;
         strcpy(launchTimeOfDay, gps->getTimeOfDay());
         recordLogData(INFO, "Launch detected.");
         recordLogData(INFO, "Printing static data.");
@@ -376,35 +390,44 @@ void State::determineStage()
                 char logData[200];
                 snprintf(logData, 200, "%s: %s", sensors[i]->getName(), sensors[i]->getStaticDataString());
                 recordLogData(INFO, logData);
+                sensors[i]->setBiasCorrectionMode(false);
             }
         }
-    }//TODO: Add checks for each sensor being ok and decide what to do if they aren't.
-    else if (stageNumber == 1 && acceleration.z() < 10)
+    } // TODO: Add checks for each sensor being ok and decide what to do if they aren't.
+    else if (stageNumber == 1 && abs(acceleration.z()) < 10)
     {
+        bb.aonoff(33, 200, 2);
+        timePreviousStage = timeAbsolute;
         stageNumber = 2;
         recordLogData(INFO, "Coasting detected.");
     }
-    else if (stageNumber == 2 && baroVelocity <= 0 && timeSinceLaunch > 15)
+    else if (stageNumber == 2 && baroVelocity <= 0 && timeSinceLaunch > 5)
     {
+        bb.aonoff(33, 200, 3);
         char logData[100];
         snprintf(logData, 100, "Apogee detected at %.2f m.", position.z());
         recordLogData(INFO, logData);
+        timePreviousStage = timeAbsolute;
         stageNumber = 3;
         recordLogData(INFO, "Drogue conditions detected.");
     }
-    else if (stageNumber == 3 && baro->getRelAltFt() < 1000 && timeSinceLaunch > 20)
+    else if (stageNumber == 3 && baro->getRelAltFt() < 1000 && timeSinceLaunch > 10)
     {
+        bb.aonoff(33, 200, 4);
         stageNumber = 4;
+        timePreviousStage = timeAbsolute;
         recordLogData(INFO, "Main parachute conditions detected.");
     }
-    else if (stageNumber == 4 && baroVelocity > -1 && baro->getRelAltFt() < 66 && timeSinceLaunch > 25)
+    else if (stageNumber == 4 && baroVelocity > -1 && baro->getRelAltFt() < 66 && timeSinceLaunch > 15)
     {
+        bb.aonoff(33, 200, 5);
+        timePreviousStage = timeAbsolute;
         stageNumber = 5;
         recordLogData(INFO, "Landing detected. Waiting for 5 seconds to dump data.");
     }
-    else if (stageNumber == 5 && timeSinceLaunch > 30)
+    else if (stageNumber == 5 && timeSinceLaunch > 20)
     {
-        if (landingCounter++ >= 50)
+        if (landingCounter++ >= 300)
         { // roughly 5 seconds of data after landing
             setRecordMode(GROUND);
             recordLogData(INFO, "Dumped data after landing.");
@@ -419,7 +442,6 @@ void State::setCsvString(char *dest, const char *start, int startSize, bool head
     str[0] = start;
     int cursor = 1;
     delete[] dest;
-
     //---Determine required size for string
     int size = startSize + 1; // includes '\0' at end of string for the end of dataString to use
     for (int i = 0; i < NUM_MAX_SENSORS; i++)
@@ -441,6 +463,7 @@ void State::setCsvString(char *dest, const char *start, int startSize, bool head
     {
         for (int k = 0; str[i][k] != '\0'; j++, k++)
         { // append all the data strings onto the main string
+
             dest[j] = str[i][k];
         }
         if (i >= 1 && !header)
@@ -454,7 +477,7 @@ void State::setCsvString(char *dest, const char *start, int startSize, bool head
 
 bool State::sensorOK(const Sensor *sensor)
 {
-    if (sensor && *sensor)// not nullptr and initialized
+    if (sensor && *sensor) // not nullptr and initialized
         return true;
     return false;
 }
@@ -464,39 +487,14 @@ bool State::sensorOK(const Sensor *sensor)
 bool State::transmit()
 {
     char data[200];
-    snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", sensorOK(gps) ? gps->getPos().x() : 0, sensorOK(gps) ? gps->getPos().y() : 0, sensorOK(baro) ? (int)baro->getRelAltFt() : 0, (int)baroVelocity, (int)headingAngle, 'H', stageNumber, launchTimeOfDay);
+    snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", sensorOK(gps) ? gps->getPos().x() : 0, sensorOK(gps) ? gps->getPos().y() : 0, sensorOK(baro) ? (int)baro->getRelAltFt() : 0, (int)(baroVelocity * 3.28), (int)headingAngle, 'H', stageNumber, launchTimeOfDay);
     bool b = radio->send(data, ENCT_TELEMETRY);
     return b;
 }
-
-void State::initKF()
+extern unsigned long _heap_start;
+extern unsigned long _heap_end;
+extern char *__brkval;
+uint32_t State::FreeMem()
 {
-    double prN = 0.2;
-    double initCov = 2;
-    double gpsCov = 36;
-    double baroCov = 2;
-    double *initialState = new double[6]{0, 0, 0, 0, 0, 0};
-    double *initialInput = new double[3]{0, 0, 0};
-    double *initialCovariance = new double[36]{initCov, 0, 0, initCov, 0, 0,
-                                                0, initCov, 0, 0, initCov, 0,
-                                                0, 0, initCov, 0, 0, initCov,
-                                                initCov, 0, 0, initCov, 0, 0,
-                                                0, initCov, 0, 0, initCov, 0,
-                                                0, 0, initCov, 0, 0, initCov};
-    double *measurementCovariance = new double[16]{4, 0, 0, 0,
-                                                    0, 4, 0, 0,
-                                                    0, 0, gpsCov, 0,
-                                                    0, 0, 0, baroCov};
-    double *processNoiseCovariance = new double[36]{prN, 0, 0, 0, 0, 0,
-                                                      0, prN, 0, 0, 0, 0,
-                                                      0, 0, prN, 0, 0, 0,
-                                                      0, 0, 0, prN, 0, 0,
-                                                      0, 0, 0, 0, prN, 0,
-                                                      0, 0, 0, 0, 0, prN};
-    akf::init(kfilter, 6, 3, 4, initialState, initialInput, initialCovariance, measurementCovariance, processNoiseCovariance);
-    delete[] initialState;
-    delete[] initialInput;
-    delete[] initialCovariance;
-    delete[] measurementCovariance;
-    delete[] processNoiseCovariance;
+    return (char *)&_heap_end - __brkval;
 }

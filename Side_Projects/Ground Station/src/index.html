@@ -24,7 +24,7 @@
     <div id="top-bar">
       <!--Name and logo-->
       <div id="top-left">
-        <img src="./images/logo.png" alt="Logo" />
+        <img src="./images/logo.svg" alt="Logo" />
         <span>Terp Rockets Ground Station</span>
       </div>
       <!--Buttons and application control-->
@@ -245,6 +245,9 @@
             <span id="long">000.0000 &#176;W</span></span
           >
           <span id="t-plus">T+<span id="t">00:00:00</span></span>
+          <span id="apogee-cont"
+            >Apogee: <span id="apogee">Not Detected</span></span
+          >
         </div>
       </div>
       <!--Stage panel-->
@@ -259,7 +262,7 @@
       </div>
     </div>
     <!--3rd party libraries, must be loaded after rest of document-->
-    <script src="./libraries/charts/chart.umd.js"></script>
+    <script src="./libraries/charts/dist/chart.umd.js"></script>
     <script src="./libraries/charts.js"></script>
     <script src="./libraries/map/leaflet/main/leaflet.js"></script>
     <script src="./libraries/map/leaflet/tile-providers/leaflet-providers-cache.js"></script>
