@@ -1,15 +1,13 @@
 #ifndef RFM69HCW_H
 #define RFM69HCW_H
 
-// #if defined(ARDUINO)
-// #define MSG_LEN 200
-// #elif defined(TEENSYDUINO)
-// #define MSG_LEN 10 * 1024
-// #elif defined(RASPBERRY_PI)
-// #define MSG_LEN 10 * 1024
-// #endif
-
-#define MSG_LEN 1250
+#if defined(ARDUINO)
+#define MSG_LEN 200
+#elif defined(TEENSYDUINO)
+#define MSG_LEN 10 * 1024
+#elif defined(RASPBERRY_PI) || defined(__unix__)
+#define MSG_LEN 10 * 1024
+#endif
 
 #include "Radio.h"
 #include "APRSMsg.h"

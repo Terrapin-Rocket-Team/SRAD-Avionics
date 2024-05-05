@@ -5,7 +5,7 @@
 #define MSG_LEN 200
 #elif defined(TEENSYDUINO)
 #define MSG_LEN 10 * 1024
-#elif defined(RASPBERRY_PI)
+#elif defined(RASPBERRY_PI) || defined(__unix__)
 #define MSG_LEN 10 * 1024
 #endif
 
@@ -84,6 +84,7 @@ private:
     RH_RF69 radio;
     // all radios should have the same networkID
     const uint8_t networkID = 0x01;
+    const uint8_t sw[4] = {0xff, 0x00, 0x2d, 0xd4};
     // default to the highest transmit power
     const int txPower = 20;
     // set by constructor
