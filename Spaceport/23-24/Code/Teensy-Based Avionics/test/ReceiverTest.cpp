@@ -25,8 +25,8 @@ void loop()
 {
     if (receive.available())
     {
-        Serial.print("s\n");
-        Serial.print(receive.receive(ENCT_GROUNDSTATION));
-        Serial.print("\ne\n");
+        Serial.println("s");
+        Serial.println(receive.receive(ENCT_GROUNDSTATION));
+        Serial.println("e");
     }
 }
