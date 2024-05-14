@@ -1,5 +1,13 @@
 #include "RFM69HCW.h"
 
+#ifndef max
+int max(int a, int b);
+#endif
+
+#ifndef min
+int min(int a, int b);
+#endif
+
 /*
 Constructor
     - frequency in hertz
@@ -7,39 +15,37 @@ Constructor
     - highBitrate true for 300kbps, false for 4.8kbps
     - config with APRS settings
 */
-RFM69HCW::RFM69HCW(const RadioSettings s, const APRSConfig config) : radio(s.cs, s.irq, *s.spi)
+RFM69HCW::RFM69HCW(const RadioSettings *s, const APRSConfig *config) : radio(s->cs, s->irq, *s->spi)
 {
-    if (s.transmitter)
+
+    this->settings = *s;
+    this->cfg = *config;
+    this->avail = false;
+    this->msgLen = -1;
+
+    if (this->settings.transmitter)
     {
         // addresses for transmitters
         this->addr = 0x02;
         this->toAddr = 0x01;
-        this->id = 0x00; // to fit the max number of bytes in a packet, this will change
-                         // based on message length, but it will be reset to this value
-                         // after each complete transmission
     }
     else
     {
         // addresses for receivers
         this->addr = 0x01;
         this->toAddr = 0x02;
-        this->id = 0x00;
     }
-
-    this->avail = false;
-
-    this->settings = s;
-    this->cfg = config;
+    this->id = 0x00; // to fit the max number of bytes in a packet, this will change
+                     // based on message length, but it will be reset to this value
+                     // after each complete transmission/reception
 }
 
 /*
 Initializer to call in setup
-    - s is the spi interface that should be used
-    - cs is the chip select pin
-    - irq is the interrupt pin
 */
 bool RFM69HCW::begin()
 {
+    // reset the radio
     pinMode(this->settings.rst, OUTPUT);
     digitalWrite(this->settings.rst, LOW);
     delay(10);
@@ -53,6 +59,8 @@ bool RFM69HCW::begin()
     // then use this to actually set the frequency
     if (!this->radio.setFrequency(this->settings.frequency))
         return false;
+
+    // set transmit power
     this->radio.setTxPower(this->txPower, true);
 
     // always set FSK mode
@@ -64,70 +72,129 @@ bool RFM69HCW::begin()
     this->radio.setThisAddress(this->addr);
     this->radio.setHeaderId(this->id);
 
-    if (this->settings.highBitrate)
+    // configure unlimited packet length mode, don't do this for now
+    // this->radio.spiWrite(0x37, 0b00000000);                // Packet format (0x37) set to 00000000 (see manual for meaning of each bit)
+    // this->radio.spiWrite(RH_RF69_REG_38_PAYLOADLENGTH, 0); // Payload length (0x38) set to 0
+
+    if (this->settings.highBitrate) // Note: not working
     {
         // the default bitrate of 4.8kbps should be fine unless we want high bitrate for video
-        set300KBPS();
+        // set300KBPS();
+        this->radio.setModemConfig(RH_RF69::FSK_Rb4_8Fd9_6);
         // remove as much overhead as possible
-        this->radio.setPreambleLength(0);
-        this->radio.setSyncWords();
+        // this->radio.setPreambleLength(0);
+        // this->radio.setSyncWords();
     }
 
     return true;
 }
 
 /*
-Transmit function
 Most basic transmission method, simply transmits the string without modification
-    - message is the message to be transmitted, must be null terminated
+    \param message is the message to be transmitted, set to nullptr if this->msg already contains the message
+    \param len [optional] is the length of the message, if not used it is assumed this->msgLen is already set to the length
 */
 bool RFM69HCW::tx(const char *message, int len)
 {
+    // figure out how long the message should be
+    if (len > 0)
+        this->msgLen = len > MSG_LEN ? MSG_LEN : len;
+    else if (this->msgLen == -1)
+        return false;
+
+    // reset variables for tx
+    this->totalPackets = 0x00;
 
     // get number of packets for this message, and set this radio's id to that value so the receiver knows how many packets to expect
-    this->id = len / this->bufSize + (len % this->bufSize > 0);
-    this->radio.setHeaderId(this->id);
-
-// ignore same address warning
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wrestrict"
-    strcpy(this->msg, message);
-#pragma GCC diagnostic pop
-
-    this->msgLen = len;
-    this->totalPackets = 0;
+    this->totalPackets = len / this->bufSize + (len % this->bufSize > 0);
+    this->radio.setHeaderId(this->totalPackets);
     sendBuffer();
-    // fill the buffer repeatedly until the entire message has been sent
-    // for (unsigned int j = 0; j < this->id; j++)
-    // {
-    // memcpy(this->buf, message + j * this->bufSize, min(this->bufSize, len - j * this->bufSize));
-    // this->radio.send(this->buf, min(this->bufSize, len - j * this->bufSize));
-    // if (j != this->id - 1u)
-    //     this->radio.waitPacketSent();
-    // }
+
+    if (message != nullptr)
+        memcpy(this->msg, message, len);
 
     return true;
 }
 
 bool RFM69HCW::sendBuffer()
 {
-    if (this->totalPackets >= this->id)
-        return true;
-    memcpy(this->buf, this->msg + this->totalPackets * this->bufSize, min(this->bufSize, this->msgLen - this->totalPackets * this->bufSize));
-    this->radio.send(this->buf, min(this->bufSize, this->msgLen - this->totalPackets * this->bufSize));
-    if (this->radio.headerId() == this->totalPackets)
-        this->radio.setHeaderId(0xff);
-    this->totalPackets++;
-    return this->totalPackets == this->id;
+    memcpy(this->buf, this->msg + this->id * this->bufSize, min(this->bufSize, this->msgLen - this->id * this->bufSize));
+    this->radio.send(this->buf, min(this->bufSize, this->msgLen - this->id * this->bufSize));
+    this->id++;
+    return this->id == this->totalPackets;
 }
 
 void RFM69HCW::endtx()
 {
+    this->msgLen = -1;
     this->id = 0x00;
     this->radio.setHeaderId(this->id);
 }
 
 RHGenericDriver::RHMode RFM69HCW::mode() { return radio.mode(); }
+
+
+// partially adapted from RadioHead library
+bool RFM69HCW::txs(const char *message, int len)
+{
+    // figure out how long the message should be
+    if (len > 0)
+        this->msgLen = len > MSG_LEN ? MSG_LEN : len;
+    else if (this->msgLen == -1)
+        return false;
+
+    if (message != nullptr)
+        memcpy(this->msg, message, len);
+
+    this->radio.waitPacketSent(); // Make sure we dont interrupt an outgoing message
+    this->radio.setModeIdle();    // Prevent RX while filling the fifo
+
+    if (!this->radio.waitCAD())
+        return false; // Check channel activity
+
+    ATOMIC_BLOCK_START;
+    this->settings.spi->beginTransaction();
+    digitalWrite(this->settings.cs, LOW);
+    this->settings.spi->transfer(RH_RF69_REG_00_FIFO | RH_RF69_SPI_WRITE_MASK); // Send the start address with the write mask on
+    this->settings.spi->transfer(this->msgLen + 1);                             // Include length of headers
+    // First the header
+    this->settings.spi->transfer(this->toAddr); // type of transmitter that should receive this message
+    // Now the payload
+    while (this->msgIndex++ != this->msgLen && !this->radio.spiRead(RH_RF69_IRQFLAGS2_FIFOFULL)) // these conditions need to be verified
+        this->settings.spi->transfer(this->msg[this->msgIndex]);
+    digitalWrite(this->settings.cs, HIGH);
+    this->settings.spi->endTransaction();
+    ATOMIC_BLOCK_END;
+
+    this->radio.setModeTx(); // Start the transmitter
+    return true;
+}
+
+bool RFM69HCW::txT()
+{
+    if (!this->radio.spiRead(RH_RF69_IRQFLAGS2_FIFONOTEMPTY) || !this->radio.spiRead(RH_RF69_FIFOTHRESH_FIFOTHRESHOLD))
+    {
+        // this is basically tx without preprocessing and no toAddr byte
+        ATOMIC_BLOCK_START;
+        this->settings.spi->beginTransaction();
+        digitalWrite(this->settings.cs, LOW);
+        this->settings.spi->transfer(RH_RF69_REG_00_FIFO | RH_RF69_SPI_WRITE_MASK);                  // Send the start address with the write mask on
+        while (this->msgIndex++ != this->msgLen && !this->radio.spiRead(RH_RF69_IRQFLAGS2_FIFOFULL)) // these conditions need to be verified
+            this->settings.spi->transfer(this->msg[this->msgIndex]);
+        digitalWrite(this->settings.cs, HIGH);
+        this->settings.spi->endTransaction();
+        ATOMIC_BLOCK_END;
+        return this->radio.spiRead(RH_RF69_IRQFLAGS2_PACKETSENT);
+    }
+    return false;
+}
+
+void RFM69HCW::txe() // try to get rid of this one
+{
+    this->msgLen = -1;
+    this->id = 0x00;
+    this->radio.setHeaderId(this->id);
+}
 
 /*
 Receive function
@@ -147,38 +214,23 @@ const char *RFM69HCW::rx()
             if (this->totalPackets == 0)
             {
                 this->totalPackets = this->radio.headerId();
-                if (this->totalPackets <= 0 || this->totalPackets == 0xff)
-                {
-                    this->totalPackets = 0;
+                if (this->totalPackets <= 0)
                     return 0;
-                }
-                memcpy(this->msg, this->buf, receivedLen);
-                this->msg[receivedLen] = '\0';
+                this->msgLen = 0;
+                this->rssi = 0;
             }
-            else // otherwise append to the end of the message, removing the \0 from last time
-            {
-                int len = strlen(this->msg);
-                memcpy(this->msg + len, this->buf, min(MSG_LEN - (len + receivedLen), receivedLen));
-                this->msg[min(MSG_LEN, len + receivedLen)] = '\0'; // make sure we don't go over MSG_LEN
-            }
-            this->id++;
-            // Debug
-            // Serial.print("Received [");
-            // Serial.print(this->bufSize);
-            // Serial.print("]: ");
-            // this->buf[this->bufSize] = 0;
-            // Serial.println((char *)this->buf);
-            // Serial.print("RSSI: ");
-            // Serial.println(this->radio.lastRssi(), DEC);
-            // Serial.println("");
 
+            // copy data from this->buf to this->msg, making sure not to overflow
+            memcpy(this->msg + this->msgLen, this->buf, min(MSG_LEN - (this->msgLen + receivedLen), receivedLen));
+
+            this->msgLen += receivedLen;
+            this->id++;
             this->rssi += radio.lastRssi();
 
             // check if the full message has been received
-            // int msgLen = strlen(this->msg);
-            if (this->totalPackets == this->id) // this works for now, maybe find a better way later?
+            if (this->totalPackets == this->id)
             {
-                this->id = 0;
+                this->id = 0x00;
                 this->rssi /= this->totalPackets;
                 this->totalPackets = 0;
                 this->avail = true;
@@ -186,36 +238,49 @@ const char *RFM69HCW::rx()
 
             return this->msg;
         }
-        return "Failed to receive message";
+        return 0;
     }
-    return "No message available";
+    return 0;
+}
+
+/*
+\return ```true``` if the radio is currently busy
+*/
+bool RFM69HCW::busy()
+{
+    RHGenericDriver::RHMode mode = this->radio.mode();
+    if (mode == RHGenericDriver::RHModeTx)
+        return true;
+    return false;
 }
 
 /*
 Multi-purpose encoder function
 Encodes the message into a format selected by type
-char *message must be a dynamically allocated null terminated string
+char *message is the message to be encoded
+sets this->msgLen to the encoded length of message
 - Telemetry:
     message - input: latitude,longitude,altitude,speed,heading,precision,stage,t0 -> output: APRS message
-- Video: TODO
-    message - input: char* filled with raw bytes -> output: Raw byte array
+- Video:
+    message - input: char* filled with raw bytes -> output: char* filled with raw bytes + error checking
 - Ground Station: TODO
     message - input: Source:Value,Destination:Value,Path:Value,Type:Value,Body:Value -> output: APRS message
 */
-bool RFM69HCW::encode(char *message, EncodingType type)
+bool RFM69HCW::encode(char *message, EncodingType type, int len)
 {
-    if (type == ENCT_NONE)
-        return true;
     if (type == ENCT_TELEMETRY)
     {
-        int msgLen = strlen(message);
+        if (len > 0)
+            this->msgLen = len > MSG_LEN ? MSG_LEN : len;
+        else if (this->msgLen == -1)
+            return false;
 
         // holds the data to be assembled into the aprs body
         APRSData data;
 
         // find each value separated in order by a comma and put in the APRSData array
         {
-            char currentVal[MSG_LEN];
+            char *currentVal = new char[this->msgLen];
             int currentValIndex = 0;
             int currentValCount = 0;
             for (int i = 0; i < msgLen; i++)
@@ -250,49 +315,51 @@ bool RFM69HCW::encode(char *message, EncodingType type)
                     currentValCount++;
                 }
             }
+
+            delete[] currentVal;
         }
         // get lat and long string for low or high precision
         if (data.precision == 'L')
         {
             strcpy(data.dao, "");
-            createLatAprs(data.lat, 0);
-            createLongAprs(data.lng, 0);
+            APRSMsg::formatLat(data.lat, 0);
+            APRSMsg::formatLong(data.lng, 0);
         }
         else if (data.precision == 'H')
         {
-            createDaoAprs(data.lat, data.lng, data.dao);
-            createLatAprs(data.lat, 1);
-            createLongAprs(data.lng, 1);
+            APRSMsg::formatDao(data.lat, data.lng, data.dao);
+            APRSMsg::formatLat(data.lat, 1);
+            APRSMsg::formatLong(data.lng, 1);
         }
         // get alt string
         int altInt = max(-99999, min(999999, atoi(data.alt)));
         if (altInt < 0)
         {
             strcpy(data.alt, "/A=-");
-            padding(altInt * -1, 5, data.alt, 4);
+            APRSMsg::padding(altInt * -1, 5, data.alt, 4);
         }
         else
         {
             strcpy(data.alt, "/A=");
-            padding(altInt, 6, data.alt, 3);
+            APRSMsg::padding(altInt, 6, data.alt, 3);
         }
 
         // get course/speed strings
         // TODO add speed zero counter (makes decoding more complex)
-        int spdInt = max(0, min(999, atoi(data.spd)));
-        int hdgInt = max(0, min(360, atoi(data.hdg)));
-        if (hdgInt == 0)
-            hdgInt = 360;
-        padding(spdInt, 3, data.spd);
-        padding(hdgInt, 3, data.hdg);
+        int spd_int = max(0, min(999, atoi(data.spd)));
+        int hdg_int = max(0, min(360, atoi(data.hdg)));
+        if (hdg_int == 0)
+            hdg_int = 360;
+        APRSMsg::padding(spd_int, 3, data.spd);
+        APRSMsg::padding(hdg_int, 3, data.hdg);
 
+        // generate the aprs message
         APRSMsg aprs;
 
         aprs.setSource(this->cfg.CALLSIGN);
         aprs.setPath(this->cfg.PATH);
         aprs.setDestination(this->cfg.TOCALL);
 
-        // generate the aprs message
         char body[80];
         sprintf(body, "%c%s%c%s%c%s%c%s%s%s%s%c%s%c%s", '!', data.lat, this->cfg.OVERLAY, data.lng, this->cfg.SYMBOL,
                 data.hdg, '/', data.spd, data.alt, "/S", data.stage, '/',
@@ -301,26 +368,45 @@ bool RFM69HCW::encode(char *message, EncodingType type)
         aprs.encode(message);
         return true;
     }
+    if (type == ENCT_VIDEO)
+    {
+        // lower bound for received message length, for basic error checking
+        if (len > 0)
+            this->msgLen = len > MSG_LEN ? MSG_LEN : len;
+        // if len wasn't set, make sure this->msgLen is
+        if (this->msgLen == -1)
+            return false;
+        message[this->msgLen] = this->msgLen / 255;
+    }
+    if (type == ENCT_NONE)
+        return true;
     return false;
 }
 
 /*
-Multi-purpose encoder function
+Multi-purpose decoder function
 Decodes the message into a format selected by type
-char *message must be a dynamically allocated null terminated string
-- Telemetry:
+char *message is the message to be decoded
+sets this->msgLen to the length of the decoded message
+- Telemetry: TODO: fix
     message - output: latitude,longitude,altitude,speed,heading,precision,stage,t0 <- input: APRS message
 - Video: TODO
     message - output: char* filled with raw bytes <- input: Raw byte array
 - Ground Station:
     message - output: Source:Value,Destination:Value,Path:Value,Type:Value,Body:Value <- input: APRS message
 */
-bool RFM69HCW::decode(char *message, EncodingType type)
+bool RFM69HCW::decode(char *message, EncodingType type, int len)
 {
-    if (type == ENCT_NONE)
-        return true;
     if (type == ENCT_TELEMETRY)
     {
+        if (len > 0)
+            this->msgLen = len > MSG_LEN ? MSG_LEN : len;
+        else if (this->msgLen == -1)
+            return false;
+
+        // make sure message is null terminated
+        message[this->msgLen] = 0;
+
         APRSMsg aprs;
         aprs.decode(message);
 
@@ -345,7 +431,7 @@ bool RFM69HCW::decode(char *message, EncodingType type)
         if (i == len)
             return false;
         strncpy(data.lat, bodyptr, i - (bodyptr - body));
-        data.lat[i - (bodyptr - body)] = '\0';
+        data.lat[i - (bodyptr - body)] = 0;
         i++;
         bodyptr = body + i;
 
@@ -355,7 +441,7 @@ bool RFM69HCW::decode(char *message, EncodingType type)
         if (i == len)
             return false;
         strncpy(data.lng, bodyptr, i - (bodyptr - body));
-        data.lng[i - (bodyptr - body)] = '\0';
+        data.lng[i - (bodyptr - body)] = 0;
         i++;
         bodyptr = body + i;
 
@@ -365,7 +451,7 @@ bool RFM69HCW::decode(char *message, EncodingType type)
         if (i == len)
             return false;
         strncpy(data.hdg, bodyptr, i - (bodyptr - body));
-        data.hdg[i - (bodyptr - body)] = '\0';
+        data.hdg[i - (bodyptr - body)] = 0;
         i++;
         bodyptr = body + i;
 
@@ -375,7 +461,7 @@ bool RFM69HCW::decode(char *message, EncodingType type)
         if (i == len)
             return false;
         strncpy(data.spd, bodyptr, i - (bodyptr - body));
-        data.spd[i - (bodyptr - body)] = '\0';
+        data.spd[i - (bodyptr - body)] = 0;
         i++;
         bodyptr = body + i;
 
@@ -389,7 +475,7 @@ bool RFM69HCW::decode(char *message, EncodingType type)
         if (i == len)
             return false;
         strncpy(data.alt, bodyptr, i - (bodyptr - body));
-        data.alt[i - (bodyptr - body)] = '\0';
+        data.alt[i - (bodyptr - body)] = 0;
         i++;
         bodyptr = body + i;
 
@@ -403,7 +489,7 @@ bool RFM69HCW::decode(char *message, EncodingType type)
         if (i == len)
             return false;
         strncpy(data.stage, bodyptr, i - (bodyptr - body));
-        data.stage[i - (bodyptr - body)] = '\0';
+        data.stage[i - (bodyptr - body)] = 0;
         i++;
         bodyptr = body + i;
 
@@ -413,7 +499,7 @@ bool RFM69HCW::decode(char *message, EncodingType type)
         if (i == len)
             return false;
         strncpy(data.t0, bodyptr, i - (bodyptr - body));
-        data.t0[i - (bodyptr - body)] = '\0';
+        data.t0[i - (bodyptr - body)] = 0;
         i++;
         bodyptr = body + i;
 
@@ -501,37 +587,80 @@ bool RFM69HCW::decode(char *message, EncodingType type)
 
         sprintf(message, "%f,%f,%s,%s,%s,%c,%s,%s", lat, lng, data.alt, data.spd, data.hdg, strlen(data.dao) > 0 ? 'H' : 'L', data.stage, data.t0);
 
+        this->msgLen = strlen(message);
         return true;
     }
     if (type == ENCT_GROUNDSTATION)
     {
+        if (len > 0)
+            this->msgLen = len > MSG_LEN ? MSG_LEN : len;
+        else if (this->msgLen == -1)
+            return false;
+
+        // make sure message is null terminated
+        message[this->msgLen] = 0;
+
         // put the message into a APRSMessage object to decode it
         APRSMsg aprs;
         aprs.decode(message);
-
         aprs.toString(message);
+
         // add RSSI to the end of message
         sprintf(message + strlen(message), "%s%d", ",RSSI:", this->rssi);
+
+        this->msgLen = strlen(message);
         return true;
     }
+    if (type == ENCT_VIDEO)
+    {
+        if (len > 0)
+            this->msgLen = len > MSG_LEN ? MSG_LEN : len;
+
+        // if len wasn't set, make sure this->msgLen is
+        if (this->msgLen == -1)
+            return false;
+
+        // otherwise, check if the length of the message is within the expected bounds
+        return this->msgLen >= message[this->msgLen] * 255 && this->msgLen < (message[this->msgLen] + 1) * 255;
+    }
+    if (type == ENCT_NONE)
+        return true;
     return false;
 }
 
 /*
-Comprehensive send function
-Encodes the message into the selected type, then sends it
-char *message must be a null terminated string
-Transmitted and encoded message length must not exceed MSG_LEN
-    - message is the message to be sent
-    - type is the encoding type
+Encodes the message into the selected type, then sends it. Transmitted and encoded message length must not exceed ```MSG_LEN```
+    \param message is the message to be sent
+    \param type is the encoding type
+    \param len optional length of message, required if message is not a null terminated string
+\return ```true``` if the message was sent successfully
 */
-bool RFM69HCW::send(const char *message, EncodingType type)
+bool RFM69HCW::send(const char *message, EncodingType type, int len)
 {
-    strcpy(this->msg, message);
-    this->msg[MSG_LEN] = '\0'; // make sure msg is null terminated just in case
-    encode(this->msg, type);
-    tx(this->msg, strlen(this->msg));
-    return true;
+    if (type == ENCT_TELEMETRY || type == ENCT_GROUNDSTATION)
+    {
+        // assume message is a valid string, but maybe it's not null terminated
+        strncpy(this->msg, message, MSG_LEN);
+        this->msg[MSG_LEN] = 0; // so null terminate it just in case
+        // figure out what the length of the message should be
+        if (len > 0 && len <= MSG_LEN)
+            this->msgLen = len;
+        else
+            this->msgLen = strlen(this->msg);
+        return encode(this->msg, type, this->msgLen) && tx(nullptr, strlen(this->msg)); // length needs to be updated since encode() modifies the message
+    }
+    if (type == ENCT_VIDEO && len != -1)
+    {
+        // can't assume message is a valid string
+        this->msgLen = len > MSG_LEN ? MSG_LEN : len;
+        memcpy(this->msg, message, this->msgLen);
+        return encode(this->msg, type) && tx(nullptr); // length does not change with ENCT_VIDEO
+    }
+    if (type == ENCT_NONE && len != -1)
+    {
+        return tx(message, len);
+    }
+    return false;
 }
 
 /*
@@ -539,17 +668,18 @@ Comprehensive receive function
 Should be called after verifying there is an available message by calling available()
 Decodes the last received message according to the type
 Received and decoded message length must not exceed MSG_LEN
-    - type is the decoding type
+    \param type is the decoding type
 */
 const char *RFM69HCW::receive(EncodingType type)
 {
     if (this->avail)
     {
         this->avail = false;
-        decode(this->msg, type);
+        if (!decode(this->msg, type, this->msgLen)) // Note: this->msgLen is never set to -1
+            return 0;
         return this->msg;
     }
-    return "";
+    return 0;
 }
 
 /*
@@ -569,6 +699,7 @@ int RFM69HCW::RSSI()
     return this->rssi;
 }
 
+// probably broken
 void RFM69HCW::set300KBPS()
 {
     this->radio.spiWrite(0x03, 0x00);       // REG_BITRATEMSB: 300kbps (0x006B, see DS p20)
@@ -590,7 +721,6 @@ int max(int a, int b)
         return a;
     return b;
 }
-
 #endif
 
 #ifndef min
@@ -600,5 +730,4 @@ int min(int a, int b)
         return a;
     return b;
 }
-
 #endif

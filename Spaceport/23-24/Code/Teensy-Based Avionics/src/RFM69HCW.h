@@ -12,7 +12,6 @@
 #include "Radio.h"
 #include "APRSMsg.h"
 #include "RH_RF69.h"
-#include "APRSEncodeFunctions.h"
 
 /*
 Settings:
@@ -38,15 +37,20 @@ struct RadioSettings
 class RFM69HCW : public Radio
 {
 public:
-    RFM69HCW(const RadioSettings s, const APRSConfig config);
+    RFM69HCW(const RadioSettings *s, const APRSConfig *config);
     bool begin() override;
-    bool tx(const char *message, int len) override;
+    bool tx(const char *message, int len = -1) override;
     bool sendBuffer();
     void endtx();
+    bool txs(const char *message, int len = -1);
+    bool txT();
+    void txe();
     const char *rx() override;
-    bool encode(char *message, EncodingType type) override;
-    bool decode(char *message, EncodingType type) override;
-    bool send(const char *message, EncodingType type) override;
+    void rxL();
+    bool busy();
+    bool encode(char *message, EncodingType type, int len = -1) override;
+    bool decode(char *message, EncodingType type, int len = -1) override;
+    bool send(const char *message, EncodingType type, int len = -1) override;
     const char *receive(EncodingType type) override;
     int RSSI() override;
     bool available();
@@ -77,6 +81,7 @@ private:
     bool avail;
     int rssi;
     int totalPackets;
+    int msgIndex = 0;
 };
 
 #endif // RFM69HCW_H
