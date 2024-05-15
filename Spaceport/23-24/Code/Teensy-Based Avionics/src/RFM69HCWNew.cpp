@@ -116,9 +116,6 @@ The received message will be truncated if it exceeds the maximum message length
 */
 bool RFM69HCWNew::rx(uint8_t *recvbuf, uint8_t *len)
 {
-    if (!radio.available())
-        return false;
-
     if (!radio.recv(recvbuf, len))
         return false;
 
@@ -169,6 +166,7 @@ bool RFM69HCWNew::dequeueReceive(uint8_t *message)
     for (int i = 0; i < len && bufHead != bufTail; i++)
     {
         message[i] = buffer[bufHead];
+        printf("%c", message[i]);
         inc(bufHead);
     }
     return true;
@@ -201,7 +199,6 @@ bool RFM69HCWNew::dequeueReceive(RadioMessage *message)
     uint8_t *msg = new uint8_t[len];
     if (!dequeueReceive(msg))
         return false;
-
     message->decode(msg, len);
     delete[] msg;
     return true;
@@ -242,8 +239,9 @@ bool RFM69HCWNew::update()
     {
         uint8_t msg[RH_RF69_MAX_MESSAGE_LEN];
         uint8_t len = RH_RF69_MAX_MESSAGE_LEN;
-        if (!rx(msg, &len))
+        if (!rx(msg, &len)){
             return false;
+        }
         // store the message in the buffer
         if (radio.headerId() == 0)
         { // start of a new message
@@ -256,9 +254,11 @@ bool RFM69HCWNew::update()
                 buffer[bufTail] = msg[i - 1];
                 inc(bufTail);
             }
+            printf("Length: %d\n", len);
         }
         else
         {
+            printf("continued message\n");
             buffer[orignalBufferTail] += len; // update the length of the message
             for (int i = 1; i <= len; i++)
             {
@@ -266,9 +266,12 @@ bool RFM69HCWNew::update()
                 inc(bufTail);
             }
         }
-        if(radio.headerFlags() & RADIO_FLAG_MORE_DATA) // more data is coming
+        if(radio.headerFlags() & RADIO_FLAG_MORE_DATA) {// more data is coming
+            printf("more data\n");
             return false;
+        }
     }
+    printf("done\n");
     return true;
 }
 
@@ -280,7 +283,7 @@ bool RFM69HCWNew::update()
 bool RFM69HCWNew::busy()
 {
     RHGenericDriver::RHMode mode = this->radio.mode();
-    if (mode == RHGenericDriver::RHModeTx || mode == RHGenericDriver::RHModeRx)
+    if (mode == RHGenericDriver::RHModeTx)
         return true;
     return false;
 }
