@@ -26,8 +26,8 @@ PSRAM *ram;
 static double last = 0; // for better timing than "delay(100)"
 
 // BlinkBuzz setup
-int allowedPins[] = {LED_BUILTIN, BUZZER};
-BlinkBuzz bb(allowedPins, 2, true);
+int allowedPins[] = {LED_BUILTIN};
+BlinkBuzz bb(allowedPins, 1, true);
 extern unsigned long _heap_start;
 extern unsigned long _heap_end;
 extern char *__brkval;
@@ -44,7 +44,6 @@ void setup()
 {
 
     pinMode(LED_BUILTIN, OUTPUT);
-    pinMode(BUZZER, OUTPUT); // its very loud during testing
     bb.onoff(BUZZER, 100, 4, 100);
     recordLogData(INFO, "Initializing Avionics System. 5 second delay to prevent unnecessary file generation.", TO_USB);
     // delay(5000);
@@ -109,7 +108,7 @@ void loop()
     radio.update();
     double time = millis();
 
-    if (time - radioTimer >= 5000)
+    if (time - radioTimer >= 1000)
     {
         computer.transmit();
         radioTimer = time;
@@ -119,7 +118,7 @@ void loop()
 
     last = time;
     computer.updateState();
-    recordLogData(INFO, computer.getStateString(), TO_USB);
+    //recordLogData(INFO, computer.getStateString(), TO_USB);
     // RASPBERRY PI TURN ON
     if (time / 1000.0 > 810)
     {
