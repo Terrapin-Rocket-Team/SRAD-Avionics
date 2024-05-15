@@ -28,18 +28,34 @@ enum EncodingType
     ENCT_NONE
 };
 
+class RadioMessage
+{
+public:
+    virtual const uint8_t *encode() = 0;                      // use stored variables to encode a message
+    virtual bool decode(const uint8_t *message, int len) = 0; // use `message` to set stored variables
+    virtual int length() const = 0;                           // return the length of the message
+    virtual ~RadioMessage(){};
+
+protected:
+    uint8_t len;
+};
+
 class Radio
 {
 public:
     virtual ~Radio(){}; // Virtual descructor. Very important
-    virtual bool begin() = 0;
-    virtual bool tx(const char *message, int len = -1) = 0;
-    virtual const char *rx() = 0;
-    virtual bool encode(char *message, EncodingType type, int len = -1) = 0;
-    virtual bool decode(char *message, EncodingType type, int len = -1) = 0;
-    virtual bool send(const char *message, EncodingType type, int len = -1) = 0;
-    virtual const char *receive(EncodingType type) = 0;
+    virtual bool init() = 0;
+    virtual bool tx(const uint8_t *message, int len = -1, int packetNum = 0, bool lastPacket = true) = 0; // designed to be used internally. cannot exceed 66 bytes including headers
+    virtual const uint8_t *rx() = 0;
     virtual int RSSI() = 0;
+    virtual bool enqueueSend(const uint8_t *message, uint8_t len) = 0;
+    virtual bool enqueueSend(const char *message) = 0;
+    virtual bool enqueueSend(RadioMessage *message) = 0;
+    virtual bool dequeueReceive(RadioMessage *message) = 0;
+    virtual bool dequeueReceive(char *message) = 0;
+    virtual bool dequeueReceive(uint8_t *message) = 0;
 };
+
+
 
 #endif // RADIO_H

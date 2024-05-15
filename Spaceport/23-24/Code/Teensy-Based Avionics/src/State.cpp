@@ -103,7 +103,7 @@ bool State::init()
     }
     if (radio)
     {
-        if (!radio->begin())
+        if (!radio->init())
             radio = nullptr;
     }
     setCsvHeader();
@@ -488,8 +488,16 @@ bool State::transmit()
 {
     char data[200];
     snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", sensorOK(gps) ? gps->getPos().x() : 0, sensorOK(gps) ? gps->getPos().y() : 0, sensorOK(baro) ? (int)baro->getRelAltFt() : 0, (int)(baroVelocity * 3.28), (int)headingAngle, 'H', stageNumber, launchTimeOfDay);
-    bool b = radio->send(data, ENCT_TELEMETRY);
-    return b;
+    aprs.data.lat = sensorOK(gps) ? gps->getPos().x() : 0;
+    aprs.data.lng = sensorOK(gps) ? gps->getPos().y() : 0;
+    aprs.data.alt = sensorOK(baro) ? baro->getRelAltFt() : 0;
+    aprs.data.hdg = (int)headingAngle;
+    aprs.data.spd = (int)(baroVelocity * 3.28);
+    aprs.data.stage = stageNumber;
+    aprs.data.orientation = imu->getOrientation().toEuler();
+    
+    radio->enqueueSend(&aprs);
+    return true;
 }
 extern unsigned long _heap_start;
 extern unsigned long _heap_end;

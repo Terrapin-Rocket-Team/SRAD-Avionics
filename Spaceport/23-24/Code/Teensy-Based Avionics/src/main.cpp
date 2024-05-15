@@ -4,17 +4,15 @@
 #include "BNO055.h"
 #include "MAX_M10S.h"
 #include "DS3231.h"
-#include "RFM69HCW.h"
+#include "RFM69HCWNew.h"
 #include "RecordData.h"
 #include "BlinkBuzz.h"
 
 BNO055 bno(13, 12);         // I2C Address 0x29
 BMP390 bmp(13, 12);         // I2C Address 0x77
 MAX_M10S gps(13, 12, 0x42); // I2C Address 0x42
-DS3231 rtc();               // I2C Address 0x68
-APRSConfig config = {"KC3UTM", "APRS", "WIDE1-1", '[', '/'};
 RadioSettings settings = {433.775, true, false, &hardware_spi, 10, 31, 32};
-RFM69HCW radio = {settings, config};
+RFM69HCWNew radio(&settings);
 State computer; // = useKalmanFilter = true, stateRecordsOwnData = true
 uint32_t radioTimer = millis();
 
@@ -103,22 +101,18 @@ void setup()
     }
     sendSDCardHeader(computer.getCsvHeader());
 }
-static bool more = false;
 static bool first = false;
 static bool second = false;
 void loop()
 {
     bb.update();
+    radio.update();
     double time = millis();
 
     if (time - radioTimer >= 500)
     {
-        more = computer.transmit();
+        computer.transmit();
         radioTimer = time;
-    }
-    if (radio.mode() != RHGenericDriver::RHModeTx && more)
-    {
-        more = !radio.sendBuffer();
     }
     if (time - last < 100)
         return;

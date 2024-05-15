@@ -12,6 +12,8 @@
 #include "Radio.h"
 #include "RTC.h"
 #include "RecordData.h"
+#include "APRSMsg.h"
+
 constexpr char STAGES[][15] = {"Pre-Flight", "Boosting", "Coasting", "Drogue Descent", "Main Descent", "Post-Flight"};
 class State
 {
@@ -114,6 +116,10 @@ private:
     double *inputs;
     uint32_t FreeMem();
 
+    // APRS
+    APRSHeader header = {"KC3UTM", "APRS", "WIDE1-1"};
+
+    APRSMsg aprs = {header};
     
 };
 
