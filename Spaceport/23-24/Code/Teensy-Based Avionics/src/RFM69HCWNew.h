@@ -1,17 +1,9 @@
 #ifndef RFM69HCW_H
 #define RFM69HCW_H
 
-#if defined(ARDUINO)
-#define MSG_LEN 200
-#elif defined(TEENSYDUINO)
-#define MSG_LEN 10 * 1024
-#elif defined(RASPBERRY_PI)
-#define MSG_LEN 10 * 1024
-#endif
-
+#include "RH_RF69.h"
 #include "Radio.h"
 #include "APRSMsg.h"
-#include "RH_RF69.h"
 
 #define RADIO_BUFFER_SIZE 1024
 #define RADIO_FLAG_MORE_DATA 0b00000001 // custom flag to indicate more packets are still to be sent
@@ -38,6 +30,9 @@ struct RadioSettings
     int txPower = 20;
 };
 
+#ifndef RH_RF69_MAX_MESSAGE_LEN
+#define RH_RF69_MAX_MESSAGE_LEN 66
+#endif // !RH_RF69_MAX_MESSAGE_LEN
 
 class RFM69HCWNew : public Radio
 {
@@ -45,10 +40,10 @@ public:
     RFM69HCWNew(const RadioSettings *s);
     bool init() override;
     bool tx(const uint8_t *message, int len = -1, int packetNum = 0, bool lastPacket = true) override; // designed to be used internally. cannot exceed 66 bytes including headers
-    const uint8_t *rx() override;
+    bool rx(uint8_t *recvbuf, uint8_t *len) override;
     bool busy();
-    bool enqueueSend(RadioMessage *message) override;         // designed to be used externally. can exceed 66 bytes.
-    bool enqueueSend(const char *message) override;           // designed to be used externally. can exceed 66 bytes.
+    bool enqueueSend(RadioMessage *message) override;               // designed to be used externally. can exceed 66 bytes.
+    bool enqueueSend(const char *message) override;                 // designed to be used externally. can exceed 66 bytes.
     bool enqueueSend(const uint8_t *message, uint8_t len) override; // designed to be used externally. can exceed 66 bytes.
 
     bool dequeueReceive(RadioMessage *message) override; // designed to be used externally. can exceed 66 bytes.
@@ -63,8 +58,10 @@ public:
     // increment the specified index, wrapping around if necessary
     static void inc(int &i) { i = (i + 1) % RADIO_BUFFER_SIZE; }
 
-private:
+    uint8_t buffer[RADIO_BUFFER_SIZE];
     RH_RF69 radio;
+
+private:
     // all radios should have the same networkID
     const uint8_t networkID = 1;
     // default to the highest transmit power
@@ -80,12 +77,11 @@ private:
     // stores queue of messages, with the length of the message as the first byte of each. no delimiter.
     // [6xxxxxx3xxx1x2xx]
     // Done to allow for messages that are not ascii encoded.
-    uint8_t buffer[RADIO_BUFFER_SIZE];
     int bufHead = 0;
     int bufTail = 0;
-    int remainingLength = 0; // how much message is left to send for transmitters
+    int remainingLength = 0;   // how much message is left to send for transmitters
     int orignalBufferTail = 0; // used to update the length of the message after recieving.
-    int maxDataLen = RH_RF69_MAX_MESSAGE_LEN;
+    const int maxDataLen = RH_RF69_MAX_MESSAGE_LEN;
 };
 
 #endif // RFM69HCW_H

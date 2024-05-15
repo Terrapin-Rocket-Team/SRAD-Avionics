@@ -1,16 +1,13 @@
 #include "APRSMsg.h"
 
-
 #define MAX_ALLOWED_MSG_LEN 255 /* max length of 1 message supported by radio buffer */
-
-
 
 APRSMsg::APRSMsg(APRSHeader &header)
 {
     this->header = header;
 }
 
-const uint8_t *APRSMsg::encode()
+uint8_t *APRSMsg::encode()
 {
     char *msg = new char[MAX_ALLOWED_MSG_LEN];
     int c = encodeHeader(msg);
@@ -20,7 +17,7 @@ const uint8_t *APRSMsg::encode()
 
 bool APRSMsg::decode(const uint8_t *message, int len)
 {
-    //message needs to be decoded and values reinstered into the header and data structs
+    // message needs to be decoded and values reinserted into the header and data structs
     int c = decodeHeader((char *)message, len);
     decodeData((char *)message, len, c);
     return false;
@@ -74,19 +71,19 @@ void APRSMsg::encodeData(char *message, int cursor)
     */
 
     // lat and lng
-    message[cursor++] = 'M';                                            // overlay
+    message[cursor++] = 'M';                                          // overlay
     encodeBase91(message, cursor, (int)380926 * (90 - data.lat), 4);  // 380926 is the magic number from the APRS spec (page 38)
     encodeBase91(message, cursor, (int)190463 * (180 + data.lng), 4); // 190463 is the magic number from the APRS spec (page 38)
-    message[cursor++] = '^';                                            // end of lat and lng
-    message[cursor++] = ' ';                                            // space to start 'Comment' section
+    message[cursor++] = '^';                                          // end of lat and lng
+    message[cursor++] = ' ';                                          // space to start 'Comment' section
 
     // course, speed, altitude
-    encodeBase91(message, cursor, (int)(data.hdg * HDG_SCALE), 2);   // (91^2/360) scale to fit in 2 base91 characters
-    encodeBase91(message, cursor, (int)(data.spd * SPD_SCALE), 2);  // (91^2/1000) scale to fit in 2 base91 characters. 1000 knots is the assumed max speed.
+    encodeBase91(message, cursor, (int)(data.hdg * HDG_SCALE), 2); // (91^2/360) scale to fit in 2 base91 characters
+    encodeBase91(message, cursor, (int)(data.spd * SPD_SCALE), 2); // (91^2/1000) scale to fit in 2 base91 characters. 1000 knots is the assumed max speed.
     encodeBase91(message, cursor, (int)(data.alt * ALT_SCALE), 2); // (91^2/15000) scale to fit in 2 base91 characters. 15000 feet is the assumed max altitude.
 
     // stage and orientation
-    message[cursor++] = (char)(data.stage + (int)'0');                              // stage is just written in plaintext.
+    message[cursor++] = (char)(data.stage + (int)'0');                                 // stage is just written in plaintext.
     encodeBase91(message, cursor, (int)(data.orientation.x() * ORIENTATION_SCALE), 2); // same as course
     encodeBase91(message, cursor, (int)(data.orientation.y() * ORIENTATION_SCALE), 2); // same as course
     encodeBase91(message, cursor, (int)(data.orientation.z() * ORIENTATION_SCALE), 2); // same as course
