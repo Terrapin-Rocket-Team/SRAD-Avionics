@@ -99,6 +99,11 @@ bool RFM69HCWNew::tx(const uint8_t *message, int len, int packetNum, bool lastPa
     radio.setHeaderId(packetNum);
     radio.setHeaderFlags(lastPacket ? 0 : RADIO_FLAG_MORE_DATA);
 
+    uint8_t temp[555];
+    memcpy(temp, message, len);
+    temp[len] = '\0';
+    printf("Len: %d - Message: %s\n", len, temp);
+
     return radio.send((uint8_t *)message, len);
 }
 
@@ -109,28 +114,19 @@ Note that the message may be incomplete, if the message is complete available() 
 The received message will be truncated if it exceeds the maximum message length
 \return the received message with the length in the first byte or `nullptr` if no message is available
 */
-const uint8_t *RFM69HCWNew::rx()
+bool RFM69HCWNew::rx(uint8_t *recvbuf, uint8_t *len)
 {
     if (!radio.available())
-        return nullptr;
+        return false;
 
-    // Should be a message for us now
-    // Stores the length of the message in the first byte of the returned array
-    uint8_t receivedLen;
-    uint8_t receivedMsg[1 + maxDataLen];
-    if (!radio.recv(1 + receivedMsg, &(receivedLen)))
-        return nullptr;
+    if (!radio.recv(recvbuf, len))
+        return false;
 
-    receivedMsg[0] = receivedLen;
     rssi = radio.lastRssi();
-    return receivedMsg;
+    return true;
 }
 
-
-
 #pragma region External Send and Receive
-
-
 
 bool RFM69HCWNew::enqueueSend(const uint8_t *message, uint8_t len)
 {
@@ -145,7 +141,7 @@ bool RFM69HCWNew::enqueueSend(const uint8_t *message, uint8_t len)
         buffer[bufTail] = message[i];
         bufTail = (bufTail + 1) % RADIO_BUFFER_SIZE;
     }
-
+    printf("Length: %d\n", len);
     return true;
 }
 
@@ -156,7 +152,9 @@ bool RFM69HCWNew::enqueueSend(const char *message)
 
 bool RFM69HCWNew::enqueueSend(RadioMessage *message)
 {
-    return enqueueSend(message->encode(), message->length());
+    const uint8_t *encodedMessage = message->encode();
+    int messageLength = message->length();
+    return enqueueSend(encodedMessage, messageLength);
 }
 
 bool RFM69HCWNew::dequeueReceive(uint8_t *message)
@@ -211,8 +209,6 @@ bool RFM69HCWNew::dequeueReceive(RadioMessage *message)
 
 #pragma endregion
 
-
-
 bool RFM69HCWNew::update()
 {
     if (busy()) // radio is busy, cannot send or receive
@@ -228,39 +224,45 @@ bool RFM69HCWNew::update()
         if (remainingLength == 0) // start a new message
         {
             remainingLength = buffer[bufHead];
+            int len = min(remainingLength, maxDataLen);
             inc(bufHead);
-            tx(&buffer[bufHead], min(remainingLength, maxDataLen), 0, remainingLength <= maxDataLen);
+            tx(&buffer[bufHead], len, 0, remainingLength <= maxDataLen);
+            bufHead += len % RADIO_BUFFER_SIZE;
+            remainingLength -= len;
         }
         else // continue the message
         {
             int len = min(remainingLength, maxDataLen);
             remainingLength -= len;
             tx(&buffer[bufHead], len, radio.headerId() + 1, remainingLength <= maxDataLen);
+            bufHead += len % RADIO_BUFFER_SIZE;
         }
     }
     else // receiver
     {
-        const uint8_t *msg = rx();
-        if (msg == nullptr)
+        uint8_t msg[RH_RF69_MAX_MESSAGE_LEN];
+        uint8_t len = RH_RF69_MAX_MESSAGE_LEN;
+        if (!rx(msg, &len))
             return false;
         // store the message in the buffer
         if (radio.headerId() == 0)
         { // start of a new message
+            printf("new message\n");
             orignalBufferTail = bufTail;
-            buffer[bufTail] = msg[0]; // store the length of the message
+            buffer[bufTail] = len; // store the length of the message
             inc(bufTail);
-            for (int i = 1; i <= msg[0]; i++)
+            for (int i = 1; i <= len; i++)
             {
-                buffer[bufTail] = msg[i];
+                buffer[bufTail] = msg[i - 1];
                 inc(bufTail);
             }
         }
         else
         {
-            buffer[orignalBufferTail] += msg[0]; // update the length of the message
-            for (int i = 1; i <= msg[0]; i++)
+            buffer[orignalBufferTail] += len; // update the length of the message
+            for (int i = 1; i <= len; i++)
             {
-                buffer[bufTail] = msg[i];
+                buffer[bufTail] = msg[i - 1];
                 inc(bufTail);
             }
         }
