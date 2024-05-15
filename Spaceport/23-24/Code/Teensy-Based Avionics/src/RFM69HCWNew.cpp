@@ -266,6 +266,8 @@ bool RFM69HCWNew::update()
                 inc(bufTail);
             }
         }
+        if(radio.headerFlags() & RADIO_FLAG_MORE_DATA) // more data is coming
+            return false;
     }
     return true;
 }

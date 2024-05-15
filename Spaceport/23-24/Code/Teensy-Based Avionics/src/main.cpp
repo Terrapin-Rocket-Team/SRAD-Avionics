@@ -11,7 +11,7 @@
 BNO055 bno(13, 12);         // I2C Address 0x29
 BMP390 bmp(13, 12);         // I2C Address 0x77
 MAX_M10S gps(13, 12, 0x42); // I2C Address 0x42
-RadioSettings settings = {433.775, true, false, &hardware_spi, 10, 31, 32};
+RadioSettings settings = {915.0, true, false, &hardware_spi, 10, 31, 32};
 RFM69HCWNew radio(&settings);
 State computer; // = useKalmanFilter = true, stateRecordsOwnData = true
 uint32_t radioTimer = millis();
@@ -47,7 +47,7 @@ void setup()
     pinMode(BUZZER, OUTPUT); // its very loud during testing
     bb.onoff(BUZZER, 100, 4, 100);
     recordLogData(INFO, "Initializing Avionics System. 5 second delay to prevent unnecessary file generation.", TO_USB);
-    delay(5000);
+    // delay(5000);
 
     pinMode(BMP_ADDR_PIN, OUTPUT);
     digitalWrite(BMP_ADDR_PIN, HIGH);
@@ -109,7 +109,7 @@ void loop()
     radio.update();
     double time = millis();
 
-    if (time - radioTimer >= 500)
+    if (time - radioTimer >= 5000)
     {
         computer.transmit();
         radioTimer = time;
