@@ -139,6 +139,7 @@ bool RFM69HCWNew::enqueueSend(const uint8_t *message, uint8_t len)
         bufTail = (bufTail + 1) % RADIO_BUFFER_SIZE;
     }
     printf("Length: %d\n", len);
+    printf("BufHead: %d, BufTail: %d\n", bufHead, bufTail);
     return true;
 }
 
@@ -221,19 +222,32 @@ bool RFM69HCWNew::update()
         if (remainingLength == 0) // start a new message
         {
             remainingLength = buffer[bufHead];
-            int len = min(remainingLength, maxDataLen);
+            int len = min(remainingLength, RH_RF69_MAX_MESSAGE_LEN);
             inc(bufHead);
-            tx(&buffer[bufHead], len, 0, remainingLength <= maxDataLen);
-            bufHead += len % RADIO_BUFFER_SIZE;
+            uint8_t temp[RH_RF69_MAX_MESSAGE_LEN];
+            //load buffer
+            for(int i = 0; i < len; i++)
+            {
+                temp[i] = buffer[bufHead];
+                inc(bufHead);
+            }
+            tx(temp, len, 0, remainingLength <= RH_RF69_MAX_MESSAGE_LEN);
             remainingLength -= len;
         }
         else // continue the message
         {
-            int len = min(remainingLength, maxDataLen);
+            int len = min(remainingLength, RH_RF69_MAX_MESSAGE_LEN);
             remainingLength -= len;
-            tx(&buffer[bufHead], len, radio.headerId() + 1, remainingLength <= maxDataLen);
-            bufHead += len % RADIO_BUFFER_SIZE;
+            uint8_t temp[RH_RF69_MAX_MESSAGE_LEN];
+            // load buffer
+            for (int i = 0; i < len; i++)
+            {
+                temp[i] = buffer[bufHead];
+                inc(bufHead);
+            }
+            tx(temp, len, radio.headerId() + 1, remainingLength <= RH_RF69_MAX_MESSAGE_LEN);
         }
+        '�'
     }
     else // receiver
     {
