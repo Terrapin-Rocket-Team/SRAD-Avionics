@@ -27,7 +27,7 @@ namespace aprsToSerial
 
         char suffix[10] = "e\r\n";
         // format: s\r\nSource:CALLSIGN,Destination:TOCALL,Path:PATH,Type:Position Without Timestamp,Data:!DDMM.MM[NS][OVERLAY]DDDMM.MM[WE][hhh/sss/A=DDDDDD/S[s]/zzz/yyy/xxx,RSSI:RSSI\r\ne\r\n
-        snprintf(buffer, buffer_size, "%s%sData:!%s[%03d/%03d/S%d/%03d/%03d/%03d,RSSI:%03d\r\n%s", prefix, header, latLong, (int)msg.data.hdg, (int)msg.data.spd, altitude, msg.data.stage, (int)msg.data.orientation.z(), (int)msg.data.orientation.y(), (int)msg.data.orientation.x(), RSSI, suffix);
+        snprintf(buffer, buffer_size, "%s%sData:!%s%c%03d/%03d/S%d/%03d/%03d/%03d,RSSI:%03d\r\n%s", prefix, header, latLong, SYMBOL, (int)msg.data.hdg, (int)msg.data.spd, altitude, msg.data.stage, (int)msg.data.orientation.z(), (int)msg.data.orientation.y(), (int)msg.data.orientation.x(), RSSI, suffix);
     }
 
     void encodeLatLong(const APRSMsg &msg, char *buffer, size_t buffer_size)
