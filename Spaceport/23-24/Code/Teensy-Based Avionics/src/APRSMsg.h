@@ -75,10 +75,12 @@ private:
     void decodeBase91(const uint8_t *message, int &cursor, double &value, int precision) const;
 
     // Scale factors for encoding/decoding ignoring lat/long
-    const double ALT_SCALE = (pow(91, 2) / 15000.0);       // (91^2/15000) scale to fit in 2 base91 characters
+    const double ALT_SCALE = (pow(91, 2) / 16000.0);       // (91^2/16000) scale to fit in 2 base91 characters
     const double SPD_SCALE = (pow(91, 2) / 1000.0);        // (91^2/1000) scale to fit in 2 base91 characters
     const double HDG_SCALE = (pow(91, 2) / 360.0);         // (91^2/360) scale to fit in 2 base91 characters
     const double ORIENTATION_SCALE = (pow(91, 2) / 360.0); // same as course
+
+    const int ALT_OFFSET = +1000; // range of -1000 to 15000 ft.
 };
 
 #endif // RADIO_H
