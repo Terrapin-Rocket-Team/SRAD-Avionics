@@ -70,6 +70,7 @@ void APRSMsg::encodeData(uint8_t *message, int cursor)
     */
 
     // lat and lng
+    message[cursor++] = '!';                                          // Message type (position without timestamp)
     message[cursor++] = 'M';                                          // overlay
     encodeBase91(message, cursor, (int)380926 * (90 - data.lat), 4);  // 380926 is the magic number from the APRS spec (page 38)
     encodeBase91(message, cursor, (int)190463 * (180 + data.lng), 4); // 190463 is the magic number from the APRS spec (page 38)
