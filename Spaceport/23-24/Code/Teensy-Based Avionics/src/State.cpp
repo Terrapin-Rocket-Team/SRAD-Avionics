@@ -503,8 +503,8 @@ bool State::transmit()
     uint8_t data[150];
     data[149] = '\0';
     aprs.encode(data);
-    printf("%s\n", data);
-    printf("Values: %f, %f, %.02f, %.02f, %.02f, %d, %d, %d, %d\n", aprs.data.lat, aprs.data.lng, aprs.data.hdg, aprs.data.spd, aprs.data.alt, aprs.data.stage, (int)aprs.data.orientation.z(), (int)aprs.data.orientation.y(), (int)aprs.data.orientation.x());
+    //printf("%s\n", data);
+    //printf("Values: %f, %f, %.02f, %.02f, %.02f, %d, %d, %d, %d\n", aprs.data.lat, aprs.data.lng, aprs.data.hdg, aprs.data.spd, aprs.data.alt, aprs.data.stage, (int)aprs.data.orientation.z(), (int)aprs.data.orientation.y(), (int)aprs.data.orientation.x());
     return true;
 }
 extern unsigned long _heap_start;

@@ -70,7 +70,7 @@ void MAX_M10S::update()
     pos.x() = m10s.getLatitude() / 10000000.0;
     pos.y() = m10s.getLongitude() / 10000000.0;
 
-    heading = m10s.getHeading();
+    heading = m10s.getHeading() / 100000.0;
     altitude = m10s.getAltitude() / 1000.0;
     fixQual = m10s.getSIV();
     if (!hasFirstFix && fixQual >= 4)
