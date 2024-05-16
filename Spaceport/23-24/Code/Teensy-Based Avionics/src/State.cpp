@@ -486,8 +486,6 @@ bool State::sensorOK(const Sensor *sensor)
 
 bool State::transmit()
 {
-    char data[200];
-    snprintf(data, 200, "%f,%f,%i,%i,%i,%c,%i,%s", sensorOK(gps) ? gps->getPos().x() : 0, sensorOK(gps) ? gps->getPos().y() : 0, sensorOK(baro) ? (int)baro->getRelAltFt() : 0, (int)(baroVelocity * 3.28), (int)headingAngle, 'H', stageNumber, launchTimeOfDay);
     aprs.data.lat = sensorOK(gps) ? gps->getPos().x() : 0;
     aprs.data.lng = sensorOK(gps) ? gps->getPos().y() : 0;
     aprs.data.alt = sensorOK(baro) ? baro->getRelAltFt() : 0;
@@ -495,7 +493,7 @@ bool State::transmit()
     aprs.data.spd = (int)(baroVelocity * 3.28);
     aprs.data.stage = stageNumber;
     aprs.data.orientation = imu->getOrientation().toEuler();
-    
+    aprs.data.orientation.toDegrees();
     radio->enqueueSend(&aprs);
     return true;
 }

@@ -59,20 +59,20 @@ public:
     virtual ~APRSMsg(){};
 
     bool decode(const uint8_t *message, int len) override;
-    uint8_t *encode() override;
+    bool encode(uint8_t *message) override;
     int length() const override { return this->len; }
     APRSData data;
     APRSHeader header;
 
 private:
-    int encodeHeader(char *message) const;
-    void encodeData(char *message, int cursor);
+    int encodeHeader(uint8_t *message) const;
+    void encodeData(uint8_t *message, int cursor);
 
-    int decodeHeader(const char *message, int len);
-    void decodeData(const char *message, int len, int cursor);
+    int decodeHeader(const uint8_t *message, int len);
+    void decodeData(const uint8_t *message, int len, int cursor);
 
-    void encodeBase91(char *message, int &cursor, int value, int precision) const;
-    void decodeBase91(const char *message, int &cursor, double &value, int precision) const;
+    void encodeBase91(uint8_t *message, int &cursor, int value, int precision) const;
+    void decodeBase91(const uint8_t *message, int &cursor, double &value, int precision) const;
 
     // Scale factors for encoding/decoding ignoring lat/long
     const double ALT_SCALE = (pow(91, 2) / 15000.0);       // (91^2/15000) scale to fit in 2 base91 characters

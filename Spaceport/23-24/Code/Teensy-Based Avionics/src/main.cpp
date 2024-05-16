@@ -4,7 +4,7 @@
 #include "BNO055.h"
 #include "MAX_M10S.h"
 #include "DS3231.h"
-#include "RFM69HCWNew.h"
+#include "RFM69HCW.h"
 #include "RecordData.h"
 #include "BlinkBuzz.h"
 
@@ -12,7 +12,7 @@ BNO055 bno(13, 12);         // I2C Address 0x29
 BMP390 bmp(13, 12);         // I2C Address 0x77
 MAX_M10S gps(13, 12, 0x42); // I2C Address 0x42
 RadioSettings settings = {915.0, true, false, &hardware_spi, 10, 31, 32};
-RFM69HCWNew radio(&settings);
+RFM69HCW radio(&settings);
 State computer; // = useKalmanFilter = true, stateRecordsOwnData = true
 uint32_t radioTimer = millis();
 
