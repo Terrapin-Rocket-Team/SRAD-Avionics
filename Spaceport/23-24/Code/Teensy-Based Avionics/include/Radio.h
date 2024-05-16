@@ -31,11 +31,11 @@ enum EncodingType
 class RadioMessage
 {
 public:
-    virtual uint8_t *encode() = 0;                            // use stored variables to encode a message
+    virtual bool encode(uint8_t *message) = 0;                            // use stored variables to encode a message
     virtual bool decode(const uint8_t *message, int len) = 0; // use `message` to set stored variables
     virtual int length() const = 0;                           // return the length of the message
     virtual ~RadioMessage(){};
-
+    static constexpr int MAX_MESSAGE_LEN = 255;
 protected:
     uint8_t len;
 };

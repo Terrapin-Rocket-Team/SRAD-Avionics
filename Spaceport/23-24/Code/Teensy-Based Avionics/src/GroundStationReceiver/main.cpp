@@ -1,10 +1,10 @@
-#include "RFM69HCWNew.h"
+#include "RFM69HCW.h"
 #include <Arduino.h>
 
 APRSHeader header;
 APRSMsg msg(header);
 RadioSettings settings = {915.0, false, false, &hardware_spi, 10, 31, 32};
-RFM69HCWNew radio(&settings);
+RFM69HCW radio(&settings);
 void setup()
 {
     delay(2000);

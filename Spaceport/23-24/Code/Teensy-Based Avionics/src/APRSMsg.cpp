@@ -7,25 +7,24 @@ APRSMsg::APRSMsg(APRSHeader &header)
     this->header = header;
 }
 
-uint8_t *APRSMsg::encode()
+bool APRSMsg::encode(uint8_t *message)
 {
-    char *msg = new char[MAX_ALLOWED_MSG_LEN];
-    int c = encodeHeader(msg);
-    encodeData(msg, c);
-    return (uint8_t *)msg;
+    int c = encodeHeader(message);
+    encodeData(message, c);
+    return true;
 }
 
 bool APRSMsg::decode(const uint8_t *message, int len)
 {
     // message needs to be decoded and values reinserted into the header and data structs
-    int c = decodeHeader((char *)message, len);
-    decodeData((char *)message, len, c);
+    int c = decodeHeader((uint8_t *)message, len);
+    decodeData((uint8_t *)message, len, c);
     return false;
 }
 
 #pragma region Encode Helpers
 
-int APRSMsg::encodeHeader(char *message) const
+int APRSMsg::encodeHeader(uint8_t *message) const
 {
     // format: CALLSIGN>TOCALL,PATH:
     int cursor = 0;
@@ -47,7 +46,7 @@ int APRSMsg::encodeHeader(char *message) const
     return cursor;
 }
 
-void APRSMsg::encodeData(char *message, int cursor)
+void APRSMsg::encodeData(uint8_t *message, int cursor)
 {
     /* Small Aircraft symbol ( /' ) probably better than Jogger symbol ( /[ ) lol.
      I'm going to use the Overlayed Aircraft symbol ( \^ ) for now, with the overlay of 'M' for UMD ( M^ ).
@@ -83,7 +82,7 @@ void APRSMsg::encodeData(char *message, int cursor)
     encodeBase91(message, cursor, (int)(data.alt * ALT_SCALE), 2); // (91^2/15000) scale to fit in 2 base91 characters. 15000 feet is the assumed max altitude.
 
     // stage and orientation
-    message[cursor++] = (char)(data.stage + (int)'0');                                 // stage is just written in plaintext.
+    message[cursor++] = (uint8_t)(data.stage + (int)'0');                                 // stage is just written in plaintext.
     encodeBase91(message, cursor, (int)(data.orientation.x() * ORIENTATION_SCALE), 2); // same as course
     encodeBase91(message, cursor, (int)(data.orientation.y() * ORIENTATION_SCALE), 2); // same as course
     encodeBase91(message, cursor, (int)(data.orientation.z() * ORIENTATION_SCALE), 2); // same as course
@@ -95,7 +94,7 @@ void APRSMsg::encodeData(char *message, int cursor)
 
 #pragma region Decode Helpers
 
-int APRSMsg::decodeHeader(const char *message, int len)
+int APRSMsg::decodeHeader(const uint8_t *message, int len)
 {
     // format: CALLSIGN>TOCALL,PATH:
     int cursor = 0;
@@ -120,7 +119,7 @@ int APRSMsg::decodeHeader(const char *message, int len)
     return cursor;
 }
 
-void APRSMsg::decodeData(const char *message, int len, int cursor)
+void APRSMsg::decodeData(const uint8_t *message, int len, int cursor)
 {
     // lat and lng
     cursor++; // skip overlay
@@ -153,17 +152,17 @@ void APRSMsg::decodeData(const char *message, int len, int cursor)
 
 #pragma region Base91 Encoding
 
-void APRSMsg::encodeBase91(char *message, int &cursor, int value, int precision) const
+void APRSMsg::encodeBase91(uint8_t *message, int &cursor, int value, int precision) const
 {
     for (int i = precision - 1; i >= 0; i--)
     {
         int divisor = pow(91, i);
-        message[cursor++] = (char)((int)(value / divisor) + 33);
+        message[cursor++] = (uint8_t)((int)(value / divisor) + 33);
         value %= divisor;
     }
 }
 
-void APRSMsg::decodeBase91(const char *message, int &cursor, double &value, int precision) const
+void APRSMsg::decodeBase91(const uint8_t *message, int &cursor, double &value, int precision) const
 {
     value = 0;
     for (int i = 0; i < precision; i++)
