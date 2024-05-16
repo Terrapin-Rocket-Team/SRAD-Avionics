@@ -19,7 +19,7 @@ bool APRSMsg::decode(const uint8_t *message, int len)
     // message needs to be decoded and values reinserted into the header and data structs
     int c = decodeHeader((uint8_t *)message, len);
     decodeData((uint8_t *)message, len, c);
-    return false;
+    return true;
 }
 
 #pragma region Encode Helpers
