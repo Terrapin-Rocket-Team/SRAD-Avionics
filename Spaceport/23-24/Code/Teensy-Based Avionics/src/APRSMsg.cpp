@@ -123,6 +123,7 @@ int APRSMsg::decodeHeader(const uint8_t *message, int len)
 void APRSMsg::decodeData(const uint8_t *message, int len, int cursor)
 {
     // lat and lng
+    cursor++; // skip '!'
     cursor++; // skip overlay
     decodeBase91(message, cursor, data.lat, 4);
     data.lat = 90 - data.lat / 380926.0;
