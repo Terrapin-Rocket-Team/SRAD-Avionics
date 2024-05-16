@@ -490,11 +490,21 @@ bool State::transmit()
     aprs.data.lng = sensorOK(gps) ? gps->getPos().y() : 0;
     aprs.data.alt = sensorOK(baro) ? baro->getRelAltFt() : 0;
     aprs.data.hdg = (int)headingAngle;
-    aprs.data.spd = (int)(baroVelocity * 3.28);
+    aprs.data.spd = abs((int)(baroVelocity * 3.28));
     aprs.data.stage = stageNumber;
     aprs.data.orientation = imu->getOrientation().toEuler();
     aprs.data.orientation.toDegrees();
+    for(int i = 0; i < 3; i++)
+    {
+        if(aprs.data.orientation[i] < 0)
+            aprs.data.orientation[i] += 360;
+    }
     radio->enqueueSend(&aprs);
+    uint8_t data[150];
+    data[149] = '\0';
+    aprs.encode(data);
+    printf("%s\n", data);
+    printf("Values: %f, %f, %.02f, %.02f, %.02f, %d, %d, %d, %d\n", aprs.data.lat, aprs.data.lng, aprs.data.hdg, aprs.data.spd, aprs.data.alt, aprs.data.stage, (int)aprs.data.orientation.z(), (int)aprs.data.orientation.y(), (int)aprs.data.orientation.x());
     return true;
 }
 extern unsigned long _heap_start;

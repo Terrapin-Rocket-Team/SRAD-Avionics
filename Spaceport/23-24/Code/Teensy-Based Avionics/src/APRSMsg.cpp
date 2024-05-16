@@ -80,7 +80,7 @@ void APRSMsg::encodeData(uint8_t *message, int cursor)
     // course, speed, altitude
     encodeBase91(message, cursor, (int)(data.hdg * HDG_SCALE), 2); // (91^2/360) scale to fit in 2 base91 characters
     encodeBase91(message, cursor, (int)(data.spd * SPD_SCALE), 2); // (91^2/1000) scale to fit in 2 base91 characters. 1000 knots is the assumed max speed.
-    encodeBase91(message, cursor, (int)(data.alt * ALT_SCALE), 2); // (91^2/15000) scale to fit in 2 base91 characters. 15000 feet is the assumed max altitude.
+    encodeBase91(message, cursor, (int)((data.alt + ALT_OFFSET) * ALT_SCALE), 2); // (91^2/15000) scale to fit in 2 base91 characters. 15000 feet is the assumed max altitude.
 
     // stage and orientation
     message[cursor++] = (uint8_t)(data.stage + (int)'0');                                 // stage is just written in plaintext.
@@ -137,7 +137,7 @@ void APRSMsg::decodeData(const uint8_t *message, int len, int cursor)
     decodeBase91(message, cursor, data.spd, 2);
     data.spd /= SPD_SCALE;
     decodeBase91(message, cursor, data.alt, 2);
-    data.alt /= ALT_SCALE;
+    data.alt = data.alt / ALT_SCALE - ALT_OFFSET;
 
     // stage and orientation
     data.stage = message[cursor++] - (int)'0';
