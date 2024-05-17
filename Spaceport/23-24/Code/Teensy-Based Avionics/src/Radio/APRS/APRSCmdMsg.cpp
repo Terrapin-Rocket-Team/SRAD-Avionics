@@ -3,7 +3,8 @@
 void APRSCmdMsg::encodeData(int cursor)
 {
     snprintf((char *)&string[cursor], RADIO_MESSAGE_BUFFER_SIZE - cursor,
-             ":%-09s:PWR:%d VID:%d DAT:%d L:%d", header.CALLSIGN, data.MinutesUntilPowerOn, data.MinutesUntilVideoStart, data.MinutesUntilDataRecording, data.Launch);
+             ":%-9s:PWR:%d VID:%d DAT:%d L:%d", header.CALLSIGN, data.MinutesUntilPowerOn, data.MinutesUntilVideoStart, data.MinutesUntilDataRecording, data.Launch);
+    len = strlen((char *)string);
 }
 void APRSCmdMsg::decodeData(int cursor)
 {
