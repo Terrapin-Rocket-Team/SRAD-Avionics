@@ -127,7 +127,6 @@ bool RFM69HCW::enqueueSend(const uint8_t *message, uint8_t len)
         return false;
 
     // fill up the buffer with the message. buffer is a circular queue.
-    int originalTail = sendBuffer.tail;
     sendBuffer.data[sendBuffer.tail] = len; // store the length of the message in the first byte
     inc(sendBuffer.tail);
 

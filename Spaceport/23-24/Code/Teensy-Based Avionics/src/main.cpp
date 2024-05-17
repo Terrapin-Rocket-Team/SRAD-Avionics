@@ -38,7 +38,8 @@ static double last = 0; // for better timing than "delay(100)"
 
 // BlinkBuzz setup
 int BUZZER = 33;
-int allowedPins[] = {LED_BUILTIN};
+int LED = LED_BUILTIN;
+int allowedPins[] = {LED};
 BlinkBuzz bb(allowedPins, 1, true);
 
 // Free memory debug function
