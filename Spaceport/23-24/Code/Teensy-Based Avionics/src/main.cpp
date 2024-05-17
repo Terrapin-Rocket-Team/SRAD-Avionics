@@ -22,13 +22,12 @@ MAX_M10S gps(13, 12, 0x42); // I2C Address 0x42
 RadioSettings settings = {915.0, 0x01, 0x02, &hardware_spi, 10, 31, 32};
 RFM69HCW radio(&settings);
 APRSHeader header = {"KC3UTM", "APRS", "WIDE1-1", '^', 'M'};
-APRSCmdData currentCmdData;
+APRSCmdData currentCmdData = {800000, 800000, 800000, false};
 APRSCmdMsg cmd(header);
 APRSTelemMsg telem(header);
-int timeSinceLastCmd = 0;
-const int CMD_TIMEOUT_SEC = 10; // 10 seconds
+int timeOfLastCmd = 0;
+const int CMD_TIMEOUT_SEC = 100; // 10 seconds
 void processCurrentCmdData(double time);
-
 
 State computer; // = useKalmanFilter = true, stateRecordsOwnData = true
 uint32_t radioTimer = millis();
@@ -114,6 +113,7 @@ void loop()
     bb.update();
     if (radio.update()) // if there is a message to be read
     {
+        timeOfLastCmd = time;
         APRSCmdData old = cmd.data;
         if (radio.dequeueReceive(&cmd))
         {
@@ -173,34 +173,35 @@ void loop()
             telem.data.statusFlags &= ~RECORDING_DATA;
 
         radio.enqueueSend(&telem);
+        radioTimer = time;
     }
 
     // RASPBERRY PI TURN ON/VIDEO
-    if ((time / 1000.0 > 810 && time - timeSinceLastCmd > CMD_TIMEOUT_SEC * 1000) || computer.getStageNum() >= 1)
+    if ((time / 1000.0 > 810 && time - timeOfLastCmd > CMD_TIMEOUT_SEC * 1000) || computer.getStageNum() >= 1)
         rpi.setOn(true);
-    if ((computer.getStageNum() >= 1 || time - timeSinceLastCmd > CMD_TIMEOUT_SEC * 1000) && rpi.isOn())
+    if ((computer.getStageNum() >= 1 || time - timeOfLastCmd > CMD_TIMEOUT_SEC * 1000) && rpi.isOn())
         rpi.setRecording(true);
 }
 
 void processCurrentCmdData(double time)
 {
-    if (currentCmdData.Launch)
+    if (currentCmdData.Launch && computer.getStageNum() == 0)
     {
         recordLogData(INFO, "Launch Command Received. Launching Rocket.");
         computer.launch();
     }
 
-    if (time > currentCmdData.MinutesUntilPowerOn)
+    if (time > currentCmdData.MinutesUntilPowerOn && !rpi.isOn())
     {
-        recordLogData(INFO, "Power On Radio Time Reached. Turning on Raspberry Pi.");
+        recordLogData(INFO, "Power On RPI Time Reached. Turning on Raspberry Pi.");
         rpi.setOn(true);
     }
-    if (time > currentCmdData.MinutesUntilVideoStart)
+    if (time > currentCmdData.MinutesUntilVideoStart && !rpi.isRecording())
     {
         recordLogData(INFO, "Video Start Time Reached. Starting Video Recording.");
         rpi.setRecording(true);
     }
-    if (time > currentCmdData.MinutesUntilDataRecording)
+    if (time > currentCmdData.MinutesUntilDataRecording && !computer.getRecordOwnFlightData())
     {
         recordLogData(INFO, "Data Recording Time Reached. Starting Data Recording.");
         computer.setRecordOwnFlightData(true);
