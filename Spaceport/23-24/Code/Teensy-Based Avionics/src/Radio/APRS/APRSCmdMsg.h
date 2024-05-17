@@ -3,23 +3,23 @@
 
 #include "APRSMsgBase.h"
 
-struct APRSCmdData
+struct APRSCmdData final
 {
     int MinutesUntilPowerOn;       // Minutes until the Pi turns on - 0 means turn on now
     int MinutesUntilVideoStart;    // Minutes until the Pi starts recording video - 0 means start now
     int MinutesUntilDataRecording; // Minutes until the FC starts recording data - 0 means start now
-    bool Launch;                       // Send the launch command to the FC - 0 means don't send
+    bool Launch;                   // Send the launch command to the FC - 0 means don't send
 };
 
-class APRSCmdMsg : public APRSMsgBase
+class APRSCmdMsg final : public APRSMsgBase 
 {
 public:
+    APRSCmdMsg(APRSHeader header);
     APRSCmdData data;
-    APRSCmdMsg(APRSHeader &header);
 
 protected:
-    virtual void decodeData(int cursor) override;
-    virtual void encodeData(int cursor) override;
-};
+    void decodeData(int cursor) override;
+    void encodeData(int cursor) override;
+} ;
 
 #endif // APRS_CMD_MSG_H

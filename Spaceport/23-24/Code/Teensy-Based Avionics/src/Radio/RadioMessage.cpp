@@ -1,6 +1,5 @@
 #include "RadioMessage.h"
 
-#include <cstring>
 
 RadioMessage::RadioMessage()
 {
@@ -16,9 +15,8 @@ Copies a source array to the encoded message buffer
 bool RadioMessage::setArr(const uint8_t *srcArr, int len)
 {
     if (len > RADIO_MESSAGE_BUFFER_SIZE)
-    {
         return false;
-    }
+
     memcpy(this->string, srcArr, len);
     this->len = len;
     return true;
@@ -39,5 +37,5 @@ Returns the length of the encoded message
 */
 int RadioMessage::length() const
 {
-    return this->len;
+    return len;
 }
