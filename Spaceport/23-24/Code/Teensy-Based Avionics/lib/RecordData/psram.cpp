@@ -15,7 +15,7 @@ bool PSRAM::init()
 {
     uint8_t size = external_psram_size;
     memBegin = cursorStart = reinterpret_cast<char *>(0x70000000);
-    memEnd = cursorEnd = memBegin + (size * 1048576);
+    memEnd = cursorEnd = memBegin + (size * 1048576) - 1;
 
     if (size > 0)
     {
@@ -73,7 +73,7 @@ bool PSRAM::dumpFlightData()
 bool PSRAM::dumpLogData()
 { // more complicated because data is stored in reverse order
     if (!isSDReady() || !ready){
-        bb.aonoff(33, 200);
+        bb.aonoff(BUZZER, 200);
         return false;
     }
 
@@ -83,11 +83,11 @@ bool PSRAM::dumpLogData()
     logFile = sd.open(logFileName, FILE_WRITE);
 
     if (!logFile){
-        bb.aonoff(33, 200, 3);
+        bb.aonoff(BUZZER, 200, 3);
         return false;
     }
     
-    while (writeCursor >= cursorEnd)
+    while (writeCursor > cursorEnd)
     {
 
         for (i = 0; i < 2048; i++)
@@ -106,7 +106,7 @@ bool PSRAM::dumpLogData()
     logFile.close();
     cursorEnd = memEnd;
     dumped = true;
-    bb.aonoff(33, 200, 5);
+    bb.aonoff(BUZZER, 200, 5);
     return true;
 }
 
