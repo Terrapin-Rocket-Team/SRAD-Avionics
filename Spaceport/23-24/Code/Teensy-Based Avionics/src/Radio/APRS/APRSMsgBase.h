@@ -16,9 +16,7 @@
 #include "../Radio.h"
 #include <imumaths.h>
 
-const uint8_t PI_ON = 0b00000001;          // Pi is on
-const uint8_t PI_VIDEO = 0b00000010;       // Pi is recording video
-const uint8_t RECORDING_DATA = 0b00000100; // FC is recording data
+
 
 /*
 APRS Configuration
