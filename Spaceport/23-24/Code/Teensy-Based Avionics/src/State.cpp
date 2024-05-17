@@ -7,15 +7,12 @@ State::State(bool useKalmanFilter, bool stateRecordsOwnFlightData)
     lastTimeAbsolute = 0;
     timeAbsolute = millis();
     timePreviousStage = 0;
-    position.x() = 0;
-    position.y() = 0;
-    position.z() = 0;
-    velocity.x() = 0;
-    velocity.y() = 0;
-    velocity.z() = 0;
-    acceleration.x() = 0;
-    acceleration.y() = 0;
-    acceleration.z() = 0;
+    
+    position = imu::Vector<3>(0, 0, 0);
+    velocity = imu::Vector<3>(0, 0, 0);
+    acceleration = imu::Vector<3>(0, 0, 0);
+    orientation = imu::Quaternion(0, 0, 0, 1);
+
     apogee = 0;
     stageNumber = 0;
     baroOldAltitude = 0;
@@ -33,12 +30,12 @@ State::State(bool useKalmanFilter, bool stateRecordsOwnFlightData)
     numSensors = 0;
     recordOwnFlightData = stateRecordsOwnFlightData;
 
+    ///
+
+    recordOwnFlightData = false; // For radio testing. Will not record own data unless told to do so or if it detects a launch.
 
     ///
 
-    recordOwnFlightData = false; // For radio testing. Will not record own data unless told to do so.
-
-    ///
     for (int i = 0; i < NUM_MAX_SENSORS; i++)
         sensors[i] = nullptr;
 
@@ -75,36 +72,28 @@ State::~State()
 
 bool State::init()
 {
-    char *logData = new char[100];
+    char logData[100];
     int good = 0, tryNumSensors = 0;
     for (int i = 0; i < NUM_MAX_SENSORS; i++)
     {
-        if (sensors[i])
+        if (sensors[i]) // not nullptr
         {
             tryNumSensors++;
             if (sensors[i]->initialize())
             {
                 good++;
-                strcpy(logData, sensors[i]->getTypeString()); // This is a lot for just some logging...
-                strcat(logData, " [");
-                strcat(logData, sensors[i]->getName());
-                strcat(logData, "] initialized.");
+                snprintf(logData, 100, "%s [%s] initialized.", sensors[i]->getTypeString(), sensors[i]->getName());
                 recordLogData(INFO, logData);
             }
             else
             {
-                strcpy(logData, sensors[i]->getTypeString());
-                strcat(logData, " [");
-                strcat(logData, sensors[i]->getName());
-                strcat(logData, "] failed to initialize.");
+                snprintf(logData, 100, "%s [%s] failed to initialize.", sensors[i]->getTypeString(), sensors[i]->getName());
                 recordLogData(ERROR, logData);
             }
         }
         else
         {
-            strcpy(logData, "Sensor [");
-            strcat(logData, SENSOR_NAMES[i]);
-            strcat(logData, "] was not added via addSensor().");
+            snprintf(logData, 100, "Sensor [%s] was not added via addSensor().", SENSOR_NAMES[i]);
             recordLogData(ERROR, logData);
         }
     }
@@ -148,10 +137,10 @@ void State::updateState(double newTimeAbsolute)
         return;
 
     lastTimeAbsolute = timeAbsolute;
-    if (newTimeAbsolute != -1)
-        timeAbsolute = newTimeAbsolute;
-    else
+    if (newTimeAbsolute == -1)
         timeAbsolute = millis() / 1000.0;
+    else
+        timeAbsolute = newTimeAbsolute;
 
     updateSensors();
     if (kfilter && sensorOK(gps) && gps->getHasFirstFix() && stageNumber > 0)
@@ -192,7 +181,7 @@ void State::updateState(double newTimeAbsolute)
 
         if (sensorOK(baro))
         {
-            baroVelocity = (baro->getRelAltM() - baroOldAltitude) / (millis() / 1000.0 - timeAbsolute);
+            baroVelocity = (baro->getRelAltM() - baroOldAltitude) / (timeAbsolute - lastTimeAbsolute);
             baroOldAltitude = baro->getRelAltM();
         }
     }
@@ -206,9 +195,9 @@ void State::updateState(double newTimeAbsolute)
         }
         if (sensorOK(baro))
         {
-            velocity.z() = (baro->getRelAltM() - baroOldAltitude) / (millis() / 1000.0 - lastTimeAbsolute);
+            velocity.z() = (baro->getRelAltM() - baroOldAltitude) / (timeAbsolute - lastTimeAbsolute);
             position.z() = baro->getRelAltM();
-            baroVelocity = (baro->getRelAltM() - baroOldAltitude) / (millis() / 1000.0 - lastTimeAbsolute);
+            baroVelocity = (baro->getRelAltM() - baroOldAltitude) / (timeAbsolute - lastTimeAbsolute);
             baroOldAltitude = baro->getRelAltM();
         }
         if (sensorOK(imu))
@@ -218,32 +207,32 @@ void State::updateState(double newTimeAbsolute)
         }
     }
 
-    if (stageNumber == 0)
-        timeSinceLaunch = 0;
-    else
-        timeSinceLaunch = timeAbsolute - timeOfLaunch;
-
     determineAccelerationMagnitude();
     determineStage();
+
     if (stageNumber > 0)
+    {
         timeSincePreviousStage = timeAbsolute - timePreviousStage;
+        timeSinceLaunch = timeAbsolute - timeOfLaunch;
+    }
+
     if (stageNumber < 3)
         apogee = position.z();
 
     // backup case to dump data (25 minutes)
-    if (stageNumber > 0 && timeSinceLaunch > 1500 && stageNumber < 5)
+    if (stageNumber > 0 && timeSinceLaunch > 25 * 60 && stageNumber < 5)
     {
         stageNumber = 5;
         setRecordMode(GROUND);
-        digitalWrite(LED_BUILTIN, HIGH);
-        delay(500);
-        digitalWrite(LED_BUILTIN, LOW);
+        bb.aonoff(LED, 5000);
         recordLogData(WARNING, "Dumping data after 25 minutes.");
     }
     setDataString();
     if (recordOwnFlightData)
         recordFlightData(dataString);
 }
+
+#pragma region CSV Operations
 
 void State::setCsvHeader()
 {
@@ -284,12 +273,54 @@ char *State::getStateString()
 
 char *State::getDataString() { return dataString; }
 char *State::getCsvHeader() { return csvHeader; }
-int State::getStageNum() { return stageNumber; }
 
-#pragma region Getters and Setters for Sensors
+void State::setCsvString(char *dest, const char *start, int startSize, bool header)
+{
+    int numCategories = numSensors + 1;
+    const char **str = new const char *[numCategories];
+    str[0] = start;
+    int cursor = 1;
+    delete[] dest;
+    //---Determine required size for string
+    int size = startSize + 1; // includes '\0' at end of string for the end of dataString to use
+    for (int i = 0; i < NUM_MAX_SENSORS; i++)
+    {
+        if (sensorOK(sensors[i]))
+        {
+            str[cursor] = header ? sensors[i]->getCsvHeader() : sensors[i]->getDataString();
+            size += strlen(str[cursor++]);
+        }
+    }
+    dest = new char[size];
+    if (header)
+        csvHeader = dest;
+    else
+        dataString = dest;
+    //---Fill data String
+    int j = 0;
+    for (int i = 0; i < numCategories; i++)
+    {
+        for (int k = 0; str[i][k] != '\0'; j++, k++)
+        { // append all the data strings onto the main string
+
+            dest[j] = str[i][k];
+        }
+        if (i >= 1 && !header)
+        {
+            delete[] str[i]; // delete all the heap arrays.
+        }
+    }
+    delete[] str;
+    dest[j - 1] = '\0'; // all strings have ',' at end so this gets rid of that and terminates it a character early.
+}
+
+#pragma endregion // CSV Operations
+
+#pragma region Getters and Setters
 
 void State::setRecordOwnFlightData(bool value) { recordOwnFlightData = value; }
 bool State::getRecordOwnFlightData() { return recordOwnFlightData; }
+int State::getStageNum() { return stageNumber; }
 
 void State::setRadio(Radio *r) { radio = r; }
 Radio *State::getRadio() { return radio; }
@@ -323,7 +354,8 @@ Sensor *State::getSensor(SensorType type, int sensorNum)
 Barometer *State::getBaro() { return baro; }
 GPS *State::getGPS() { return gps; }
 IMU *State::getIMU() { return imu; }
-#pragma endregion
+
+#pragma endregion // Getters and Setters
 
 #pragma region Helper Functions
 
@@ -367,18 +399,18 @@ bool State::applySensorType(int i, int sensorNum)
 
 void State::determineAccelerationMagnitude()
 {
-    accelerationMagnitude = sqrt((acceleration.x() * acceleration.x()) + (acceleration.y() * acceleration.y()) + (acceleration.z() * acceleration.z()));
+    accelerationMagnitude = acceleration.magnitude();
 }
 
 void State::determineStage()
 {
     if (stageNumber == 0 &&
         (sensorOK(imu) || sensorOK(baro)) &&
-        (sensorOK(imu) ? abs(imu->getAcceleration().z()) > 25 : true) &&
+        (sensorOK(imu) ? accelerationMagnitude > 25 : true) &&
         (sensorOK(baro) ? baro->getRelAltFt() > 60 : true))
     // if we are in preflight AND
     // we have either the IMU OR the barometer AND
-    // imu is ok AND the z acceleration is greater than 29 ft/s^2 OR imu is not ok AND
+    // imu is ok AND the accel Magnitude is greater than 25 ft/s^2 OR imu is not ok AND
     // barometer is ok AND the relative altitude is greater than 30 ft OR baro is not ok
 
     // essentially, if we have either sensor and they meet launch threshold, launch. Otherwise, it will never detect a launch.
@@ -386,7 +418,7 @@ void State::determineStage()
         recordLogData(INFO, "Launch detected.");
         launch();
     } // TODO: Add checks for each sensor being ok and decide what to do if they aren't.
-    else if (stageNumber == 1 && abs(acceleration.z()) < 10)
+    else if (stageNumber == 1 && accelerationMagnitude < 10)
     {
         bb.aonoff(BUZZER, 200, 2);
         timePreviousStage = timeAbsolute;
@@ -432,8 +464,7 @@ void State::launch()
     bb.aonoff(BUZZER, 200);
     setRecordMode(FLIGHT);
     stageNumber = 1;
-    timeOfLaunch = timeAbsolute;
-    timePreviousStage = timeAbsolute;
+    timeOfLaunch = timePreviousStage = timeAbsolute;
     timeSinceLaunch = 0;
     strcpy(launchTimeOfDay, gps->getTimeOfDay());
     recordLogData(INFO, "Printing static data.");
@@ -448,45 +479,6 @@ void State::launch()
         }
     }
 }
-void State::setCsvString(char *dest, const char *start, int startSize, bool header)
-{
-    int numCategories = numSensors + 1;
-    const char **str = new const char *[numCategories];
-    str[0] = start;
-    int cursor = 1;
-    delete[] dest;
-    //---Determine required size for string
-    int size = startSize + 1; // includes '\0' at end of string for the end of dataString to use
-    for (int i = 0; i < NUM_MAX_SENSORS; i++)
-    {
-        if (sensorOK(sensors[i]))
-        {
-            str[cursor] = header ? sensors[i]->getCsvHeader() : sensors[i]->getDataString();
-            size += strlen(str[cursor++]);
-        }
-    }
-    dest = new char[size];
-    if (header)
-        csvHeader = dest;
-    else
-        dataString = dest;
-    //---Fill data String
-    int j = 0;
-    for (int i = 0; i < numCategories; i++)
-    {
-        for (int k = 0; str[i][k] != '\0'; j++, k++)
-        { // append all the data strings onto the main string
-
-            dest[j] = str[i][k];
-        }
-        if (i >= 1 && !header)
-        {
-            delete[] str[i]; // delete all the heap arrays.
-        }
-    }
-    delete[] str;
-    dest[j - 1] = '\0'; // all strings have ',' at end so this gets rid of that and terminates it a character early.
-}
 
 bool State::sensorOK(const Sensor *sensor)
 {
@@ -494,8 +486,6 @@ bool State::sensorOK(const Sensor *sensor)
         return true;
     return false;
 }
-
-#pragma endregion
 
 void State::fillAPRSData(APRSTelemData &data)
 {
@@ -513,6 +503,7 @@ void State::fillAPRSData(APRSTelemData &data)
             data.orientation[i] += 360;
     }
 }
+#pragma endregion // Helper Functions
 
 extern unsigned long _heap_start;
 extern unsigned long _heap_end;
