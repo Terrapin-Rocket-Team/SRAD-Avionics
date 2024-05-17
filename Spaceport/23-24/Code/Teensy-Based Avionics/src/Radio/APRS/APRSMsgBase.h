@@ -1,5 +1,5 @@
-#ifndef APRSMSG_H
-#define APRSMSG_H
+#ifndef APRS_MSG_BASE_H
+#define APRS_MSG_BASE_H
 
 #if defined(ARDUINO)
 #include <Arduino.h>
@@ -13,20 +13,9 @@
 // TODO
 #endif
 
-#include "../Radio.h"
-#include <imumaths.h>
+#include "../RadioMessage.h"
 
-
-
-/*
-APRS Configuration
-- CALLSIGN
-- TOCALL
-- PATH
-- SYMBOL
-- OVERLAY
-*/
-struct APRSHeader
+struct APRSHeader final
 {
     char CALLSIGN[8];
     char TOCALL[8];
@@ -35,36 +24,24 @@ struct APRSHeader
     char OVERLAY;
 };
 
-/*
-APRS Telemetry Data
-- lat
-- lng
-- alt
-- spd
-- hdg
-- stage
-- orientation
-*/
-
-
 class APRSMsgBase : public RadioMessage
 {
 public:
-    APRSMsgBase(APRSHeader &header);
+    APRSMsgBase(APRSHeader header);
     virtual ~APRSMsgBase(){};
 
     virtual bool decode() override;
     virtual bool encode() override;
     APRSHeader header;
+
 protected:
-    virtual int encodeHeader();
-    virtual int decodeHeader();
+    int encodeHeader();
+    int decodeHeader();
     virtual void encodeData(int cursor) = 0;
     virtual void decodeData(int cursor) = 0;
     void encodeBase91(uint8_t *message, int &cursor, int value, int precision);
     void decodeBase91(const uint8_t *message, int &cursor, double &value, int precision);
 
-private:
 };
 
 #endif // RADIO_H

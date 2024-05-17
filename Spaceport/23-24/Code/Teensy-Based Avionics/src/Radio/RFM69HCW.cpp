@@ -17,8 +17,7 @@ Constructor
 */
 RFM69HCW::RFM69HCW(const RadioSettings *s) : radio(s->cs, s->irq, *s->spi)
 {
-
-    this->settings = *s;
+    settings = *s;
 }
 
 /*
@@ -74,7 +73,7 @@ bool RFM69HCW::init()
 Most basic transmission method, simply transmits the string without modification
     \param message is the message to be transmitted, must be shorter than RH_RF69_MAX_MESSAGE_LEN
     \param len optional length of message, required if message is not a null terminated string
-    \param packetNum optional packet number of the message
+    \param packetNum optional packet number of the message, given to the receiver to reassemble the message
     \param lastPacket optional is this the last packet of a larger message or the only packet?
     \return `true` if the message was sent, `false` otherwise
 */
@@ -86,12 +85,8 @@ bool RFM69HCW::tx(const uint8_t *message, int len, int packetNum, bool lastPacke
 
     radio.setHeaderId(packetNum);
     radio.setHeaderFlags(lastPacket ? 0 : RADIO_FLAG_MORE_DATA);
-    char msg[len + 1];
-    for (int i = 0; i < len; i++)
-        msg[i] = message[i];
-    msg[len] = '\0';
-    printf("tx: %s\n", msg);
-    return radio.send((uint8_t *)message, len);
+
+    return radio.send(message, len);
 }
 
 /*
@@ -122,24 +117,22 @@ Enqueue a message into the buffer
 */
 bool RFM69HCW::enqueueSend(const uint8_t *message, uint8_t len)
 {
-    printf("enqueueSend2\n");
+    // determine if the message is too long to fit without the tail running into the head
+    if (sendBuffer.tail >= sendBuffer.head)
+    {
+        if (TRANSCEIVER_MESSAGE_BUFFER_SIZE - sendBuffer.tail + sendBuffer.head < len + 1) // +1 for the length byte
+            return false;
+    }
+    else if (sendBuffer.head - sendBuffer.tail < len + 1) // +1 for the length byte
+        return false;
+
     // fill up the buffer with the message. buffer is a circular queue.
     int originalTail = sendBuffer.tail;
-    sendBuffer.data[sendBuffer.tail] = len; // store the length of the message
+    sendBuffer.data[sendBuffer.tail] = len; // store the length of the message in the first byte
     inc(sendBuffer.tail);
 
-    for (int i = 0; i < len; i++) // same algorithm as copyToBuffer but with a length check
-    {
-        if (sendBuffer.tail == sendBuffer.head) // buffer is full
-        {
-            sendBuffer.tail = originalTail; // reset the tail (no message was added)
-            return false;
-        }
+    copyToBuffer(sendBuffer, message, len);
 
-        sendBuffer.data[sendBuffer.tail] = message[i];
-        inc(sendBuffer.tail);
-    }
-    printf("len: %d\n", len);
     return true;
 }
 
@@ -152,6 +145,7 @@ bool RFM69HCW::enqueueSend(const char *message)
 {
     return enqueueSend((uint8_t *)message, strlen(message));
 }
+
 /*
 Encode the message and enqueue it in the buffer
     \param message the RadioMessage to encode and enqueue
@@ -159,12 +153,12 @@ Encode the message and enqueue it in the buffer
 */
 bool RFM69HCW::enqueueSend(RadioMessage *message)
 {
-    printf("enqueueSend\n");
     if (message->encode())
         return enqueueSend(message->getArr(), message->length());
-    printf("enqueueSend failed\n");
+
     return false;
 }
+
 /*
 Dequeue a message from the buffer and decode it into a uint8_t[].
     \param message the uint8_t[] to copy the recieved message into
@@ -196,7 +190,7 @@ bool RFM69HCW::dequeueReceive(char *message)
     // Empty the buffer up to the first null terminator
     inc(recvBuffer.head); // skip the length byte, should be null terminated
     int i = 0;
-    for (; recvBuffer.data[recvBuffer.head] != '\0' && recvBuffer.head != recvBuffer.tail; i++)
+    for (; recvBuffer.data[recvBuffer.head] != '\0' && recvBuffer.head != recvBuffer.tail - 1; i++) // same algo as copyFromBuffer but uses a null terminator
     {
         message[i] = recvBuffer.data[recvBuffer.head];
         inc(recvBuffer.head);
@@ -218,6 +212,7 @@ bool RFM69HCW::dequeueReceive(RadioMessage *message)
 
     uint8_t len = recvBuffer.data[recvBuffer.head];
     uint8_t *msg = new uint8_t[len];
+
     bool worked = false;
     if (dequeueReceive(msg))           // get the message from the buffer
         if (message->setArr(msg, len)) // send the message to the RadioMessage
@@ -233,10 +228,9 @@ bool RFM69HCW::dequeueReceive(RadioMessage *message)
 /*
 Update function
     - checks if the radio is busy
-    - if the radio is a transmitter, sends (partially sends, if it's too long) the next queued message in the buffer
-    - if the radio is a receiver, receives the next message and stores it in the buffer
-    \return TRANSMITTER: `true` if the message was sent, `false` if the message was not sent.
-    \return RECIEVER: `true` if the message was received in full, `false` if nothing received or message is incomplete.
+    - if the radio has received a message, it will store the message in the buffer, Will not transmit while a full message has been only partially received.
+    - if not receiving and the radio has a message to send, it will send a part of the message up to the max length the radio can handle.
+    \return `true` if the radio has received a full message, `false` otherwise (always false for transmiting)
 */
 bool RFM69HCW::update()
 {
@@ -246,23 +240,28 @@ bool RFM69HCW::update()
         return false;
 
     uint8_t rcvLen = RH_RF69_MAX_MESSAGE_LEN;
-    uint8_t rcvBuf[RH_RF69_MAX_MESSAGE_LEN];
+    uint8_t rcvBuf[rcvLen];
 
     if (rx(rcvBuf, &rcvLen))
     {
-        // store the message in the buffer
-        if (radio.headerId() == 0) // start of a new message
+        // start of a new message
+        if (radio.headerId() == 0)
         {
             orignalBufferTail = recvBuffer.tail;
             recvBuffer.data[recvBuffer.tail] = rcvLen; // store the length of the message
             inc(recvBuffer.tail);
         }
-        else                                              // continuing message
+        // continuing message
+        else
             recvBuffer.data[orignalBufferTail] += rcvLen; // update the total length of the message
 
+        // store the message in the buffer
         copyToBuffer(recvBuffer, rcvBuf, rcvLen);
-        if (radio.headerFlags() & RADIO_FLAG_MORE_DATA) // more data is coming, should not process yet
+
+        // more data is coming, should not process yet. TODO: Add a timeout to prevent infinite loop
+        if (radio.headerFlags() & RADIO_FLAG_MORE_DATA)
             return false;
+
         return true;
     }
     // transmit
@@ -271,13 +270,17 @@ bool RFM69HCW::update()
         remainingLength = 0;
         return false;
     }
+
     int packetNum;
-    if (remainingLength == 0) // start a new message
+
+    // start a new message
+    if (remainingLength == 0)
     {
         remainingLength = sendBuffer.data[sendBuffer.head]; // get the length of the message from the first byte of the message
         inc(sendBuffer.head);
         packetNum = 0;
     }
+    // continue the message
     else
         packetNum = radio.headerId() + 1;
 
@@ -293,7 +296,7 @@ bool RFM69HCW::update()
 #pragma region Helpers
 
 /*
-\return `true` if the radio is currently transmitting or receiving a message
+\return `true` if the radio is currently transmitting a message
 */
 bool RFM69HCW::busy()
 {
@@ -308,6 +311,29 @@ Returns the RSSI of the last message
 int RFM69HCW::RSSI()
 {
     return rssi;
+}
+
+void RFM69HCW::copyToBuffer(buffer &buffer, const uint8_t *src, int len)
+{
+    for (int i = 0; i < len; i++)
+    {
+        buffer.data[buffer.tail] = src[i];
+        inc(buffer.tail);
+    }
+}
+
+// pop is true by default. If pop is false, the buffer head will not be moved.
+void RFM69HCW::copyFromBuffer(buffer &buffer, uint8_t *dest, int len, bool pop)
+{
+    int originalHead = buffer.head;
+    for (int i = 0; i < len; i++)
+    {
+        dest[i] = buffer.data[buffer.head];
+        inc(buffer.head);
+    }
+    
+    if (!pop)
+        buffer.head = originalHead;
 }
 
 // probably broken
@@ -342,26 +368,5 @@ int min(int a, int b)
     return b;
 }
 #endif
-
-void RFM69HCW::copyToBuffer(buffer &buffer, const uint8_t *src, int len)
-{
-    for (int i = 0; i < len; i++)
-    {
-        buffer.data[buffer.tail] = src[i];
-        inc(buffer.tail);
-    }
-}
-// pop is true by default. If pop is false, the buffer head will not be moved.
-void RFM69HCW::copyFromBuffer(buffer &buffer, uint8_t *dest, int len, bool pop)
-{
-    int originalHead = buffer.head;
-    for (int i = 0; i < len; i++)
-    {
-        dest[i] = buffer.data[buffer.head];
-        inc(buffer.head);
-    }
-    if (!pop)
-        buffer.head = originalHead;
-}
 
 #pragma endregion

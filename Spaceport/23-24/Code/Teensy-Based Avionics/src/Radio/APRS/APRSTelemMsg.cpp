@@ -1,6 +1,6 @@
 #include "APRSTelemMsg.h"
 
-APRSTelemMsg::APRSTelemMsg(APRSHeader &header) : APRSMsgBase(header)
+APRSTelemMsg::APRSTelemMsg(APRSHeader header) : APRSMsgBase(header)
 {
     data.lat = 0;
     data.lng = 0;
@@ -12,16 +12,13 @@ APRSTelemMsg::APRSTelemMsg(APRSHeader &header) : APRSMsgBase(header)
     data.statusFlags = 0;
 }
 
-#pragma region Encode Helpers
-
 void APRSTelemMsg::encodeData(int cursor)
 {
     /* Small Aircraft symbol ( /' ) probably better than Jogger symbol ( /[ ) lol.
      I'm going to use the Overlayed Aircraft symbol ( \^ ) for now, with the overlay of 'M' for UMD ( M^ ).
      Uses base91 encoding to compress message as much as possible. APRS messages are apparently supposed to be only 256 bytes.
 
-
-     takes the regular format of !DDMM.hhN/DDDMM.hhW^ALTSPD/HDG SSOrientationF
+     Takes the regular format of !DDMM.hhN/DDDMM.hhW^ALTSPD/HDG SSOrientationF
 
      which expands to !(lat)/(lng)^altspd/hdg (stage #)(orientation)(status flags)
 
@@ -29,7 +26,7 @@ void APRSTelemMsg::encodeData(int cursor)
 
      which expands to /(lat)(lng)^ (course)(speed)(altitude)(stage)(orientation [as euler angles])(status flags)
 
-     specifically does not use the csT compressed format because we don't need T and want better accuracy on course angle.
+     Specifically does not use the csT compressed format because we don't need T and want better accuracy on course angle.
      for more information on APRS, see http://www.aprs.org/doc/APRS101.PDF
 
 
@@ -59,12 +56,10 @@ void APRSTelemMsg::encodeData(int cursor)
     len = cursor;
 }
 
-#pragma endregion
-
-#pragma region Decode Helpers
-
 void APRSTelemMsg::decodeData(int cursor)
 {
+    // format is /YYYYXXXX^ ccssaasoooooof
+
     // lat and lng
     cursor++; // skip '!'
     cursor++; // skip overlay
@@ -93,5 +88,3 @@ void APRSTelemMsg::decodeData(int cursor)
     data.orientation.z() /= ORIENTATION_SCALE;
     data.statusFlags = string[cursor++] - 33;
 }
-
-#pragma endregion

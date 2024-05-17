@@ -2,12 +2,13 @@
 #define APRS_TELEM_MSG_H
 
 #include "APRSMsgBase.h"
+#include <imumaths.h>
 
 const uint8_t PI_ON = 0b00000001;          // Pi is on
 const uint8_t PI_VIDEO = 0b00000010;       // Pi is recording video
 const uint8_t RECORDING_DATA = 0b00000100; // FC is recording data
 
-struct APRSTelemData
+struct APRSTelemData final
 {
     double lat;
     double lng;
@@ -19,17 +20,16 @@ struct APRSTelemData
     uint8_t statusFlags;
 };
 
-class APRSTelemMsg : public APRSMsgBase
+class APRSTelemMsg final : public APRSMsgBase
 {
 public:
+    APRSTelemMsg(APRSHeader header);
     APRSTelemData data;
-    APRSTelemMsg(APRSHeader &header);
 
-protected:
-    virtual void decodeData(int cursor) override;
-    virtual void encodeData(int cursor) override;
 private:
-    void encodeStatus(uint8_t *string, int &cursor);
+    void decodeData(int cursor) override;
+    void encodeData(int cursor) override;
+
     // Scale factors for encoding/decoding ignoring lat/long
     const double ALT_SCALE = (pow(91, 2) / 16000.0);       // (91^2/16000) scale to fit in 2 base91 characters
     const double SPD_SCALE = (pow(91, 2) / 1000.0);        // (91^2/1000) scale to fit in 2 base91 characters
