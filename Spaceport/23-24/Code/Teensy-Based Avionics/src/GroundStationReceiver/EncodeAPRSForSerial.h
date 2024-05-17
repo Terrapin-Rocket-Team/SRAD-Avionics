@@ -10,7 +10,7 @@ namespace aprsToSerial
 
     void encodeLatLong(const APRSTelemMsg &msg, char *buffer, size_t buffer_size);
     void encodeAltitude(const APRSTelemMsg &msg, char *buffer, size_t buffer_size);
-
+    void encodeFlags(const APRSTelemMsg &msg, char *buffer, size_t buffer_size);
     /*
      * Encodes an APRS message into a string for serial transmission
      *   \param msg The APRS message to encode
@@ -27,10 +27,11 @@ namespace aprsToSerial
         encodeLatLong(msg, latLong, 20);
         char altitude[10];
         encodeAltitude(msg, altitude, 10);
-
+        char flags[5];
+        encodeFlags(msg, flags, 5);
         char suffix[10] = "e\r\n";
-        // format: s\r\nSource:CALLSIGN,Destination:TOCALL,Path:PATH,Type:Position Without Timestamp,Data:!DDMM.MM[NS][OVERLAY]DDDMM.MM[WE][hhh/sss/A=DDDDDD/S[s]/zzz/yyy/xxx,RSSI:RSSI\r\ne\r\n
-        snprintf(buffer, buffer_size, "%s%sData:!%s%c%03d/%03d/%s/S%d/%03d/%03d/%03d,RSSI:%03d\r\n%s", prefix, header, latLong, SYMBOL, (int)msg.data.hdg, (int)msg.data.spd, altitude, msg.data.stage, (int)msg.data.orientation.z(), (int)msg.data.orientation.y(), (int)msg.data.orientation.x(), RSSI, suffix);
+        // format: s\r\nSource:CALLSIGN,Destination:TOCALL,Path:PATH,Type:Position Without Timestamp,Data:!DDMM.MM[NS][OVERLAY]DDDMM.MM[WE][hhh/sss/A=DDDDDD/S[s]/zzz/yyy/xxx/fff,RSSI:RSSI\r\ne\r\n
+        snprintf(buffer, buffer_size, "%s%sData:!%s%c%03d/%03d/%s/S%d/%03d/%03d/%03d/%s,RSSI:%03d\r\n%s", prefix, header, latLong, SYMBOL, (int)msg.data.hdg, (int)msg.data.spd, altitude, msg.data.stage, (int)msg.data.orientation.z(), (int)msg.data.orientation.y(), (int)msg.data.orientation.x(), flags, RSSI, suffix);
     }
 
     void encodeLatLong(const APRSTelemMsg &msg, char *buffer, size_t buffer_size)
@@ -56,6 +57,14 @@ namespace aprsToSerial
             snprintf(buffer, buffer_size, "A=%07d", alt);
         else
             snprintf(buffer, buffer_size, "A=%06d", alt);
+    }
+
+    void encodeFlags(const APRSTelemMsg &msg, char *buffer, size_t buffer_size)
+    {
+        char f1 = (msg.data.statusFlags & PI_ON) ? '1' : '0';
+        char f2 = (msg.data.statusFlags & PI_VIDEO) ? '1' : '0';
+        char f3 = (msg.data.statusFlags & RECORDING_DATA) ? '1' : '0';
+        snprintf(buffer, buffer_size, "%c%c%c", f1, f2, f3);
     }
 }
 
