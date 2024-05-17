@@ -86,7 +86,11 @@ bool RFM69HCW::tx(const uint8_t *message, int len, int packetNum, bool lastPacke
 
     radio.setHeaderId(packetNum);
     radio.setHeaderFlags(lastPacket ? 0 : RADIO_FLAG_MORE_DATA);
-
+    char msg[len + 1];
+    for (int i = 0; i < len; i++)
+        msg[i] = message[i];
+    msg[len] = '\0';
+    printf("tx: %s\n", msg);
     return radio.send((uint8_t *)message, len);
 }
 
@@ -118,6 +122,7 @@ Enqueue a message into the buffer
 */
 bool RFM69HCW::enqueueSend(const uint8_t *message, uint8_t len)
 {
+    printf("enqueueSend2\n");
     // fill up the buffer with the message. buffer is a circular queue.
     int originalTail = sendBuffer.tail;
     sendBuffer.data[sendBuffer.tail] = len; // store the length of the message
@@ -134,6 +139,7 @@ bool RFM69HCW::enqueueSend(const uint8_t *message, uint8_t len)
         sendBuffer.data[sendBuffer.tail] = message[i];
         inc(sendBuffer.tail);
     }
+    printf("len: %d\n", len);
     return true;
 }
 
@@ -153,8 +159,10 @@ Encode the message and enqueue it in the buffer
 */
 bool RFM69HCW::enqueueSend(RadioMessage *message)
 {
+    printf("enqueueSend\n");
     if (message->encode())
         return enqueueSend(message->getArr(), message->length());
+    printf("enqueueSend failed\n");
     return false;
 }
 /*
@@ -257,14 +265,13 @@ bool RFM69HCW::update()
             return false;
         return true;
     }
-
     // transmit
     if (sendBuffer.head == sendBuffer.tail) // buffer is empty, nothing to send
     {
         remainingLength = 0;
         return false;
     }
-
+    printf("update\n");
     int packetNum;
     if (remainingLength == 0) // start a new message
     {
