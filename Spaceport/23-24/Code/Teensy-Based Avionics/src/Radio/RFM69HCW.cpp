@@ -264,7 +264,6 @@ bool RFM69HCW::update()
         remainingLength = 0;
         return false;
     }
-
     int packetNum;
     if (remainingLength == 0) // start a new message
     {

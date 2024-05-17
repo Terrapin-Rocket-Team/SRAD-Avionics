@@ -416,12 +416,12 @@ void State::determineStage()
         bb.aonoff(BUZZER, 200, 5);
         timePreviousStage = timeAbsolute;
         stageNumber = 5;
-        recordLogData(INFO, "Landing detected. Waiting for 5 seconds to dump data.");
+        recordLogData(INFO, "Landing detected. Waiting for 30 seconds to dump data.");
     }
-    else if (stageNumber == 5 && timeSinceLaunch > 20)
+    else if (stageNumber == 5 && timeSinceLaunch > 15)
     {
         if (landingCounter++ >= 300)
-        { // roughly 5 seconds of data after landing
+        { // roughly 30 seconds of data after landing
             setRecordMode(GROUND);
             recordLogData(INFO, "Dumped data after landing.");
         }
