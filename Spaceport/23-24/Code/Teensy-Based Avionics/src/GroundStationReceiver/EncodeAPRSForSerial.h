@@ -1,15 +1,15 @@
 #ifndef ENCODE_APRS_FOR_SERIAL_H
 #define ENCODE_APRS_FOR_SERIAL_H
 
-#include "APRSMsg.h"
+#include "../Radio/APRS/APRSTelemMsg.h"
 
 namespace aprsToSerial
 {
     const char OVERLAY = '/';
     const char SYMBOL = '['; // Jogger symbol. I disagree with this usage.
 
-    void encodeLatLong(const APRSMsg &msg, char *buffer, size_t buffer_size);
-    void encodeAltitude(const APRSMsg &msg, char *buffer, size_t buffer_size);
+    void encodeLatLong(const APRSTelemMsg &msg, char *buffer, size_t buffer_size);
+    void encodeAltitude(const APRSTelemMsg &msg, char *buffer, size_t buffer_size);
 
     /*
      * Encodes an APRS message into a string for serial transmission
@@ -18,7 +18,7 @@ namespace aprsToSerial
      *   \param buffer_size The size of the buffer
      *   \return void
      */
-    void encodeAPRSForSerial(const APRSMsg &msg, char *buffer, size_t buffer_size, int RSSI)
+    void encodeAPRSForSerial(const APRSTelemMsg &msg, char *buffer, size_t buffer_size, int RSSI)
     {
         char prefix[8] = "s\r\n";
         char header[100];
@@ -33,7 +33,7 @@ namespace aprsToSerial
         snprintf(buffer, buffer_size, "%s%sData:!%s%c%03d/%03d/%s/S%d/%03d/%03d/%03d,RSSI:%03d\r\n%s", prefix, header, latLong, SYMBOL, (int)msg.data.hdg, (int)msg.data.spd, altitude, msg.data.stage, (int)msg.data.orientation.z(), (int)msg.data.orientation.y(), (int)msg.data.orientation.x(), RSSI, suffix);
     }
 
-    void encodeLatLong(const APRSMsg &msg, char *buffer, size_t buffer_size)
+    void encodeLatLong(const APRSTelemMsg &msg, char *buffer, size_t buffer_size)
     {
         int lat_deg = (int)abs(msg.data.lat);
         double lat_min = ((msg.data.lat - lat_deg) * 60);
@@ -48,7 +48,7 @@ namespace aprsToSerial
 
     }
 
-    void encodeAltitude(const APRSMsg &msg, char *buffer, size_t buffer_size)
+    void encodeAltitude(const APRSTelemMsg &msg, char *buffer, size_t buffer_size)
     {
         // format: A=DDDDDD
         int alt = (int)msg.data.alt;

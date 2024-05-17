@@ -32,6 +32,13 @@ State::State(bool useKalmanFilter, bool stateRecordsOwnFlightData)
 
     numSensors = 0;
     recordOwnFlightData = stateRecordsOwnFlightData;
+
+
+    ///
+
+    recordOwnFlightData = false; // For radio testing. Will not record own data unless told to do so.
+
+    ///
     for (int i = 0; i < NUM_MAX_SENSORS; i++)
         sensors[i] = nullptr;
 
@@ -282,6 +289,9 @@ int State::getStageNum() { return stageNumber; }
 
 #pragma region Getters and Setters for Sensors
 
+void State::setRecordOwnFlightData(bool value) { recordOwnFlightData = value; }
+bool State::getRecordOwnFlightData() { return recordOwnFlightData; }
+
 void State::setRadio(Radio *r) { radio = r; }
 Radio *State::getRadio() { return radio; }
 bool State::addSensor(Sensor *sensor, int sensorNum)
@@ -374,36 +384,19 @@ void State::determineStage()
 
     // essentially, if we have either sensor and they meet launch threshold, launch. Otherwise, it will never detect a launch.
     {
-        bb.aonoff(33, 200);
-        setRecordMode(FLIGHT);
-        stageNumber = 1;
-        timeOfLaunch = timeAbsolute;
-        timePreviousStage = timeAbsolute;
-        timeSinceLaunch = 0;
-        strcpy(launchTimeOfDay, gps->getTimeOfDay());
         recordLogData(INFO, "Launch detected.");
-        recordLogData(INFO, "Printing static data.");
-        for (int i = 0; i < NUM_MAX_SENSORS; i++)
-        {
-            if (sensorOK(sensors[i]))
-            {
-                char logData[200];
-                snprintf(logData, 200, "%s: %s", sensors[i]->getName(), sensors[i]->getStaticDataString());
-                recordLogData(INFO, logData);
-                sensors[i]->setBiasCorrectionMode(false);
-            }
-        }
+        launch();
     } // TODO: Add checks for each sensor being ok and decide what to do if they aren't.
     else if (stageNumber == 1 && abs(acceleration.z()) < 10)
     {
-        bb.aonoff(33, 200, 2);
+        bb.aonoff(BUZZER, 200, 2);
         timePreviousStage = timeAbsolute;
         stageNumber = 2;
         recordLogData(INFO, "Coasting detected.");
     }
     else if (stageNumber == 2 && baroVelocity <= 0 && timeSinceLaunch > 5)
     {
-        bb.aonoff(33, 200, 3);
+        bb.aonoff(BUZZER, 200, 3);
         char logData[100];
         snprintf(logData, 100, "Apogee detected at %.2f m.", position.z());
         recordLogData(INFO, logData);
@@ -413,14 +406,14 @@ void State::determineStage()
     }
     else if (stageNumber == 3 && baro->getRelAltFt() < 1000 && timeSinceLaunch > 10)
     {
-        bb.aonoff(33, 200, 4);
+        bb.aonoff(BUZZER, 200, 4);
         stageNumber = 4;
         timePreviousStage = timeAbsolute;
         recordLogData(INFO, "Main parachute conditions detected.");
     }
     else if (stageNumber == 4 && baroVelocity > -1 && baro->getRelAltFt() < 66 && timeSinceLaunch > 15)
     {
-        bb.aonoff(33, 200, 5);
+        bb.aonoff(BUZZER, 200, 5);
         timePreviousStage = timeAbsolute;
         stageNumber = 5;
         recordLogData(INFO, "Landing detected. Waiting for 5 seconds to dump data.");
@@ -434,7 +427,28 @@ void State::determineStage()
         }
     }
 }
-
+void State::launch()
+{
+    recordOwnFlightData = true; // just in case this wasnt already set
+    bb.aonoff(BUZZER, 200);
+    setRecordMode(FLIGHT);
+    stageNumber = 1;
+    timeOfLaunch = timeAbsolute;
+    timePreviousStage = timeAbsolute;
+    timeSinceLaunch = 0;
+    strcpy(launchTimeOfDay, gps->getTimeOfDay());
+    recordLogData(INFO, "Printing static data.");
+    for (int i = 0; i < NUM_MAX_SENSORS; i++)
+    {
+        if (sensorOK(sensors[i]))
+        {
+            char logData[200];
+            snprintf(logData, 200, "%s: %s", sensors[i]->getName(), sensors[i]->getStaticDataString());
+            recordLogData(INFO, logData);
+            sensors[i]->setBiasCorrectionMode(false);
+        }
+    }
+}
 void State::setCsvString(char *dest, const char *start, int startSize, bool header)
 {
     int numCategories = numSensors + 1;
@@ -484,29 +498,23 @@ bool State::sensorOK(const Sensor *sensor)
 
 #pragma endregion
 
-bool State::transmit()
+void State::fillAPRSData(APRSTelemData &data)
 {
-    aprs.data.lat = sensorOK(gps) ? gps->getPos().x() : 0;
-    aprs.data.lng = sensorOK(gps) ? gps->getPos().y() : 0;
-    aprs.data.alt = sensorOK(baro) ? baro->getRelAltFt() : 0;
-    aprs.data.hdg = (int)headingAngle;
-    aprs.data.spd = abs((int)(baroVelocity * 3.28));
-    aprs.data.stage = stageNumber;
-    aprs.data.orientation = imu->getOrientation().toEuler();
-    aprs.data.orientation.toDegrees();
-    for(int i = 0; i < 3; i++)
+    data.lat = sensorOK(gps) ? gps->getPos().x() : 0;
+    data.lng = sensorOK(gps) ? gps->getPos().y() : 0;
+    data.alt = sensorOK(baro) ? baro->getRelAltFt() : 0;
+    data.hdg = (int)headingAngle;
+    data.spd = abs((int)(baroVelocity * 3.28));
+    data.stage = stageNumber;
+    data.orientation = imu->getOrientation().toEuler();
+    data.orientation.toDegrees();
+    for (int i = 0; i < 3; i++)
     {
-        if(aprs.data.orientation[i] < 0)
-            aprs.data.orientation[i] += 360;
+        if (data.orientation[i] < 0)
+            data.orientation[i] += 360;
     }
-    radio->enqueueSend(&aprs);
-    uint8_t data[150];
-    data[149] = '\0';
-    aprs.encode(data);
-    //printf("%s\n", data);
-    //printf("Values: %f, %f, %.02f, %.02f, %.02f, %d, %d, %d, %d\n", aprs.data.lat, aprs.data.lng, aprs.data.hdg, aprs.data.spd, aprs.data.alt, aprs.data.stage, (int)aprs.data.orientation.z(), (int)aprs.data.orientation.y(), (int)aprs.data.orientation.x());
-    return true;
 }
+
 extern unsigned long _heap_start;
 extern unsigned long _heap_end;
 extern char *__brkval;

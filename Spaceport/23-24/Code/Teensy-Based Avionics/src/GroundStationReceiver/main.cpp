@@ -1,12 +1,16 @@
-#include "RFM69HCW.h"
 #include "EncodeAPRSForSerial.h"
 #include "Adafruit_BNO055.h"
 #include <Arduino.h>
+#include "../Radio/RFM69HCW.h"
+#include "../Radio/APRS/APRSCmdMsg.h"
 
 APRSHeader header;
-APRSMsg msg(header);
-RadioSettings settings = {915.0, false, false, &hardware_spi, 10, 31, 32};
+APRSTelemMsg msg(header);
+APRSCmdMsg cmd(header);
+RadioSettings settings = {915.0, 0x02, 0x01, &hardware_spi, 10, 31, 32};
 RFM69HCW radio(&settings);
+
+
 void setup()
 {
     delay(2000);
@@ -14,8 +18,14 @@ void setup()
         Serial.println("Radio failed to initialize");
     else
         Serial.println("Radio initialized");
+    cmd.data.MinutesUntilPowerOn = 0;
+    cmd.data.MinutesUntilDataRecording = 1;
+    cmd.data.MinutesUntilVideoStart = 2;
+    cmd.data.Launch = false;
 }
 
+
+int counter = 1;
 void loop()
 {
     if (radio.update())
@@ -26,5 +36,18 @@ void loop()
             aprsToSerial::encodeAPRSForSerial(msg, buffer, 255, radio.RSSI());
             Serial.println(buffer);
         }
+        if(counter % 100 == 0)
+        {
+            radio.enqueueSend(&msg);
+        }
+        if(counter % 500 == 0)
+        {
+            cmd.data.Launch = !cmd.data.Launch;
+            radio.enqueueSend(&cmd);
+        }
+        counter++;
+        char *b = (char *)cmd.getArr();
+        b[cmd.length()] = '\0';
+        printf("Cmd: %s\n", b);
     }
 }
