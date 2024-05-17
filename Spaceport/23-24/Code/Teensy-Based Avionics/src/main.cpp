@@ -4,30 +4,45 @@
 #include "BNO055.h"
 #include "MAX_M10S.h"
 #include "DS3231.h"
-#include "RFM69HCW.h"
+#include "Radio/RFM69HCW.h"
+#include "Radio/APRS/APRSCmdMsg.h"
+#include "Radio/APRS/APRSTelemMsg.h"
 #include "RecordData.h"
 #include "BlinkBuzz.h"
+#include "Pi.h"
 
-BNO055 bno(13, 12);         // I2C Address 0x29
-BMP390 bmp(13, 12);         // I2C Address 0x77
-MAX_M10S gps(13, 12, 0x42); // I2C Address 0x42
-RadioSettings settings = {915.0, true, false, &hardware_spi, 10, 31, 32};
-RFM69HCW radio(&settings);
-State computer; // = useKalmanFilter = true, stateRecordsOwnData = true
-uint32_t radioTimer = millis();
-
-PSRAM *ram;
-
-#define BUZZER 33
 #define BMP_ADDR_PIN 36
 #define RPI_PWR 0
 #define RPI_VIDEO 1
 
+BNO055 bno(13, 12);         // I2C Address 0x29
+BMP390 bmp(13, 12);         // I2C Address 0x77
+MAX_M10S gps(13, 12, 0x42); // I2C Address 0x42
+
+RadioSettings settings = {915.0, 0x01, 0x02, &hardware_spi, 10, 31, 32};
+RFM69HCW radio(&settings);
+APRSHeader header = {"KC3UTM", "APRS", "WIDE1-1", '^', 'M'};
+APRSCmdData currentCmdData;
+APRSCmdMsg cmd(header);
+APRSTelemMsg telem(header);
+int timeSinceLastCmd = 0;
+const int CMD_TIMEOUT_SEC = 10; // 10 seconds
+void processCurrentCmdData(double time);
+
+
+State computer; // = useKalmanFilter = true, stateRecordsOwnData = true
+uint32_t radioTimer = millis();
+Pi rpi(RPI_PWR, RPI_VIDEO);
+PSRAM *ram;
+
 static double last = 0; // for better timing than "delay(100)"
 
 // BlinkBuzz setup
+int BUZZER = 33;
 int allowedPins[] = {LED_BUILTIN};
 BlinkBuzz bb(allowedPins, 1, true);
+
+// Free memory debug function
 extern unsigned long _heap_start;
 extern unsigned long _heap_end;
 extern char *__brkval;
@@ -39,25 +54,17 @@ void FreeMem()
     Serial.print(" ");
     free(heapTop);
 }
+// Free memory debug function
 
 void setup()
 {
 
-    pinMode(LED_BUILTIN, OUTPUT);
     bb.onoff(BUZZER, 100, 4, 100);
     recordLogData(INFO, "Initializing Avionics System. 5 second delay to prevent unnecessary file generation.", TO_USB);
     // delay(5000);
 
     pinMode(BMP_ADDR_PIN, OUTPUT);
     digitalWrite(BMP_ADDR_PIN, HIGH);
-
-    pinMode(RPI_PWR, OUTPUT);   // RASPBERRY PI TURN ON
-    pinMode(RPI_VIDEO, OUTPUT); // RASPBERRY PI TURN ON
-
-    digitalWrite(RPI_PWR, LOW);
-    digitalWrite(RPI_VIDEO, HIGH);
-
-    bb.onoff(LED_BUILTIN, 100);
     ram = new PSRAM(); // init after the SD card for better data logging.
 
     // The SD card MUST be initialized first to allow proper data logging.
@@ -100,51 +107,102 @@ void setup()
     }
     sendSDCardHeader(computer.getCsvHeader());
 }
-static bool first = false;
-static bool second = false;
+
 void loop()
 {
-    bb.update();
-    radio.update();
     double time = millis();
-
-    if (time - radioTimer >= 1000)
+    bb.update();
+    if (radio.update()) // if there is a message to be read
     {
-        computer.transmit();
-        radioTimer = time;
+        APRSCmdData old = cmd.data;
+        if (radio.dequeueReceive(&cmd))
+        {
+            char log[100];
+            if (cmd.data.Launch != old.Launch)
+            {
+                snprintf(log, 100, "Launch Command Changed to %d.", cmd.data.Launch);
+                recordLogData(INFO, log);
+                currentCmdData.Launch = cmd.data.Launch;
+            }
+            if (cmd.data.MinutesUntilPowerOn != old.MinutesUntilPowerOn)
+            {
+                snprintf(log, 100, "Power On Time Changed: %d with %d minutes remaining.", cmd.data.MinutesUntilPowerOn, (int)(currentCmdData.MinutesUntilPowerOn - time) / 60000);
+                recordLogData(INFO, log);
+                currentCmdData.MinutesUntilPowerOn = cmd.data.MinutesUntilPowerOn * 60 * 1000 + time;
+            }
+            if (cmd.data.MinutesUntilVideoStart != old.MinutesUntilVideoStart)
+            {
+                snprintf(log, 100, "Video Start Time Changed: %d with %d minutes remaining.", cmd.data.MinutesUntilVideoStart, (int)(currentCmdData.MinutesUntilVideoStart - time) / 60000);
+                recordLogData(INFO, log);
+                currentCmdData.MinutesUntilVideoStart = cmd.data.MinutesUntilVideoStart * 60 * 1000 + time;
+            }
+            if (cmd.data.MinutesUntilDataRecording != old.MinutesUntilDataRecording)
+            {
+                snprintf(log, 100, "Data Recording Time Changed: %d with %d minutes remaining.", cmd.data.MinutesUntilDataRecording, (int)(currentCmdData.MinutesUntilDataRecording - time) / 60000);
+                recordLogData(INFO, log);
+                currentCmdData.MinutesUntilDataRecording = cmd.data.MinutesUntilDataRecording * 60 * 1000 + time;
+            }
+        }
     }
+    processCurrentCmdData(time);
+
     if (time - last < 100)
         return;
 
     last = time;
     computer.updateState();
-    //recordLogData(INFO, computer.getStateString(), TO_USB);
-    // RASPBERRY PI TURN ON
-    if (time / 1000.0 > 810)
+    // recordLogData(INFO, computer.getStateString(), TO_USB);
+
+    if (time - radioTimer >= 1000)
     {
-        digitalWrite(RPI_PWR, HIGH);
-        if (!first)
-        {
-            bb.aonoff(BUZZER, 100, 2);
-            first = true;
-        }
+        computer.fillAPRSData(telem.data);
+
+        if (rpi.isOn())
+            telem.data.statusFlags |= RPI_PWR;
+        else
+            telem.data.statusFlags &= ~RPI_PWR;
+
+        if (rpi.isRecording())
+            telem.data.statusFlags |= RPI_VIDEO;
+        else
+            telem.data.statusFlags &= ~RPI_VIDEO;
+
+        if (computer.getRecordOwnFlightData())
+            telem.data.statusFlags |= RECORDING_DATA;
+        else
+            telem.data.statusFlags &= ~RECORDING_DATA;
+
+        radio.enqueueSend(&telem);
     }
-    if (computer.getStageNum() >= 1)
+
+    // RASPBERRY PI TURN ON/VIDEO
+    if ((time / 1000.0 > 810 && time - timeSinceLastCmd > CMD_TIMEOUT_SEC * 1000) || computer.getStageNum() >= 1)
+        rpi.setOn(true);
+    if ((computer.getStageNum() >= 1 || time - timeSinceLastCmd > CMD_TIMEOUT_SEC * 1000) && rpi.isOn())
+        rpi.setRecording(true);
+}
+
+void processCurrentCmdData(double time)
+{
+    if (currentCmdData.Launch)
     {
-        digitalWrite(RPI_VIDEO, LOW);
-        if (!second)
-        {
-            bb.aonoff(BUZZER, 100, 3);
-            second = true;
-        }
+        recordLogData(INFO, "Launch Command Received. Launching Rocket.");
+        computer.launch();
     }
-    // if (time / 1000.0 > 180)
-    // {
-    //     digitalWrite(RPI_VIDEO, LOW);
-    //     if (!second)
-    //     {
-    //         bb.aonoff(BUZZER, 100, 3);
-    //         second = true;
-    //     }
-    // }
+
+    if (time > currentCmdData.MinutesUntilPowerOn)
+    {
+        recordLogData(INFO, "Power On Radio Time Reached. Turning on Raspberry Pi.");
+        rpi.setOn(true);
+    }
+    if (time > currentCmdData.MinutesUntilVideoStart)
+    {
+        recordLogData(INFO, "Video Start Time Reached. Starting Video Recording.");
+        rpi.setRecording(true);
+    }
+    if (time > currentCmdData.MinutesUntilDataRecording)
+    {
+        recordLogData(INFO, "Data Recording Time Reached. Starting Data Recording.");
+        computer.setRecordOwnFlightData(true);
+    }
 }

@@ -9,12 +9,14 @@
 #include "GPS.h"
 #include "IMU.h"
 #include "LightSensor.h"
-#include "Radio.h"
+#include "Radio/Radio.h"
 #include "RTC.h"
 #include "RecordData.h"
-#include "APRSMsg.h"
+#include "Radio/APRS/APRSTelemMsg.h"
 
 constexpr char STAGES[][15] = {"Pre-Flight", "Boosting", "Coasting", "Drogue Descent", "Main Descent", "Post-Flight"};
+
+extern APRSHeader header;
 class State
 {
 public:
@@ -45,12 +47,15 @@ public:
     char *getCsvHeader();
     char *getStateString(); // This contains only the portions that define what the state thinks the rocket looks like.
 
-    bool transmit();
+    void fillAPRSData(APRSTelemData &data);
+    void setRecordOwnFlightData(bool val);
+    bool getRecordOwnFlightData();
+    void launch();
     double timeAbsolute; // in s since uC turned on
 
 private:
     int lastTimeAbsolute;
-    static constexpr int NUM_MAX_SENSORS = 3;                              // update with the max number of expected sensors.
+    static constexpr int NUM_MAX_SENSORS = 3;                            // update with the max number of expected sensors.
     SensorType SENSOR_ORDER[NUM_MAX_SENSORS] = {BAROMETER_, GPS_, IMU_}; // make this array the same length as NUM_MAX_SENSORS and fill it.
     // example if you have more than one of the same sensor type:
     // constexpr SensorType SENSOR_ORDER[] = {BAROMETER_, BAROMETER_, GPS_, IMU_}; or
@@ -101,11 +106,11 @@ private:
     imu::Quaternion orientation;   // in quaternion
     double baroVelocity;           // in m/s
     double baroOldAltitude;        // in m
-    double headingAngle;          // in degrees
+    double headingAngle;           // in degrees
 
     char launchTimeOfDay[9];
 
-    //Kalman Filter settings
+    // Kalman Filter settings
     bool useKF;
     LinearKalmanFilter *kfilter;
     // time pos x y z vel x y z acc x y z
@@ -117,10 +122,7 @@ private:
     uint32_t FreeMem();
 
     // APRS
-    APRSHeader header = {"KC3UTM", "APRS", "WIDE1-1"};
-
-    APRSMsg aprs = {header};
-    
+    APRSTelemData data;
 };
 
 #endif

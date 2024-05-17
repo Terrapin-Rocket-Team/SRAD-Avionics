@@ -19,19 +19,6 @@ RFM69HCW::RFM69HCW(const RadioSettings *s) : radio(s->cs, s->irq, *s->spi)
 {
 
     this->settings = *s;
-
-    if (this->settings.transmitter)
-    {
-        // addresses for transmitters
-        this->thisAddr = 0x02;
-        this->toAddr = 0x01;
-    }
-    else
-    {
-        // addresses for receivers
-        this->thisAddr = 0x01;
-        this->toAddr = 0x02;
-    }
 }
 
 /*
@@ -55,30 +42,30 @@ bool RFM69HCW::init()
         return false;
 
     // set transmit power
-    radio.setTxPower(txPower, true);
+    radio.setTxPower(settings.txPower, true);
 
     // always set FSK mode
     radio.setModemConfig(RH_RF69::FSK_Rb4_8Fd9_6);
 
     // set headers
-    radio.setHeaderTo(toAddr);
-    radio.setHeaderFrom(thisAddr);
-    radio.setThisAddress(thisAddr);
+    radio.setHeaderTo(settings.toAddr);
+    radio.setHeaderFrom(settings.thisAddr);
+    radio.setThisAddress(settings.thisAddr);
     radio.setHeaderId(0);
 
     // configure unlimited packet length mode, don't do this for now
     // this->radio.spiWrite(0x37, 0b00000000);                // Packet format (0x37) set to 00000000 (see manual for meaning of each bit)
     // this->radio.spiWrite(RH_RF69_REG_38_PAYLOADLENGTH, 0); // Payload length (0x38) set to 0
 
-    if (this->settings.highBitrate) // Note: not working
-    {
-        // the default bitrate of 4.8kbps should be fine unless we want high bitrate for video
-        // set300KBPS();
-        this->radio.setModemConfig(RH_RF69::FSK_Rb4_8Fd9_6);
-        // remove as much overhead as possible
-        // this->radio.setPreambleLength(0);
-        // this->radio.setSyncWords();
-    }
+    // if (this->settings.highBitrate) // Note: not working
+    // {
+    //     // the default bitrate of 4.8kbps should be fine unless we want high bitrate for video
+    //     // set300KBPS();
+    //     this->radio.setModemConfig(RH_RF69::FSK_Rb4_8Fd9_6);
+    //     // remove as much overhead as possible
+    //     // this->radio.setPreambleLength(0);
+    //     // this->radio.setSyncWords();
+    // }
 
     return initialized = true;
 }
@@ -96,7 +83,7 @@ bool RFM69HCW::tx(const uint8_t *message, int len, int packetNum, bool lastPacke
     // figure out how long the message should be
     if (len == -1)
         len = strlen((char *)message);
-    
+
     radio.setHeaderId(packetNum);
     radio.setHeaderFlags(lastPacket ? 0 : RADIO_FLAG_MORE_DATA);
 
@@ -132,20 +119,20 @@ Enqueue a message into the buffer
 bool RFM69HCW::enqueueSend(const uint8_t *message, uint8_t len)
 {
     // fill up the buffer with the message. buffer is a circular queue.
-    int originalTail = bufTail;
-    buffer[bufTail] = len;
-    inc(bufTail);
+    int originalTail = sendBuffer.tail;
+    sendBuffer.data[sendBuffer.tail] = len; // store the length of the message
+    inc(sendBuffer.tail);
 
     for (int i = 0; i < len; i++) // same algorithm as copyToBuffer but with a length check
     {
-        if (bufTail == bufHead)
-        {                           // buffer is full
-            bufTail = originalTail; // reset the tail (no message was added)
+        if (sendBuffer.tail == sendBuffer.head) // buffer is full
+        {
+            sendBuffer.tail = originalTail; // reset the tail (no message was added)
             return false;
         }
 
-        buffer[bufTail] = message[i];
-        inc(bufTail);
+        sendBuffer.data[sendBuffer.tail] = message[i];
+        inc(sendBuffer.tail);
     }
     return true;
 }
@@ -166,12 +153,8 @@ Encode the message and enqueue it in the buffer
 */
 bool RFM69HCW::enqueueSend(RadioMessage *message)
 {
-    uint8_t encodedMessage[RadioMessage::MAX_MESSAGE_LEN];
-    if (message->encode(encodedMessage))
-    {
-        int messageLength = message->length();
-        return enqueueSend(encodedMessage, messageLength);
-    }
+    if (message->encode())
+        return enqueueSend(message->getArr(), message->length());
     return false;
 }
 /*
@@ -181,14 +164,14 @@ Dequeue a message from the buffer and decode it into a uint8_t[].
 */
 bool RFM69HCW::dequeueReceive(uint8_t *message)
 {
-    if (bufHead == bufTail) // buffer is empty
+    if (recvBuffer.head == recvBuffer.tail) // buffer is empty
         return false;
 
     // get the length of the message
-    int len = buffer[bufHead];
-    inc(bufHead);
+    int len = recvBuffer.data[recvBuffer.head];
+    inc(recvBuffer.head);
     // Empty the buffer up to the length of the expected message
-    copyFromBuffer(message, len);
+    copyFromBuffer(recvBuffer, message, len);
     return true;
 }
 
@@ -199,16 +182,16 @@ Dequeue a message from the buffer and decode it into a char[]. WIll break if the
 */
 bool RFM69HCW::dequeueReceive(char *message)
 {
-    if (bufHead == bufTail) // buffer is empty
+    if (recvBuffer.head == recvBuffer.tail) // buffer is empty
         return false;
 
     // Empty the buffer up to the first null terminator
-    inc(bufHead); // skip the length byte, should be null terminated
+    inc(recvBuffer.head); // skip the length byte, should be null terminated
     int i = 0;
-    for (; buffer[bufHead] != '\0' && bufHead != bufTail; i++)
+    for (; recvBuffer.data[recvBuffer.head] != '\0' && recvBuffer.head != recvBuffer.tail; i++)
     {
-        message[i] = buffer[bufHead];
-        inc(bufHead);
+        message[i] = recvBuffer.data[recvBuffer.head];
+        inc(recvBuffer.head);
     }
     message[i] = '\0';
 
@@ -222,15 +205,16 @@ Dequeue a message from the buffer and decode it into a RadioMessage
 */
 bool RFM69HCW::dequeueReceive(RadioMessage *message)
 {
-    if (bufHead == bufTail) // buffer is empty
+    if (recvBuffer.head == recvBuffer.tail) // buffer is empty
         return false;
 
-    uint8_t len = buffer[bufHead];
+    uint8_t len = recvBuffer.data[recvBuffer.head];
     uint8_t *msg = new uint8_t[len];
     bool worked = false;
     if (dequeueReceive(msg))           // get the message from the buffer
-        if (message->decode(msg, len)) // decode the message
-            worked = true;
+        if (message->setArr(msg, len)) // send the message to the RadioMessage
+            if (message->decode())     // decode the message
+                worked = true;
 
     delete[] msg;
     return worked;
@@ -248,60 +232,56 @@ Update function
 */
 bool RFM69HCW::update()
 {
-    if (busy()) // radio is busy, cannot send or receive
+    if (!initialized)
+        return false;
+    if (busy())
         return false;
 
-    // transmitter------------------------------------------------------
-    if (settings.transmitter)
+    uint8_t rcvLen = RH_RF69_MAX_MESSAGE_LEN;
+    uint8_t rcvBuf[RH_RF69_MAX_MESSAGE_LEN];
+
+    if (rx(rcvBuf, &rcvLen))
     {
-        if (bufHead == bufTail) // buffer is empty, nothing to send
-        {
-            remainingLength = 0;
-            return false;
-        }
-
-        // send the message
-        int packetNum;
-        if (remainingLength == 0) // start a new message
-        {
-            remainingLength = buffer[bufHead]; // get the length of the message from the first byte of the message
-            inc(bufHead);
-            packetNum = 0;
-        }
-        else
-            packetNum = radio.headerId() + 1;
-
-        // load message to tx
-        int len = min(remainingLength, RH_RF69_MAX_MESSAGE_LEN); // how much of the message to send
-        uint8_t msgToTransmit[RH_RF69_MAX_MESSAGE_LEN];
-        copyFromBuffer(msgToTransmit, len);
-        bool b = tx(msgToTransmit, len, packetNum, remainingLength <= RH_RF69_MAX_MESSAGE_LEN);
-        remainingLength -= len;
-        return b;
-    }
-    // receiver------------------------------------------------------
-    else
-    {
-        uint8_t msg[RH_RF69_MAX_MESSAGE_LEN];
-        uint8_t len = RH_RF69_MAX_MESSAGE_LEN;
-        if (!rx(msg, &len))
-            return false; // no new message available
-
         // store the message in the buffer
         if (radio.headerId() == 0) // start of a new message
         {
-            orignalBufferTail = bufTail;
-            buffer[bufTail] = len; // store the length of the message
-            inc(bufTail);
+            orignalBufferTail = recvBuffer.tail;
+            recvBuffer.data[recvBuffer.tail] = rcvLen; // store the length of the message
+            inc(recvBuffer.tail);
         }
-        else                                  // continuing message
-            buffer[orignalBufferTail] += len; // update the total length of the message
+        else                                              // continuing message
+            recvBuffer.data[orignalBufferTail] += rcvLen; // update the total length of the message
 
-        copyToBuffer(msg, len);
+        copyToBuffer(recvBuffer, rcvBuf, rcvLen);
         if (radio.headerFlags() & RADIO_FLAG_MORE_DATA) // more data is coming, should not process yet
             return false;
+        return true;
     }
-    return true; // message was sent or received (in full)
+
+    // transmit
+    if (sendBuffer.head == sendBuffer.tail) // buffer is empty, nothing to send
+    {
+        remainingLength = 0;
+        return false;
+    }
+
+    int packetNum;
+    if (remainingLength == 0) // start a new message
+    {
+        remainingLength = sendBuffer.data[sendBuffer.head]; // get the length of the message from the first byte of the message
+        inc(sendBuffer.head);
+        packetNum = 0;
+    }
+    else
+        packetNum = radio.headerId() + 1;
+
+    // load message to tx
+    int len = min(remainingLength, RH_RF69_MAX_MESSAGE_LEN); // how much of the message to send
+    uint8_t msgToTransmit[RH_RF69_MAX_MESSAGE_LEN];
+    copyFromBuffer(sendBuffer, msgToTransmit, len);
+    tx(msgToTransmit, len, packetNum, remainingLength <= RH_RF69_MAX_MESSAGE_LEN);
+    remainingLength -= len;
+    return false; // always false for transmitter
 }
 
 #pragma region Helpers
@@ -325,18 +305,18 @@ int RFM69HCW::RSSI()
 }
 
 // probably broken
-void RFM69HCW::set300KBPSMode()
-{
-    this->radio.spiWrite(0x03, 0x00);       // REG_BITRATEMSB: 300kbps (0x006B, see DS p20)
-    this->radio.spiWrite(0x04, 0x6B);       // REG_BITRATELSB: 300kbps (0x006B, see DS p20)
-    this->radio.spiWrite(0x19, 0x40);       // REG_RXBW: 500kHz
-    this->radio.spiWrite(0x1A, 0x80);       // REG_AFCBW: 500kHz
-    this->radio.spiWrite(0x05, 0x13);       // REG_FDEVMSB: 300khz (0x1333)
-    this->radio.spiWrite(0x06, 0x33);       // REG_FDEVLSB: 300khz (0x1333)
-    this->radio.spiWrite(0x29, 240);        // set REG_RSSITHRESH to -120dBm
-    this->radio.spiWrite(0x37, 0b10010000); // DC=WHITENING, CRCAUTOOFF=0
-                                            //                ^^->DC: 00=none, 01=manchester, 10=whitening
-}
+// void RFM69HCW::set300KBPSMode()
+// {
+//     this->radio.spiWrite(0x03, 0x00);       // REG_BITRATEMSB: 300kbps (0x006B, see DS p20)
+//     this->radio.spiWrite(0x04, 0x6B);       // REG_BITRATELSB: 300kbps (0x006B, see DS p20)
+//     this->radio.spiWrite(0x19, 0x40);       // REG_RXBW: 500kHz
+//     this->radio.spiWrite(0x1A, 0x80);       // REG_AFCBW: 500kHz
+//     this->radio.spiWrite(0x05, 0x13);       // REG_FDEVMSB: 300khz (0x1333)
+//     this->radio.spiWrite(0x06, 0x33);       // REG_FDEVLSB: 300khz (0x1333)
+//     this->radio.spiWrite(0x29, 240);        // set REG_RSSITHRESH to -120dBm
+//     this->radio.spiWrite(0x37, 0b10010000); // DC=WHITENING, CRCAUTOOFF=0
+//                                             //                ^^->DC: 00=none, 01=manchester, 10=whitening
+// }
 
 // utility functions
 #ifndef max
@@ -357,22 +337,25 @@ int min(int a, int b)
 }
 #endif
 
-void RFM69HCW::copyToBuffer(const uint8_t *message, int len)
+void RFM69HCW::copyToBuffer(buffer &buffer, const uint8_t *src, int len)
 {
     for (int i = 0; i < len; i++)
     {
-        buffer[bufTail] = message[i];
-        inc(bufTail);
+        buffer.data[buffer.tail] = src[i];
+        inc(buffer.tail);
     }
 }
-
-void RFM69HCW::copyFromBuffer(uint8_t *message, int len)
+// pop is true by default. If pop is false, the buffer head will not be moved.
+void RFM69HCW::copyFromBuffer(buffer &buffer, uint8_t *dest, int len, bool pop)
 {
+    int originalHead = buffer.head;
     for (int i = 0; i < len; i++)
     {
-        message[i] = buffer[bufHead];
-        inc(bufHead);
+        dest[i] = buffer.data[buffer.head];
+        inc(buffer.head);
     }
+    if (!pop)
+        buffer.head = originalHead;
 }
 
 #pragma endregion

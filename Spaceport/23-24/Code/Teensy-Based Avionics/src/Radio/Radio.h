@@ -13,31 +13,27 @@
 // TODO
 #endif
 
+#include "RadioMessage.h"
+#include "RadioHead.h"
+#include "RHGenericSPI.h"
 /*
-Types:
-- ENCT_TELEMETRY: latitude,longitude,altitude,speed,heading,precision,stage,t0 <-> APRS message
-- ENCT_VIDEO: char* filled with raw bytes <-> Raw byte array
-- ENCT_GROUNDSTATION: Source:Value,Destination:Value,Path:Value,Type:Value,Body:Value <-> APRS message
-- ENCT_NONE: no encoding is applied, same as using tx()
+Settings:
+- double frequency in Mhz
+- RHGenericSPI *spi pointer to radiohead SPI object
+- uint8_t cs CS pin
+- uint8_t irq IRQ pin
+- uint8_t rst RST pin
 */
-enum EncodingType
+struct RadioSettings
 {
-    ENCT_TELEMETRY,
-    ENCT_VIDEO,
-    ENCT_GROUNDSTATION,
-    ENCT_NONE
-};
-
-class RadioMessage
-{
-public:
-    virtual bool encode(uint8_t *message) = 0;                            // use stored variables to encode a message
-    virtual bool decode(const uint8_t *message, int len) = 0; // use `message` to set stored variables
-    virtual int length() const = 0;                           // return the length of the message
-    virtual ~RadioMessage(){};
-    static constexpr int MAX_MESSAGE_LEN = 255;
-protected:
-    uint8_t len;
+    double frequency;
+    uint8_t thisAddr;
+    uint8_t toAddr;
+    RHGenericSPI *spi;
+    uint8_t cs;
+    uint8_t irq;
+    uint8_t rst;
+    int txPower = 20;
 };
 
 class Radio
@@ -54,6 +50,10 @@ public:
     virtual bool dequeueReceive(RadioMessage *message) = 0;
     virtual bool dequeueReceive(char *message) = 0;
     virtual bool dequeueReceive(uint8_t *message) = 0;
+    virtual bool update() = 0;
+
+protected:
+    RadioSettings settings;
 };
 
 #endif // RADIO_H
