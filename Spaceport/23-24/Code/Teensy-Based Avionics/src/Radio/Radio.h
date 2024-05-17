@@ -25,7 +25,7 @@ struct RadioSettings final
     uint8_t cs; // Chip Select pin
     uint8_t irq; // Interrupt Request pin
     uint8_t rst; // Reset pin
-    int txPower = 20; // in dBm
+    int txPower = 12; // in dBm
 };
 
 class Radio

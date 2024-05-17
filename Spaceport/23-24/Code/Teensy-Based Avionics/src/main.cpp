@@ -1,15 +1,14 @@
 #include <Arduino.h>
 #include "State.h"
+
 #include "BMP390.h"
 #include "BNO055.h"
 #include "MAX_M10S.h"
-#include "DS3231.h"
-#include "Radio/RFM69HCW.h"
-#include "Radio/APRS/APRSCmdMsg.h"
-#include "Radio/APRS/APRSTelemMsg.h"
+
 #include "RecordData.h"
-#include "BlinkBuzz.h"
+#include <BlinkBuzz.h>
 #include "Pi.h"
+#include "Radio/RadioHandler.h"
 
 #define BMP_ADDR_PIN 36
 #define RPI_PWR 0
@@ -112,41 +111,18 @@ void loop()
 {
     double time = millis();
     bb.update();
+
+    // Update the Radio
     if (radio.update()) // if there is a message to be read
     {
         timeOfLastCmd = time;
         APRSCmdData old = cmd.data;
         if (radio.dequeueReceive(&cmd))
-        {
-            char log[100];
-            if (cmd.data.Launch != old.Launch)
-            {
-                snprintf(log, 100, "Launch Command Changed to %d.", cmd.data.Launch);
-                recordLogData(INFO, log);
-                currentCmdData.Launch = cmd.data.Launch;
-            }
-            if (cmd.data.MinutesUntilPowerOn != old.MinutesUntilPowerOn)
-            {
-                snprintf(log, 100, "Power On Time Changed: %d with %d minutes remaining.", cmd.data.MinutesUntilPowerOn, (int)(currentCmdData.MinutesUntilPowerOn - time) / 60000);
-                recordLogData(INFO, log);
-                currentCmdData.MinutesUntilPowerOn = cmd.data.MinutesUntilPowerOn * 60 * 1000 + time;
-            }
-            if (cmd.data.MinutesUntilVideoStart != old.MinutesUntilVideoStart)
-            {
-                snprintf(log, 100, "Video Start Time Changed: %d with %d minutes remaining.", cmd.data.MinutesUntilVideoStart, (int)(currentCmdData.MinutesUntilVideoStart - time) / 60000);
-                recordLogData(INFO, log);
-                currentCmdData.MinutesUntilVideoStart = cmd.data.MinutesUntilVideoStart * 60 * 1000 + time;
-            }
-            if (cmd.data.MinutesUntilDataRecording != old.MinutesUntilDataRecording)
-            {
-                snprintf(log, 100, "Data Recording Time Changed: %d with %d minutes remaining.", cmd.data.MinutesUntilDataRecording, (int)(currentCmdData.MinutesUntilDataRecording - time) / 60000);
-                recordLogData(INFO, log);
-                currentCmdData.MinutesUntilDataRecording = cmd.data.MinutesUntilDataRecording * 60 * 1000 + time;
-            }
-        }
+            radioHandler::processCmdData(cmd, old, currentCmdData, time);
     }
-    processCurrentCmdData(time);
+    radioHandler::processCurrentCmdData(currentCmdData, computer, rpi, time);
 
+    // Update the state of the rocket
     if (time - last < 100)
         return;
 
@@ -154,57 +130,25 @@ void loop()
     computer.updateState();
     // recordLogData(INFO, computer.getStateString(), TO_USB);
 
+    // Send Telemetry Data
     if (time - radioTimer >= 1000)
     {
         computer.fillAPRSData(telem.data);
 
-        if (rpi.isOn())
-            telem.data.statusFlags |= RPI_PWR;
-        else
-            telem.data.statusFlags &= ~RPI_PWR;
-
-        if (rpi.isRecording())
-            telem.data.statusFlags |= RPI_VIDEO;
-        else
-            telem.data.statusFlags &= ~RPI_VIDEO;
-
-        if (computer.getRecordOwnFlightData())
-            telem.data.statusFlags |= RECORDING_DATA;
-        else
-            telem.data.statusFlags &= ~RECORDING_DATA;
+        int status = PI_ON * rpi.isOn() +
+                     PI_VIDEO * rpi.isRecording() +
+                     RECORDING_DATA * computer.getRecordOwnFlightData();
+        telem.data.statusFlags = status;
 
         radio.enqueueSend(&telem);
         radioTimer = time;
     }
 
-    // RASPBERRY PI TURN ON/VIDEO
+    // RASPBERRY PI TURN ON/VIDEO BACKUP
     if ((time / 1000.0 > 810 && time - timeOfLastCmd > CMD_TIMEOUT_SEC * 1000) || computer.getStageNum() >= 1)
         rpi.setOn(true);
     if ((computer.getStageNum() >= 1 || time - timeOfLastCmd > CMD_TIMEOUT_SEC * 1000) && rpi.isOn())
         rpi.setRecording(true);
 }
 
-void processCurrentCmdData(double time)
-{
-    if (currentCmdData.Launch && computer.getStageNum() == 0)
-    {
-        recordLogData(INFO, "Launch Command Received. Launching Rocket.");
-        computer.launch();
-    }
 
-    if (time > currentCmdData.MinutesUntilPowerOn && !rpi.isOn())
-    {
-        recordLogData(INFO, "Power On RPI Time Reached. Turning on Raspberry Pi.");
-        rpi.setOn(true);
-    }
-    if (time > currentCmdData.MinutesUntilVideoStart && !rpi.isRecording())
-    {
-        recordLogData(INFO, "Video Start Time Reached. Starting Video Recording.");
-        rpi.setRecording(true);
-    }
-    if (time > currentCmdData.MinutesUntilDataRecording && !computer.getRecordOwnFlightData())
-    {
-        recordLogData(INFO, "Data Recording Time Reached. Starting Data Recording.");
-        computer.setRecordOwnFlightData(true);
-    }
-}
