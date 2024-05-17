@@ -113,11 +113,10 @@ bool State::init()
         if (!radio->init())
             radio = nullptr;
     }
-    setCsvHeader();
     if (useKF)
         kfilter = initializeFilter();
     numSensors = good;
-
+    setCsvHeader();
     return good == tryNumSensors;
 }
 
