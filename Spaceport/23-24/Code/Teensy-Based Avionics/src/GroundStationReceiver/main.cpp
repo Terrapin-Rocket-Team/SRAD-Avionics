@@ -4,7 +4,7 @@
 #include "../Radio/RFM69HCW.h"
 #include "../Radio/APRS/APRSCmdMsg.h"
 
-APRSHeader header;
+APRSHeader header = {"KC3UTM", "APRS", "WIDE1-1", '/', 'o'};
 APRSTelemMsg msg(header);
 APRSCmdMsg cmd(header);
 RadioSettings settings = {915.0, 0x02, 0x01, &hardware_spi, 10, 31, 32};
@@ -36,18 +36,15 @@ void loop()
             aprsToSerial::encodeAPRSForSerial(msg, buffer, 255, radio.RSSI());
             Serial.println(buffer);
         }
-        if(counter % 100 == 0)
+        if(counter % 50 == 0)
         {
-            radio.enqueueSend(&msg);
+            radio.enqueueSend(&cmd);
         }
-        if(counter % 500 == 0)
+        if(counter % 190 == 0)
         {
             cmd.data.Launch = !cmd.data.Launch;
             radio.enqueueSend(&cmd);
         }
-        counter++;
         char *b = (char *)cmd.getArr();
-        b[cmd.length()] = '\0';
-        printf("Cmd: %s\n", b);
     }
 }
