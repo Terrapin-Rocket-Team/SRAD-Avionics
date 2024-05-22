@@ -40,6 +40,22 @@ public:
     bool update() override;
     bool busy();
 
+    String letters[40] = {"a", "b", "c", "d", "e", "f","g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"};
+    int val = random(0, 40);
+    String letter = letters[val];
+
+    const char *RFM69HCW::rxX()
+    {
+        int lens = random(0, 100);
+        String str = "";
+        for (int i = 0; i < lens; i++)
+        {
+            str += letter;
+        }
+        str += '-';
+        return str.c_str();
+    }
+
 
     // increment the specified index, wrapping around if necessary
     static void inc(int &i) { i = (i + 1) % TRANSCEIVER_MESSAGE_BUFFER_SIZE; }

@@ -4,26 +4,38 @@
 #include "../Radio/RFM69HCW.h"
 #include "../Radio/APRS/APRSCmdMsg.h"
 
-#define SERIAL_BAUD 1000000     // 1M Baud
+#define SERIAL_BAUD 1000000     // 1M Baud => 8us per byte
 
-#define PACKET1_SIZE 10000
-#define PACKET2_SIZE 10000
-#define PACKET3_SIZE 108
+// in bytes
+#define PACKET1_SIZE 10000 / 8
+#define PACKET2_SIZE 10000 / 8
+#define PACKET3_SIZE 63
 
-byte buff1[PACKET1_SIZE / 8 + 1];
-byte buff2[PACKET2_SIZE / 8 + 1];
-byte buff3[PACKET3_SIZE / 8 + 1];
-byte buff4[PACKET1_SIZE / 8 + 1];
+// makes them 4 times as large
+#define BUFF1_SIZE PACKET1_SIZE * 4
+#define BUFF2_SIZE PACKET2_SIZE * 4
+#define BUFF3_SIZE PACKET3_SIZE * 4
+#define BUFF4_SIZE PACKET3_SIZE * 4
+
+byte buff1[BUFF1_SIZE];
+byte buff2[BUFF2_SIZE];
+byte buff3[BUFF3_SIZE];
+byte buff4[BUFF4_SIZE];
 
 struct RadioObject
 {
     APRSTelemMsg *telem;
     APRSCmdMsg *cmd;
     RFM69HCW *radio;
-    int packetSize;
+    const int packetSize;
     byte *buffer;
-    int buffpos;
+    int bufftop;        // index of the next byte to be written
+    int buffbot;        // index of the next byte to be read
 };
+
+// just for sending info
+int bufftop4 = 0;
+int buffbot4 = 0;
 
 APRSHeader header = {"KC3UTM", "APRS", "WIDE1-1", '/', 'o'};
 APRSTelemMsg msg1(header);
@@ -42,9 +54,9 @@ APRSCmdMsg cmd3(header);
 RadioSettings settings3 = {433.775, 0x02, 0x01, &hardware_spi, 10, 31, 32};
 RFM69HCW radio3(&settings3);
 
-RadioObject r1 = {&msg1, &cmd1, &radio1, PACKET1_SIZE, buff1, 0};
-RadioObject r2 = {&msg2, &cmd2, &radio2, PACKET2_SIZE, buff2, 0};
-RadioObject r3 = {&msg3, &cmd3, &radio3, PACKET3_SIZE, buff3, 0};
+RadioObject r1 = {&msg1, &cmd1, &radio1, PACKET1_SIZE, buff1, 0, 0};
+RadioObject r2 = {&msg2, &cmd2, &radio2, PACKET2_SIZE, buff2, 0, 0};
+RadioObject r3 = {&msg3, &cmd3, &radio3, PACKET3_SIZE, buff3, 0, 0};
 
 // make an array of pointers to the radio objects
 RadioObject *radios[] = {&r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r3};
@@ -82,41 +94,36 @@ int radioIndex = 0;
 void loop()
 {
 
-    if (radios[radioIndex]->radio->update())
+    if (radio1.update())
     {
-        if (radios[radioIndex]->radio->dequeueReceive(radios[radioIndex]->telem))
+        if (radio1.dequeueReceive(&msg1))
         {
-            char buffer[radios[radioIndex]->packetSize];
-            aprsToSerial::encodeAPRSForSerial(*(radios[radioIndex]->telem), buffer, radios[radioIndex]->packetSize, radios[radioIndex]->radio->RSSI());
-            Serial.println(buffer);
-        }
-        if(counter % 50 == 0) // Send a command every 50x a message is received (or every 25 seconds)
-            radios[radioIndex]->radio->enqueueSend(radios[radioIndex]->cmd);
+            char buffer[80];
+            aprsToSerial::encodeAPRSForSerial(msg1, buffer, 80, radio1.RSSI());
+            
+            // write to circular buffer for radio3 (assuming 63 bytes of data)
+            for (int i = 0; i < 63; i++)
+            {
+                buff3[r3.bufftop] = buffer[i];
+                r3.bufftop = (r3.bufftop + 1) % BUFF3_SIZE;
+            }
 
-        if(counter == 190) // Send a command after 190x a message is received (or after 95 seconds) to launch the rocket
-        {
-            radios[radioIndex]->cmd->data.Launch = !radios[radioIndex]->cmd->data.Launch;
-            radios[radioIndex]->radio->enqueueSend(radios[radioIndex]->cmd);
         }
-        counter++;
+        // if(counter % 50 == 0) // Send a command every 50x a message is received (or every 25 seconds)
+        //     radio.enqueueSend(&cmd);
+
+        // if(counter == 190) // Send a command after 190x a message is received (or after 95 seconds) to launch the rocket
+        // {
+        //     cmd.data.Launch = !cmd.data.Launch;
+        //     radio.enqueueSend(&cmd);
+        // }
+        // counter++;
     }
+    if (radio2.update()) {
+        const char *msg = radio2.rxX();
 
-    // if (radio.update())
-    // {
-    //     if (radio.dequeueReceive(&msg))
-    //     {
-    //         char buffer[255];
-    //         aprsToSerial::encodeAPRSForSerial(msg, buffer, 255, radio.RSSI());
-    //         Serial.println(buffer);
-    //     }
-    //     if(counter % 50 == 0) // Send a command every 50x a message is received (or every 25 seconds)
-    //         radio.enqueueSend(&cmd);
-
-    //     if(counter == 190) // Send a command after 190x a message is received (or after 95 seconds) to launch the rocket
-    //     {
-    //         cmd.data.Launch = !cmd.data.Launch;
-    //         radio.enqueueSend(&cmd);
-    //     }
-    //     counter++;
-    // }
+        // write to circular buffer of radio 2
+        // get the length of the message
+        int lens = strlen(msg);         // fix bc idk message length since its char array and not null terminated
+    }
 }
