@@ -87,25 +87,25 @@ void loop() {
     }
 
     // need this so that it sends even if it doesn't receive
-    // if (curSystem->availableX()) {
-    //     if (lastCycle == 1) {
-    //         const char *msg = curSystem->receiveX(ENCT_GROUNDSTATION);
-    //         if (strcmp(msg, "") != 0) {
-    //             Serial.print(msg);
-    //         }
-    //     } 
-    //     else if (lastCycle == 2 || lastCycle == 3) {
-    //         const char *msg = curSystem->rxX();
+    if (curSystem->availableX()) {
+        if (lastCycle == 1) {
+            const char *msg = curSystem->receiveX(ENCT_GROUNDSTATION);
+            if (strcmp(msg, "") != 0) {
+                Serial.print(msg);
+            }
+        } 
+        else if (lastCycle == 2 || lastCycle == 3) {
+            const char *msg = curSystem->rxX();
 
-    //         if (strcmp(msg, "Failed to receive message") != 0 && strcmp(msg, "No message available") != 0) {
-    //             Serial.print(msg);
-    //         }
-    //     }
-    //     else {
-    //         Serial.print("Invalid phase");
-    //         // delay(100);
-    //     }
-    // }
+            if (strcmp(msg, "Failed to receive message") != 0 && strcmp(msg, "No message available") != 0) {
+                Serial.print(msg);
+            }
+        }
+        else {
+            Serial.print("Invalid phase");
+            // delay(100);
+        }
+    }
 
 
 
