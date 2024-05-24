@@ -1,13 +1,15 @@
 #ifndef RFM69HCW_H
 #define RFM69HCW_H
 
-#if defined(ARDUINO)
-#define MSG_LEN 200
-#elif defined(TEENSYDUINO)
-#define MSG_LEN 10 * 1024
-#elif defined(RASPBERRY_PI)
-#define MSG_LEN 10 * 1024
-#endif
+// #if defined(ARDUINO)
+// #define MSG_LEN 200
+// #elif defined(TEENSYDUINO)
+// #define MSG_LEN 10 * 1024
+// #elif defined(RASPBERRY_PI)
+// #define MSG_LEN 10 * 1024
+// #endif
+
+#define MSG_LEN 1250
 
 #include "Radio.h"
 #include "APRSMsg.h"
@@ -52,10 +54,9 @@ public:
     bool txI();                                  // tx Interrupt
     void txe();                                  // tx end
     const char *rx() override;
-    void rxl(); // rx long
     void rxI(); // rx interrupt
-    void rxe(); // rx end
-    bool busy();
+    void rxs(); // rx end
+    bool idle();
     bool encode(char *message, EncodingType type, int len = -1) override;
     bool decode(char *message, EncodingType type, int len = -1) override;
     bool send(const char *message, EncodingType type, int len = -1) override;
@@ -63,25 +64,31 @@ public:
     int RSSI() override;
     bool available();
     void set300KBPS();
-    void interrupt();
 
     // stores full messages, max length determined by platform
     char msg[MSG_LEN + 1];
     // length of msg for recieving binary messages
     int msgLen = 0;
 
+    RH_RF69 radio;
+
+    bool FifoFull();
+    bool FifoNotEmpty();
+    bool FifoLevel();
+
 private:
     static void i0();
     static void i1();
     static void i2();
     static void i3();
-    bool FifoFull();
-    bool FifoNotEmpty();
-    bool FifoLevel();
+    static void itr0();
+    static void itr1();
+    static void itr2();
+    static void itr3();
 
-    RH_RF69 radio;
     // all radios should have the same networkID
     const uint8_t networkID = 0x01;
+    const uint8_t sw[4] = {0xff, 0x00, 0x2d, 0xd4};
     // default to the highest transmit power
     const int txPower = 20;
     // set by constructor
@@ -95,6 +102,7 @@ private:
     uint8_t bufSize = RH_RF69_MAX_MESSAGE_LEN;
     APRSConfig cfg;
     bool avail;
+    bool busy;
     int rssi;
     int totalPackets;
     int msgIndex = 0;
