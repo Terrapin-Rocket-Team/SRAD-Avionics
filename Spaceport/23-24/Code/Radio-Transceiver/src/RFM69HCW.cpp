@@ -57,6 +57,11 @@ bool RFM69HCW::begin()
     delay(10);
     digitalWrite(this->settings.rst, LOW);
 
+    pinMode(this->settings.irq, INPUT);
+    pinMode(this->settings.fne, INPUT);
+    pinMode(this->settings.ff, INPUT);
+    pinMode(this->settings.fl, INPUT);
+
     if (!this->radio.init())
         return false;
 
@@ -67,49 +72,67 @@ bool RFM69HCW::begin()
     // set transmit power
     this->radio.setTxPower(this->txPower, true);
 
-    // always set FSK mode
-    this->radio.setModemConfig(RH_RF69::FSK_Rb4_8Fd9_6);
+    if (!this->settings.highBitrate)
+    {
+        // the default bitrate of 4.8kbps should be fine unless we want high bitrate for video
+        this->radio.setModemConfig(RH_RF69::FSK_Rb4_8Fd9_6);
+    }
+    else
+    {
+        // this->radio.setModemConfig(RH_RF69::FSK_Rb250Fd250);
+        this->radio.setModemConfig(RH_RF69::FSK_Rb125Fd125);
+        this->set300KBPS();
+        // this->radio.spiWrite(0x29, 100); // RSSI_THRESH: -110dBm
+        this->radio.setPreambleLength(100);
+        this->radio.setSyncWords(sw, 4);
+    }
 
-    // set headers, will not be needed in unlimited length mode
-    // this->radio.setHeaderTo(this->toAddr);
-    // this->radio.setHeaderFrom(this->addr);
-    // this->radio.setThisAddress(this->addr);
-    // this->radio.setHeaderId(this->id);
-
-    // configure unlimited packet length mode, don't do this for now
+    // configure unlimited packet length mode
     this->radio.spiWrite(0x37, 0b00000000);                // Packet format (0x37) set to 00000000 (see manual for meaning of each bit)
     this->radio.spiWrite(RH_RF69_REG_38_PAYLOADLENGTH, 0); // Payload length (0x38) set to 0
 
-    // remove the default interrupt and add our own
+    if (!this->settings.transmitter)
+    {
+        this->radio.spiWrite(0x3C, 0b10011111); // set FifoThresh to trigger when there are 5 bytes in the fifo 0b10000101
+    }
+    else
+    {
+        this->radio.spiWrite(0x3C, 0b10000101); // set FifoThresh to trigger when there are 61 bytes in the fifo 0b10111101
+    }
+
+    // remove the default interrupt
     detachInterrupt(digitalPinToInterrupt(this->settings.irq));
 
     // Check to make sure we can add another device
-    if (numInts > 3)
-        return false;
+    // if (numInts > 3)
+    //     return false;
 
     // I don't like this, but it seems this is how it has to be done
     // attach interrupts on FifoLevel
-    if (numInts == 0)
-        attachInterrupt(digitalPinToInterrupt(this->settings.fl), i0, RISING);
-    else if (numInts == 1)
-        attachInterrupt(digitalPinToInterrupt(this->settings.fl), i1, RISING);
-    else if (numInts == 2)
-        attachInterrupt(digitalPinToInterrupt(this->settings.fl), i2, RISING);
-    else if (numInts == 3)
-        attachInterrupt(digitalPinToInterrupt(this->settings.fl), i3, RISING);
+    // uint8_t intType = this->settings.transmitter ? FALLING : RISING;
+    // if (numInts == 0)
+    // {
+    // attachInterrupt(digitalPinToInterrupt(this->settings.fl), itr0, intType);
+    //     attachInterrupt(digitalPinToInterrupt(this->settings.irq), i0, RISING);
+    // }
+    // else if (numInts == 1)
+    // {
+    // attachInterrupt(digitalPinToInterrupt(this->settings.fl), itr1, intType);
+    //     attachInterrupt(digitalPinToInterrupt(this->settings.irq), i1, RISING);
+    // }
+    // else if (numInts == 2)
+    // {
+    // attachInterrupt(digitalPinToInterrupt(this->settings.fl), itr2, intType);
+    //     attachInterrupt(digitalPinToInterrupt(this->settings.irq), i2, RISING);
+    // }
+    // else if (numInts == 3)
+    // {
+    // attachInterrupt(digitalPinToInterrupt(this->settings.fl), itr3, intType);
+    //     attachInterrupt(digitalPinToInterrupt(this->settings.irq), i3, RISING);
+    // }
 
-    devices[numInts] = this;
-    numInts++;
-
-    if (this->settings.highBitrate) // Note: not working
-    {
-        // the default bitrate of 4.8kbps should be fine unless we want high bitrate for video
-        // set300KBPS();
-        this->radio.setModemConfig(RH_RF69::FSK_Rb4_8Fd9_6);
-        // remove as much overhead as possible
-        // this->radio.setPreambleLength(0);
-        // this->radio.setSyncWords();
-    }
+    // devices[numInts] = this;
+    // numInts++;
 
     return true;
 }
@@ -178,8 +201,7 @@ bool RFM69HCW::txs(const char *message, int len)
     if (!this->radio.waitCAD())
         return false; // Check channel activity
 
-    this->radio.spiWrite(0x3C, 0b10000101); // set FifoThresh to trigger when there are 5 bytes in the fifo
-
+    this->busy = true;
     ATOMIC_BLOCK_START;
     // Start spi transaction
     this->settings.spi->beginTransaction();
@@ -192,8 +214,23 @@ bool RFM69HCW::txs(const char *message, int len)
     // Send type of transmitter that should receive this message
     this->settings.spi->transfer(this->toAddr); // In the future see if this can be the built in address byte
     // Send the payload
-    while (this->msgIndex++ != this->msgLen && !this->FifoFull())
+    while (this->msgIndex < this->msgLen && !this->FifoFull())
+    {
         this->settings.spi->transfer(this->msg[this->msgIndex]);
+        // Serial.print(this->msg[this->msgIndex]);
+        this->msgIndex++;
+    }
+    // Serial.print("\n");
+
+    if (this->msgIndex == this->msgLen)
+    {
+        this->msgLen = -1;
+        this->msgIndex = 0;
+        this->busy = false;
+    }
+    delayMicroseconds(10);
+    digitalWrite(this->settings.cs, HIGH);
+    this->settings.spi->endTransaction();
     ATOMIC_BLOCK_END;
 
     this->mode = RHGenericDriver::RHModeTx;
@@ -203,23 +240,42 @@ bool RFM69HCW::txs(const char *message, int len)
 
 bool RFM69HCW::txI()
 {
-    ATOMIC_BLOCK_START;
-    // Don't need to select radio, it should already be selected
-    // Don't need to send fifo address, spi transaction is still ongoing
-    while (this->msgIndex++ != this->msgLen && !this->FifoFull())
-        this->settings.spi->transfer(this->msg[this->msgIndex]);
-    // if the whole message has been sent, end the transaction
-    if (this->msgIndex == this->msgLen)
+    if (busy)
     {
+        ATOMIC_BLOCK_START;
+        // Start spi transaction
+        this->settings.spi->beginTransaction();
+        // Select the radio
+        digitalWrite(this->settings.cs, LOW);
+        // Send the fifo address with the write mask on
+        this->settings.spi->transfer(RH_RF69_REG_00_FIFO | RH_RF69_SPI_WRITE_MASK);
+        // Send the payload
+        while (this->msgIndex < this->msgLen && !this->FifoFull())
+        {
+            this->settings.spi->transfer(this->msg[this->msgIndex]);
+            this->msgIndex++;
+        }
+        // if the whole message has been sent, end the transaction
+        if (this->msgIndex == this->msgLen)
+        {
+            this->msgLen = -1;
+            this->msgIndex = 0;
+            this->busy = false;
+        }
+        delayMicroseconds(10);
         digitalWrite(this->settings.cs, HIGH);
         this->settings.spi->endTransaction();
-        this->msgLen = -1;
-        this->msgIndex = 0;
-        this->toAddr = 0xff;
-        this->mode = RHGenericDriver::RHModeIdle;
+        ATOMIC_BLOCK_END;
+        return this->msgIndex == this->msgLen;
     }
-    ATOMIC_BLOCK_END;
-    return this->msgIndex == this->msgLen;
+    return true;
+}
+
+void RFM69HCW::txe()
+{
+    // Serial.println("transmission finished");
+    // this->mode = RHGenericDriver::RHModeIdle;
+    this->radio.setModeIdle();
 }
 
 /*
@@ -272,84 +328,59 @@ const char *RFM69HCW::rx()
     return 0;
 }
 
-// void RFM69HCW::rxl()
-// {
-//     // make sure there's a message for us first
-//     if ((!this->radio.spiRead(RH_RF69_IRQFLAGS2_FIFONOTEMPTY) || !this->radio.spiRead(RH_RF69_FIFOTHRESH_FIFOTHRESHOLD)) && !this->avail)
-//     {
-//         ATOMIC_BLOCK_START; // start spi connection
-//         this->settings.spi->beginTransaction();
-//         digitalWrite(this->settings.cs, LOW);
-
-//         if (this->msgLen == -1) // this means we are receiving a new message, and we need to figure out how long it is and who its for
-//         {
-//             this->msgLen = this->settings.spi->transfer(0);
-//             this->toAddr = this->settings.spi->transfer(0); // In the future see if this can be the built in address byte
-
-//             // check address
-//             if (this->toAddr == this->addr)
-//             {
-//                 while (this->msgIndex++ != this->msgLen && this->radio.spiRead(RH_RF69_IRQFLAGS2_FIFONOTEMPTY))
-//                     this->msg[msgIndex] = this->settings.spi->transfer(0);
-//             }
-//         }
-
-//         while (this->msgIndex++ != this->msgLen && this->radio.spiRead(RH_RF69_IRQFLAGS2_FIFONOTEMPTY))
-//             this->msg[msgIndex] = this->settings.spi->transfer(0);
-
-//         digitalWrite(this->settings.cs, HIGH);
-//         this->settings.spi->endTransaction();
-//         ATOMIC_BLOCK_END; // end spi connection
-
-//         // after we're done reading, check if we have a complete message
-//         if (this->msgIndex == this->msgLen)
-//         {
-//             this->avail = true;
-//         }
-//     }
-// }
-
 // this should be called by the user after they have read the message, generally immediately after calling receive
-void RFM69HCW::rxe() // want to figure out a good way to not have to do this
+void RFM69HCW::rxs() // want to figure out a good way to not have to do this
 {
+    // new message reset to defaults
     this->msgLen = -1;
     this->msgIndex = 0;
     this->toAddr = 0xff;
+    memset(this->msg, 0, MSG_LEN);
+    this->mode = RHGenericDriver::RHModeIdle;
+    this->radio.setModeIdle();
 }
 
 // only called once a message is being received
 void RFM69HCW::rxI()
 {
     // adapted from RadioHead code
-    if (this->msgLen == -1) // this means we are receiving a new message, and we need to figure out how long it is and who its for
+    if (!busy) // this means we are receiving a new message, and we need to figure out how long it is and who its for
     {
         ATOMIC_BLOCK_START;
-        this->radio.spiWrite(0x3C, 0b10111101); // set FifoThresh to trigger when there are 61 bytes in the fifo
-
         // Start spi transaction
         this->settings.spi->beginTransaction();
         // Select the radio
         digitalWrite(this->settings.cs, LOW);
 
-        // Send the fifo address with the write mask on
-        this->settings.spi->transfer(RH_RF69_REG_00_FIFO | RH_RF69_SPI_WRITE_MASK);
+        // Send the fifo address with the write mask off
+        this->settings.spi->transfer(RH_RF69_REG_00_FIFO);
 
+        // Preserve the state of msgLen and toAddr in case we don't care about this message
         // Get the message length
-        this->msgLen = this->settings.spi->transfer(0);
+        int l = this->settings.spi->transfer(0) - 1;
         // Get the radio type that is supposed to receive this message
-        this->toAddr = this->settings.spi->transfer(0); // In the future see if this can be the built in address byte
+        int a = this->settings.spi->transfer(0); // In the future see if this can be the built in address byte
 
         // check address
-        if (this->toAddr == this->addr)
+        if (a == this->addr && l <= MSG_LEN)
         {
-            while (this->msgIndex++ != this->msgLen && this->FifoNotEmpty())
-                this->msg[msgIndex] = this->settings.spi->transfer(0);
+            // set up for receiving the message
+            this->msgLen = l;
+            this->toAddr = a;
+            busy = true;
+            while (this->msgIndex < this->msgLen && this->FifoNotEmpty())
+            {
+                this->msg[this->msgIndex] = this->settings.spi->transfer(0);
+                this->msgIndex++;
+            }
         }
         else
         {
-            // reset msgLen and toAddr
-            this->msgLen = -1;
-            this->toAddr = 0xff;
+            // reset msgLen and toAddr, end transaction, and clear fifo through entering idle mode
+            digitalWrite(this->settings.cs, HIGH);
+            this->settings.spi->endTransaction();
+            this->mode = RHGenericDriver::RHModeIdle;
+            this->radio.setModeIdle();
         }
         ATOMIC_BLOCK_END;
     }
@@ -358,31 +389,32 @@ void RFM69HCW::rxI()
         ATOMIC_BLOCK_START;
         // Don't need to select radio, it should already be selected
         // Don't need to send fifo address, spi transaction is still ongoing
-        while (this->msgIndex++ != this->msgLen && this->FifoNotEmpty())
+        while (this->msgIndex < this->msgLen && this->FifoNotEmpty())
+        {
             this->msg[msgIndex] = this->settings.spi->transfer(0);
+            this->msgIndex++;
+        }
+
         ATOMIC_BLOCK_END;
     }
 
     // after we're done reading, check if we have a complete message
     if (this->msgIndex == this->msgLen)
     {
+        ATOMIC_BLOCK_START;
         this->avail = true;
-        this->mode = RHGenericDriver::RHModeIdle;
+        this->busy = false;
         digitalWrite(this->settings.cs, HIGH);
         this->settings.spi->endTransaction();
+        ATOMIC_BLOCK_END;
         // other values will be reset with txe
     }
 }
 
-/*
-\return ```true``` if the radio is currently busy
-*/
-bool RFM69HCW::busy()
+// Returns true if the radio is idle
+bool RFM69HCW::idle()
 {
-    this->mode = this->radio.mode();
-    if (this->mode == RHGenericDriver::RHModeIdle)
-        return false;
-    return true;
+    return !this->busy;
 }
 
 /*
@@ -737,6 +769,7 @@ bool RFM69HCW::decode(char *message, EncodingType type, int len)
         aprs.toString(message);
 
         // add RSSI to the end of message
+        this->RSSI();
         sprintf(message + strlen(message), "%s%d", ",RSSI:", this->rssi);
 
         this->msgLen = strlen(message);
@@ -779,18 +812,18 @@ bool RFM69HCW::send(const char *message, EncodingType type, int len)
             this->msgLen = len;
         else
             this->msgLen = strlen(this->msg);
-        return encode(this->msg, type, this->msgLen) && tx(nullptr, strlen(this->msg)); // length needs to be updated since encode() modifies the message
+        return encode(this->msg, type, this->msgLen) && txs(nullptr, strlen(this->msg)); // length needs to be updated since encode() modifies the message
     }
     if (type == ENCT_VIDEO && len != -1)
     {
         // can't assume message is a valid string
         this->msgLen = len > MSG_LEN ? MSG_LEN : len;
         memcpy(this->msg, message, this->msgLen);
-        return encode(this->msg, type) && tx(nullptr); // length does not change with ENCT_VIDEO
+        return encode(this->msg, type) && txs(nullptr); // length does not change with ENCT_VIDEO
     }
     if (type == ENCT_NONE && len != -1)
     {
-        return tx(message, len);
+        return txs(message, len);
     }
     return false;
 }
@@ -809,6 +842,7 @@ const char *RFM69HCW::receive(EncodingType type)
         this->avail = false;
         if (!decode(this->msg, type, this->msgLen)) // Note: this->msgLen is never set to -1
             return 0;
+
         return this->msg;
     }
     return 0;
@@ -820,7 +854,7 @@ Returns true if a there is a new message
 */
 bool RFM69HCW::available()
 {
-    rx();                                        // don't need to call this in unlimited mode
+    // rx(); // don't need to call this in unlimited mode
     if (this->mode != RHGenericDriver::RHModeRx) // use this in unlimited mode
     {
         this->mode = RHGenericDriver::RHModeRx;
@@ -834,7 +868,7 @@ Returns the RSSI of the last message
 */
 int RFM69HCW::RSSI()
 {
-    return this->rssi;
+    return this->rssi = -((int8_t)(this->radio.spiRead(RH_RF69_REG_24_RSSIVALUE) >> 1));
 }
 
 // probably broken
@@ -846,40 +880,13 @@ void RFM69HCW::set300KBPS()
     this->radio.spiWrite(0x1A, 0x80);       // REG_AFCBW: 500kHz
     this->radio.spiWrite(0x05, 0x13);       // REG_FDEVMSB: 300khz (0x1333)
     this->radio.spiWrite(0x06, 0x33);       // REG_FDEVLSB: 300khz (0x1333)
-    this->radio.spiWrite(0x29, 240);        // set REG_RSSITHRESH to -120dBm
+    this->radio.spiWrite(0x29, 100);        // RSSI_THRESH: -110dBm
     this->radio.spiWrite(0x37, 0b10010000); // DC=WHITENING, CRCAUTOOFF=0
                                             //                ^^->DC: 00=none, 01=manchester, 10=whitening
 }
 
-// probably will not be needed
-// void RFM69HCW::interrupt()
-// {
-//     // Adapted from the RadioHead library
-//     // Get the interrupt cause
-//     uint8_t irqflags2 = this->radio.spiRead(RH_RF69_REG_28_IRQFLAGS2);
-//     if (this->radio.mode() == RHGenericDriver::RHModeTx && (irqflags2 & RH_RF69_IRQFLAGS2_PACKETSENT))
-//     {
-//         // A transmitter message has been fully sent
-//         this->radio.setModeIdle(); // Clears FIFO
-//     }
-
-//     // Must look for PAYLOADREADY, not CRCOK, since only PAYLOADREADY occurs _after_ AES decryption has been done
-//     // actually this won't work at all
-//     if (this->radio.mode() == RHGenericDriver::RHModeRx && (irqflags2 & RH_RF69_IRQFLAGS2_PAYLOADREADY))
-//     {
-//         // A complete message has been received with good CRC
-//         this->rssi = -((int8_t)(this->radio.spiRead(RH_RF69_REG_24_RSSIVALUE) >> 1));
-
-//         // these should be added if necessary, but setModeIdle might mess us up
-
-//         // this->radio.setModeIdle();
-//         // Save it in our buffer
-//         this->rxI();
-//     }
-// }
-
 // these are needed
-void RFM69HCW::i0()
+void RFM69HCW::itr0()
 {
     if (devices[0] && devices[0]->mode == RHGenericDriver::RHModeTx)
         devices[0]->txI();
@@ -887,7 +894,7 @@ void RFM69HCW::i0()
         devices[0]->rxI();
 }
 
-void RFM69HCW::i1()
+void RFM69HCW::itr1()
 {
     if (devices[1] && devices[1]->mode == RHGenericDriver::RHModeTx)
         devices[1]->txI();
@@ -895,7 +902,7 @@ void RFM69HCW::i1()
         devices[1]->rxI();
 }
 
-void RFM69HCW::i2()
+void RFM69HCW::itr2()
 {
     if (devices[2] && devices[2]->mode == RHGenericDriver::RHModeTx)
         devices[2]->txI();
@@ -903,12 +910,38 @@ void RFM69HCW::i2()
         devices[2]->rxI();
 }
 
-void RFM69HCW::i3()
+void RFM69HCW::itr3()
 {
     if (devices[3] && devices[3]->mode == RHGenericDriver::RHModeTx)
         devices[3]->txI();
     if (devices[3] && devices[3]->mode == RHGenericDriver::RHModeRx)
         devices[3]->rxI();
+}
+
+void RFM69HCW::i0()
+{
+    Serial.print("i mode: ");
+    Serial.println(devices[0]->radio.mode());
+    if (devices[0] && devices[0]->mode == RHGenericDriver::RHModeTx)
+        devices[0]->txe();
+}
+
+void RFM69HCW::i1()
+{
+    if (devices[1] && devices[1]->mode == RHGenericDriver::RHModeTx)
+        devices[1]->txe();
+}
+
+void RFM69HCW::i2()
+{
+    if (devices[2] && devices[2]->mode == RHGenericDriver::RHModeTx)
+        devices[2]->txe();
+}
+
+void RFM69HCW::i3()
+{
+    if (devices[3] && devices[3]->mode == RHGenericDriver::RHModeTx)
+        devices[3]->txe();
 }
 
 // returns the state of the FifoFull interrupt
