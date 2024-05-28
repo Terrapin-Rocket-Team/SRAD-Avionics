@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include "../Radio/RFM69HCW.h"
 #include "../Radio/APRS/APRSCmdMsg.h"
+#include "../LiveRadio/LiveRFM69HCW.h"
 
 #define SERIAL_BAUD 1000000     // 1M Baud => 8us per byte
 
@@ -22,6 +23,27 @@ byte buff2[BUFF2_SIZE];
 byte buff3[BUFF3_SIZE];
 byte buff4[BUFF4_SIZE];
 
+// live video stuff 
+
+#define MSG_SIZE 25000
+#define TX_ADDR 0x02
+#define RX_ADDR 0x01
+#define SYNC1 0x00
+#define SYNC2 0xff
+
+void radioIdle(RadioObject *rad);
+void radioRx(RadioObject *rad);
+void readLiveRadio(RadioObject *rad);
+
+struct LiveSettings {
+    bool hasTransmission;
+    bool modeReady;
+    bool modeIdle = true;
+    unsigned int pos;
+    bool hasL;
+    bool hasA;
+};
+
 struct RadioObject
 {
     APRSTelemMsg *telem;
@@ -31,6 +53,7 @@ struct RadioObject
     byte *buffer;
     int bufftop;        // index of the next byte to be written
     int buffbot;        // index of the next byte to be read
+    LiveSettings settings;
 };
 
 // just for sending info
@@ -54,8 +77,10 @@ APRSCmdMsg cmd3(header);
 RadioSettings settings3 = {433.775, 0x02, 0x01, &hardware_spi, 10, 31, 32};
 RFM69HCW radio3(&settings3);
 
-RadioObject r1 = {&msg1, &cmd1, &radio1, PACKET1_SIZE, buff1, 0, 0};
-RadioObject r2 = {&msg2, &cmd2, &radio2, PACKET2_SIZE, buff2, 0, 0};
+LiveSettings lset1 = {false, false, true, 0, false, false};
+LiveSettings lset2 = {false, false, true, 0, false, false};
+RadioObject r1 = {&msg1, &cmd1, &radio1, PACKET1_SIZE, buff1, 0, 0, lset1};
+RadioObject r2 = {&msg2, &cmd2, &radio2, PACKET2_SIZE, buff2, 0, 0, lset2};
 RadioObject r3 = {&msg3, &cmd3, &radio3, PACKET3_SIZE, buff3, 0, 0};
 
 // make an array of pointers to the radio objects
@@ -86,6 +111,8 @@ void setup()
     cmd3.data.MinutesUntilDataRecording = 1;
     cmd3.data.MinutesUntilVideoStart = 2;
     cmd3.data.Launch = false;
+
+    // sdjkfhkjsd(&r3);
 }
 
 
@@ -126,4 +153,31 @@ void loop()
         // get the length of the message
         int lens = strlen(msg);         // fix bc idk message length since its char array and not null terminated
     }
+}
+
+// adapted from radioHead functions
+void radioIdle(RadioObject *rad)
+{
+    rad->settings.modeReady = false;
+    rad->settings.modeIdle = true;
+
+    rad->radio->radio.spiWrite(RH_RF69_REG_5A_TESTPA1, RH_RF69_TESTPA1_NORMAL);
+    rad->radio->radio.spiWrite(RH_RF69_REG_5C_TESTPA2, RH_RF69_TESTPA2_NORMAL);
+    uint8_t opmode = rad->radio->radio.spiRead(RH_RF69_REG_01_OPMODE);
+    opmode &= ~RH_RF69_OPMODE_MODE;
+    opmode |= (RH_RF69_OPMODE_MODE_STDBY & RH_RF69_OPMODE_MODE);
+    rad->radio->radio.spiWrite(RH_RF69_REG_01_OPMODE, opmode);
+}
+
+void radioRx(RadioObject *rad)
+{
+    rad->settings.modeReady = false;
+    rad->settings.modeIdle = false;
+    rad->radio->radio.spiWrite(RH_RF69_REG_5A_TESTPA1, RH_RF69_TESTPA1_NORMAL);
+    rad->radio->radio.spiWrite(RH_RF69_REG_5C_TESTPA2, RH_RF69_TESTPA2_NORMAL);
+    rad->radio->radio.spiWrite(RH_RF69_REG_25_DIOMAPPING1, RH_RF69_DIOMAPPING1_DIO0MAPPING_01); // Set interrupt line 0 PayloadReady
+    uint8_t opmode = rad->radio->radio.spiRead(RH_RF69_REG_01_OPMODE);
+    opmode &= ~RH_RF69_OPMODE_MODE;
+    opmode |= (RH_RF69_OPMODE_MODE_RX & RH_RF69_OPMODE_MODE);
+    rad->radio->radio.spiWrite(RH_RF69_REG_01_OPMODE, opmode);
 }
