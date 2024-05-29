@@ -19,10 +19,10 @@
 #define BUFF4_SIZE PACKET3_SIZE * 4
 
 // 1, 2 are for live radio, 3 is for telemetry, 4 is for input
-byte buff1[BUFF1_SIZE];
-byte buff2[BUFF2_SIZE];
-byte buff3[BUFF3_SIZE];
-byte buff4[BUFF4_SIZE];
+uint8_t buff1[BUFF1_SIZE];
+uint8_t buff2[BUFF2_SIZE];
+uint8_t buff3[BUFF3_SIZE];
+uint8_t buff4[BUFF4_SIZE];
 
 // live video stuff 
 
@@ -52,6 +52,7 @@ struct RadioObject
     RFM69HCW *radio;
     const int packetSize;
     byte *buffer;
+    int buffsize;
     int bufftop;        // index of the next byte to be written
     int buffbot;        // index of the next byte to be read
 };
@@ -61,6 +62,7 @@ struct LiveRadioObject
     Live::RFM69HCW *radio;
     const int packetSize;
     byte *buffer;
+    int buffsize;
     int bufftop;        // index of the next byte to be written
     int buffbot;        // index of the next byte to be read
     LiveSettings settings;
@@ -87,9 +89,9 @@ RFM69HCW radio3(&settings3);
 
 LiveSettings lset1 = {false, false, true, 0, false, false};
 LiveSettings lset2 = {false, false, true, 0, false, false};
-LiveRadioObject r1 = {&radio1, PACKET1_SIZE, buff1, 0, 0, lset1};
-LiveRadioObject r2 = {&radio2, PACKET2_SIZE, buff2, 0, 0, lset2};
-RadioObject r3 = {&msg3, &cmd3, &radio3, PACKET3_SIZE, buff3, 0, 0};
+LiveRadioObject r1 = {&radio1, PACKET1_SIZE, buff1, BUFF1_SIZE, 0, 0, lset1};
+LiveRadioObject r2 = {&radio2, PACKET2_SIZE, buff2, BUFF2_SIZE, 0, 0, lset2};
+RadioObject r3 = {&msg3, &cmd3, &radio3, PACKET3_SIZE, buff3, BUFF3_SIZE, 0, 0};
 
 // make an array of pointers to the radio objects
 void *radios[] = {&r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r3};
@@ -210,7 +212,12 @@ void readLiveRadio(LiveRadioObject *rad)
         // data
         while (rad->settings.pos < MSG_SIZE && rad->radio->FifoNotEmpty())
         {
-            Serial.write(rad->radio->settings.spi->transfer(0));
+
+            // write to circular buffer in rad
+            rad->buffer[rad->bufftop] = rad->radio->settings.spi->transfer(0);
+            rad->bufftop = (rad->bufftop + 1) % rad->buffsize;
+
+            // Serial.write(rad->radio->settings.spi->transfer(0));
             rad->settings.pos++;
         }
 
@@ -273,7 +280,12 @@ void readLiveRadio(LiveRadioObject *rad)
 
             while (rad->settings.pos < MSG_SIZE && rad->radio->FifoNotEmpty())
             {
-                Serial.write(rad->radio->settings.spi->transfer(0));
+
+                // write to circular buffer in rad 
+                rad->buffer[rad->bufftop] = rad->radio->settings.spi->transfer(0);
+                rad->bufftop = (rad->bufftop + 1) % rad->buffsize;
+
+                // Serial.write(rad->radio->settings.spi->transfer(0));
                 rad->settings.pos++;
             }
         }
