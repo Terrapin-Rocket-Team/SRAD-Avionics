@@ -13,10 +13,10 @@
 #define PACKET3_SIZE 63
 
 // makes them 4 times as large
-#define BUFF1_SIZE PACKET1_SIZE * 4
-#define BUFF2_SIZE PACKET2_SIZE * 4
-#define BUFF3_SIZE PACKET3_SIZE * 4
-#define BUFF4_SIZE PACKET3_SIZE * 4
+#define BUFF1_SIZE PACKET1_SIZE * 8
+#define BUFF2_SIZE PACKET2_SIZE * 8
+#define BUFF3_SIZE PACKET3_SIZE * 8
+#define BUFF4_SIZE PACKET3_SIZE * 8
 
 // 1, 2 are for live radio, 3 is for telemetry, 4 is for input
 uint8_t buff1[BUFF1_SIZE];
@@ -210,7 +210,7 @@ void readLiveRadio(LiveRadioObject *rad)
         rad->radio->settings.spi->transfer(RH_RF69_REG_00_FIFO);
 
         // data
-        while (rad->settings.pos < MSG_SIZE && rad->radio->FifoNotEmpty())
+        while (rad->settings.pos < MSG_SIZE && rad->radio->FifoNotEmpty() && rad->bufftop != rad->buffbot)
         {
 
             // write to circular buffer in rad
@@ -278,7 +278,7 @@ void readLiveRadio(LiveRadioObject *rad)
             rad->settings.hasTransmission = true;
             rad->settings.hasL = rad->settings.hasA = false;
 
-            while (rad->settings.pos < MSG_SIZE && rad->radio->FifoNotEmpty())
+            while (rad->settings.pos < MSG_SIZE && rad->radio->FifoNotEmpty() && rad->bufftop != rad->buffbot)
             {
 
                 // write to circular buffer in rad 
