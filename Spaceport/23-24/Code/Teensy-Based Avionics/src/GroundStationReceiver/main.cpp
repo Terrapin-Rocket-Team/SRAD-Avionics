@@ -18,6 +18,7 @@
 #define BUFF3_SIZE PACKET3_SIZE * 4
 #define BUFF4_SIZE PACKET3_SIZE * 4
 
+// 1, 2 are for live radio, 3 is for telemetry, 4 is for input
 byte buff1[BUFF1_SIZE];
 byte buff2[BUFF2_SIZE];
 byte buff3[BUFF3_SIZE];
@@ -31,9 +32,9 @@ byte buff4[BUFF4_SIZE];
 #define SYNC1 0x00
 #define SYNC2 0xff
 
-void radioIdle(RadioObject *rad);
-void radioRx(RadioObject *rad);
-void readLiveRadio(RadioObject *rad);
+void radioIdle(LiveRadioObject *rad);
+void radioRx(LiveRadioObject *rad);
+void readLiveRadio(LiveRadioObject *rad);
 
 struct LiveSettings {
     bool hasTransmission;
@@ -53,6 +54,15 @@ struct RadioObject
     byte *buffer;
     int bufftop;        // index of the next byte to be written
     int buffbot;        // index of the next byte to be read
+};
+
+struct LiveRadioObject
+{
+    Live::RFM69HCW *radio;
+    const int packetSize;
+    byte *buffer;
+    int bufftop;        // index of the next byte to be written
+    int buffbot;        // index of the next byte to be read
     LiveSettings settings;
 };
 
@@ -60,18 +70,16 @@ struct RadioObject
 int bufftop4 = 0;
 int buffbot4 = 0;
 
-APRSHeader header = {"KC3UTM", "APRS", "WIDE1-1", '/', 'o'};
-APRSTelemMsg msg1(header);
-APRSCmdMsg cmd1(header);
-RadioSettings settings1 = {915.0, 0x02, 0x01, &hardware_spi, 10, 31, 32};
-RFM69HCW radio1(&settings1);
+Live::APRSConfig config1 = {"KC3UTM", "APRS", "WIDE1-1", '[', '/'};
+Live::RadioSettings settings1 = {915.0, false, true, &hardware_spi, 10, 15, 14, 7, 8, 9};
+Live::RFM69HCW radio1(&settings1, &config1);
 
-APRSTelemMsg msg2(header);
-APRSCmdMsg cmd2(header);
-RadioSettings settings2 = {915.0, 0x02, 0x01, &hardware_spi, 10, 31, 32};
-RFM69HCW radio2(&settings2);
+Live::APRSConfig config2 = {"KC3UTM", "APRS", "WIDE1-1", '[', '/'};
+Live::RadioSettings settings2 = {915.0, false, true, &hardware_spi, 10, 15, 14, 7, 8, 9};
+Live::RFM69HCW radio2(&settings1, &config2);
 
 // Let radio3 be the telemetry receiver
+APRSHeader header = {"KC3UTM", "APRS", "WIDE1-1", '/', 'o'};
 APRSTelemMsg msg3(header);
 APRSCmdMsg cmd3(header);
 RadioSettings settings3 = {433.775, 0x02, 0x01, &hardware_spi, 10, 31, 32};
@@ -79,22 +87,22 @@ RFM69HCW radio3(&settings3);
 
 LiveSettings lset1 = {false, false, true, 0, false, false};
 LiveSettings lset2 = {false, false, true, 0, false, false};
-RadioObject r1 = {&msg1, &cmd1, &radio1, PACKET1_SIZE, buff1, 0, 0, lset1};
-RadioObject r2 = {&msg2, &cmd2, &radio2, PACKET2_SIZE, buff2, 0, 0, lset2};
+LiveRadioObject r1 = {&radio1, PACKET1_SIZE, buff1, 0, 0, lset1};
+LiveRadioObject r2 = {&radio2, PACKET2_SIZE, buff2, 0, 0, lset2};
 RadioObject r3 = {&msg3, &cmd3, &radio3, PACKET3_SIZE, buff3, 0, 0};
 
 // make an array of pointers to the radio objects
-RadioObject *radios[] = {&r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r3};
+void *radios[] = {&r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r3};
 
 void setup()
 {
     delay(2000); // Delay to allow the serial monitor to connect
-    if (!radio1.init())
+    if (!radio1.begin())
         Serial.println("Radio1 failed to initialize");
     else
         Serial.println("Radio1 initialized");
 
-    if (!radio2.init())
+    if (!radio2.begin())
         Serial.println("Radio2 failed to initialize");
     else
         Serial.println("Radio2 initialized");
@@ -106,7 +114,7 @@ void setup()
 
     Serial1.begin(SERIAL_BAUD);
 
-        // Test Case for Demo Purposes
+    // Test Case for Demo Purposes
     cmd3.data.MinutesUntilPowerOn = 0;
     cmd3.data.MinutesUntilDataRecording = 1;
     cmd3.data.MinutesUntilVideoStart = 2;
@@ -121,12 +129,12 @@ int radioIndex = 0;
 void loop()
 {
 
-    if (radio1.update())
+    if (radio3.update())
     {
-        if (radio1.dequeueReceive(&msg1))
+        if (radio3.dequeueReceive(&msg3))
         {
             char buffer[80];
-            aprsToSerial::encodeAPRSForSerial(msg1, buffer, 80, radio1.RSSI());
+            aprsToSerial::encodeAPRSForSerial(msg3, buffer, 80, radio3.RSSI());
             
             // write to circular buffer for radio3 (assuming 63 bytes of data)
             for (int i = 0; i < 63; i++)
@@ -156,7 +164,7 @@ void loop()
 }
 
 // adapted from radioHead functions
-void radioIdle(RadioObject *rad)
+void radioIdle(LiveRadioObject *rad)
 {
     rad->settings.modeReady = false;
     rad->settings.modeIdle = true;
@@ -169,7 +177,7 @@ void radioIdle(RadioObject *rad)
     rad->radio->radio.spiWrite(RH_RF69_REG_01_OPMODE, opmode);
 }
 
-void radioRx(RadioObject *rad)
+void radioRx(LiveRadioObject *rad)
 {
     rad->settings.modeReady = false;
     rad->settings.modeIdle = false;
@@ -181,3 +189,111 @@ void radioRx(RadioObject *rad)
     opmode |= (RH_RF69_OPMODE_MODE_RX & RH_RF69_OPMODE_MODE);
     rad->radio->radio.spiWrite(RH_RF69_REG_01_OPMODE, opmode);
 }
+
+void readLiveRadio(LiveRadioObject *rad)
+{
+
+    using namespace Live;
+
+    // Refill fifo here
+    if (rad->radio->FifoNotEmpty() && rad->settings.hasTransmission)
+    {
+        // Start spi transaction
+        rad->radio->settings.spi->beginTransaction();
+
+        // Select the radio
+        digitalWrite(rad->radio->settings.cs, LOW);
+
+        // Send the fifo address with the write mask off
+        rad->radio->settings.spi->transfer(RH_RF69_REG_00_FIFO);
+
+        // data
+        while (rad->settings.pos < MSG_SIZE && rad->radio->FifoNotEmpty())
+        {
+            Serial.write(rad->radio->settings.spi->transfer(0));
+            rad->settings.pos++;
+        }
+
+        // reset msgLen and toAddr, end transaction, and clear fifo through entering idle mode
+        digitalWrite(rad->radio->settings.cs, HIGH);
+        rad->radio->settings.spi->endTransaction();
+
+        if (rad->settings.pos == MSG_SIZE)
+        {
+            // Serial.println("finished");
+            rad->settings.pos = 0;
+            rad->settings.hasTransmission = false;
+            radioIdle(rad);
+        }
+    }
+
+    // Start a new transmission
+    if (rad->radio->FifoNotEmpty() && !(rad->settings.hasTransmission) && !(rad->settings.modeIdle) && (rad->settings.modeReady))
+    {
+        // Serial.println("started receiving");
+        // timer = millis();
+        // Start spi transaction
+        rad->radio->settings.spi->beginTransaction();
+        // Select the radio
+        digitalWrite(rad->radio->settings.cs, LOW);
+
+        // Send the fifo address with the write mask off
+        rad->radio->settings.spi->transfer(RH_RF69_REG_00_FIFO);
+        // rad->settings.pos = 0;
+
+        // while (rad->settings.pos < MSG_SIZE)
+        // {
+        //   if (rad->radio->FifoNotEmpty())
+        //   {
+        //     Serial.write(settings.spi->transfer(0));
+        //     rad->settings.pos++;
+        //   }
+        // }
+
+        if (!(rad->settings.hasL))
+        {
+            rad->settings.hasL = rad->radio->settings.spi->transfer(0) == SYNC1;
+        }
+
+        if (!(rad->settings.hasA) && rad->settings.hasL && rad->radio->FifoNotEmpty())
+        {
+            rad->settings.hasL = rad->settings.hasA = rad->radio->settings.spi->transfer(0) == SYNC2;
+            if (!(rad->settings.hasA))
+            {
+                // radioIdle();
+            }
+        }
+
+        // if found sync bytes
+        if (rad->settings.hasL && rad->settings.hasA)
+        {
+            // set up for receiving the message
+            rad->settings.hasTransmission = true;
+            rad->settings.hasL = rad->settings.hasA = false;
+
+            while (rad->settings.pos < MSG_SIZE && rad->radio->FifoNotEmpty())
+            {
+                Serial.write(rad->radio->settings.spi->transfer(0));
+                rad->settings.pos++;
+            }
+        }
+        // reset msgLen and toAddr, end transaction, and clear fifo through entering idle mode
+        digitalWrite(rad->radio->settings.cs, HIGH);
+        rad->radio->settings.spi->endTransaction();
+
+        if (rad->settings.pos == MSG_SIZE)
+        {
+            // Serial.println("finished 1");
+            rad->settings.pos = 0;
+            rad->settings.hasTransmission = false;
+            radioIdle(rad);
+        }
+    }
+
+    if ((rad->radio->radio.spiRead(RH_RF69_REG_27_IRQFLAGS1) & RH_RF69_IRQFLAGS1_MODEREADY) && !(rad->settings.modeReady))
+    {
+        rad->settings.modeReady = true;
+        if (rad->settings.modeIdle)
+            radioRx(rad);
+    }
+}   

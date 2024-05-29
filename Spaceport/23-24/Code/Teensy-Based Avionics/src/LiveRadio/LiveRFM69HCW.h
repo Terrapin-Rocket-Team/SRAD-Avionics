@@ -70,6 +70,15 @@ public:
     // length of msg for recieving binary messages
     int msgLen = 0;
 
+    RH_RF69 radio;
+
+    bool FifoFull();
+    bool FifoNotEmpty();
+    bool FifoLevel();
+
+    RadioSettings settings;
+
+    
 private:
     static void i0();
     static void i1();
@@ -79,11 +88,7 @@ private:
     static void itr1();
     static void itr2();
     static void itr3();
-    bool FifoFull();
-    bool FifoNotEmpty();
-    bool FifoLevel();
 
-    RH_RF69 radio;
     // all radios should have the same networkID
     const uint8_t networkID = 0x01;
     const uint8_t sw[4] = {0xff, 0x00, 0x2d, 0xd4};
@@ -93,7 +98,6 @@ private:
     uint8_t addr;
     uint8_t toAddr;
     uint8_t id;
-    RadioSettings settings;
     // for sending/receiving data
     // stores messages sent to radio, length determined by max radio message length
     uint8_t buf[RH_RF69_MAX_MESSAGE_LEN + 1];
