@@ -13,10 +13,10 @@
 #define PACKET3_SIZE 63
 
 // makes them 4 times as large
-#define BUFF1_SIZE PACKET1_SIZE * 8
-#define BUFF2_SIZE PACKET2_SIZE * 8
-#define BUFF3_SIZE PACKET3_SIZE * 8
-#define BUFF4_SIZE PACKET3_SIZE * 8
+#define BUFF1_SIZE PACKET1_SIZE * 4
+#define BUFF2_SIZE PACKET2_SIZE * 4
+#define BUFF3_SIZE PACKET3_SIZE * 4
+#define BUFF4_SIZE PACKET3_SIZE * 4
 
 // 1, 2 are for live radio, 3 is for telemetry, 4 is for input
 uint8_t buff1[BUFF1_SIZE];
@@ -94,7 +94,10 @@ LiveRadioObject r2 = {&radio2, PACKET2_SIZE, buff2, BUFF2_SIZE, 0, 0, lset2};
 RadioObject r3 = {&msg3, &cmd3, &radio3, PACKET3_SIZE, buff3, BUFF3_SIZE, 0, 0};
 
 // make an array of pointers to the radio objects
-void *radios[] = {&r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r3};
+// void *radios[] = {&r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r3};
+
+int counter = 1;
+int radioIndex = 1;
 
 void setup()
 {
@@ -126,8 +129,6 @@ void setup()
 }
 
 
-int counter = 1;
-int radioIndex = 0;
 void loop()
 {
 
@@ -156,12 +157,44 @@ void loop()
         // }
         // counter++;
     }
-    if (radio2.update()) {
-        const char *msg = radio2.rxX();
+    
+    // read live radio
+    readLiveRadio(&r1);
+    readLiveRadio(&r2);
 
-        // write to circular buffer of radio 2
-        // get the length of the message
-        int lens = strlen(msg);         // fix bc idk message length since its char array and not null terminated
+    // send to serial
+    if (radioIndex <= 30) {
+
+        // radio1 
+        if (radioIndex % 2 == 0) {
+            int packetSize = min(r1.packetSize, Serial1.availableForWrite());
+            for (int i = 0; i < packetSize && r1.buffbot != r1.bufftop; i++)
+            {
+                Serial1.write(buff1[r1.buffbot]);
+                r1.buffbot = (r1.buffbot + 1) % BUFF1_SIZE;
+            }
+        } 
+        // radio2
+        else {
+            int packetSize = min(r2.packetSize, Serial1.availableForWrite());
+            for (int i = 0; i < packetSize && r2.buffbot != r2.bufftop; i++)
+            {
+                Serial1.write(buff2[r2.buffbot]);
+                r2.buffbot = (r2.buffbot + 1) % BUFF2_SIZE;
+            }
+        }
+
+        radioIndex++;
+    }
+    else {
+        int packetSize = min(r3.packetSize, Serial1.availableForWrite());
+        for (int i = 0; i < packetSize && r3.buffbot != r3.bufftop; i++)
+        {
+            Serial1.write(buff3[r3.buffbot]);
+            r3.buffbot = (r3.buffbot + 1) % BUFF3_SIZE;
+        }
+
+        radioIndex = 1;
     }
 }
 
