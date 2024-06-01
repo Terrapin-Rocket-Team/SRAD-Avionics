@@ -16,18 +16,17 @@
 #define PACKET2_SIZE 10000 / 8
 #define PACKET3_SIZE 63
 #define BLOCKING_SIZE 50
+#define COMMAND_SIZE 4
 
 // makes them 4 times as large
 #define BUFF1_SIZE PACKET1_SIZE * 4
 #define BUFF2_SIZE PACKET2_SIZE * 4
 #define BUFF3_SIZE PACKET3_SIZE * 4
-#define BUFF4_SIZE PACKET3_SIZE * 4
 
 // 1, 2 are for live radio, 3 is for telemetry, 4 is for input
 uint8_t buff1[BUFF1_SIZE];
 uint8_t buff2[BUFF2_SIZE];
 uint8_t buff3[BUFF3_SIZE];
-uint8_t buff4[BUFF4_SIZE];
 
 // live video stuff 
 
@@ -72,10 +71,6 @@ struct LiveRadioObject
     int buffbot;        // index of the next byte to be read
     LiveSettings settings;
 };
-
-// just for sending info
-int bufftop4 = 0;
-int buffbot4 = 0;
 
 Live::APRSConfig config1 = {"KC3UTM", "APRS", "WIDE1-1", '[', '/'};
 Live::RadioSettings settings1 = {915.0, false, true, &hardware_spi, 10, 15, 14, 7, 8, 9};
@@ -127,10 +122,10 @@ void setup()
     Serial1.begin(SERIAL_BAUD);
 
     // Test Case for Demo Purposes
-    cmd3.data.MinutesUntilPowerOn = 0;
-    cmd3.data.MinutesUntilDataRecording = 1;
-    cmd3.data.MinutesUntilVideoStart = 2;
-    cmd3.data.Launch = false;
+    // cmd3.data.MinutesUntilPowerOn = 0;
+    // cmd3.data.MinutesUntilDataRecording = 1;
+    // cmd3.data.MinutesUntilVideoStart = 2;
+    // cmd3.data.Launch = false;
 
     // sdjkfhkjsd(&r3);
 }
@@ -245,6 +240,33 @@ void loop()
         Serial.write(curPacketSize >> 8);
         Serial.write(curPacketSize & 0xff);
 
+    }
+
+    // read from serial
+    if (Serial1.available())
+    {
+        // first byte is minutesUntilPowerOn, second byte is minutesUntilDataRecording, third byte is minutesUntilVideoStart, fourth byte is launch
+        if (Serial1.available() >= COMMAND_SIZE)
+        {
+            byte command[COMMAND_SIZE];
+            for (int i = 0; i < COMMAND_SIZE; i++)
+            {
+                command[i] = Serial1.read();
+            }
+
+            // set the command data
+            r3.cmd->data.MinutesUntilPowerOn = command[0];
+            r3.cmd->data.MinutesUntilDataRecording = command[1];
+            r3.cmd->data.MinutesUntilVideoStart = command[2];
+            r3.cmd->data.Launch = command[3];
+
+            // send the command
+            radio3.enqueueSend(r3.cmd);
+        }
+        else {
+            // reset the buffer
+            Serial1.clear();
+        }
     }
 
 
