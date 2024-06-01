@@ -7,10 +7,15 @@
 
 #define SERIAL_BAUD 1000000     // 1M Baud => 8us per byte
 
+#define RADIO1_HEADER 0x01
+#define RADIO2_HEADER 0x02
+#define RADIO3_HEADER 0xff
+
 // in bytes
 #define PACKET1_SIZE 10000 / 8
 #define PACKET2_SIZE 10000 / 8
 #define PACKET3_SIZE 63
+#define BLOCKING_SIZE 50
 
 // makes them 4 times as large
 #define BUFF1_SIZE PACKET1_SIZE * 4
@@ -98,6 +103,8 @@ RadioObject r3 = {&msg3, &cmd3, &radio3, PACKET3_SIZE, buff3, BUFF3_SIZE, 0, 0};
 
 int counter = 1;
 int radioIndex = 1;
+uint16_t curPacketSize = 0;
+uint16_t sendi = 0;
 
 void setup()
 {
@@ -167,35 +174,80 @@ void loop()
 
         // radio1 
         if (radioIndex % 2 == 0) {
-            int packetSize = min(r1.packetSize, Serial1.availableForWrite());
-            for (int i = 0; i < packetSize && r1.buffbot != r1.bufftop; i++)
+
+            int blockSize = min(BLOCKING_SIZE, Serial1.availableForWrite());
+            for (int i = 0; i < blockSize && r1.buffbot != r1.bufftop && sendi < curPacketSize; i++)
             {
                 Serial1.write(buff1[r1.buffbot]);
                 r1.buffbot = (r1.buffbot + 1) % BUFF1_SIZE;
+                sendi++;
+            }
+
+            if (sendi >= curPacketSize - 1) {
+                radioIndex++;
+                sendi = 0;
+
+                if (radioIndex >= 31) {
+                    Serial.write(RADIO3_HEADER);
+
+                    // get number of bytes that can be read from buff3
+                    curPacketSize = min(r3.packetSize, r3.bufftop - r3.buffbot > 0 ? r3.bufftop - r3.buffbot : BUFF3_SIZE - r3.buffbot + r3.bufftop);
+                    Serial.write(curPacketSize >> 8);
+                    Serial.write(curPacketSize & 0xff);
+                }
+                else {
+                    Serial.write(RADIO2_HEADER);
+
+                    // get number of bytes that can be read from buff2
+                    curPacketSize = min(r2.packetSize, r2.bufftop - r2.buffbot > 0 ? r2.bufftop - r2.buffbot : BUFF2_SIZE - r2.buffbot + r2.bufftop);
+                    Serial.write(curPacketSize >> 8);
+                    Serial.write(curPacketSize & 0xff);
+                }
             }
         } 
         // radio2
         else {
-            int packetSize = min(r2.packetSize, Serial1.availableForWrite());
-            for (int i = 0; i < packetSize && r2.buffbot != r2.bufftop; i++)
+            int blockSize = min(BLOCKING_SIZE, Serial1.availableForWrite());
+            for (int i = 0; i < blockSize && r2.buffbot != r2.bufftop && sendi < curPacketSize; i++)
             {
                 Serial1.write(buff2[r2.buffbot]);
                 r2.buffbot = (r2.buffbot + 1) % BUFF2_SIZE;
+                sendi++;
+            }
+
+            if (sendi == curPacketSize - 1) {
+                radioIndex++;
+                sendi = 0;
+                // get number of bytes that can be read from buff1
+                curPacketSize = min(r1.packetSize, r1.bufftop - r1.buffbot > 0 ? r1.bufftop - r1.buffbot : BUFF1_SIZE - r1.buffbot + r1.bufftop);
+                Serial.write(RADIO1_HEADER);
+                Serial.write(curPacketSize >> 8);
+                Serial.write(curPacketSize & 0xff);
             }
         }
-
-        radioIndex++;
     }
     else {
-        int packetSize = min(r3.packetSize, Serial1.availableForWrite());
-        for (int i = 0; i < packetSize && r3.buffbot != r3.bufftop; i++)
+
+        // send telemetry data
+        int blockSize = min(BLOCKING_SIZE, Serial1.availableForWrite());
+        for (int i = 0; i < blockSize && r3.buffbot != r3.bufftop && sendi < curPacketSize; i++)
         {
             Serial1.write(buff3[r3.buffbot]);
             r3.buffbot = (r3.buffbot + 1) % BUFF3_SIZE;
+            sendi++;
         }
 
+        // prepare for radio2
         radioIndex = 1;
+        sendi = 0;
+        curPacketSize = min(r2.packetSize, r2.bufftop - r2.buffbot > 0 ? r2.bufftop - r2.buffbot : BUFF2_SIZE - r2.buffbot + r2.bufftop);
+        Serial.write(RADIO2_HEADER);
+        Serial.write(curPacketSize >> 8);
+        Serial.write(curPacketSize & 0xff);
+
     }
+
+
 }
 
 // adapted from radioHead functions
