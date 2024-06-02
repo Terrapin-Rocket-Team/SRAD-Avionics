@@ -33,11 +33,13 @@ public:
     bool enqueueSend(const uint8_t *message, uint8_t len) override; // designed to be used externally. can exceed 66 bytes.
 
     bool dequeueReceive(RadioMessage *message) override; // designed to be used externally. can exceed 66 bytes.
+    bool dequeueReceiveX(RadioMessage *message) { return random(0, 100) < 4;};
     bool dequeueReceive(char *message) override;         // designed to be used externally. can exceed 66 bytes.
     bool dequeueReceive(uint8_t *message) override;      // designed to be used externally. can exceed 66 bytes.
 
     int RSSI() override;
     bool update() override;
+    bool updateX() {return true;};
     bool busy();
 
     String letters[40] = {"a", "b", "c", "d", "e", "f","g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"};

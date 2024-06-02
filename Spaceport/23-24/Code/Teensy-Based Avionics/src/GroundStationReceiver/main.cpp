@@ -416,3 +416,16 @@ void readLiveRadio(LiveRadioObject *rad)
             radioRx(rad);
     }
 }   
+
+// filler funcs
+
+void readLiveRadioX(LiveRadioObject *rad) {
+    // randomly pick a letter, and update the circular buffer with 50-100 of that letter
+    char c = 'A' + (random(0, 26));
+
+    int num = random(50, 100);
+    for (int i = 0; i < num; i++) {
+        rad->buffer[rad->bufftop] = c;
+        rad->bufftop = (rad->bufftop + 1) % rad->buffsize;
+    }
+}

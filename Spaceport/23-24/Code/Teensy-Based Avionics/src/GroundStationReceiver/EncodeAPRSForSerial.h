@@ -58,6 +58,11 @@ namespace aprsToSerial
                  suffix);
     }
 
+    void encodeAPRSForSerialX(const APRSTelemMsg &msg, char *buffer, size_t buffer_size, int RSSI) {
+        int lens = random(100, 999);
+        snprintf(buffer, buffer_size, "%s", ("s\r\nSource:123,Destination:321,Path:555,Type:999,Data:!3624.12N/07624.12S[123/" + String(lens) + "/A=100054/S1/11:33:26,RSSI:-56\r\ne\r\n").c_str());
+    }
+
     void encodeLatLong(const APRSTelemMsg &msg, char *buffer, size_t buffer_size)
     {
         int lat_deg = (int)abs(msg.data.lat);
