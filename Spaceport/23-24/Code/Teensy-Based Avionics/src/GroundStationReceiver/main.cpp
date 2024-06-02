@@ -36,10 +36,6 @@ uint8_t buff3[BUFF3_SIZE];
 #define SYNC1 0x00
 #define SYNC2 0xff
 
-void radioIdle(LiveRadioObject *rad);
-void radioRx(LiveRadioObject *rad);
-void readLiveRadio(LiveRadioObject *rad);
-
 struct LiveSettings {
     bool hasTransmission;
     bool modeReady;
@@ -72,6 +68,11 @@ struct LiveRadioObject
     LiveSettings settings;
 };
 
+void radioIdle(LiveRadioObject *rad);
+void radioRx(LiveRadioObject *rad);
+void readLiveRadio(LiveRadioObject *rad);
+void readLiveRadioX(LiveRadioObject *rad);
+
 Live::APRSConfig config1 = {"KC3UTM", "APRS", "WIDE1-1", '[', '/'};
 Live::RadioSettings settings1 = {915.0, false, true, &hardware_spi, 10, 15, 14, 7, 8, 9};
 Live::RFM69HCW radio1(&settings1, &config1);
@@ -103,7 +104,8 @@ uint16_t sendi = 0;
 
 void setup()
 {
-    delay(2000); // Delay to allow the serial monitor to connect
+    Serial.begin(SERIAL_BAUD);
+    
     if (!radio1.begin())
         Serial.println("Radio1 failed to initialize");
     else
@@ -119,7 +121,8 @@ void setup()
     else
         Serial.println("Radio3 initialized");
 
-    Serial1.begin(SERIAL_BAUD);
+    Serial.print("mux started");
+
 
     // Test Case for Demo Purposes
     // cmd3.data.MinutesUntilPowerOn = 0;
@@ -134,12 +137,12 @@ void setup()
 void loop()
 {
 
-    if (radio3.update())
+    if (radio3.updateX())
     {
-        if (radio3.dequeueReceive(&msg3))
+        if (radio3.dequeueReceiveX(&msg3))
         {
             char buffer[80];
-            aprsToSerial::encodeAPRSForSerial(msg3, buffer, 80, radio3.RSSI());
+            aprsToSerial::encodeAPRSForSerialX(msg3, buffer, 80, radio3.RSSI());
             
             // write to circular buffer for radio3 (assuming 63 bytes of data)
             for (int i = 0; i < 63; i++)
@@ -161,8 +164,8 @@ void loop()
     }
     
     // read live radio
-    readLiveRadio(&r1);
-    readLiveRadio(&r2);
+    readLiveRadioX(&r1);
+    readLiveRadioX(&r2);
 
     // send to serial
     if (radioIndex <= 30) {
@@ -170,10 +173,10 @@ void loop()
         // radio1 
         if (radioIndex % 2 == 0) {
 
-            int blockSize = min(BLOCKING_SIZE, Serial1.availableForWrite());
+            int blockSize = min(BLOCKING_SIZE, Serial.availableForWrite());
             for (int i = 0; i < blockSize && r1.buffbot != r1.bufftop && sendi < curPacketSize; i++)
             {
-                Serial1.write(buff1[r1.buffbot]);
+                Serial.write(buff1[r1.buffbot]);
                 r1.buffbot = (r1.buffbot + 1) % BUFF1_SIZE;
                 sendi++;
             }
@@ -202,10 +205,10 @@ void loop()
         } 
         // radio2
         else {
-            int blockSize = min(BLOCKING_SIZE, Serial1.availableForWrite());
+            int blockSize = min(BLOCKING_SIZE, Serial.availableForWrite());
             for (int i = 0; i < blockSize && r2.buffbot != r2.bufftop && sendi < curPacketSize; i++)
             {
-                Serial1.write(buff2[r2.buffbot]);
+                Serial.write(buff2[r2.buffbot]);
                 r2.buffbot = (r2.buffbot + 1) % BUFF2_SIZE;
                 sendi++;
             }
@@ -224,10 +227,10 @@ void loop()
     else {
 
         // send telemetry data
-        int blockSize = min(BLOCKING_SIZE, Serial1.availableForWrite());
+        int blockSize = min(BLOCKING_SIZE, Serial.availableForWrite());
         for (int i = 0; i < blockSize && r3.buffbot != r3.bufftop && sendi < curPacketSize; i++)
         {
-            Serial1.write(buff3[r3.buffbot]);
+            Serial.write(buff3[r3.buffbot]);
             r3.buffbot = (r3.buffbot + 1) % BUFF3_SIZE;
             sendi++;
         }
@@ -243,15 +246,15 @@ void loop()
     }
 
     // read from serial
-    if (Serial1.available())
+    if (Serial.available())
     {
         // first byte is minutesUntilPowerOn, second byte is minutesUntilDataRecording, third byte is minutesUntilVideoStart, fourth byte is launch
-        if (Serial1.available() >= COMMAND_SIZE)
+        if (Serial.available() >= COMMAND_SIZE)
         {
             byte command[COMMAND_SIZE];
             for (int i = 0; i < COMMAND_SIZE; i++)
             {
-                command[i] = Serial1.read();
+                command[i] = Serial.read();
             }
 
             // set the command data
@@ -265,7 +268,7 @@ void loop()
         }
         else {
             // reset the buffer
-            Serial1.clear();
+            Serial.clear();
         }
     }
 
