@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include "../Radio/RFM69HCW.h"
 #include "../Radio/APRS/APRSCmdMsg.h"
-#include "../LiveRadio/LiveRFM69HCW.h"
+#include "LiveRFM69HCW.h"
 
 #define SERIAL_BAUD 1000000     // 1M Baud => 8us per byte
 
@@ -12,16 +12,16 @@
 #define RADIO3_HEADER 0xff
 
 // in bytes
-#define PACKET1_SIZE 10000 / 8
-#define PACKET2_SIZE 10000 / 8
-#define PACKET3_SIZE 63
+#define PACKET1_SIZE (10000 / 8)
+#define PACKET2_SIZE (10000 / 8)
+#define PACKET3_SIZE 80
 #define BLOCKING_SIZE 50
 #define COMMAND_SIZE 4
 
 // makes them 4 times as large
-#define BUFF1_SIZE PACKET1_SIZE * 4
-#define BUFF2_SIZE PACKET2_SIZE * 4
-#define BUFF3_SIZE PACKET3_SIZE * 4
+#define BUFF1_SIZE (PACKET1_SIZE * 4)
+#define BUFF2_SIZE (PACKET2_SIZE * 4)
+#define BUFF3_SIZE (PACKET3_SIZE * 4)
 
 // 1, 2 are for live radio, 3 is for telemetry, 4 is for input
 uint8_t buff1[BUFF1_SIZE];
@@ -51,7 +51,7 @@ struct RadioObject
     APRSCmdMsg *cmd;
     RFM69HCW *radio;
     const int packetSize;
-    byte *buffer;
+    uint8_t *buffer;
     int buffsize;
     int bufftop;        // index of the next byte to be written
     int buffbot;        // index of the next byte to be read
@@ -104,7 +104,10 @@ uint16_t sendi = 0;
 
 void setup()
 {
-    Serial.begin(SERIAL_BAUD);
+    // Serial.begin(SERIAL_BAUD);
+    delay(1000);
+
+    Serial.println("Starting Ground Station Receiver");
     
     if (!radio1.begin())
         Serial.println("Radio1 failed to initialize");
@@ -137,19 +140,37 @@ void setup()
 void loop()
 {
 
+    delay(10);
+
     if (radio3.updateX())
     {
         if (radio3.dequeueReceiveX(&msg3))
         {
             char buffer[80];
             aprsToSerial::encodeAPRSForSerialX(msg3, buffer, 80, radio3.RSSI());
+            // Serial.println(buffer);
             
-            // write to circular buffer for radio3 (assuming 63 bytes of data)
-            for (int i = 0; i < 63; i++)
+            // write to circular buffer for radio3 (assuming PACKET3_SIZE bytes of data)
+            for (int i = 0; i < 64; i++)
             {
                 buff3[r3.bufftop] = buffer[i];
+                // Serial.print(r3.bufftop);
+                // Serial.print((r3.bufftop + 1) % 320);
+                // Serial.print(" ");
                 r3.bufftop = (r3.bufftop + 1) % BUFF3_SIZE;
+                // delay(15);
             }
+            // Serial.println();
+            // Serial.println(r3.bufftop);
+            // Serial.println(r3.buffbot);
+
+            // print buffer for debugging
+            // for (int i = 0; i < BUFF3_SIZE; i++)
+            // {
+            //     Serial.print(buff3[i]);
+            // }
+
+            // Serial.print((char *)buff3);
 
         }
         // if(counter % 50 == 0) // Send a command every 50x a message is received (or every 25 seconds)
@@ -167,7 +188,12 @@ void loop()
     readLiveRadioX(&r1);
     readLiveRadioX(&r2);
 
+    // Serial.println((char *)r1.buffer);
+    // Serial.println((char *)r2.buffer);
+    // Serial.println((char *)r3.buffer);
+
     // send to serial
+    // Serial.println(radioIndex);
     if (radioIndex <= 30) {
 
         // radio1 
@@ -206,6 +232,7 @@ void loop()
         // radio2
         else {
             int blockSize = min(BLOCKING_SIZE, Serial.availableForWrite());
+            // Serial.println(blockSize);
             for (int i = 0; i < blockSize && r2.buffbot != r2.bufftop && sendi < curPacketSize; i++)
             {
                 Serial.write(buff2[r2.buffbot]);
@@ -213,7 +240,7 @@ void loop()
                 sendi++;
             }
 
-            if (sendi == curPacketSize - 1) {
+            if (sendi >= curPacketSize - 1) {
                 radioIndex++;
                 sendi = 0;
                 // get number of bytes that can be read from buff1
@@ -246,31 +273,31 @@ void loop()
     }
 
     // read from serial
-    if (Serial.available())
-    {
-        // first byte is minutesUntilPowerOn, second byte is minutesUntilDataRecording, third byte is minutesUntilVideoStart, fourth byte is launch
-        if (Serial.available() >= COMMAND_SIZE)
-        {
-            byte command[COMMAND_SIZE];
-            for (int i = 0; i < COMMAND_SIZE; i++)
-            {
-                command[i] = Serial.read();
-            }
+    // if (Serial.available())
+    // {
+    //     // first byte is minutesUntilPowerOn, second byte is minutesUntilDataRecording, third byte is minutesUntilVideoStart, fourth byte is launch
+    //     if (Serial.available() >= COMMAND_SIZE)
+    //     {
+    //         byte command[COMMAND_SIZE];
+    //         for (int i = 0; i < COMMAND_SIZE; i++)
+    //         {
+    //             command[i] = Serial.read();
+    //         }
 
-            // set the command data
-            r3.cmd->data.MinutesUntilPowerOn = command[0];
-            r3.cmd->data.MinutesUntilDataRecording = command[1];
-            r3.cmd->data.MinutesUntilVideoStart = command[2];
-            r3.cmd->data.Launch = command[3];
+    //         // set the command data
+    //         r3.cmd->data.MinutesUntilPowerOn = command[0];
+    //         r3.cmd->data.MinutesUntilDataRecording = command[1];
+    //         r3.cmd->data.MinutesUntilVideoStart = command[2];
+    //         r3.cmd->data.Launch = command[3];
 
-            // send the command
-            radio3.enqueueSend(r3.cmd);
-        }
-        else {
-            // reset the buffer
-            Serial.clear();
-        }
-    }
+    //         // send the command
+    //         radio3.enqueueSend(r3.cmd);
+    //     }
+    //     else {
+    //         // reset the buffer
+    //         Serial.clear();
+    //     }
+    // }
 
 
 }

@@ -33,7 +33,7 @@ public:
     bool enqueueSend(const uint8_t *message, uint8_t len) override; // designed to be used externally. can exceed 66 bytes.
 
     bool dequeueReceive(RadioMessage *message) override; // designed to be used externally. can exceed 66 bytes.
-    bool dequeueReceiveX(RadioMessage *message) { return random(0, 100) < 4;};
+    bool dequeueReceiveX(RadioMessage *message) { return random(0, 100) < 101;};
     bool dequeueReceive(char *message) override;         // designed to be used externally. can exceed 66 bytes.
     bool dequeueReceive(uint8_t *message) override;      // designed to be used externally. can exceed 66 bytes.
 
