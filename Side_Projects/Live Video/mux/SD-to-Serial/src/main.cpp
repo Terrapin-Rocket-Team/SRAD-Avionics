@@ -1,18 +1,39 @@
-#include <Arduino.h>
+#include <SD.h>
+#include <SPI.h>
 
-// put function declarations here:
-int myFunction(int, int);
+// Chip select pin for the SD card module
+const int chipSelect = BUILTIN_SDCARD;
 
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+
+    // Wait for the serial port to open (needed for Leonardo/Micro/Teensy)
+    while (!Serial) {
+        ; 
+    }
+
+    // Initialize SD card
+    if (!SD.begin(chipSelect)) {
+        Serial.println("Initialization failed!");
+        return;
+    }
+
+    // Open the file for reading
+    File file = SD.open("mux1.txt");
+    if (!file) {
+        Serial.println("Error opening file!");
+        return;
+    }
+
+    // Read from the file until there's nothing else in it
+    while (file.available()) {
+        // Read a byte from the file and send it to the Serial buffer
+        Serial.write(file.read());
+    }
+
+    // Close the file
+    file.close();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-}
-
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+    // Nothing to do here
 }
