@@ -18,7 +18,7 @@ void setup() {
     }
 
     // Open the file for reading
-    File file = SD.open("mux1.txt");
+    File file = SD.open("mux.bin");
     if (!file) {
         Serial.println("Error opening file!");
         return;
