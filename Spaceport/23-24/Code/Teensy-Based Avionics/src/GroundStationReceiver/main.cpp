@@ -194,6 +194,7 @@ void loop()
 
     // send to serial
     // Serial.println(radioIndex);
+
     if (radioIndex <= 30) {
 
         // radio1 
@@ -212,20 +213,31 @@ void loop()
                 sendi = 0;
 
                 if (radioIndex >= 31) {
-                    Serial.write(RADIO3_HEADER);
-
                     // get number of bytes that can be read from buff3
                     curPacketSize = min(r3.packetSize, r3.bufftop - r3.buffbot > 0 ? r3.bufftop - r3.buffbot : BUFF3_SIZE - r3.buffbot + r3.bufftop);
-                    Serial.write(curPacketSize >> 8);
-                    Serial.write(curPacketSize & 0xff);
+
+                    if (curPacketSize > 0) {
+                        Serial.write(RADIO3_HEADER);
+
+                        Serial.write(curPacketSize >> 8);
+                        Serial.write(curPacketSize & 0xff);
+                    }
+                    else {
+                        radioIndex = 1;
+                    }
                 }
                 else {
-                    Serial.write(RADIO2_HEADER);
-
                     // get number of bytes that can be read from buff2
                     curPacketSize = min(r2.packetSize, r2.bufftop - r2.buffbot > 0 ? r2.bufftop - r2.buffbot : BUFF2_SIZE - r2.buffbot + r2.bufftop);
-                    Serial.write(curPacketSize >> 8);
-                    Serial.write(curPacketSize & 0xff);
+
+                    if (curPacketSize > 0) {
+                        Serial.write(RADIO2_HEADER);
+                        Serial.write(curPacketSize >> 8);
+                        Serial.write(curPacketSize & 0xff);
+                    }
+                    else {
+                        radioIndex++;
+                    }
                 }
             }
         } 
@@ -243,11 +255,18 @@ void loop()
             if (sendi >= curPacketSize - 1) {
                 radioIndex++;
                 sendi = 0;
+
                 // get number of bytes that can be read from buff1
                 curPacketSize = min(r1.packetSize, r1.bufftop - r1.buffbot > 0 ? r1.bufftop - r1.buffbot : BUFF1_SIZE - r1.buffbot + r1.bufftop);
-                Serial.write(RADIO1_HEADER);
-                Serial.write(curPacketSize >> 8);
-                Serial.write(curPacketSize & 0xff);
+
+                if (curPacketSize > 0) {
+                    Serial.write(RADIO1_HEADER);
+                    Serial.write(curPacketSize >> 8);
+                    Serial.write(curPacketSize & 0xff);
+                }
+                else {
+                    radioIndex++;
+                }
             }
         }
     }
@@ -266,9 +285,15 @@ void loop()
         radioIndex = 1;
         sendi = 0;
         curPacketSize = min(r2.packetSize, r2.bufftop - r2.buffbot > 0 ? r2.bufftop - r2.buffbot : BUFF2_SIZE - r2.buffbot + r2.bufftop);
-        Serial.write(RADIO2_HEADER);
-        Serial.write(curPacketSize >> 8);
-        Serial.write(curPacketSize & 0xff);
+
+        if (curPacketSize > 0) {
+            Serial.write(RADIO2_HEADER);
+            Serial.write(curPacketSize >> 8);
+            Serial.write(curPacketSize & 0xff);
+        }
+        else {
+            radioIndex++;
+        }
 
     }
 
