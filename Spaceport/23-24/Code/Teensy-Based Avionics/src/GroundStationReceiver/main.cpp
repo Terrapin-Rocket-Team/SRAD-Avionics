@@ -199,64 +199,9 @@ void loop()
 
         // radio1 
         if (radioIndex % 2 == 0) {
-
-            int blockSize = min(BLOCKING_SIZE, Serial.availableForWrite());
-            for (int i = 0; i < blockSize && r1.buffbot != r1.bufftop && sendi < curPacketSize; i++)
-            {
-                Serial.write(buff1[r1.buffbot]);
-                r1.buffbot = (r1.buffbot + 1) % BUFF1_SIZE;
-                sendi++;
-            }
-
-            if (sendi >= curPacketSize - 1) {
-                radioIndex++;
-                sendi = 0;
-
-                if (radioIndex >= 31) {
-                    // get number of bytes that can be read from buff3
-                    curPacketSize = min(r3.packetSize, r3.bufftop - r3.buffbot > 0 ? r3.bufftop - r3.buffbot : BUFF3_SIZE - r3.buffbot + r3.bufftop);
-
-                    if (curPacketSize > 0) {
-                        Serial.write(RADIO3_HEADER);
-
-                        Serial.write(curPacketSize >> 8);
-                        Serial.write(curPacketSize & 0xff);
-                    }
-                    else {
-                        radioIndex = 1;
-                    }
-                }
-                else {
-                    // get number of bytes that can be read from buff2
-                    curPacketSize = min(r2.packetSize, r2.bufftop - r2.buffbot > 0 ? r2.bufftop - r2.buffbot : BUFF2_SIZE - r2.buffbot + r2.bufftop);
-
-                    if (curPacketSize > 0) {
-                        Serial.write(RADIO2_HEADER);
-                        Serial.write(curPacketSize >> 8);
-                        Serial.write(curPacketSize & 0xff);
-                    }
-                    else {
-                        radioIndex++;
-                    }
-                }
-            }
-        } 
-        // radio2
-        else {
-            int blockSize = min(BLOCKING_SIZE, Serial.availableForWrite());
-            // Serial.println(blockSize);
-            for (int i = 0; i < blockSize && r2.buffbot != r2.bufftop && sendi < curPacketSize; i++)
-            {
-                Serial.write(buff2[r2.buffbot]);
-                r2.buffbot = (r2.buffbot + 1) % BUFF2_SIZE;
-                sendi++;
-            }
-
-            if (sendi >= curPacketSize - 1) {
-                radioIndex++;
-                sendi = 0;
-
-                // get number of bytes that can be read from buff1
+            
+            // check if start of packet
+            if (sendi == 0) {
                 curPacketSize = min(r1.packetSize, r1.bufftop - r1.buffbot > 0 ? r1.bufftop - r1.buffbot : BUFF1_SIZE - r1.buffbot + r1.bufftop);
 
                 if (curPacketSize > 0) {
@@ -268,11 +213,73 @@ void loop()
                     radioIndex++;
                 }
             }
+
+            // write block of data to serial
+            int blockSize = min(BLOCKING_SIZE, Serial.availableForWrite());
+            for (int i = 0; i < blockSize && r1.buffbot != r1.bufftop && sendi < curPacketSize; i++)
+            {
+                Serial.write(buff1[r1.buffbot]);
+                r1.buffbot = (r1.buffbot + 1) % BUFF1_SIZE;
+                sendi++;
+            }
+
+            // check if end of packet
+            if (sendi >= curPacketSize - 1) {
+                radioIndex++;
+                sendi = 0;
+                curPacketSize = 0;
+            }
+        }
+        // radio2
+        else {
+            // check if start of packet
+            if (sendi == 0) {
+                curPacketSize = min(r2.packetSize, r2.bufftop - r2.buffbot > 0 ? r2.bufftop - r2.buffbot : BUFF2_SIZE - r2.buffbot + r2.bufftop);
+
+                if (curPacketSize > 0) {
+                    Serial.write(RADIO2_HEADER);
+                    Serial.write(curPacketSize >> 8);
+                    Serial.write(curPacketSize & 0xff);
+                }
+                else {
+                    radioIndex++;
+                }
+            }
+
+            // write block of data to serial
+            int blockSize = min(BLOCKING_SIZE, Serial.availableForWrite());
+            for (int i = 0; i < blockSize && r2.buffbot != r2.bufftop && sendi < curPacketSize; i++)
+            {
+                Serial.write(buff2[r2.buffbot]);
+                r2.buffbot = (r2.buffbot + 1) % BUFF2_SIZE;
+                sendi++;
+            }
+
+            // check if end of packet
+            if (sendi >= curPacketSize - 1) {
+                radioIndex++;
+                sendi = 0;
+                curPacketSize = 0;
+            }
         }
     }
     else {
 
-        // send telemetry data
+        //send telemetry data
+        if (sendi == 0) {
+            curPacketSize = min(r3.packetSize, r3.bufftop - r3.buffbot > 0 ? r3.bufftop - r3.buffbot : BUFF3_SIZE - r3.buffbot + r3.bufftop);
+
+            if (curPacketSize > 0) {
+                Serial.write(RADIO3_HEADER);
+                Serial.write(curPacketSize >> 8);
+                Serial.write(curPacketSize & 0xff);
+            }
+            else {
+                radioIndex = 1;
+            }
+        }
+
+        // write block of data to serial
         int blockSize = min(BLOCKING_SIZE, Serial.availableForWrite());
         for (int i = 0; i < blockSize && r3.buffbot != r3.bufftop && sendi < curPacketSize; i++)
         {
@@ -281,48 +288,40 @@ void loop()
             sendi++;
         }
 
-        // prepare for radio2
-        radioIndex = 1;
-        sendi = 0;
-        curPacketSize = min(r2.packetSize, r2.bufftop - r2.buffbot > 0 ? r2.bufftop - r2.buffbot : BUFF2_SIZE - r2.buffbot + r2.bufftop);
-
-        if (curPacketSize > 0) {
-            Serial.write(RADIO2_HEADER);
-            Serial.write(curPacketSize >> 8);
-            Serial.write(curPacketSize & 0xff);
+        // check if end of packet
+        if (sendi >= curPacketSize - 1) {
+            radioIndex = 1;
+            sendi = 0;
+            curPacketSize = 0;
         }
-        else {
-            radioIndex++;
-        }
-
     }
 
     // read from serial
-    // if (Serial.available())
-    // {
-    //     // first byte is minutesUntilPowerOn, second byte is minutesUntilDataRecording, third byte is minutesUntilVideoStart, fourth byte is launch
-    //     if (Serial.available() >= COMMAND_SIZE)
-    //     {
-    //         byte command[COMMAND_SIZE];
-    //         for (int i = 0; i < COMMAND_SIZE; i++)
-    //         {
-    //             command[i] = Serial.read();
-    //         }
+    if (Serial.available())
+    {
+        // first byte is minutesUntilPowerOn, second byte is minutesUntilDataRecording, third byte is minutesUntilVideoStart, fourth byte is launch
+        if (Serial.available() >= COMMAND_SIZE)
+        {
+            byte command[COMMAND_SIZE];
+            for (int i = 0; i < COMMAND_SIZE; i++)
+            {
+                command[i] = Serial.read();
+            }
 
-    //         // set the command data
-    //         r3.cmd->data.MinutesUntilPowerOn = command[0];
-    //         r3.cmd->data.MinutesUntilDataRecording = command[1];
-    //         r3.cmd->data.MinutesUntilVideoStart = command[2];
-    //         r3.cmd->data.Launch = command[3];
+            // set the command data
+            r3.cmd->data.MinutesUntilPowerOn = command[0];
+            r3.cmd->data.MinutesUntilDataRecording = command[1];
+            r3.cmd->data.MinutesUntilVideoStart = command[2];
+            r3.cmd->data.Launch = command[3];
 
-    //         // send the command
-    //         radio3.enqueueSend(r3.cmd);
-    //     }
-    //     else {
-    //         // reset the buffer
-    //         Serial.clear();
-    //     }
-    // }
+            // send the command
+            radio3.enqueueSend(r3.cmd);
+        }
+        else {
+            // reset the buffer
+            Serial.clear();
+        }
+    }
 
 
 }
