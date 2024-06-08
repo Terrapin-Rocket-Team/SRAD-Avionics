@@ -128,7 +128,7 @@ void loop()
 
     last = time;
     computer.updateState();
-    // recordLogData(INFO, computer.getStateString(), TO_USB);
+    recordLogData(INFO, computer.getStateString(), TO_USB);
 
     // Send Telemetry Data
     if (time - radioTimer >= 1000)
