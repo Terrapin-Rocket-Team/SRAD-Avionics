@@ -3,10 +3,9 @@
 static constexpr int NAME_SIZE = 24;
 // SdFs sd;
 // FsFile logFile;  // File object to use for logging
-char logFileName[NAME_SIZE];            // Name of the log file
-char flightDataFileName[NAME_SIZE];     // Name of the flight data file
-char calibFileName[] = "bno_calib.txt"; // Name of the calibration file
-bool sdReady = false;                   // Whether the SD card has been initialized
+char logFileName[NAME_SIZE];        // Name of the log file
+char flightDataFileName[NAME_SIZE]; // Name of the flight data file
+bool sdReady = false;               // Whether the SD card has been initialized
 
 // SD_FAT_TYPE = 0 for SdFat/File as defined in SdFatConfig.h,
 // 1 for FAT16/FAT32, 2 for exFAT, 3 for FAT16/FAT32 and exFAT.
@@ -56,7 +55,6 @@ ExFile flightDataFile;
 SdFs sd;
 FsFile logFile;
 FsFile flightDataFile;
-FsFile calibFile;
 #else // SD_FAT_TYPE
 #error Invalid SD_FAT_TYPE
 #endif // SD_FAT_TYPE
@@ -82,29 +80,21 @@ bool setupSDCard()
         snprintf(flightDataFileName, NAME_SIZE, "%d_FlightData.csv", fileNo); // will overwrite the previous file if it exists
 #pragma GCC diagnostic pop
 
-        // Set up files
+        // Setup files
         logFile = sd.open(logFileName, FILE_WRITE);
         if (logFile)
         {
             logFile.close();
             rdy++;
         }
-
         flightDataFile = sd.open(flightDataFileName, FILE_WRITE);
         if (flightDataFile)
         {
             flightDataFile.close();
             rdy++;
         }
-
-        calibFile = sd.open(calibFileName, FILE_WRITE);
-        if (calibFile)
-        {
-            calibFile.close();
-            rdy++;
-        }
     }
-    sdReady = rdy == 3;
+    sdReady = rdy == 2;
 
     return sdReady;
 }
@@ -125,4 +115,3 @@ bool isSDReady()
 {
     return sdReady;
 }
-
