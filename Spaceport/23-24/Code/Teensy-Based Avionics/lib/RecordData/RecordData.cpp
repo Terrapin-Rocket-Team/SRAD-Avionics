@@ -65,3 +65,36 @@ void setRecordMode(Mode m)
     }
     mode = m;
 }
+
+bool readCalibrationData(char *data, int len)
+{
+    if (isSDReady())
+    {
+        calibFile = sd.open(calibFileName, FILE_READ);
+        if (calibFile)
+        {
+            int i = calibFile.read(data, len);
+            if(i > 0)
+                data[i] = '\0';
+            calibFile.close();
+            return i > 0; // most basic check to see if the file was read.
+        }
+    }
+    return false;
+}
+
+bool writeCalibrationData(char *data)
+{
+    if (isSDReady())
+    {
+        sd.remove(calibFileName);
+        calibFile = sd.open(calibFileName, FILE_WRITE);
+        if (calibFile)
+        {
+            calibFile.print(data);
+            calibFile.close();
+            return true;
+        }
+    }
+    return false;
+}
