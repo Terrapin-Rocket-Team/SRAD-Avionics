@@ -1,56 +1,27 @@
 #include "BNO055.h"
 
+BNO055::BNO055(uint8_t SCK, uint8_t SDA)
+{
+    SCKPin = SCK;
+    SDAPin = SDA;
+}
+
 bool BNO055::initialize()
 {
     if (!bno.begin())
     {
         return initialized = false;
     }
+    bno.setExtCrystalUse(true);
 
     // set to +-16g range
     adafruit_bno055_opmode_t mode = bno.getMode();
     bno.setMode(OPERATION_MODE_CONFIG);
     delay(25);
-
-    Wire.beginTransmission(0x29); // BNO055 address
-    Wire.write(0x08);             // ACC_CONFIG register address on BNO055
-    Wire.write(0b11);             // set to +-16g range
-    Wire.endTransmission(true);   // send stop
-
-    recordLogData(INFO, "BNO055 Calibration Loading");
-    recordLogData(INFO, "Pre-Loading Values:");
-    adafruit_bno055_offsets_t sensorOffsets;
-    
-    if(!bno.getSensorOffsets(sensorOffsets))
-    {
-        recordLogData(INFO, "Failed to get sensor offsets", TO_USB);
-    }
-    char data[100];
-
-    snprintf(data, 100, "ACC: %hd|%hd|%hd|%hd", sensorOffsets.accel_offset_x, sensorOffsets.accel_offset_y, sensorOffsets.accel_offset_z, sensorOffsets.accel_radius);
-    recordLogData(INFO, data);
-    snprintf(data, 100, "GYR: %hd|%hd|%hd", sensorOffsets.gyro_offset_x, sensorOffsets.gyro_offset_y, sensorOffsets.gyro_offset_z);
-    recordLogData(INFO, data);
-    snprintf(data, 100, "MAG: %hd|%hd|%hd|%hd", sensorOffsets.mag_offset_x, sensorOffsets.mag_offset_y, sensorOffsets.mag_offset_z, sensorOffsets.mag_radius);
-    recordLogData(INFO, data);
-
-    setCalibrationFromFile();
-
-    recordLogData(INFO, "Post-Loading Values:");
-    if (!bno.getSensorOffsets(sensorOffsets))
-    {
-        recordLogData(INFO, "Failed to get sensor offsets", TO_USB);
-    }
-
-    snprintf(data, 100, "ACC: %hd|%hd|%hd|%hd", sensorOffsets.accel_offset_x, sensorOffsets.accel_offset_y, sensorOffsets.accel_offset_z, sensorOffsets.accel_radius);
-    recordLogData(INFO, data);
-    snprintf(data, 100, "GYR: %hd|%hd|%hd", sensorOffsets.gyro_offset_x, sensorOffsets.gyro_offset_y, sensorOffsets.gyro_offset_z);
-    recordLogData(INFO, data);
-    snprintf(data, 100, "MAG: %hd|%hd|%hd|%hd", sensorOffsets.mag_offset_x, sensorOffsets.mag_offset_y, sensorOffsets.mag_offset_z, sensorOffsets.mag_radius);
-    recordLogData(INFO, data);
-
-    bno.setExtCrystalUse(true);
-
+    Wire.beginTransmission(0x29);//BNO055 address
+    Wire.write(0x08);//ACC_CONFIG register address on BNO055
+    Wire.write(0b11);//set to +-16g range
+    Wire.endTransmission(true); // send stop
     bno.setMode(mode);
     delay(25);
 
@@ -77,18 +48,29 @@ void BNO055::update()
         }
         prevReadings[19] = read;
         accelerationVec = read - (sum / 10.0);
-
     }
     else
     {
         accelerationVec = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
     }
-    printf("Acceleration: %.2f, %.2f, %.2f\n", accelerationVec.x(), accelerationVec.y(), accelerationVec.z());
     orientation = bno.getQuat();
     orientationEuler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
     magnetometer = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
+}
 
-
+void BNO055::calibrateBno()
+{
+    uint8_t system, gyro, accel, mag, i = 0;
+    while ((system != 3) || (gyro != 3) || (accel != 3) || (mag != 3))
+    {
+        bno.getCalibration(&system, &gyro, &accel, &mag);
+        i = i + 1;
+        if (i == 10)
+        {
+            i = 0;
+        }
+        delay(10);
+    }
 }
 
 imu::Quaternion BNO055::getOrientation()
@@ -111,6 +93,15 @@ imu::Vector<3> BNO055::getMagnetometer()
     return magnetometer;
 }
 
+imu::Vector<3> convertToEuler(const imu::Quaternion &orientation)
+
+{
+    imu::Vector<3> euler = orientation.toEuler();
+    // reverse the vector, since it returns in z, y, x
+    euler = imu::Vector<3>(euler.x(), euler.y(), euler.z());
+    return euler;
+}
+
 const char *BNO055::getCsvHeader()
 {                                                                                                          // incl I- for IMU
     return "I-AX (m/s/s),I-AY (m/s/s),I-AZ (m/s/s),I-ULRX,I-ULRY,I-ULRZ,I-QUATX,I-QUATY,I-QUATZ,I-QUATW,"; // trailing comma
@@ -127,13 +118,10 @@ char *BNO055::getDataString()
 
 char *BNO055::getStaticDataString()
 {
-    char *data = new char[100];
-    adafruit_bno055_offsets_t sensorOffsets;
-    bno.getSensorOffsets(sensorOffsets);
-    snprintf(data, 100, "ACC: %hd|%hd|%hd|%hd\nGYR: %hd|%hd|%hd\nMAG: %hd|%hd|%hd|%hd",
-             sensorOffsets.accel_offset_x, sensorOffsets.accel_offset_y, sensorOffsets.accel_offset_z, sensorOffsets.accel_radius,
-             sensorOffsets.gyro_offset_x, sensorOffsets.gyro_offset_y, sensorOffsets.gyro_offset_z,
-             sensorOffsets.mag_offset_x, sensorOffsets.mag_offset_y, sensorOffsets.mag_offset_z, sensorOffsets.mag_radius);
+    // See State.cpp::setDataString() for comments on what these numbers mean
+    const int size = 30 + 12 * 3;
+    char *data = new char[size];
+    snprintf(data, size, "Initial Magnetic Field (uT): %.2f,%.2f,%.2f\n", initialMagField.x(), initialMagField.y(), initialMagField.z());
     return data;
 }
 
@@ -145,49 +133,4 @@ const char *BNO055::getName()
 void BNO055::setBiasCorrectionMode(bool mode)
 {
     biasCorrectionMode = mode;
-}
-
-void BNO055::setCalibrationFromFile()
-{
-    /*
-        File format:
-
-        ACC: X|Y|Z|R
-        GYR: X|Y|Z
-        MAG: X|Y|Z|R
-    */
-    char data[100];
-    readCalibrationData(data, 100);
-    adafruit_bno055_offsets_t sensorOffsets;
-    sscanf(data, "ACC: %hd|%hd|%hd|%hd\nGYR: %hd|%hd|%hd\nMAG: %hd|%hd|%hd|%hd",
-           &sensorOffsets.accel_offset_x, &sensorOffsets.accel_offset_y, &sensorOffsets.accel_offset_z, &sensorOffsets.accel_radius,
-           &sensorOffsets.gyro_offset_x, &sensorOffsets.gyro_offset_y, &sensorOffsets.gyro_offset_z,
-           &sensorOffsets.mag_offset_x, &sensorOffsets.mag_offset_y, &sensorOffsets.mag_offset_z, &sensorOffsets.mag_radius);
-    printf("ACC: %hd|%hd|%hd|%hd\nGYR: %hd|%hd|%hd\nMAG: %hd|%hd|%hd|%hd\n",
-           sensorOffsets.accel_offset_x, sensorOffsets.accel_offset_y, sensorOffsets.accel_offset_z, sensorOffsets.accel_radius,
-           sensorOffsets.gyro_offset_x, sensorOffsets.gyro_offset_y, sensorOffsets.gyro_offset_z,
-           sensorOffsets.mag_offset_x, sensorOffsets.mag_offset_y, sensorOffsets.mag_offset_z, sensorOffsets.mag_radius);
-    bno.setSensorOffsets(sensorOffsets);
-}
-
-void BNO055::recordCalibrationValues()
-{
-    adafruit_bno055_offsets_t sensorOffsets;
-    bno.getSensorOffsets(sensorOffsets);
-    char data[100];
-    snprintf(data, 100, "ACC: %hd|%hd|%hd|%hd\nGYR: %hd|%hd|%hd\nMAG: %hd|%hd|%hd|%hd",
-             sensorOffsets.accel_offset_x, sensorOffsets.accel_offset_y, sensorOffsets.accel_offset_z, sensorOffsets.accel_radius,
-             sensorOffsets.gyro_offset_x, sensorOffsets.gyro_offset_y, sensorOffsets.gyro_offset_z,
-             sensorOffsets.mag_offset_x, sensorOffsets.mag_offset_y, sensorOffsets.mag_offset_z, sensorOffsets.mag_radius);
-    writeCalibrationData(data);
-}
-
-void BNO055::getSensorOffsets(adafruit_bno055_offsets_t &offsets)
-{
-    bno.getSensorOffsets(offsets);
-}
-
-void BNO055::getCalibrationStatus(uint8_t &system, uint8_t &gyro, uint8_t &accel, uint8_t &mag)
-{
-    bno.getCalibration(&system, &gyro, &accel, &mag);
 }

@@ -14,7 +14,7 @@
 #define RPI_PWR 0
 #define RPI_VIDEO 1
 
-BNO055 bno;                 // I2C Address 0x29
+BNO055 bno(13, 12);         // I2C Address 0x29
 BMP390 bmp(13, 12);         // I2C Address 0x77
 MAX_M10S gps(13, 12, 0x42); // I2C Address 0x42
 
@@ -26,6 +26,7 @@ APRSCmdMsg cmd(header);
 APRSTelemMsg telem(header);
 int timeOfLastCmd = 0;
 const int CMD_TIMEOUT_SEC = 100; // 10 seconds
+void processCurrentCmdData(double time);
 
 State computer; // = useKalmanFilter = true, stateRecordsOwnData = true
 uint32_t radioTimer = millis();
@@ -33,7 +34,7 @@ Pi rpi(RPI_PWR, RPI_VIDEO);
 PSRAM *ram;
 
 static double last = 0; // for better timing than "delay(100)"
-bool calibrationMode = false;
+
 // BlinkBuzz setup
 int BUZZER = 33;
 int LED = LED_BUILTIN;
@@ -63,6 +64,7 @@ void setup()
 
     pinMode(BMP_ADDR_PIN, OUTPUT);
     digitalWrite(BMP_ADDR_PIN, HIGH);
+    ram = new PSRAM(); // init after the SD card for better data logging.
 
     // The SD card MUST be initialized first to allow proper data logging.
     if (setupSDCard())
@@ -79,7 +81,7 @@ void setup()
     }
 
     // The PSRAM must be initialized before the sensors to allow for proper data logging.
-    ram = new PSRAM(); // init after the SD card for better data logging.
+
     if (ram->init())
         recordLogData(INFO, "PSRAM Initialized");
     else
@@ -102,12 +104,7 @@ void setup()
         recordLogData(ERROR, "Some Sensors Failed to Initialize. Disabling those sensors.");
         bb.onoff(BUZZER, 200, 3);
     }
-
-    computer.setRecordOwnFlightData(true);
-
     sendSDCardHeader(computer.getCsvHeader());
-    if (calibrationMode)
-        recordLogData(INFO, "Calibration Mode");
 }
 
 void loop()
@@ -131,38 +128,8 @@ void loop()
 
     last = time;
     computer.updateState();
+    // recordLogData(INFO, computer.getStateString(), TO_USB);
 
-    if(!calibrationMode)
-    {
-        recordLogData(INFO, computer.getStateString(), TO_USB);
-    }
-
-
-    if (bno && computer.getStageNum() == 0 && (int)(time) % 5000 < 100)
-    {
-        if (calibrationMode)
-        {
-            recordLogData(INFO, "IMU Calibration Data", TO_USB);
-            adafruit_bno055_offsets_t calibData;
-            bno.getSensorOffsets(calibData);
-            char data[100];
-            uint8_t system, gyro, accel, mag;
-            bno.getCalibrationStatus(system, gyro, accel, mag);
-            snprintf(data, 100, "System: %hhu, Gyro: %hhu, Accel: %hhu, Mag: %hhu", system, gyro, accel, mag);
-            recordLogData(INFO, data, TO_USB);
-            snprintf(data, 100, "Accel Offset: %hd, %hd, %hd", calibData.accel_offset_x, calibData.accel_offset_y, calibData.accel_offset_z);
-            recordLogData(INFO, data, TO_USB);
-            snprintf(data, 100, "Accel Radius: %hd", calibData.accel_radius);
-            recordLogData(INFO, data, TO_USB);
-            snprintf(data, 100, "Gyro Offset: %hd, %hd, %hd", calibData.gyro_offset_x, calibData.gyro_offset_y, calibData.gyro_offset_z);
-            recordLogData(INFO, data, TO_USB);
-            snprintf(data, 100, "Mag Offset: %hd, %hd, %hd", calibData.mag_offset_x, calibData.mag_offset_y, calibData.mag_offset_z);
-            recordLogData(INFO, data, TO_USB);
-            snprintf(data, 100, "Mag Radius: %hd\n", calibData.mag_radius);
-            recordLogData(INFO, data, TO_USB);
-        }
-        bno.recordCalibrationValues();
-    }
     // Send Telemetry Data
     if (time - radioTimer >= 1000)
     {
@@ -183,3 +150,5 @@ void loop()
     if ((computer.getStageNum() >= 1 || time - timeOfLastCmd > CMD_TIMEOUT_SEC * 1000) && rpi.isOn())
         rpi.setRecording(true);
 }
+
+
