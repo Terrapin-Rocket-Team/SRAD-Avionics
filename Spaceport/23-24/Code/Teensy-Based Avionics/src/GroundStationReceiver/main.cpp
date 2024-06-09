@@ -9,7 +9,7 @@
 
 #define RADIO1_HEADER 0x01
 #define RADIO2_HEADER 0x02
-#define RADIO3_HEADER 0xff
+#define RADIO3_HEADER 0xfe
 
 // in bytes
 #define PACKET1_SIZE (10000 / 8)
@@ -142,12 +142,12 @@ void loop()
 
     delay(10);
 
-    if (radio3.updateX())
+    if (radio3.update())
     {
-        if (radio3.dequeueReceiveX(&msg3))
+        if (radio3.dequeueReceive(&msg3))
         {
             char buffer[80];
-            aprsToSerial::encodeAPRSForSerialX(msg3, buffer, 80, radio3.RSSI());
+            aprsToSerial::encodeAPRSForSerial(msg3, buffer, 80, radio3.RSSI());
             // Serial.println(buffer);
             
             // write to circular buffer for radio3 (assuming PACKET3_SIZE bytes of data)
@@ -185,8 +185,8 @@ void loop()
     }
     
     // read live radio
-    readLiveRadioX(&r1);
-    readLiveRadioX(&r2);
+    readLiveRadio(&r1);
+    readLiveRadio(&r2);
 
     // Serial.println((char *)r1.buffer);
     // Serial.println((char *)r2.buffer);

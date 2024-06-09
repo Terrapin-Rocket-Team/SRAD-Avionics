@@ -20,7 +20,7 @@ namespace aprsToSerial
      */
     void encodeAPRSForSerial(const APRSTelemMsg &msg, char *buffer, size_t buffer_size, int RSSI)
     {
-        char prefix[8] = "s\r\n";
+        char prefix[8] = "";
 
         char header[100];
         snprintf(header, 100,
@@ -39,10 +39,10 @@ namespace aprsToSerial
         char flags[5];
         encodeFlags(msg, flags, 5);
 
-        char suffix[10] = "e\r\n";
-        // format: s\r\nSource:CALLSIGN,Destination:TOCALL,Path:PATH,Type:Position Without Timestamp,Data:!DDMM.MM[NS][OVERLAY]DDDMM.MM[WE][hhh/sss/A=DDDDDD/S[s]/zzz/yyy/xxx/fff,RSSI:RSSI\r\ne\r\n
+        char suffix[10] = "";
+        // format: Source:CALLSIGN,Destination:TOCALL,Path:PATH,Type:Position Without Timestamp,Data:!DDMM.MM[NS][OVERLAY]DDDMM.MM[WE][hhh/sss/A=DDDDDD/S[s]/zzz/yyy/xxx/fff,RSSI:RSSI
         snprintf(buffer, buffer_size,
-                 "%s%sData:!%s%c%03d/%03d/%s/S%d/%03d/%03d/%03d/%s,RSSI:%03d\r\n%s",
+                 "%s%sData:!%s%c%03d/%03d/%s/S%d/%03d/%03d/%03d/%s,RSSI:%03d%s",
                  prefix,
                  header,
                  latLong,
@@ -60,7 +60,7 @@ namespace aprsToSerial
 
     void encodeAPRSForSerialX(const APRSTelemMsg &msg, char *buffer, size_t buffer_size, int RSSI) {
         int lens = random(100, 999);
-        snprintf(buffer, buffer_size, "%s", ("s\r\nSource:123,Destination:321,Path:555,Type:999,Data:!3624.12N/07624.12S[123/" + String(lens) + "/A=100054/S1/11:33:26,RSSI:-56\r\ne\r\n").c_str());
+        snprintf(buffer, buffer_size, "%s", ("Source:123,Destination:321,Path:555,Type:999,Data:!3624.12N/07624.12S[123/" + String(lens) + "/A=100054/S1/11:33:26,RSSI:-56").c_str());
     }
 
     void encodeLatLong(const APRSTelemMsg &msg, char *buffer, size_t buffer_size)
