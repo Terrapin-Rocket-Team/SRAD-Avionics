@@ -7,13 +7,14 @@
 APRSHeader header = {"KC3UTM", "APRS", "WIDE1-1", '/', 'o'};
 APRSTelemMsg msg(header);
 APRSCmdMsg cmd(header);
-RadioSettings settings = {915.0, 0x02, 0x01, &hardware_spi, 10, 31, 32};
+RadioSettings settings = {433, 0x02, 0x01, &hardware_spi, 10, 31, 32};
 RFM69HCW radio(&settings);
 
 
 void setup()
 {
     delay(2000); // Delay to allow the serial monitor to connect
+    
     if (!radio.init())
         Serial.println("Radio failed to initialize");
     else

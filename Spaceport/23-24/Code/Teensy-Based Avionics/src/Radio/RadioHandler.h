@@ -12,6 +12,7 @@ namespace radioHandler
 {
     void processCmdData(APRSCmdMsg &cmd, APRSCmdData &old, APRSCmdData &currentCmdData, int time)
     {
+        bb.aonoff(BUZZER, 100, 2);
         char log[100];
         if (cmd.data.Launch != old.Launch && cmd.data.Launch >= 0)
         {
