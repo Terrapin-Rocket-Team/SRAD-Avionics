@@ -7,10 +7,9 @@
 
 // Some platforms may need special slave select driving
 
-RHSPIDriver::RHSPIDriver(uint8_t slaveSelectPin, RHGenericSPI& spi)
-    : 
-    _spi(spi),
-    _slaveSelectPin(slaveSelectPin)
+RHSPIDriver::RHSPIDriver(uint8_t slaveSelectPin, RHGenericSPI &spi)
+    : _spi(spi),
+      _slaveSelectPin(slaveSelectPin)
 {
 }
 
@@ -25,7 +24,7 @@ bool RHSPIDriver::init()
 
     // Sometimes we dont want to work the _slaveSelectPin here
     if (_slaveSelectPin != 0xff)
-	pinMode(_slaveSelectPin, OUTPUT);
+        pinMode(_slaveSelectPin, OUTPUT);
 
     deselectSlave();
 
@@ -37,7 +36,7 @@ bool RHSPIDriver::init()
 #else
     delay(100);
 #endif
-    
+
     return true;
 }
 
@@ -48,7 +47,7 @@ uint8_t RH_INTERRUPT_ATTR RHSPIDriver::spiRead(uint8_t reg)
     _spi.beginTransaction();
     selectSlave();
     _spi.transfer(reg & ~RH_SPI_WRITE_MASK); // Send the address with the write mask off
-    val = _spi.transfer(0); // The written value is ignored, reg value is read
+    val = _spi.transfer(0);                  // The written value is ignored, reg value is read
     deselectSlave();
     _spi.endTransaction();
     ATOMIC_BLOCK_END;
@@ -62,7 +61,7 @@ uint8_t RH_INTERRUPT_ATTR RHSPIDriver::spiWrite(uint8_t reg, uint8_t val)
     _spi.beginTransaction();
     selectSlave();
     status = _spi.transfer(reg | RH_SPI_WRITE_MASK); // Send the address with the write mask on
-    _spi.transfer(val); // New value follows
+    _spi.transfer(val);                              // New value follows
     // Based on https://forum.pjrc.com/attachment.php?attachmentid=10948&d=1499109224
     // Need this delay from some processors when running fast:
     delayMicroseconds(1);
@@ -72,7 +71,7 @@ uint8_t RH_INTERRUPT_ATTR RHSPIDriver::spiWrite(uint8_t reg, uint8_t val)
     return status;
 }
 
-uint8_t RH_INTERRUPT_ATTR RHSPIDriver::spiBurstRead(uint8_t reg, uint8_t* dest, uint8_t len)
+uint8_t RH_INTERRUPT_ATTR RHSPIDriver::spiBurstRead(uint8_t reg, uint8_t *dest, uint8_t len)
 {
     uint8_t status = 0;
     ATOMIC_BLOCK_START;
@@ -80,14 +79,14 @@ uint8_t RH_INTERRUPT_ATTR RHSPIDriver::spiBurstRead(uint8_t reg, uint8_t* dest, 
     selectSlave();
     status = _spi.transfer(reg & ~RH_SPI_WRITE_MASK); // Send the start address with the write mask off
     while (len--)
-	*dest++ = _spi.transfer(0);
+        *dest++ = _spi.transfer(0);
     deselectSlave();
     _spi.endTransaction();
     ATOMIC_BLOCK_END;
     return status;
 }
 
-uint8_t RH_INTERRUPT_ATTR RHSPIDriver::spiBurstWrite(uint8_t reg, const uint8_t* src, uint8_t len)
+uint8_t RH_INTERRUPT_ATTR RHSPIDriver::spiBurstWrite(uint8_t reg, const uint8_t *src, uint8_t len)
 {
     uint8_t status = 0;
     ATOMIC_BLOCK_START;
@@ -95,7 +94,7 @@ uint8_t RH_INTERRUPT_ATTR RHSPIDriver::spiBurstWrite(uint8_t reg, const uint8_t*
     selectSlave();
     status = _spi.transfer(reg | RH_SPI_WRITE_MASK); // Send the start address with the write mask on
     while (len--)
-	_spi.transfer(*src++);
+        _spi.transfer(*src++);
     deselectSlave();
     _spi.endTransaction();
     ATOMIC_BLOCK_END;
@@ -116,7 +115,7 @@ void RHSPIDriver::selectSlave()
 {
     digitalWrite(_slaveSelectPin, LOW);
 }
-    
+
 void RHSPIDriver::deselectSlave()
 {
     digitalWrite(_slaveSelectPin, HIGH);
