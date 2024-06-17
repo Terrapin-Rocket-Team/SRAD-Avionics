@@ -16,7 +16,7 @@
 #define PACKET2_SIZE (10000 / 8)
 #define PACKET3_SIZE 80
 #define BLOCKING_SIZE 50
-#define COMMAND_SIZE 4
+#define COMMAND_SIZE 7
 
 // makes them 4 times as large
 #define BUFF1_SIZE (PACKET1_SIZE * 4)
@@ -204,7 +204,7 @@ void loop()
             if (sendi == 0)
             {
                 curPacketSize = min(r1.packetSize, r1.bufftop - r1.buffbot >= 0 ? r1.bufftop - r1.buffbot : BUFF1_SIZE - r1.buffbot + r1.bufftop);
-                
+
                 if (curPacketSize > 0)
                 {
                     Serial.write(RADIO1_HEADER);
@@ -242,7 +242,7 @@ void loop()
             {
 
                 curPacketSize = min(r2.packetSize, r2.bufftop - r2.buffbot > 0 ? r2.bufftop - r2.buffbot : BUFF2_SIZE - r2.buffbot + r2.bufftop);
-                
+
                 if (curPacketSize > 0)
                 {
                     Serial.write(RADIO2_HEADER);
@@ -311,31 +311,34 @@ void loop()
     }
 
     // read from serial
-    // if (Serial.available())
-    // {
-    //     // first byte is minutesUntilPowerOn, second byte is minutesUntilDataRecording, third byte is minutesUntilVideoStart, fourth byte is launch
-    //     if (Serial.available() >= COMMAND_SIZE)
-    //     {
-    //         byte command[COMMAND_SIZE];
-    //         for (int i = 0; i < COMMAND_SIZE; i++)
-    //         {
-    //             command[i] = Serial.read();
-    //         }
+    if (Serial.available())
+    {
+        // first byte is minutesUntilPowerOn, second byte is minutesUntilDataRecording, third byte is minutesUntilVideoStart, fourth byte is launch
+        if (Serial.available() >= COMMAND_SIZE)
+        {
 
-    //         // set the command data
-    //         r3.cmd->data.MinutesUntilPowerOn = command[0];
-    //         r3.cmd->data.MinutesUntilDataRecording = command[1];
-    //         r3.cmd->data.MinutesUntilVideoStart = command[2];
-    //         r3.cmd->data.Launch = command[3];
+            // first two bytes is a signed int for minutesUntilPowerOn, next two bytes is a signed int for minutesUntilDataRecording, next two bytes is a signed int for minutesUntilVideoStart, last byte is a bool for launch
+            byte command[COMMAND_SIZE];
+            for (int i = 0; i < COMMAND_SIZE; i++)
+            {
+                command[i] = Serial.read();
+            }
 
-    //         // send the command
-    //         radio3.enqueueSend(r3.cmd);
-    //     }
-    //     else {
-    //         // reset the buffer
-    //         Serial.clear();
-    //     }
-    // }
+            // set the command data
+            r3.cmd->data.MinutesUntilPowerOn = (command[0] << 8) | command[1];
+            r3.cmd->data.MinutesUntilDataRecording = (command[2] << 8) | command[3];
+            r3.cmd->data.MinutesUntilVideoStart = (command[4] << 8) | command[5];
+            r3.cmd->data.Launch = (bool)command[6];
+
+            // send the command
+            radio3.enqueueSend(r3.cmd);
+        }
+        else
+        {
+            // reset the buffer
+            Serial.clear();
+        }
+    }
 }
 
 // adapted from radioHead functions
@@ -393,7 +396,6 @@ void readLiveRadio(LiveRadioObject *rad)
             rad->settings.pos++;
         }
         // Serial.println(rad->settings.pos);
-
 
         // reset msgLen and toAddr, end transaction, and clear fifo through entering idle mode
         digitalWrite(rad->radio->settings.cs, HIGH);
