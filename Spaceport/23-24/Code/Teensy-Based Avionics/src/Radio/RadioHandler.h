@@ -12,26 +12,27 @@ namespace radioHandler
 {
     void processCmdData(APRSCmdMsg &cmd, APRSCmdData &old, APRSCmdData &currentCmdData, int time)
     {
+        bb.aonoff(BUZZER, 100, 2);
         char log[100];
-        if (cmd.data.Launch != old.Launch)
+        if (cmd.data.Launch != old.Launch && cmd.data.Launch >= 0)
         {
             snprintf(log, 100, "Launch Command Changed to %d.", cmd.data.Launch);
             recordLogData(INFO, log);
             currentCmdData.Launch = cmd.data.Launch;
         }
-        if (cmd.data.MinutesUntilPowerOn != old.MinutesUntilPowerOn)
+        if (cmd.data.MinutesUntilPowerOn != old.MinutesUntilPowerOn && cmd.data.MinutesUntilPowerOn >= 0)
         {
             snprintf(log, 100, "Power On Time Changed: %d with %d minutes remaining.", cmd.data.MinutesUntilPowerOn, (int)(currentCmdData.MinutesUntilPowerOn - time) / 60000);
             recordLogData(INFO, log);
             currentCmdData.MinutesUntilPowerOn = cmd.data.MinutesUntilPowerOn * 60 * 1000 + time;
         }
-        if (cmd.data.MinutesUntilVideoStart != old.MinutesUntilVideoStart)
+        if (cmd.data.MinutesUntilVideoStart != old.MinutesUntilVideoStart && cmd.data.MinutesUntilVideoStart >= 0)
         {
             snprintf(log, 100, "Video Start Time Changed: %d with %d minutes remaining.", cmd.data.MinutesUntilVideoStart, (int)(currentCmdData.MinutesUntilVideoStart - time) / 60000);
             recordLogData(INFO, log);
             currentCmdData.MinutesUntilVideoStart = cmd.data.MinutesUntilVideoStart * 60 * 1000 + time;
         }
-        if (cmd.data.MinutesUntilDataRecording != old.MinutesUntilDataRecording)
+        if (cmd.data.MinutesUntilDataRecording != old.MinutesUntilDataRecording && cmd.data.MinutesUntilDataRecording >= 0)
         {
             snprintf(log, 100, "Data Recording Time Changed: %d with %d minutes remaining.", cmd.data.MinutesUntilDataRecording, (int)(currentCmdData.MinutesUntilDataRecording - time) / 60000);
             recordLogData(INFO, log);
