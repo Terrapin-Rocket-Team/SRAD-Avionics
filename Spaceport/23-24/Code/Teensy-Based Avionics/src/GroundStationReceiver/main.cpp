@@ -100,7 +100,7 @@ RadioObject r3 = {&msg3, &cmd3, &radio3, PACKET3_SIZE, buff3, BUFF3_SIZE, 0, 0};
 // void *radios[] = {&r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r1, &r2, &r3};
 
 int counter = 1;
-int radioIndex = 1;
+int radioIndex = 0;
 uint16_t curPacketSize = 0;
 uint16_t sendi = 0;
 
@@ -151,7 +151,7 @@ void loop()
             // Serial.println(buffer);
 
             // write to circular buffer for radio3 (assuming PACKET3_SIZE bytes of data)
-            for (int i = 0; i < 64; i++)
+            for (int i = 0; i < PACKET3_SIZE; i++)
             {
                 buff3[r3.bufftop] = buffer[i];
                 // Serial.print(r3.bufftop);
@@ -194,7 +194,7 @@ void loop()
     // send to serial
     // Serial.println(radioIndex);
 
-    if (radioIndex <= 30)
+    if (radioIndex < 30)
     {
 
         // radio1
@@ -203,9 +203,8 @@ void loop()
             // check if start of packet
             if (sendi == 0)
             {
-                curPacketSize = min(r1.packetSize, r1.bufftop - r1.buffbot > 0 ? r1.bufftop - r1.buffbot : BUFF1_SIZE - r1.buffbot + r1.bufftop);
-                if (r1.bufftop == r1.buffbot)
-                    curPacketSize = 0;
+                curPacketSize = min(r1.packetSize, r1.bufftop - r1.buffbot >= 0 ? r1.bufftop - r1.buffbot : BUFF1_SIZE - r1.buffbot + r1.bufftop);
+                
                 if (curPacketSize > 0)
                 {
                     Serial.write(RADIO1_HEADER);
@@ -228,7 +227,7 @@ void loop()
             }
 
             // check if end of packet
-            if (sendi >= curPacketSize - 1 && sendi != 0)
+            if (sendi >= curPacketSize && sendi != 0)
             {
                 radioIndex++;
                 sendi = 0;
@@ -243,8 +242,7 @@ void loop()
             {
 
                 curPacketSize = min(r2.packetSize, r2.bufftop - r2.buffbot > 0 ? r2.bufftop - r2.buffbot : BUFF2_SIZE - r2.buffbot + r2.bufftop);
-                if (r2.bufftop == r2.buffbot)
-                    curPacketSize = 0;
+                
                 if (curPacketSize > 0)
                 {
                     Serial.write(RADIO2_HEADER);
@@ -267,7 +265,7 @@ void loop()
             }
 
             // check if end of packet
-            if (sendi >= curPacketSize - 1 && sendi != 0)
+            if (sendi >= curPacketSize && sendi != 0)
             {
                 radioIndex++;
                 sendi = 0;
@@ -282,8 +280,6 @@ void loop()
         if (sendi == 0)
         {
             curPacketSize = min(r3.packetSize, r3.bufftop - r3.buffbot > 0 ? r3.bufftop - r3.buffbot : BUFF3_SIZE - r3.buffbot + r3.bufftop);
-            if (r3.bufftop == r3.buffbot)
-                curPacketSize = 0;
             if (curPacketSize > 0)
             {
                 Serial.write(RADIO3_HEADER);
@@ -300,7 +296,7 @@ void loop()
         int blockSize = min(BLOCKING_SIZE, Serial.availableForWrite());
         for (int i = 0; i < blockSize && r3.buffbot != r3.bufftop && sendi < curPacketSize; i++)
         {
-            // Serial.write(buff3[r3.buffbot]);
+            Serial.write(buff3[r3.buffbot]);
             r3.buffbot = (r3.buffbot + 1) % BUFF3_SIZE;
             sendi++;
         }
@@ -387,9 +383,8 @@ void readLiveRadio(LiveRadioObject *rad)
         rad->radio->settings.spi->transfer(RH_RF69_REG_00_FIFO);
 
         // data
-        while (rad->settings.pos < MSG_SIZE && rad->radio->FifoNotEmpty() && (rad->bufftop != rad->buffbot || rad->settings.firstTime))
+        while (rad->settings.pos < MSG_SIZE && rad->radio->FifoNotEmpty())
         {
-            rad->settings.firstTime = false;
             // write to circular buffer in rad
             rad->buffer[rad->bufftop] = rad->radio->settings.spi->transfer(0);
             rad->bufftop = (rad->bufftop + 1) % rad->buffsize;
@@ -399,7 +394,6 @@ void readLiveRadio(LiveRadioObject *rad)
         }
         // Serial.println(rad->settings.pos);
 
-        rad->settings.firstTime = true;
 
         // reset msgLen and toAddr, end transaction, and clear fifo through entering idle mode
         digitalWrite(rad->radio->settings.cs, HIGH);
@@ -458,9 +452,8 @@ void readLiveRadio(LiveRadioObject *rad)
             rad->settings.hasTransmission = true;
             rad->settings.hasL = rad->settings.hasA = false;
 
-            while (rad->settings.pos < MSG_SIZE && rad->radio->FifoNotEmpty() && (rad->bufftop != rad->buffbot || rad->settings.firstTime))
+            while (rad->settings.pos < MSG_SIZE && rad->radio->FifoNotEmpty())
             {
-                rad->settings.firstTime = false;
                 // write to circular buffer in rad
                 rad->buffer[rad->bufftop] = rad->radio->settings.spi->transfer(0);
                 rad->bufftop = (rad->bufftop + 1) % rad->buffsize;
@@ -469,7 +462,6 @@ void readLiveRadio(LiveRadioObject *rad)
                 rad->settings.pos++;
             }
             // Serial.println(rad->settings.pos);
-            rad->settings.firstTime = true;
         }
         // reset msgLen and toAddr, end transaction, and clear fifo through entering idle mode
         digitalWrite(rad->radio->settings.cs, HIGH);
