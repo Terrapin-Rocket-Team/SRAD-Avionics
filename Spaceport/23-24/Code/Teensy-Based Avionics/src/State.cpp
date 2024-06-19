@@ -32,7 +32,7 @@ State::State(bool useKalmanFilter, bool stateRecordsOwnFlightData)
 
     ///
 
-    recordOwnFlightData = false; // For radio testing. Will not record own data unless told to do so or if it detects a launch.
+    // recordOwnFlightData = false; // For radio testing. Will not record own data unless told to do so or if it detects a launch.
 
     ///
 

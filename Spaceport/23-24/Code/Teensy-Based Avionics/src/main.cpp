@@ -39,7 +39,7 @@ static double last = 0; // for better timing than "delay(100)"
 int BUZZER = 33;
 int LED = LED_BUILTIN;
 int allowedPins[] = {LED, BUZZER};
-BlinkBuzz bb(allowedPins, 2, true);
+BlinkBuzz bb(allowedPins, 1, true);
 
 // Free memory debug function
 extern unsigned long _heap_start;
