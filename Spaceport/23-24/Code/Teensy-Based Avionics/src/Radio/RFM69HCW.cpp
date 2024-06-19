@@ -173,6 +173,7 @@ bool RFM69HCW::dequeueReceive(uint8_t *message)
     inc(recvBuffer.head);
     // Empty the buffer up to the length of the expected message
     copyFromBuffer(recvBuffer, message, len);
+    Serial.write(message, len);
     return true;
 }
 
