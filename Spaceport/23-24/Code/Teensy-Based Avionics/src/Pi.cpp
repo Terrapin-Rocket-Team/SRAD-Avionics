@@ -24,7 +24,7 @@ void Pi::setRecording(bool recording)
 {
     if(this->recording == recording) return; // If the recording state is the same, do nothing
 
-    bb.aonoff(BUZZER, 100, 3); // Buzz 3 times (100ms on, 100ms off)
+    bb.aonoff(BUZZER, 500, 2, 100); // Buzz twice for recording state change
     digitalWrite(pinVideo, recording ? LOW : HIGH);
     this->recording = recording;
 }

@@ -4,6 +4,7 @@
 #include "../Radio/RFM69HCW.h"
 #include "../Radio/APRS/APRSCmdMsg.h"
 #include "LiveRFM69HCW.h"
+#include "RecordData.h"
 
 #define SERIAL_BAUD 1000000 // 1M Baud => 8us per byte
 
@@ -105,10 +106,12 @@ int radioIndex = 0;
 uint16_t curPacketSize = 0;
 uint16_t sendi = 0;
 
+//PSRAM *ram;
+
 void setup()
 {
     // Serial.begin(SERIAL_BAUD);
-    delay(1000);
+    delay(2000);
 
     Serial.println("Starting Ground Station Receiver");
 
@@ -136,12 +139,34 @@ void setup()
     // cmd3.data.Launch = false;
 
     // sdjkfhkjsd(&r3);
+
+    // if(setupSDCard())
+    //     Serial.println("SD Card initialized");
+    // else
+    //     Serial.println("SD Card failed to initialize");
+
+    // ram = new PSRAM();
+
+    // if(ram->init())
+    //     Serial.println("PSRAM initialized");
+    // else
+    //     Serial.println("PSRAM failed to initialize");
 }
 
+// bool written = false;
 void loop()
 {
 
-    // delay(10);
+    // delay(100);
+    // if (isSDReady() && ram->isReady() && (int)(millis() % 5000) == 0)
+    // {
+    //     written = true;
+    //     ram->dumpFlightData();
+    // }
+    // else
+    // {
+    //     written = false;
+    // }
 
     if (radio3.update())
     {
@@ -220,7 +245,6 @@ void readLiveRadio(LiveRadioObject *rad)
             rad->settings.pos++;
         }
         // Serial.println(rad->settings.pos);
-
 
         // reset msgLen and toAddr, end transaction, and clear fifo through entering idle mode
         digitalWrite(rad->radio->settings.cs, HIGH);
