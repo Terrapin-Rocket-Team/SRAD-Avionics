@@ -131,7 +131,6 @@ bool RFM69HCW::enqueueSend(const uint8_t *message, uint8_t len)
     inc(sendBuffer.tail);
 
     copyToBuffer(sendBuffer, message, len);
-
     return true;
 }
 

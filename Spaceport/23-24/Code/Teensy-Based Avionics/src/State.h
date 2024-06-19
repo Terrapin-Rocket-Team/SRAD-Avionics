@@ -24,6 +24,8 @@ public:
     // stateRecordsOwnData: whether or not the state should call recordFlightData() itself. If false, other funcitons must call recordFlightData() to record the state's data.
     explicit State(bool useKalmanFilter = true, bool stateRecordsOwnData = true);
     ~State();
+    
+    double baroVelocity;           // in m/s
 
     // to be called after all applicable sensors have been added.
     // Returns false if any sensor failed to init. check data log for failed sensor. Disables sensor if failed.
@@ -104,7 +106,6 @@ private:
     imu::Vector<3> velocity;       // in m/s
     imu::Vector<3> acceleration;   // in m/s^2
     imu::Quaternion orientation;   // in quaternion
-    double baroVelocity;           // in m/s
     double baroOldAltitude;        // in m
     double headingAngle;           // in degrees
 

@@ -39,7 +39,7 @@ static double last = 0; // for better timing than "delay(100)"
 int BUZZER = 33;
 int LED = LED_BUILTIN;
 int allowedPins[] = {LED, BUZZER};
-BlinkBuzz bb(allowedPins, 1, true);
+BlinkBuzz bb(allowedPins, 2, true);
 
 // Free memory debug function
 extern unsigned long _heap_start;
@@ -58,7 +58,6 @@ void FreeMem()
 void setup()
 {
 
-    bb.onoff(BUZZER, 100, 4, 100);
     recordLogData(INFO, "Initializing Avionics System. 5 second delay to prevent unnecessary file generation.", TO_USB);
     // delay(5000);
 
@@ -128,10 +127,10 @@ void loop()
 
     last = time;
     computer.updateState();
-    //recordLogData(INFO, computer.getStateString(), TO_USB);
-
+    recordLogData(INFO, computer.getStateString(), TO_USB);
+    Serial.println(computer.baroVelocity);
     // Send Telemetry Data
-    if (time - radioTimer >= 1000)
+    if (time - radioTimer >= 500)
     {
         computer.fillAPRSData(telem.data);
 
