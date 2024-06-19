@@ -33,6 +33,7 @@ void setup()
 int counter = 1;
 void loop()
 {
+    delay(5);
     if (radio.update())
     {
         if (radio.dequeueReceive(&msg))
@@ -40,16 +41,19 @@ void loop()
             char buffer[255];
             aprsToSerial::encodeAPRSForSerial(msg, buffer, 255, radio.RSSI());
             Serial.println(buffer);
-        }
-        if (counter % 50 == 0) // Send a command every 50x a message is received (or every 25 seconds)
-            radio.enqueueSend(&cmd);
-
-        if (counter == 190) // Send a command after 190x a message is received (or after 95 seconds) to launch the rocket
-        {
-            cmd.data.Launch = !cmd.data.Launch;
-            radio.enqueueSend(&cmd);
+            counter = 0;
         }
     }
+    else// reset the radio if we havent heard anything in a while
+    {
+        if (counter == 15000)
+        {
+            radio.init();
+            counter = 0;
+        }
+    }
+    counter ++;
+
     if (Serial.available())
     {
         char buffer[255];

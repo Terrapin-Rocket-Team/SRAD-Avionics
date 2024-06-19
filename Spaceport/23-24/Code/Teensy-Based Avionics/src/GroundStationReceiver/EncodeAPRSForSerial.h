@@ -56,6 +56,7 @@ namespace aprsToSerial
                  flags,
                  RSSI,
                  suffix);
+                 Serial.println(buffer);
     }
 
     void encodeLatLong(const APRSTelemMsg &msg, char *buffer, size_t buffer_size)
