@@ -111,7 +111,7 @@ uint16_t sendi = 0;
 void setup()
 {
     // Serial.begin(SERIAL_BAUD);
-    delay(2000);
+    // delay(2000);
 
     Serial.println("Starting Ground Station Receiver");
 
@@ -188,6 +188,36 @@ void loop()
     // read live radio
     readLiveRadio(&r1);
     readLiveRadio(&r2);
+
+    // read from serial
+    if (Serial.available())
+    {
+        // first byte is minutesUntilPowerOn, second byte is minutesUntilDataRecording, third byte is minutesUntilVideoStart, fourth byte is launch
+        if (Serial.available() >= COMMAND_SIZE)
+        {
+
+            // first two bytes is a signed int for minutesUntilPowerOn, next two bytes is a signed int for minutesUntilDataRecording, next two bytes is a signed int for minutesUntilVideoStart, last byte is a bool for launch
+            byte command[COMMAND_SIZE + 1];
+            for (int i = 0; i < COMMAND_SIZE; i++)
+            {
+                command[i] = Serial.read();
+            }
+
+            // set the command data
+            r3.cmd->data.MinutesUntilPowerOn = command[0];
+            r3.cmd->data.MinutesUntilDataRecording = command[1];
+            r3.cmd->data.MinutesUntilVideoStart = command[2];
+            r3.cmd->data.Launch = command[3];
+
+            // send the command
+            radio3.enqueueSend(r3.cmd);
+        }
+        else {
+            // reset the buffer
+            Serial.clear();
+        }
+    }
+
 }
 
 // adapted from radioHead functions
