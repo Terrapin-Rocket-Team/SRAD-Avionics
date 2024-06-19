@@ -46,8 +46,6 @@ namespace radioHandler
 
     void processCurrentCmdData(APRSCmdData &currentCmdData, State &computer, Pi &rpi, int time)
     {
-        Serial.println(time);
-        Serial.println(currentCmdData.MinutesUntilVideoStart);
         if (currentCmdData.Launch && computer.getStageNum() == 0)
         {
             recordLogData(INFO, "Launch Command Received. Launching Rocket.");
