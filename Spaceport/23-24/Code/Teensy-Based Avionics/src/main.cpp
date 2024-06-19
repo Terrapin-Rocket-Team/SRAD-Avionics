@@ -21,11 +21,11 @@ MAX_M10S gps(13, 12, 0x42); // I2C Address 0x42
 RadioSettings settings = {433.78, 0x01, 0x02, &hardware_spi, 10, 31, 32};
 RFM69HCW radio(&settings);
 APRSHeader header = {"KC3UTM", "APRS", "WIDE1-1", '^', 'M'};
-APRSCmdData currentCmdData = {800000, 800000, 800000, false};
+APRSCmdData currentCmdData = {13000, 13000, 13000, false};
 APRSCmdMsg cmd(header);
 APRSTelemMsg telem(header);
 int timeOfLastCmd = 0;
-const int CMD_TIMEOUT_SEC = 100; // 10 seconds
+const int CMD_TIMEOUT_SEC = 100; // 100 seconds
 void processCurrentCmdData(double time);
 
 State computer; // = useKalmanFilter = true, stateRecordsOwnData = true
@@ -125,13 +125,17 @@ void loop()
         timeOfLastCmd = time;
         APRSCmdData old = cmd.data;
         if (radio.dequeueReceive(&cmd))
-            radioHandler::processCmdData(cmd, old, currentCmdData, time);
+            radioHandler::processCmdData(cmd, old, currentCmdData, time / 60000.0);
     }
-    radioHandler::processCurrentCmdData(currentCmdData, computer, rpi, time);
 
     // Update the state of the rocket
+
+    // ---------------- 10 HZ LOOP ----------------
+
     if (time - last < 100)
         return;
+
+    radioHandler::processCurrentCmdData(currentCmdData, computer, rpi, time / 60000.0);
 
     last = time;
     computer.updateState();
@@ -152,10 +156,10 @@ void loop()
     }
 
     // RASPBERRY PI TURN ON/VIDEO BACKUP
-    if ((time / 1000.0 > 810 && time - timeOfLastCmd > CMD_TIMEOUT_SEC * 1000) || computer.getStageNum() >= 1)
-        rpi.setOn(true);
-    if ((computer.getStageNum() >= 1 || time - timeOfLastCmd > CMD_TIMEOUT_SEC * 1000) && rpi.isOn())
+    if (rpi.isOn() && computer.getStageNum() >= 1)
         rpi.setRecording(true);
+    if (computer.getStageNum() >= 1)
+        rpi.setOn(true);
 }
 
 
