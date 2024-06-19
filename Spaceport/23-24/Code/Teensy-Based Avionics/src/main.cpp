@@ -21,7 +21,7 @@ MAX_M10S gps(13, 12, 0x42); // I2C Address 0x42
 RadioSettings settings = {433.78, 0x01, 0x02, &hardware_spi, 10, 31, 32};
 RFM69HCW radio(&settings);
 APRSHeader header = {"KC3UTM", "APRS", "WIDE1-1", '^', 'M'};
-APRSCmdData currentCmdData = {800000, 800000, 800000, false};
+APRSCmdData currentCmdData = {13000, 13000, 13000, false};
 APRSCmdMsg cmd(header);
 APRSTelemMsg telem(header);
 int timeOfLastCmd = 0;
@@ -125,7 +125,7 @@ void loop()
         timeOfLastCmd = time;
         APRSCmdData old = cmd.data;
         if (radio.dequeueReceive(&cmd))
-            radioHandler::processCmdData(cmd, old, currentCmdData, time);
+            radioHandler::processCmdData(cmd, old, currentCmdData, time / 60000.0);
     }
 
     // Update the state of the rocket
@@ -135,7 +135,7 @@ void loop()
     if (time - last < 100)
         return;
 
-    radioHandler::processCurrentCmdData(currentCmdData, computer, rpi, time);
+    radioHandler::processCurrentCmdData(currentCmdData, computer, rpi, time / 60000.0);
 
     last = time;
     computer.updateState();

@@ -12,6 +12,7 @@ namespace radioHandler
 {
     void processCmdData(APRSCmdMsg &cmd, APRSCmdData &old, APRSCmdData &currentCmdData, int time)
     {
+
         bb.aonoff(BUZZER, 100, 2);
         char log[100];
         if (cmd.data.Launch)
@@ -24,30 +25,29 @@ namespace radioHandler
         {
             snprintf(log, 100, "Power On Time Changed: %d with %d minutes remaining.", cmd.data.MinutesUntilPowerOn, (int)(currentCmdData.MinutesUntilPowerOn - time) / 60000);
             recordLogData(INFO, log);
-            currentCmdData.MinutesUntilPowerOn = cmd.data.MinutesUntilPowerOn * 60 * 1000 + time;
+            currentCmdData.MinutesUntilPowerOn = cmd.data.MinutesUntilPowerOn + time;
         }
         if (cmd.data.MinutesUntilVideoStart >= 0)
         {
             snprintf(log, 100, "Video Start Time Changed: %d with %d minutes remaining.", cmd.data.MinutesUntilVideoStart, (int)(currentCmdData.MinutesUntilVideoStart - time) / 60000);
             recordLogData(INFO, log);
-            currentCmdData.MinutesUntilVideoStart = cmd.data.MinutesUntilVideoStart * 60 * 1000 + time;
+            currentCmdData.MinutesUntilVideoStart = cmd.data.MinutesUntilVideoStart + time;
         }
         else if(cmd.data.MinutesUntilVideoStart == -2){
-            snprintf(log, 100, "Video Recodrding Reset requested. Resetting.");
-            recordLogData(INFO, log);
-            rpi.setRecording(false);
-            currentCmdData.MinutesUntilVideoStart = 0;
+            currentCmdData.MinutesUntilVideoStart = -2;
         }
         if (cmd.data.MinutesUntilDataRecording >= 0)
         {
             snprintf(log, 100, "Data Recording Time Changed: %d with %d minutes remaining.", cmd.data.MinutesUntilDataRecording, (int)(currentCmdData.MinutesUntilDataRecording - time) / 60000);
             recordLogData(INFO, log);
-            currentCmdData.MinutesUntilDataRecording = cmd.data.MinutesUntilDataRecording * 60 * 1000 + time;
+            currentCmdData.MinutesUntilDataRecording = cmd.data.MinutesUntilDataRecording + time;
         }
     }
 
     void processCurrentCmdData(APRSCmdData &currentCmdData, State &computer, Pi &rpi, int time)
     {
+        Serial.println(time);
+        Serial.println(currentCmdData.MinutesUntilVideoStart);
         if (currentCmdData.Launch && computer.getStageNum() == 0)
         {
             recordLogData(INFO, "Launch Command Received. Launching Rocket.");
@@ -58,9 +58,13 @@ namespace radioHandler
             recordLogData(INFO, "Power On RPI Time Reached. Turning on Raspberry Pi.");
             rpi.setOn(true);
         }
-        if (time > currentCmdData.MinutesUntilVideoStart && !rpi.isRecording())
+        if(currentCmdData.MinutesUntilVideoStart == -2 && rpi.isOn()){
+            recordLogData(INFO, "Video Transmit Restart Requested. Resetting.");
+            rpi.setRecording(false);
+            currentCmdData.MinutesUntilVideoStart = 0;
+        }
+        else if (time > currentCmdData.MinutesUntilVideoStart && !rpi.isRecording() && rpi.isOn())
         {
-            recordLogData(INFO, "Video Start Time Reached. Starting Video Recording.");
             rpi.setRecording(true);
         }
         if (time > currentCmdData.MinutesUntilDataRecording && !computer.getRecordOwnFlightData())
