@@ -7,7 +7,7 @@
 APRSHeader header = {"KC3UTM", "APRS", "WIDE1-1", '/', 'o'};
 APRSTelemMsg msg(header);
 APRSCmdMsg cmd(header);
-RadioSettings settings = {433, 0x02, 0x01, &hardware_spi, 10, 31, 32};
+RadioSettings settings = {433.78, 0x02, 0x01, &hardware_spi, 15, 16, 14};
 RFM69HCW radio(&settings);
 
 
@@ -22,8 +22,8 @@ void setup()
 
         // Test Case for Demo Purposes
     cmd.data.MinutesUntilPowerOn = 0;
-    cmd.data.MinutesUntilDataRecording = 1;
-    cmd.data.MinutesUntilVideoStart = 2;
+    cmd.data.MinutesUntilDataRecording = -1;
+    cmd.data.MinutesUntilVideoStart = -2;
     cmd.data.Launch = false;
 }
 

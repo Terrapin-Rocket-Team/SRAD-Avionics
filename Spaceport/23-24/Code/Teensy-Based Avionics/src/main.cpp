@@ -18,7 +18,7 @@ BNO055 bno(13, 12);         // I2C Address 0x29
 BMP390 bmp(13, 12);         // I2C Address 0x77
 MAX_M10S gps(13, 12, 0x42); // I2C Address 0x42
 
-RadioSettings settings = {433, 0x01, 0x02, &hardware_spi, 10, 31, 32};
+RadioSettings settings = {433.78, 0x01, 0x02, &hardware_spi, 10, 31, 32};
 RFM69HCW radio(&settings);
 APRSHeader header = {"KC3UTM", "APRS", "WIDE1-1", '^', 'M'};
 APRSCmdData currentCmdData = {800000, 800000, 800000, false};
@@ -128,7 +128,7 @@ void loop()
 
     last = time;
     computer.updateState();
-    recordLogData(INFO, computer.getStateString(), TO_USB);
+    //recordLogData(INFO, computer.getStateString(), TO_USB);
 
     // Send Telemetry Data
     if (time - radioTimer >= 1000)
