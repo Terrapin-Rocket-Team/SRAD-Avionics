@@ -11,7 +11,7 @@
 FakeBaro baro;
 FakeGPS gps;
 FakeIMU fimu;//"imu" is the namespace of the vector stuff :/
-State computer;
+AvionicsState computer;
 PSRAM *ram;
 
 int i = 0;
