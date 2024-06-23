@@ -73,13 +73,13 @@ void setup()
     {
 
         recordLogData(INFO, "SD Card Initialized");
-        bb.onoff(BUZZER, 1000);
+        bb.onoff(BUZZER_PIN, 1000);
     }
     else
     {
         recordLogData(ERROR, "SD Card Failed to Initialize");
 
-        bb.onoff(BUZZER, 200, 3);
+        bb.onoff(BUZZER_PIN, 200, 3);
     }
 
     // The PSRAM must be initialized before the sensors to allow for proper data logging.
@@ -92,12 +92,12 @@ void setup()
     if (computer->init())
     {
         recordLogData(INFO, "All Sensors Initialized");
-        bb.onoff(BUZZER, 1000);
+        bb.onoff(BUZZER_PIN, 1000);
     }
     else
     {
         recordLogData(ERROR, "Some Sensors Failed to Initialize. Disabling those sensors.");
-        bb.onoff(BUZZER, 200, 3);
+        bb.onoff(BUZZER_PIN, 200, 3);
     }
     sendSDCardHeader(computer->getCsvHeader());
 }
