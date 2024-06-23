@@ -13,7 +13,7 @@ AvionicsState::AvionicsState(Sensor **sensors, int numSensors, KalmanInterface *
 
 void AvionicsState::updateState(double newTime)
 {
-    State::updateState(newTime); // calll base version for sensor updates
+    State::updateState(newTime); // call base version for sensor updates
     determineStage(); // determine the stage of the flight
 }
 

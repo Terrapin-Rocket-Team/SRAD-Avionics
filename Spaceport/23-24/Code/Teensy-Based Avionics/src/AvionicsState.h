@@ -5,12 +5,10 @@
 #include <State/State.h>
 #include <BlinkBuzz/BlinkBuzz.h>
 
-namespace mmfs
-{
-    class AvionicsState : public State
+    class AvionicsState : public mmfs::State
     {
     public:
-        AvionicsState(Sensor **sensors, int numSensors, KalmanInterface *kfilter, bool recordData);
+        AvionicsState(Sensor **sensors, int numSensors, mmfs::KalmanInterface *kfilter, bool recordData);
         void updateState(double newTime = -1) override;
 
     private:
@@ -21,5 +19,4 @@ namespace mmfs
         double timeOfLastStage;
         double timeOfDay;
     };
-}
 #endif
