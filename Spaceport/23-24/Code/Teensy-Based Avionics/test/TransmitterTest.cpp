@@ -7,7 +7,7 @@
 
 APRSConfig config = {CALLSIGN, TOCALL, PATH, '[', '/'};
 RadioSettings settings = {433.775, true, false, &hardware_spi, 10, 2, 9};
-RFM69HCW transmit = {settings, config};
+RFM69HCW transmit = {&settings, &config};
 
 void setup()
 {
