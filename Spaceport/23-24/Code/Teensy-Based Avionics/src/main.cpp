@@ -13,9 +13,9 @@
 using namespace mmfs;
 
 
-BNO055 bno();         // I2C Address 0x29
-BMP390 bmp();         // I2C Address 0x77
-MAX_M10S gps(); // I2C Address 0x42
+BNO055 bno;         // I2C Address 0x29
+BMP390 bmp;         // I2C Address 0x77
+MAX_M10S gps; // I2C Address 0x42
 
 //RadioSettings settings = {433.78, 0x01, 0x02, &hardware_spi, 10, 31, 32};
 //RFM69HCW radio(&settings);
@@ -47,8 +47,8 @@ void FreeMem()
 }
 // Free memory debug function
 PSRAM *ram;
-int BUZZER_PIN = 33;
-int BUILTIN_LED_PIN = LED_BUILTIN;
+const int BUZZER_PIN = 33;
+const int BUILTIN_LED_PIN = LED_BUILTIN;
 int allowedPins[] = {BUILTIN_LED_PIN, BUZZER_PIN};
 BlinkBuzz bb(allowedPins, 2, true);
 void setup()
