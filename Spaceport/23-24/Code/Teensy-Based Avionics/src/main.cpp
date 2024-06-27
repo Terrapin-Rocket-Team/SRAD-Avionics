@@ -1,35 +1,47 @@
 #include <Arduino.h>
 #include "State.h"
+
 #include "BMP390.h"
 #include "BNO055.h"
 #include "MAX_M10S.h"
-#include "DS3231.h"
-#include "RFM69HCW.h"
+
 #include "RecordData.h"
-#include "BlinkBuzz.h"
+#include <BlinkBuzz.h>
+#include "Pi.h"
+#include "Radio/RadioHandler.h"
 
-BNO055 bno(13, 12);         // I2C Address 0x29
-BMP390 bmp(13, 12);         // I2C Address 0x77
-MAX_M10S gps(13, 12, 0x42); // I2C Address 0x42
-DS3231 rtc();               // I2C Address 0x68
-APRSConfig config = {"KC3UTM", "APRS", "WIDE1-1", '[', '/'};
-RadioSettings settings = {433.775, true, false, &hardware_spi, 10, 31, 32};
-RFM69HCW radio = {settings, config};
-State computer; // = useKalmanFilter = true, stateRecordsOwnData = true
-uint32_t radioTimer = millis();
-
-PSRAM *ram;
-
-#define BUZZER 33
 #define BMP_ADDR_PIN 36
 #define RPI_PWR 0
 #define RPI_VIDEO 1
 
+BNO055 bno(13, 12);         // I2C Address 0x29
+BMP390 bmp(13, 12);         // I2C Address 0x77
+MAX_M10S gps(13, 12, 0x42); // I2C Address 0x42
+
+RadioSettings settings = {433.78, 0x01, 0x02, &hardware_spi, 10, 31, 32};
+RFM69HCW radio(&settings);
+APRSHeader header = {"KC3UTM", "APRS", "WIDE1-1", '^', 'M'};
+APRSCmdData currentCmdData = {800000, 800000, 800000, false};
+APRSCmdMsg cmd(header);
+APRSTelemMsg telem(header);
+int timeOfLastCmd = 0;
+const int CMD_TIMEOUT_SEC = 100; // 10 seconds
+void processCurrentCmdData(double time);
+
+State computer; // = useKalmanFilter = true, stateRecordsOwnData = true
+uint32_t radioTimer = millis();
+Pi rpi(RPI_PWR, RPI_VIDEO);
+PSRAM *ram;
+
 static double last = 0; // for better timing than "delay(100)"
 
 // BlinkBuzz setup
-int allowedPins[] = {LED_BUILTIN, BUZZER};
+int BUZZER = 33;
+int LED = LED_BUILTIN;
+int allowedPins[] = {LED, BUZZER};
 BlinkBuzz bb(allowedPins, 2, true);
+
+// Free memory debug function
 extern unsigned long _heap_start;
 extern unsigned long _heap_end;
 extern char *__brkval;
@@ -41,26 +53,16 @@ void FreeMem()
     Serial.print(" ");
     free(heapTop);
 }
+// Free memory debug function
 
 void setup()
 {
 
-    pinMode(LED_BUILTIN, OUTPUT);
-    pinMode(BUZZER, OUTPUT); // its very loud during testing
-    bb.onoff(BUZZER, 100, 4, 100);
     recordLogData(INFO, "Initializing Avionics System. 5 second delay to prevent unnecessary file generation.", TO_USB);
-    delay(5000);
+    // delay(5000);
 
     pinMode(BMP_ADDR_PIN, OUTPUT);
     digitalWrite(BMP_ADDR_PIN, HIGH);
-
-    pinMode(RPI_PWR, OUTPUT);   // RASPBERRY PI TURN ON
-    pinMode(RPI_VIDEO, OUTPUT); // RASPBERRY PI TURN ON
-
-    digitalWrite(RPI_PWR, LOW);
-    digitalWrite(RPI_VIDEO, HIGH);
-
-    bb.onoff(LED_BUILTIN, 100);
     ram = new PSRAM(); // init after the SD card for better data logging.
 
     // The SD card MUST be initialized first to allow proper data logging.
@@ -103,55 +105,49 @@ void setup()
     }
     sendSDCardHeader(computer.getCsvHeader());
 }
-static bool more = false;
-static bool first = false;
-static bool second = false;
+
 void loop()
 {
-    bb.update();
     double time = millis();
+    bb.update();
 
-    if (time - radioTimer >= 500)
+    // Update the Radio
+    if (radio.update()) // if there is a message to be read
     {
-        more = computer.transmit();
-        radioTimer = time;
+        timeOfLastCmd = time;
+        APRSCmdData old = cmd.data;
+        if (radio.dequeueReceive(&cmd))
+            radioHandler::processCmdData(cmd, old, currentCmdData, time);
     }
-    if (radio.mode() != RHGenericDriver::RHModeTx && more)
-    {
-        more = !radio.sendBuffer();
-    }
+    radioHandler::processCurrentCmdData(currentCmdData, computer, rpi, time);
+
+    // Update the state of the rocket
     if (time - last < 100)
         return;
 
     last = time;
     computer.updateState();
     recordLogData(INFO, computer.getStateString(), TO_USB);
-    // RASPBERRY PI TURN ON
-    if (time / 1000.0 > 810)
+    Serial.println(computer.baroVelocity);
+    // Send Telemetry Data
+    if (time - radioTimer >= 500)
     {
-        digitalWrite(RPI_PWR, HIGH);
-        if (!first)
-        {
-            bb.aonoff(BUZZER, 100, 2);
-            first = true;
-        }
+        computer.fillAPRSData(telem.data);
+
+        int status = PI_ON * rpi.isOn() +
+                     PI_VIDEO * rpi.isRecording() +
+                     RECORDING_DATA * computer.getRecordOwnFlightData();
+        telem.data.statusFlags = status;
+
+        radio.enqueueSend(&telem);
+        radioTimer = time;
     }
-    if (computer.getStageNum() >= 1)
-    {
-        digitalWrite(RPI_VIDEO, LOW);
-        if (!second)
-        {
-            bb.aonoff(BUZZER, 100, 3);
-            second = true;
-        }
-    }
-    // if (time / 1000.0 > 180)
-    // {
-    //     digitalWrite(RPI_VIDEO, LOW);
-    //     if (!second)
-    //     {
-    //         bb.aonoff(BUZZER, 100, 3);
-    //         second = true;
-    //     }
-    // }
+
+    // RASPBERRY PI TURN ON/VIDEO BACKUP
+    if ((time / 1000.0 > 810 && time - timeOfLastCmd > CMD_TIMEOUT_SEC * 1000) || computer.getStageNum() >= 1)
+        rpi.setOn(true);
+    if ((computer.getStageNum() >= 1 || time - timeOfLastCmd > CMD_TIMEOUT_SEC * 1000) && rpi.isOn())
+        rpi.setRecording(true);
 }
+
+
