@@ -12,6 +12,18 @@ bool BNO055::initialize()
     {
         return initialized = false;
     }
+
+    // set to +-16g range
+    adafruit_bno055_opmode_t mode = bno.getMode();
+    bno.setMode(OPERATION_MODE_CONFIG);
+    delay(25);
+    Wire.beginTransmission(0x29);//BNO055 address
+    Wire.write(0x08);//ACC_CONFIG register address on BNO055
+    Wire.write(0b11);//set to +-16g range
+    Wire.endTransmission(true); // send stop
+    bno.setMode(mode);
+    delay(25);
+
     bno.setExtCrystalUse(true);
 
     initialMagField = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
@@ -42,6 +54,10 @@ void BNO055::update()
     {
         accelerationVec = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
     }
+    double x = accelerationVec.z();
+    accelerationVec.x() = accelerationVec.z();
+    accelerationVec.z() = x;
+
     orientation = bno.getQuat();
     orientationEuler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
     magnetometer = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
