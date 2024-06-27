@@ -106,6 +106,7 @@ bool State::init()
         kfilter = initializeFilter();
     numSensors = good;
     setCsvHeader();
+
     return good == tryNumSensors;
 }
 
