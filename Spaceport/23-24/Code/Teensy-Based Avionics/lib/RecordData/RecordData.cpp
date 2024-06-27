@@ -4,9 +4,9 @@ static const char *logTypeStrings[] = {"LOG", "ERROR", "WARNING", "INFO"};
 static Mode mode = GROUND;
 void recordFlightData(char *data)
 {
-    if(!isSDReady())
+    if (!isSDReady())
         return;
-    if (mode == GROUND)
+    if (mode == GROUND || !ram->isReady())
     {
         flightDataFile = sd.open(flightDataFileName, FILE_WRITE); // during preflight, print to SD card constantly. ignore PSRAM for this stage.
         if (flightDataFile)
@@ -15,7 +15,7 @@ void recordFlightData(char *data)
             flightDataFile.close();
         }
     }
-    else if(ram->isReady())
+    else
         ram->println(data); // while in flight, print to PSRAM for later dumping to SD card.
 }
 
@@ -32,15 +32,12 @@ void recordLogData(double timeStamp, LogType type, const char *data, Dest dest)
 
     if (dest == BOTH || dest == TO_USB)
     {
-        // if (!Serial){
-        //     Serial.begin(9600);
-        // }
         Serial.print(logPrefix);
         Serial.println(data);
     }
     if ((dest == BOTH || dest == TO_FILE) && isSDReady())
     {
-        if (mode == GROUND)
+        if (mode == GROUND || !ram->isReady())
         {
             logFile = sd.open(logFileName, FILE_WRITE); // during preflight, print to SD card constantly. ignore PSRAM for this stage. With both files printing, may be bad...
             if (logFile)
@@ -50,7 +47,7 @@ void recordLogData(double timeStamp, LogType type, const char *data, Dest dest)
                 logFile.close();
             }
         }
-        else if (ram->isReady()) // while in flight, print to PSRAM for later dumping to SD card.
+        else // while in flight, print to PSRAM for later dumping to SD card.
         {
             ram->print(logPrefix, false);
             ram->println(data, false);
@@ -60,10 +57,11 @@ void recordLogData(double timeStamp, LogType type, const char *data, Dest dest)
 
 void setRecordMode(Mode m)
 {
-    if(mode == FLIGHT && m == GROUND){
+    if (mode == FLIGHT && m == GROUND && ram->isReady())
+    {
         ram->dumpFlightData();
         ram->dumpLogData();
-        bb.aonoff(LED_BUILTIN, 2000);//turn on LED for 2 seconds to indicate that the PSRAM is being dumped to the SD card.
+        bb.aonoff(LED_BUILTIN, 2000); // turn on LED for 2 seconds to indicate that the PSRAM is being dumped to the SD card.
     }
     mode = m;
 }
