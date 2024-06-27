@@ -213,7 +213,7 @@ APRS Telemetry Data
 - t0
 - dao
 */
-struct APRSData
+struct APRSTelemData
 {
     char lat[16];
     char lng[16];
