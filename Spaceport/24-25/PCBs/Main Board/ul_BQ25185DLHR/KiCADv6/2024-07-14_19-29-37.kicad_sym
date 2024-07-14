@@ -2,7 +2,7 @@
 	(version 20231120)
 	(generator "kicad_symbol_editor")
 	(generator_version "8.0")
-	(symbol "LD39050PU33R"
+	(symbol "BQ25185DLHR"
 		(pin_names
 			(offset 0.254)
 		)
@@ -10,23 +10,23 @@
 		(in_bom yes)
 		(on_board yes)
 		(property "Reference" "U"
-			(at 18.288 3.556 0)
+			(at 15.24 21.59 0)
 			(effects
 				(font
 					(size 1.524 1.524)
 				)
 			)
 		)
-		(property "Value" "LD39050PU33R"
-			(at 16.256 -11.43 0)
+		(property "Value" "BQ25185DLHR"
+			(at 19.05 -1.27 0)
 			(effects
 				(font
 					(size 1.524 1.524)
 				)
 			)
 		)
-		(property "Footprint" "DFN6_3X3_STM"
-			(at 0 4.826 0)
+		(property "Footprint" "WSON10_DLH_TEX"
+			(at 0 10.16 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -35,8 +35,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "LD39050PU33R"
-			(at -0.254 4.826 0)
+		(property "Datasheet" "BQ25185DLHR"
+			(at 0 7.62 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -46,7 +46,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 0 0 0)
+			(at -12.7 15.24 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -62,7 +62,7 @@
 				)
 			)
 		)
-		(property "ki_keywords" "LD39050PU33R"
+		(property "ki_keywords" "BQ25185DLHR"
 			(at 0 0 0)
 			(effects
 				(font
@@ -71,7 +71,7 @@
 				(hide yes)
 			)
 		)
-		(property "ki_fp_filters" "DFN6_3X3_STM DFN6_3X3_STM-M DFN6_3X3_STM-L"
+		(property "ki_fp_filters" "WSON10_DLH_TEX WSON10_DLH_TEX-M WSON10_DLH_TEX-L"
 			(at 0 0 0)
 			(effects
 				(font
@@ -80,10 +80,10 @@
 				(hide yes)
 			)
 		)
-		(symbol "LD39050PU33R_0_1"
+		(symbol "BQ25185DLHR_0_1"
 			(polyline
 				(pts
-					(xy 7.62 -10.16) (xy 20.32 -10.16)
+					(xy 0 0) (xy 17.78 0)
 				)
 				(stroke
 					(width 0.127)
@@ -95,7 +95,7 @@
 			)
 			(polyline
 				(pts
-					(xy 7.62 2.54) (xy 7.62 -10.16)
+					(xy 0 20.32) (xy 0 0)
 				)
 				(stroke
 					(width 0.127)
@@ -107,7 +107,7 @@
 			)
 			(polyline
 				(pts
-					(xy 20.32 -10.16) (xy 20.32 2.54)
+					(xy 17.78 20.32) (xy 0 20.32)
 				)
 				(stroke
 					(width 0.127)
@@ -119,7 +119,7 @@
 			)
 			(polyline
 				(pts
-					(xy 20.32 2.54) (xy 7.62 2.54)
+					(xy 17.78 20.32) (xy 17.78 0)
 				)
 				(stroke
 					(width 0.127)
@@ -129,10 +129,10 @@
 					(type none)
 				)
 			)
-			(pin input line
-				(at 5.08 0 0)
+			(pin power_in line
+				(at 20.32 17.78 180)
 				(length 2.54)
-				(name "EN"
+				(name "SYS"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -148,9 +148,9 @@
 				)
 			)
 			(pin power_in line
-				(at 5.08 -2.54 0)
+				(at -2.54 17.78 0)
 				(length 2.54)
-				(name "GND"
+				(name "BAT"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -165,10 +165,10 @@
 					)
 				)
 			)
-			(pin power_in line
-				(at 5.08 -5.08 0)
+			(pin output line
+				(at 20.32 7.62 180)
 				(length 2.54)
-				(name "PG"
+				(name "STAT2"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -183,10 +183,10 @@
 					)
 				)
 			)
-			(pin output line
-				(at 22.86 -7.62 180)
+			(pin input line
+				(at -2.54 12.7 0)
 				(length 2.54)
-				(name "VOUT"
+				(name "/CE"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -201,10 +201,10 @@
 					)
 				)
 			)
-			(pin no_connect line
-				(at 22.86 -5.08 180)
+			(pin power_out line
+				(at 7.62 -2.54 90)
 				(length 2.54)
-				(name "NC"
+				(name "GND"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -219,10 +219,10 @@
 					)
 				)
 			)
-			(pin input line
-				(at 22.86 -2.54 180)
+			(pin bidirectional line
+				(at 20.32 12.7 180)
 				(length 2.54)
-				(name "VIN"
+				(name "TS/MR"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -237,12 +237,10 @@
 					)
 				)
 			)
-		)
-		(symbol "LD39050PU33R_1_1"
-			(pin power_in line
-				(at 22.86 0 180)
+			(pin bidirectional line
+				(at -2.54 7.62 0)
 				(length 2.54)
-				(name "GND"
+				(name "ILIM/VSET"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -250,6 +248,80 @@
 					)
 				)
 				(number "7"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at -2.54 5.08 0)
+				(length 2.54)
+				(name "ISET"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "8"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin output line
+				(at 20.32 5.08 180)
+				(length 2.54)
+				(name "STAT1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "9"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(symbol "BQ25185DLHR_1_1"
+			(pin input line
+				(at 10.16 22.86 270)
+				(length 2.54)
+				(name "VIN"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "10"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
+				(at 10.16 -2.54 90)
+				(length 2.54)
+				(name "EPAD"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "11"
 					(effects
 						(font
 							(size 1.27 1.27)

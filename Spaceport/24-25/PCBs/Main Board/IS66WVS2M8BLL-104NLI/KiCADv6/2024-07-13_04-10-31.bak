@@ -10,7 +10,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(property "Reference" "U"
-			(at 24.638 6.096 0)
+			(at 17.78 13.97 0)
 			(effects
 				(font
 					(size 1.524 1.524)
@@ -18,7 +18,7 @@
 			)
 		)
 		(property "Value" "IS66WVS4M8BLL-104NLI"
-			(at 21.59 -14.224 0)
+			(at 24.13 -1.27 0)
 			(effects
 				(font
 					(size 1.524 1.524)
@@ -26,7 +26,7 @@
 			)
 		)
 		(property "Footprint" "SOIC8_150MIL_N_ISI"
-			(at -2.286 -12.192 0)
+			(at -6.35 13.97 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -36,7 +36,7 @@
 			)
 		)
 		(property "Datasheet" "IS66WVS4M8BLL-104NLI"
-			(at -0.762 6.096 0)
+			(at -8.382 13.716 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -46,7 +46,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 0 0 0)
+			(at -7.62 7.62 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -83,7 +83,7 @@
 		(symbol "IS66WVS4M8BLL-104NLI_0_1"
 			(polyline
 				(pts
-					(xy 7.62 -12.7) (xy 26.67 -12.7)
+					(xy 0 0) (xy 20.32 0)
 				)
 				(stroke
 					(width 0.127)
@@ -95,7 +95,7 @@
 			)
 			(polyline
 				(pts
-					(xy 7.62 5.08) (xy 7.62 -12.7)
+					(xy 0 12.7) (xy 0 0)
 				)
 				(stroke
 					(width 0.127)
@@ -107,7 +107,7 @@
 			)
 			(polyline
 				(pts
-					(xy 26.67 -12.7) (xy 26.67 5.08)
+					(xy 20.32 0) (xy 20.32 12.7)
 				)
 				(stroke
 					(width 0.127)
@@ -119,7 +119,7 @@
 			)
 			(polyline
 				(pts
-					(xy 26.67 5.08) (xy 7.62 5.08)
+					(xy 20.32 12.7) (xy 0 12.7)
 				)
 				(stroke
 					(width 0.127)
@@ -132,9 +132,9 @@
 		)
 		(symbol "IS66WVS4M8BLL-104NLI_1_1"
 			(pin input line
-				(at 5.08 0 0)
+				(at -2.54 10.16 0)
 				(length 2.54)
-				(name "CE#"
+				(name "NCS"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -150,7 +150,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at 5.08 -2.54 0)
+				(at 22.86 7.62 180)
 				(length 2.54)
 				(name "SO/SIO1"
 					(effects
@@ -168,7 +168,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at 5.08 -5.08 0)
+				(at 22.86 5.08 180)
 				(length 2.54)
 				(name "SIO2"
 					(effects
@@ -186,7 +186,7 @@
 				)
 			)
 			(pin power_out line
-				(at 5.08 -7.62 0)
+				(at 10.16 -2.54 90)
 				(length 2.54)
 				(name "VSS"
 					(effects
@@ -204,7 +204,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at 29.21 -7.62 180)
+				(at 22.86 10.16 180)
 				(length 2.54)
 				(name "SI/SIO0"
 					(effects
@@ -222,7 +222,7 @@
 				)
 			)
 			(pin input line
-				(at 29.21 -5.08 180)
+				(at -2.54 7.62 0)
 				(length 2.54)
 				(name "CLK"
 					(effects
@@ -240,7 +240,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at 29.21 -2.54 180)
+				(at 22.86 2.54 180)
 				(length 2.54)
 				(name "SIO3"
 					(effects
@@ -258,7 +258,7 @@
 				)
 			)
 			(pin power_in line
-				(at 29.21 0 180)
+				(at 10.16 15.24 270)
 				(length 2.54)
 				(name "VDD"
 					(effects
