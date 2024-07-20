@@ -450,9 +450,9 @@ bool RFM69HCW::encode(char *message, EncodingType type, int len)
             return false;
 
         // holds the data to be assembled into the aprs body
-        APRSData data;
+        APRSTelemData data;
 
-        // find each value separated in order by a comma and put in the APRSData array
+        // find each value separated in order by a comma and put in the APRSTelemData array
         {
             char *currentVal = new char[this->msgLen];
             int currentValIndex = 0;
@@ -588,7 +588,7 @@ bool RFM69HCW::decode(char *message, EncodingType type, int len)
         char *bodyptr = body;
         strcpy(body, aprs.getBody()->getData());
         // decode body
-        APRSData data;
+        APRSTelemData data;
         int i = 0;
         int len = strlen(body);
 
