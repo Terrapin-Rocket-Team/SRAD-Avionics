@@ -6,12 +6,12 @@
 #define PATH "WIDE1-1"
 
 APRSConfig config = {CALLSIGN, TOCALL, PATH, '[', '/'};
-RadioSettings settings = {433.775, false, false, &hardware_spi, 10, 2, 9, 0, 8, 3};
+RadioSettings settings = {915.0, false, false, &hardware_spi, 10, 31, 32};
 RFM69HCW receive = {&settings, &config};
 
 void setup()
 {
-    Serial.begin(9600);
+    Serial.begin(115200);
     while (!Serial)
         ;
 
@@ -25,7 +25,8 @@ void loop()
 {
     if (receive.available())
     {
+        Serial.println("s");
         Serial.println(receive.receive(ENCT_GROUNDSTATION));
-        receive.rxs();
+        Serial.println("e");
     }
 }
