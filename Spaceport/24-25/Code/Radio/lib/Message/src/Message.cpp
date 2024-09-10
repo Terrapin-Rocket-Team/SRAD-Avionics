@@ -2,7 +2,7 @@
 
 // constructors
 
-Message::Message(MessageType type, uint8_t data[maxSize], uint16_t sz) : type()
+Message::Message(uint8_t data[maxSize], uint16_t sz, char sep) : sep(sep)
 {
     // make sure we don't copy more than this->maxSize bytes
     if (sz > this->maxSize)
@@ -13,7 +13,7 @@ Message::Message(MessageType type, uint8_t data[maxSize], uint16_t sz) : type()
     memcpy(this->buf, data, this->size);
 }
 
-Message::Message(MessageType type, Data *data) : type()
+Message::Message(Data *data, char sep) : sep(sep)
 {
     // encode the given data
     this->size = data->encode(this->buf, this->maxSize);
@@ -21,7 +21,11 @@ Message::Message(MessageType type, Data *data) : type()
 
 Message *Message::encode(Data *data)
 {
-    this->size = data->encode(this->buf, this->maxSize);
+    // check if message separation character should be added, and that there is space for it
+    if (this->sep != 0 && this->size > 0 && this->size != this->maxSize - 1)
+        this->buf[this->size++] = this->sep;
+    this->size += data->encode(this->buf + this->size, this->maxSize);
+    this->buf[this->size] = 0;
     return this;
 }
 
@@ -133,14 +137,14 @@ Message *Message::fill(uint8_t *data, uint16_t start, uint16_t sz)
     if (start + sz > this->maxSize)
     {
         // copy only this->maxSize bytes
-        memcpy(this->buf, data + start, this->maxSize - start);
+        memcpy(this->buf + start, data, this->maxSize - start);
         this->size = this->maxSize;
     }
     // if start + sz is smaller than this->maxSize
     else
     {
         // copy sz bytes
-        memcpy(this->buf, data + start, sz);
+        memcpy(this->buf + start, data, sz);
         this->size += sz;
     }
     return this;

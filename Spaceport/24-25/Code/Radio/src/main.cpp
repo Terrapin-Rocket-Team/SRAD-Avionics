@@ -5,7 +5,7 @@ void setup()
 {
     Serial.begin(9600);
 
-    Message m(MSG_VIDEO);
+    Message m(3);
 
     // VideoData test
     Serial.println("Starting video test");
@@ -50,16 +50,16 @@ void setup()
 
     m.encode(&telem);
     Serial.println((char *)m.buf);
-    Message m2(MSG_NONE);
-    for (int i = 0; i < m.size / 50 + 1; i++)
+    Message m2;
+    for (int i = 0; i < 3; i++)
     {
-        uint16_t len = 50;
+        uint16_t len = 20;
         m.pop((uint8_t *)out, len);
-        m2.append((uint8_t *)out, len);
-        Serial.write(out, len);
+        m2.fill((uint8_t *)out, m.size, len); // this builds the message backwards since we're popping
+        Serial.write(out, len);               // this shows the backwards output
     }
     Serial.println("");
-    Serial.println((char *)m2.buf);
+    Serial.println((char *)m2.buf); // but it's the right way around here
 
     APRSTelem telemOut(config);
     m2.decode(&telemOut);
@@ -95,7 +95,7 @@ void setup()
     /*Expected Output:
     Starting telem test
     KC3UTM>ALL,WIDE1-1:!M:XNe:w7P\ (m!!$dI!8<j1H&<LHZ
-    KC3UTM>ALL,WIDE1-1:!M:XNe:w7P\ (m!!$dI!8<j1H&<LHZ
+    \ (m!!$dI!8<j1H&<LHZL,WIDE1-1:!M:XNe:w7PKC3UTM>AL
     KC3UTM>ALL,WIDE1-1:!M:XNe:w7P\ (m!!$dI!8<j1H&<LHZ
     call: KC3UTM
     tocall: ALL
@@ -186,6 +186,38 @@ void setup()
     msg: Range test
     addr: KC3UTM
     */
+
+    delay(1000);
+
+    // multi-message test
+    // Note: video not supported, must specify separation character when creating Message
+    Serial.println("Starting multi-message test");
+    m.clear();
+    m.encode(&telem)->encode(&command)->encode(&txt);
+
+    Serial.println(m.size);
+    Serial.println((char *)m.buf);
+
+    // deconstruct
+    int index = 0;
+    while (index < m.size)
+    {
+        while (index < m.size && m.buf[index] != 3)
+        {
+            Serial.write((char)m.buf[index++]);
+        }
+        Serial.write('\n');
+        index++;
+    }
+
+    /* Expected Output:
+    Starting multi-message test
+    115
+    KC3UTM>ALL,WIDE1-1:!M:XNe:w7P\ (m!!$dI!8<j1H&<LHZ␃KC3UTM>ALL,WIDE1-1:!""/s␃KC3UTM>ALL,WIDE1-1::KC3UTM   :Range test
+    KC3UTM>ALL,WIDE1-1:!M:XNe:w7P\ (m!!$dI!8<j1H&<LHZ
+    KC3UTM>ALL,WIDE1-1:!""/s
+    KC3UTM>ALL,WIDE1-1::KC3UTM   :Range test
+*/
 
     delay(1000);
 }
