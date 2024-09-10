@@ -3,22 +3,6 @@
 
 #include "Arduino.h"
 #include "Data.h"
-// #include "Packet.h"
-
-/*
-Types:
-- MSG_TELEMETRY: use for telemetry data
-- MSG_VIDEO: use for video data
-- MSG_COMMAND: use for commands
-- MSG_NONE: use for empty message
-*/
-enum MessageType
-{
-    MSG_TELEMETRY,
-    MSG_VIDEO,
-    MSG_COMMAND,
-    MSG_NONE
-};
 
 class Message
 {
@@ -27,15 +11,16 @@ public:
     static const uint16_t maxSize = 10e3;
 
     // instance vars
-    MessageType type = MSG_NONE;
     uint8_t buf[maxSize + 1] = {0}; // add one extra byte that should always be 0 to prevent issues with C string functions
     uint16_t size = 0;
+    char sep = 0;
 
     // methods
-    Message() {};
-    Message(MessageType type) : type(type) {};
-    Message(MessageType type, uint8_t rawData[maxSize], uint16_t sz);
-    Message(MessageType type, Data *data);
+    // Message constructor
+    // sep : the separation character when combining multiple messages
+    Message(char sep = 0) : sep(sep) {};
+    Message(uint8_t rawData[maxSize], uint16_t sz, char sep = 0);
+    Message(Data *data, char sep = 0);
 
     // use return type Message* so we can stack operators e.g., ```Message()->fill()->encode()```
 
@@ -57,7 +42,7 @@ public:
 
     // copy ```sz``` bytes from ```data``` into the Message buffer, ```sz``` must be less than ```Message.maxSize```
     Message *fill(uint8_t *data, uint16_t sz);
-    // copy from ```data```, starting at index ```start``` until index ```end```, ```sz``` must be less than ```Message.maxSize - start```
+    // copy ```sz``` bytes from ```data``` into the Message buffer starting at index ```start```, ```sz``` must be less than ```Message.maxSize - start```
     Message *fill(uint8_t *data, uint16_t start, uint16_t sz);
 
     // copies ```this->size``` bytes from the Message buffer into ```data```
