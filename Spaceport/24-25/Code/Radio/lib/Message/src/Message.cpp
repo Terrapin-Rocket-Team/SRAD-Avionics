@@ -76,6 +76,10 @@ Message *Message::pop(uint8_t *data, uint16_t &sz)
 
         this->buf[this->size] = 0;
     }
+    else
+    {
+        sz = 0;
+    }
     return this;
 }
 
@@ -107,6 +111,10 @@ Message *Message::shift(uint8_t *data, uint16_t &sz)
         // just in case this->size bytes were not copied, otherwise technically this should do nothing
         memcpy(this->buf, this->buf + sz, this->size);
         this->buf[this->size] = 0;
+    }
+    else
+    {
+        sz = 0;
     }
     return this;
 }
@@ -174,6 +182,10 @@ Message *Message::get(uint8_t *data, uint16_t &sz, uint16_t start, uint16_t end)
         // copy end - start bytes into data
         sz = end - start;
         memcpy(data, this->buf + start, sz);
+    }
+    else
+    {
+        sz = 0;
     }
     return this;
 }

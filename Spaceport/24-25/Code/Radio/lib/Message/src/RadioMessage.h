@@ -20,6 +20,4 @@
 #include "APRS/APRSCmd.h"
 #include "APRS/APRSText.h"
 
-// #include "Packet.h"
-
 #endif
