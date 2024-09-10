@@ -3,7 +3,7 @@
 
 #include "Arduino.h"
 #include "Data.h"
-#include "Packet.h"
+// #include "Packet.h"
 
 /*
 Types:
@@ -28,11 +28,12 @@ public:
 
     // instance vars
     MessageType type = MSG_NONE;
-    uint8_t buf[maxSize] = {0};
+    uint8_t buf[maxSize + 1] = {0}; // add one extra byte that should always be 0 to prevent issues with C string functions
     uint16_t size = 0;
 
     // methods
-    Message(MessageType type) : type() {};
+    Message() {};
+    Message(MessageType type) : type(type) {};
     Message(MessageType type, uint8_t rawData[maxSize], uint16_t sz);
     Message(MessageType type, Data *data);
 
@@ -45,21 +46,19 @@ public:
     // clears all stored data
     Message *clear();
 
-    // append the contents of ```p``` to the Message buffer
-    Message *addPacket(Packet *p);
-    // remove the last ```p->maxSize``` bytes from the Message buffer and place them in Packet ```p```
-    Message *popPacket(Packet *p);
-    // remove the first ```p->maxSize``` bytes from the Message buffer and place them in Packet ```p```
-    Message *shiftPacket(Packet *p);
-    // get ```p->maxSize``` bytes from the Message buffer and place them in Packet ```p``` for packet number ```index```
-    Message *getPacket(Packet *p, uint16_t index);
+    // append the contents of ```data``` to the Message buffer, where ```data``` contains ```sz``` bytes, fails if final message size will be too large
+    Message *append(uint8_t *data, uint16_t sz);
+    // remove the last ```sz``` bytes from the Message buffer and place them in ```data```, ```sz``` is set to the number of bytes copied
+    Message *pop(uint8_t *data, uint16_t &sz);
+    // remove the first ```sz``` bytes from the Message buffer and place them in Packet ```data```, ```sz``` is set to the number of bytes copied
+    Message *shift(uint8_t *data, uint16_t &sz);
 
     // utility methods
 
     // copy ```sz``` bytes from ```data``` into the Message buffer, ```sz``` must be less than ```Message.maxSize```
     Message *fill(uint8_t *data, uint16_t sz);
-    // copy from ```data```, starting at index ```start``` until index ```end```, into the Message buffer, total bytes copied must be less than ```Message.maxSize```
-    Message *fill(uint8_t *data, uint16_t start, uint16_t end);
+    // copy from ```data```, starting at index ```start``` until index ```end```, ```sz``` must be less than ```Message.maxSize - start```
+    Message *fill(uint8_t *data, uint16_t start, uint16_t sz);
 
     // copies ```this->size``` bytes from the Message buffer into ```data```
     Message *get(uint8_t *data);

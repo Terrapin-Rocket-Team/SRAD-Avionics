@@ -30,6 +30,9 @@ uint16_t APRSTelem::encode(uint8_t *data, uint16_t sz)
     if (sz < pos + 11)
         return 0; // error too small for lat/long
 
+    if (this->config.type != PositionWithoutTimestampWithoutAPRS)
+        return 0; // error wrong type, only formatted for PositionWithoutTimestampWithoutAPRS
+
     data[pos++] = this->config.type;
     data[pos++] = this->config.overlay;
     base10toBase91(data, pos, 380926 * (90 - this->lat), 4);  // magic formula from the APRS spec (page 38)
@@ -58,9 +61,7 @@ uint16_t APRSTelem::encode(uint8_t *data, uint16_t sz)
         return 0; // error too small for state flags
 
     // max value is 4294967295, so we need 5 base 91 (or 8 hex) digits to represent it
-    base10toBase91(data, pos, this->stateFlags >> 19, 2);               // shift off everything but the first 13 bits
-    base10toBase91(data, pos, (this->stateFlags & 0x0007FFC0) >> 6, 2); // shift off and remove everything but the next 13 bits
-    base10toBase91(data, pos, this->stateFlags & 0x000003F, 1);         // get the last 6 bits
+    base10toBase91(data, pos, this->stateFlags, 5);
 
     return pos;
 }
@@ -68,7 +69,7 @@ uint16_t APRSTelem::encode(uint8_t *data, uint16_t sz)
 uint16_t APRSTelem::decode(uint8_t *data, uint16_t sz)
 {
     uint16_t pos = 0;
-    uint16_t decodedNum = 0;
+    uint32_t decodedNum = 0;
 
     this->decodeHeader(data, sz, pos);
 
@@ -118,11 +119,7 @@ uint16_t APRSTelem::decode(uint8_t *data, uint16_t sz)
     if (sz < pos + 5)
         return 0; // error too small for state flags
 
-    base91toBase10(data, pos, decodedNum, 2);
-    this->stateFlags += decodedNum << 19;
-    base91toBase10(data, pos, decodedNum, 2);
-    this->stateFlags += decodedNum << 6;
-    base91toBase10(data, pos, decodedNum, 1);
+    base91toBase10(data, pos, decodedNum, 5);
     this->stateFlags += decodedNum;
 
     return pos;

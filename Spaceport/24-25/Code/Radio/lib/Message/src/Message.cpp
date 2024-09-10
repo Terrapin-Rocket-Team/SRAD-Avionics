@@ -1,11 +1,10 @@
 #include "Message.h"
 
-// public methods
-
 // constructors
 
 Message::Message(MessageType type, uint8_t data[maxSize], uint16_t sz) : type()
 {
+    // make sure we don't copy more than this->maxSize bytes
     if (sz > this->maxSize)
         this->size = this->maxSize;
     else
@@ -19,8 +18,6 @@ Message::Message(MessageType type, Data *data) : type()
     // encode the given data
     this->size = data->encode(this->buf, this->maxSize);
 }
-
-// destructor
 
 Message *Message::encode(Data *data)
 {
@@ -36,61 +33,80 @@ Message *Message::decode(Data *data)
 
 Message *Message::clear()
 {
+    // reset the message to all \0 and set the size to 0
     memset(this->buf, 0, this->maxSize);
     this->size = 0;
     return this;
 }
 
-Message *Message::addPacket(Packet *p)
+Message *Message::append(uint8_t *data, uint16_t sz)
 {
-    if (this->size + p->size <= this->maxSize)
+    // check if there's enough space to add the data
+    if (this->size + sz <= this->maxSize)
     {
-        p->get(this->buf + this->size);
-        this->size += p->size;
+        // add the data, starting at this->size and copying sz bytes
+        this->fill(data, this->size, sz);
+        this->buf[this->size] = 0;
     }
     return this;
 }
 
-Message *Message::popPacket(Packet *p)
+Message *Message::pop(uint8_t *data, uint16_t &sz)
 {
-    if (this->size - p->maxSize > 0)
+    // check if the message is longer than sz
+    if (this->size - sz > 0)
     {
-        p->fill(this->buf + this->size - p->maxSize);
-        this->size -= p->maxSize;
+        // put sz bytes in data, starting at this->size - sz
+        this->get(data, sz, this->size - sz);
+        // "remove" copied bytes
+        this->size -= sz;
+        data[sz] = 0;
+
+        this->buf[this->size] = 0;
     }
+    // if the message is shorter than sz
     else if (this->size > 0)
     {
-        p->fill(this->buf, this->size);
-        this->size = 0;
+        // put this->size bytes in data
+        sz = this->size;
+        this->get(data, sz);
+        // "remove" copied bytes
+        this->size -= sz;
+        data[sz] = 0;
+
+        this->buf[this->size] = 0;
     }
     return this;
 }
 
-Message *Message::shiftPacket(Packet *p)
+Message *Message::shift(uint8_t *data, uint16_t &sz)
 {
-    if (this->size - p->maxSize > 0)
+    // check if the message is longer than sz
+    if (this->size - sz > 0)
     {
-        p->fill(this->buf);
-        this->size -= p->maxSize;
-        memcpy(this->buf, this->buf + p->maxSize, this->size);
+        // put sz bytes in data, starting at 0
+        this->get(data, sz);
+        // "remove" copied bytes
+        this->size -= sz;
+        data[sz] = 0;
+
+        // shift the array
+        memcpy(this->buf, this->buf + sz, this->size);
+        this->buf[this->size] = 0;
     }
+    // if the message is shorter than sz
     else if (this->size > 0)
     {
-        p->fill(this->buf, this->size);
-        this->size = 0;
-    }
-    return this;
-}
+        // put this->size bytes in data, starting at 0
+        sz = this->size;
+        this->get(data, sz);
+        // "remove" copied bytes
+        this->size -= sz;
+        data[sz] = 0;
 
-Message *Message::getPacket(Packet *p, uint16_t index)
-{
-    if (p->maxSize * (index + 1) < this->size)
-    {
-        p->fill(this->buf + (p->maxSize * index));
-    }
-    else if (this->size - (p->maxSize * index) > 0)
-    {
-        p->fill(this->buf + (p->maxSize * index), this->size - (p->maxSize * index));
+        // just in case this->size bytes were not copied, otherwise technically this should do nothing
+        memcpy(this->buf, this->buf + sz, this->size);
+        this->buf[this->size] = 0;
     }
     return this;
 }
@@ -99,49 +115,63 @@ Message *Message::getPacket(Packet *p, uint16_t index)
 
 Message *Message::fill(uint8_t *data, uint16_t sz)
 {
-    if (sz > this->maxSize)
-        memcpy(this->buf, data, maxSize);
-    else
-        memcpy(this->buf, data, sz);
+    this->fill(data, 0, sz);
     return this;
 }
 
-Message *Message::fill(uint8_t *data, uint16_t start, uint16_t end)
+Message *Message::fill(uint8_t *data, uint16_t start, uint16_t sz)
 {
-    if (end - start > this->maxSize)
-        memcpy(this->buf, data + start, end - start);
+    // check if start + sz is larger than this->maxSize
+    if (start + sz > this->maxSize)
+    {
+        // copy only this->maxSize bytes
+        memcpy(this->buf, data + start, this->maxSize - start);
+        this->size = this->maxSize;
+    }
+    // if start + sz is smaller than this->maxSize
     else
-        memcpy(this->buf, data + start, end - start);
+    {
+        // copy sz bytes
+        memcpy(this->buf, data + start, sz);
+        this->size += sz;
+    }
     return this;
 }
 
 Message *Message::get(uint8_t *data)
 {
+    // simply copy the whole message into data
     memcpy(data, this->buf, this->size);
     return this;
 }
 
 Message *Message::get(uint8_t *data, uint16_t &sz)
 {
+    // put sz bytes in data, starting at 0 and ending at sz
     this->get(data, sz, 0, sz);
     return this;
 }
 
 Message *Message::get(uint8_t *data, uint16_t &sz, uint16_t start)
 {
-    this->get(data, sz, start, sz);
+    // put sz bytes in data, starting at start and ending at start + sz
+    this->get(data, sz, start, start + sz);
     return this;
 }
 
 Message *Message::get(uint8_t *data, uint16_t &sz, uint16_t start, uint16_t end)
 {
+    // make sure the start index is less than the end index and that in total they are less than this->size
     if (start < end && end - start > this->size)
     {
+        // copy the until the end of the message, setting sz to the number of bytes copied
         sz = this->size - start;
         memcpy(data, this->buf + start, sz);
     }
+    // if the total is less than size and start is less than end
     else if (start < end)
     {
+        // copy end - start bytes into data
         sz = end - start;
         memcpy(data, this->buf + start, sz);
     }
