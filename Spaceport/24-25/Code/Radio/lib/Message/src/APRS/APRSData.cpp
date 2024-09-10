@@ -15,19 +15,17 @@ uint16_t APRSData::encodeHeader(uint8_t *data, uint16_t sz, uint16_t &pos)
 uint16_t APRSData::decodeHeader(uint8_t *data, uint16_t sz, uint16_t &pos)
 {
     // APRS header ("callsign>tocall,path:")
-    if (sz < 29)
-        return 0; // error too small for header
 
     int varPos = 0;
-    while (data[pos] != '>' && pos < sz)
+    while (pos < sz && data[pos] != '>')
         this->config.callsign[varPos++] = data[pos++];
     pos++; // skip >
     varPos = 0;
-    while (data[pos] != ',' && pos < sz)
+    while (pos < sz && data[pos] != ',')
         this->config.tocall[varPos++] = data[pos++];
     pos++; // skip ,
     varPos = 0;
-    while (data[pos] != ':' && pos < sz)
+    while (pos < sz && data[pos] != ':')
         this->config.path[varPos++] = data[pos++];
     pos++; // skip :
 
@@ -37,7 +35,7 @@ uint16_t APRSData::decodeHeader(uint8_t *data, uint16_t sz, uint16_t &pos)
     return pos;
 }
 
-void APRSData::base10toBase91(uint8_t *str, uint16_t &pos, uint16_t val, int precision)
+void APRSData::base10toBase91(uint8_t *str, uint16_t &pos, uint32_t val, int precision)
 {
     for (int i = precision - 1; i >= 0; i--)
     {
@@ -48,7 +46,7 @@ void APRSData::base10toBase91(uint8_t *str, uint16_t &pos, uint16_t val, int pre
     }
 }
 
-void APRSData::base91toBase10(uint8_t *str, uint16_t &pos, uint16_t &val, int precision)
+void APRSData::base91toBase10(uint8_t *str, uint16_t &pos, uint32_t &val, int precision)
 {
     // precision is the number of digits
     val = 0;

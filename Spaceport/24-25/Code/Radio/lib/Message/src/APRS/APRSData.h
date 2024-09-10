@@ -45,8 +45,8 @@ public:
     uint16_t encodeHeader(uint8_t *data, uint16_t sz, uint16_t &pos);
     // decode the data stored in ```data``` and place it in the ```Data``` object
     uint16_t decodeHeader(uint8_t *data, uint16_t sz, uint16_t &pos);
-    static void base10toBase91(uint8_t *str, uint16_t &pos, uint16_t val, int precision);
-    static void base91toBase10(uint8_t *str, uint16_t &pos, uint16_t &val, int precision);
+    static void base10toBase91(uint8_t *str, uint16_t &pos, uint32_t val, int precision);
+    static void base91toBase10(uint8_t *str, uint16_t &pos, uint32_t &val, int precision);
 };
 
 #endif
