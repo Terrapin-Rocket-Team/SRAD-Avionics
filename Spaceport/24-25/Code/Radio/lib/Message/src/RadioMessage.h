@@ -5,19 +5,19 @@
 #include <Arduino.h>
 #elif defined(_WIN32) || defined(_WIN64) || defined(__unix__) || defined(__APPLE__) // Windows, Linux, or OSX
 #include <cstdint>
-#include <string>
-#include <cstring>
 #endif
 
 #include "Message.h"
 
 #include "Data.h"
-// pull together data subclasses
-#include "APRS/APRSData.h"
+// pull Video classes
 #include "Video/VideoData.h"
-// Pull together APRSData subclasses
+// pull APRS classes
+#include "APRS/APRSData.h"
 #include "APRS/APRSTelem.h"
 #include "APRS/APRSCmd.h"
 #include "APRS/APRSText.h"
+// pull GroundStation classes
+#include "GroundStation/GSData.h"
 
 #endif

@@ -193,7 +193,7 @@ void setup()
     // Note: video not supported, must specify separation character when creating Message
     Serial.println("Starting multi-message test");
     m.clear();
-    m.encode(&telem)->encode(&command)->encode(&txt);
+    m.encode(&telem, true)->encode(&command, true)->encode(&txt, true);
 
     Serial.println(m.size);
     Serial.println((char *)m.buf);
@@ -218,6 +218,52 @@ void setup()
     KC3UTM>ALL,WIDE1-1:!""/s
     KC3UTM>ALL,WIDE1-1::KC3UTM   :Range test
 */
+
+    delay(1000);
+
+    // GSData test
+    Serial.println("Starting Ground Station data test");
+    m.clear();
+    m.encode(&telem);
+    GSData gs(MSG_TELEM, m.buf, m.size);
+    m.encode(&gs);
+
+    Serial.write((char *)m.buf, m.size);
+    Serial.println("");
+
+    m.clear();
+    m.encode(&command);
+    gs.fill(m.buf, m.size);
+    m.encode(&gs);
+
+    Serial.write((char *)m.buf, m.size);
+    Serial.println("");
+
+    m.clear();
+    // should be the same as above (but with txt rather than command)
+    GSData gsOut(MSG_TEXT);
+    m.encode(&txt)->encode(gs.fill(m.buf, m.size))->decode(&gsOut);
+
+    GSMessageType type = MSG_UNKWN;
+    uint16_t size = 0;
+    uint32_t header = 0;
+    header += m.buf[0] << 16;
+    header += m.buf[1] << 8;
+    header += m.buf[2];
+    GSData::decodeHeader(header, type, size);
+    Serial.println(type);
+    Serial.println(size);
+    Serial.write((char *)gsOut.buf, gsOut.size);
+    Serial.write('\n');
+
+    /*Expected Output:
+    Starting Ground Station data test
+    ␁␀1KC3UTM>ALL,WIDE1-1:!M:XNe:w7P\ (m!!$dI!8<j1H&<LHZ
+    ␁␀␘KC3UTM>ALL,WIDE1-1:!""/s
+    1
+    40
+    KC3UTM>ALL,WIDE1-1::KC3UTM   :Range test
+    */
 
     delay(1000);
 }

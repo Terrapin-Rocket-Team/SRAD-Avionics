@@ -21,8 +21,8 @@ uint16_t APRSCmd::encode(uint8_t *data, uint16_t sz)
     if (sz < pos + 5)
         return 0; // error too small for command
 
-    base10toBase91(data, pos, this->cmd, 2);  // this is quite inefficient (2^8 = 256, but we are using 91^2 = 8281 to represent it)
-    base10toBase91(data, pos, this->args, 3); // also quite inefficient (2^16 = 65536, but we are using 91^3 = 753571 to represent it)
+    numtoBase91(data, pos, this->cmd, 2);  // this is quite inefficient (2^8 = 256, but we are using 91^2 = 8281 to represent it)
+    numtoBase91(data, pos, this->args, 3); // also quite inefficient (2^16 = 65536, but we are using 91^3 = 753571 to represent it)
 
     return pos;
 }
@@ -41,9 +41,10 @@ uint16_t APRSCmd::decode(uint8_t *data, uint16_t sz)
     if (sz < pos + 5)
         return 0; // error too small for command
 
-    base91toBase10(data, pos, decodedNum, 2);
+    // decode command data
+    base91toNum(data, pos, decodedNum, 2);
     this->cmd = decodedNum & 0x00FF;
-    base91toBase10(data, pos, decodedNum, 3);
+    base91toNum(data, pos, decodedNum, 3);
     this->args = decodedNum;
 
     return pos;

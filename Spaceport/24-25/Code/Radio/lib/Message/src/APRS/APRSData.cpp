@@ -35,8 +35,10 @@ uint16_t APRSData::decodeHeader(uint8_t *data, uint16_t sz, uint16_t &pos)
     return pos;
 }
 
-void APRSData::base10toBase91(uint8_t *str, uint16_t &pos, uint32_t val, int precision)
+void APRSData::numtoBase91(uint8_t *str, uint16_t &pos, uint32_t val, int precision)
 {
+    // precision is the number of digits
+    // base 91 conversion process
     for (int i = precision - 1; i >= 0; i--)
     {
         int div = pow(91, i);
@@ -46,10 +48,12 @@ void APRSData::base10toBase91(uint8_t *str, uint16_t &pos, uint32_t val, int pre
     }
 }
 
-void APRSData::base91toBase10(uint8_t *str, uint16_t &pos, uint32_t &val, int precision)
+void APRSData::base91toNum(uint8_t *str, uint16_t &pos, uint32_t &val, int precision)
 {
     // precision is the number of digits
+    // reset val to 0
     val = 0;
+    // reverse base 91 conversion process
     for (int i = 0; i < precision; i++)
     {
         val += (str[pos++] - 33) * pow(91, precision - i - 1);

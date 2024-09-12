@@ -6,15 +6,24 @@
 class VideoData : public Data
 {
 public:
+    // the maximum size of the data
     static const uint16_t maxSize = 2000;
-    uint16_t size;
+    // the size of the data
+    uint16_t size = 0;
+    // buffer to store the data
     uint8_t data[maxSize] = {0};
 
-    // constructors
+    // VideoData default constructor
     VideoData() {};
+
+    // VideoData constructor
+    // - data : the data to be encoded, assumed to be ```maxSize```
     VideoData(uint8_t *data);
+
+    // VideoData constructor
+    // - data : the data to be encoded
+    // - sz : the size of the data
     VideoData(uint8_t *data, uint16_t sz);
-    // encode/decode
 
     // encode the data stored in the ```Data``` object and place the result in ```data```, ```sz``` is the max size of ```data```
     uint16_t encode(uint8_t *data, uint16_t sz) override;

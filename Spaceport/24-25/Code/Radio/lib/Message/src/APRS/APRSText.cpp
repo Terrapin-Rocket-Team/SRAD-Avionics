@@ -10,11 +10,11 @@ APRSText::APRSText(APRSConfig config, char msg[67], char addressee[9]) : APRSDat
     if (this->msgLen > this->maxMsgLen)
         this->msgLen = this->maxMsgLen;
     if (this->msgLen == this->maxMsgLen)
-        this->msg[this->maxMsgLen - 1] = 0;
+        this->msg[this->maxMsgLen] = 0;
     if (this->addrLen > this->maxAddrLen)
         this->addrLen = this->maxAddrLen;
     if (this->addrLen == this->maxAddrLen)
-        this->addressee[this->maxAddrLen - 1] = 0;
+        this->addressee[this->maxAddrLen] = 0;
 
     memcpy(this->msg, msg, this->msgLen);
     memcpy(this->addressee, addressee, this->addrLen);
@@ -30,11 +30,13 @@ uint16_t APRSText::encode(uint8_t *data, uint16_t sz)
     // text message addressee:message
 
     if (sz < pos + this->addrLen + this->msgLen)
-        return 0;
+        return 0; // error not enough space for text message
     if (this->config.type != TextMessage)
-        return 0;
+        return 0; // error wrong APRS message type
 
     data[pos++] = this->config.type;
+
+    // add the addressee, with space padding if the addressee is not 9 chars
     for (int i = 0; i < 9; i++)
     {
         if (i < this->addrLen)
@@ -44,6 +46,7 @@ uint16_t APRSText::encode(uint8_t *data, uint16_t sz)
     }
     data[pos++] = ':';
 
+    // add the message
     for (int i = 0; i < this->msgLen; i++)
     {
         data[pos++] = (uint8_t)this->msg[i];
@@ -60,11 +63,11 @@ uint16_t APRSText::decode(uint8_t *data, uint16_t sz)
 
     this->config.type = data[pos++];
     if (this->config.type != TextMessage)
-        return 0;
+        return 0; // error wrong APRS message type
 
     // get addressee
     this->addrLen = 0;
-    while (pos < sz && data[pos] != ':' && this->addrLen < 9)
+    while (pos < sz && data[pos] != ':' && this->addrLen < this->maxAddrLen)
     {
         char c = data[pos++];
         if (c != ' ') // don't include padding spaces
@@ -76,7 +79,7 @@ uint16_t APRSText::decode(uint8_t *data, uint16_t sz)
 
     // get message text
     this->msgLen = 0;
-    while (pos < sz && this->msgLen < 67)
+    while (pos < sz && this->msgLen < this->maxMsgLen)
     {
         this->msg[this->msgLen++] = data[pos++];
     }
