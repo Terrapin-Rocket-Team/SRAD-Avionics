@@ -1,7 +1,11 @@
 #ifndef DATA_H
 #define DATA_H
 
-#include "Arduino.h"
+#if defined(ARDUINO)
+#include <Arduino.h>
+#elif defined(_WIN32) || defined(_WIN64) || defined(__unix__) || defined(__APPLE__) // Windows, Linux, or OSX
+#include <cstdint>
+#endif
 
 // basically just a container to place decoded data into
 class Data

@@ -6,18 +6,27 @@
 class APRSText : public APRSData
 {
 public:
-    static const int maxMsgLen = 68;
-    static const int maxAddrLen = 10;
-    char msg[68] = {0};       // 67 message length + 1 for \0
-    char addressee[10] = {0}; // 9 addressee length + 1 for \0
+    // the maximum length of the message portion
+    static const int maxMsgLen = 67;
+    // the maximum length of the addressee portion
+    static const int maxAddrLen = 9;
+    // the message buffer, 67 message length + 1 for \0
+    char msg[maxMsgLen + 1] = {0};
+    // the addressee buffer, 9 addressee length + 1 for \0
+    char addressee[maxAddrLen + 1] = {0};
+    // the length of the message buffer
     int msgLen = 0;
+    // the length of the addressee buffer
     int addrLen = 0;
-    // constructors
-    APRSText(APRSConfig config);
-    // the char arrays are expected to be valid c strings
-    APRSText(APRSConfig config, char msg[67], char addressee[9]);
 
-    // encode/decode
+    // APRSText constructor
+    // - config : the APRS config to use
+    APRSText(APRSConfig config);
+    // APRSText constructor
+    // - config : the APRS config to use
+    // - msg : the message portion, expected to be a valid c string
+    // - addressee : the addressee portion (callsign), expected to be a valid c string
+    APRSText(APRSConfig config, char msg[67], char addressee[9]);
 
     // encode the data stored in the ```Data``` object and place the result in ```data```
     uint16_t encode(uint8_t *data, uint16_t sz) override;

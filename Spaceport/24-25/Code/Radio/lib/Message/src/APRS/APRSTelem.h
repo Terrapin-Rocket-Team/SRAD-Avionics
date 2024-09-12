@@ -6,7 +6,6 @@
 class APRSTelem : public APRSData
 {
 public:
-    // constants
     // Scale factors for encoding/decoding ignoring lat/long
     const double ALT_SCALE = (pow(91, 3) / 36000.0);       // (91^3/36000) scale to fit in 3 base91 characters
     const double SPD_SCALE = (pow(91, 2) / 1000.0);        // (91^2/1000) scale to fit in 2 base91 characters
@@ -15,7 +14,6 @@ public:
 
     const int ALT_OFFSET = +1000; // range of -1000 to 35000 ft.
 
-    // data
     double lat = 0.0;                   // decimal latitude
     double lng = 0.0;                   // decimal longitude
     double alt = 0.0;                   // ft
@@ -25,11 +23,19 @@ public:
     uint32_t stateFlags = 0x00000000;   // flight computer specific state flags (max 32 bits)
                                         // maybe a bit much, but we can fit a lot of info here
 
-    // constructors
+    // APRSTelem constructor
+    // - config : the APRS config to use
     APRSTelem(APRSConfig config);
+    // APRSTelem constructor
+    // - config : the APRS config to use
+    // - lat : the current decimal latitude (degrees)
+    // - lng : the current decimal longitude (degrees)
+    // - alt : the current altitude (ft)
+    // - spd : the current speed (knots)
+    // - hdg : the current heading (degrees)
+    // - orient[3] : the current XYZ orientation (degrees)
+    // - stateFlags : various data representing the state of the rocket
     APRSTelem(APRSConfig config, double lat, double lng, double alt, double spd, double hdg, double orient[3], uint32_t stateFlags);
-
-    // encode/decode
 
     // encode the data stored in the ```Data``` object and place the result in ```data```
     uint16_t encode(uint8_t *data, uint16_t sz) override;

@@ -8,13 +8,19 @@
 class APRSCmd : public APRSData
 {
 public:
-    uint8_t cmd = 0x00;     // 0x00 should always be NOP
-    uint16_t args = 0x0000; // args for cmd
-    // constructors
-    APRSCmd(APRSConfig config);
-    APRSCmd(APRSConfig config, uint8_t cmd, uint16_t args);
+    // the command to send, 0x00 should always be NOP
+    uint8_t cmd = 0x00;
+    // args for cmd
+    uint16_t args = 0x0000;
 
-    // encode/decode
+    // APRSCmd constructor
+    // - config : the APRS config to use
+    APRSCmd(APRSConfig config);
+    // APRSCmd constructor
+    // - config : the APRS config to use
+    // - cmd : the command the send
+    // - args : the arguments for ```cmd```
+    APRSCmd(APRSConfig config, uint8_t cmd, uint16_t args);
 
     // encode the data stored in the ```Data``` object and place the result in ```data```
     uint16_t encode(uint8_t *data, uint16_t sz) override;

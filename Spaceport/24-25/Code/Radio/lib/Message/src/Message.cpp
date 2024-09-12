@@ -19,13 +19,23 @@ Message::Message(Data *data, char sep) : sep(sep)
     this->size = data->encode(this->buf, this->maxSize);
 }
 
-Message *Message::encode(Data *data)
+Message *Message::encode(Data *data, bool append)
 {
-    // check if message separation character should be added, and that there is space for it
-    if (this->sep != 0 && this->size > 0 && this->size != this->maxSize - 1)
-        this->buf[this->size++] = this->sep;
-    this->size += data->encode(this->buf + this->size, this->maxSize);
-    this->buf[this->size] = 0;
+    if (append)
+    {
+        // check if message separation character should be added, and that there is space for it
+        if (this->sep != 0 && this->size > 0 && this->size != this->maxSize - 1)
+            this->buf[this->size++] = this->sep;
+        // encode the message
+        this->size += data->encode(this->buf + this->size, this->maxSize);
+        this->buf[this->size] = 0;
+    }
+    else
+    {
+        // encode the message
+        this->size = data->encode(this->buf, this->maxSize);
+        this->buf[this->size] = 0;
+    }
     return this;
 }
 
@@ -193,3 +203,20 @@ Message *Message::get(uint8_t *data, uint16_t &sz, uint16_t start, uint16_t end)
     }
     return this;
 }
+
+#ifdef ARDUINO
+
+Message *Message::print(Stream &Serial)
+{
+    Serial.println((char *)this->buf);
+    return this;
+}
+
+Message *Message::write(Stream &Serial)
+{
+    Serial.write(this->buf, this->size);
+    Serial.write('\n');
+    return this;
+}
+
+#endif
