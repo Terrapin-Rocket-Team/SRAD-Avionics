@@ -5,6 +5,10 @@
 #include <Arduino.h>
 #elif defined(_WIN32) || defined(_WIN64) || defined(__unix__) || defined(__APPLE__) // Windows, Linux, or OSX
 #include <cstdint>
+#include <cstring>
+#include <cstdio>
+#include <cmath>
+using namespace std;
 #endif
 
 // basically just a container to place decoded data into
