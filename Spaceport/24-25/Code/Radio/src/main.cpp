@@ -225,7 +225,7 @@ void setup()
     Serial.println("Starting Ground Station data test");
     m.clear();
     m.encode(&telem);
-    GSData gs(MSG_TELEM, m.buf, m.size);
+    GSData gs(10, m.buf, m.size);
     m.encode(&gs);
 
     Serial.write((char *)m.buf, m.size);
@@ -241,15 +241,14 @@ void setup()
 
     m.clear();
     // should be the same as above (but with txt rather than command)
-    GSData gsOut(MSG_TEXT);
+    GSData gsOut;
     m.encode(&txt)->encode(gs.fill(m.buf, m.size))->decode(&gsOut);
 
-    GSMessageType type = MSG_UNKWN;
+    uint8_t type = 0;
     uint16_t size = 0;
     uint32_t header = 0;
-    header += m.buf[0] << 16;
-    header += m.buf[1] << 8;
-    header += m.buf[2];
+    header += m.buf[0] << 8;
+    header += m.buf[1];
     GSData::decodeHeader(header, type, size);
     Serial.println(type);
     Serial.println(size);
@@ -258,9 +257,9 @@ void setup()
 
     /*Expected Output:
     Starting Ground Station data test
-    ␁␀1KC3UTM>ALL,WIDE1-1:!M:XNe:w7P\ (m!!$dI!8<j1H&<LHZ
-    ␁␀␘KC3UTM>ALL,WIDE1-1:!""/s
-    1
+    �1KC3UTM>ALL,WIDE1-1:!M:XNe:w7P\ (m!!$dI!8<j1H&<LHZ
+    �␘KC3UTM>ALL,WIDE1-1:!""/s
+    10
     40
     KC3UTM>ALL,WIDE1-1::KC3UTM   :Range test
     */
