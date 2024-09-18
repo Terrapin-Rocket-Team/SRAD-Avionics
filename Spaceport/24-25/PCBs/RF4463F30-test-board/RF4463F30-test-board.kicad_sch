@@ -2337,7 +2337,7 @@
 		(uuid "998fe2ed-06a2-47fe-8dac-9dc9d3f271d4")
 	)
 	(no_connect
-		(at 59.69 54.61)
+		(at 59.69 110.49)
 		(uuid "9c8ad784-55c8-4633-9d2c-6fbd9559e0c0")
 	)
 	(no_connect
@@ -2482,6 +2482,16 @@
 	)
 	(wire
 		(pts
+			(xy 53.34 57.15) (xy 55.88 57.15)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ba1da59-f8c2-4a5c-b0e8-17d6c9a26191")
+	)
+	(wire
+		(pts
 			(xy 59.69 52.07) (xy 53.34 52.07)
 		)
 		(stroke
@@ -2509,6 +2519,16 @@
 			(type default)
 		)
 		(uuid "5ff9e0c6-5ad2-43d1-9759-d614dc4db75d")
+	)
+	(wire
+		(pts
+			(xy 55.88 57.15) (xy 55.88 54.61)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "66fdfd99-d62a-4028-a401-945046ba4b64")
 	)
 	(wire
 		(pts
@@ -2642,6 +2662,16 @@
 	)
 	(wire
 		(pts
+			(xy 55.88 54.61) (xy 59.69 54.61)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bb754813-097a-473f-96b3-608fd0e066ee")
+	)
+	(wire
+		(pts
 			(xy 163.83 127) (xy 171.45 127)
 		)
 		(stroke
@@ -2689,16 +2719,6 @@
 			(type default)
 		)
 		(uuid "ce918676-1949-4d5f-aba8-0dd6ff1f398f")
-	)
-	(wire
-		(pts
-			(xy 54.61 110.49) (xy 54.61 105.41)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d03a6503-756d-4668-84f1-eafe9c852b5f")
 	)
 	(wire
 		(pts
@@ -2770,17 +2790,6 @@
 		)
 		(uuid "fbd79d5c-2306-418a-b265-af97b9a3fe50")
 	)
-	(label "GND"
-		(at 54.61 105.41 270)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "051b8b47-4732-4cde-9a26-05463dbe733c")
-	)
 	(label "CS"
 		(at 119.38 59.69 0)
 		(fields_autoplaced yes)
@@ -2804,7 +2813,7 @@
 		(uuid "2f3469fc-b923-4535-b0fc-37673ae2cf8d")
 	)
 	(label "SDN"
-		(at 52.07 74.93 0)
+		(at 52.07 69.85 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2837,7 +2846,7 @@
 		(uuid "5026f9b2-a877-44c6-b9c0-c8d4cd1fd11e")
 	)
 	(label "GPIO0"
-		(at 52.07 69.85 0)
+		(at 52.07 77.47 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2859,7 +2868,7 @@
 		(uuid "580723e7-4b28-431b-b14d-b88282a8a5e4")
 	)
 	(label "GPIO1"
-		(at 52.07 72.39 0)
+		(at 52.07 80.01 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2936,7 +2945,7 @@
 		(uuid "8a14ee33-1036-42f5-956a-71afdb286223")
 	)
 	(label "CS"
-		(at 52.07 80.01 0)
+		(at 52.07 74.93 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -3057,7 +3066,7 @@
 		(uuid "ea48c48b-0404-41ff-8307-1aeaf9d9c255")
 	)
 	(label "IRQ"
-		(at 52.07 77.47 0)
+		(at 52.07 72.39 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -3161,7 +3170,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole")
-		(at 160.02 111.76 0)
+		(at 160.02 106.68 0)
 		(unit 1)
 		(exclude_from_sim yes)
 		(in_bom no)
@@ -3170,6 +3179,70 @@
 		(fields_autoplaced yes)
 		(uuid "2e2ab3a2-fa94-4bbe-92da-4123d1af5394")
 		(property "Reference" "H3"
+			(at 162.56 105.4099 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole"
+			(at 162.56 107.9499 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_2.2mm_M2"
+			(at 160.02 106.68 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 160.02 106.68 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole without connection"
+			(at 160.02 106.68 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(instances
+			(project "RF4463F30-test-board"
+				(path "/10b1ca65-3bbd-4272-bddd-c70184b19a75"
+					(reference "H3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole")
+		(at 160.02 111.76 0)
+		(unit 1)
+		(exclude_from_sim yes)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "35d19c1b-8e3f-45ad-ba37-48b07d962d56")
+		(property "Reference" "H4"
 			(at 162.56 110.4899 0)
 			(effects
 				(font
@@ -3217,7 +3290,7 @@
 		(instances
 			(project "RF4463F30-test-board"
 				(path "/10b1ca65-3bbd-4272-bddd-c70184b19a75"
-					(reference "H3")
+					(reference "H4")
 					(unit 1)
 				)
 			)
@@ -3301,7 +3374,6 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "4fe04471-47c0-4472-a58b-4adcc1a624b0")
 		(property "Reference" "JPower1"
 			(at 159.385 119.38 0)
@@ -3892,7 +3964,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole")
-		(at 160.02 105.41 0)
+		(at 160.02 101.6 0)
 		(unit 1)
 		(exclude_from_sim yes)
 		(in_bom no)
@@ -3901,7 +3973,7 @@
 		(fields_autoplaced yes)
 		(uuid "94aa0e45-e511-48cf-bbf8-5b42e19e73a1")
 		(property "Reference" "H2"
-			(at 162.56 104.1399 0)
+			(at 162.56 100.3299 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3910,7 +3982,7 @@
 			)
 		)
 		(property "Value" "MountingHole"
-			(at 162.56 106.6799 0)
+			(at 162.56 102.8699 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3919,7 +3991,7 @@
 			)
 		)
 		(property "Footprint" "MountingHole:MountingHole_2.2mm_M2"
-			(at 160.02 105.41 0)
+			(at 160.02 101.6 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3928,7 +4000,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 160.02 105.41 0)
+			(at 160.02 101.6 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3937,7 +4009,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole without connection"
-			(at 160.02 105.41 0)
+			(at 160.02 101.6 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4026,7 +4098,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole")
-		(at 160.02 99.06 0)
+		(at 160.02 96.52 0)
 		(unit 1)
 		(exclude_from_sim yes)
 		(in_bom no)
@@ -4035,7 +4107,7 @@
 		(fields_autoplaced yes)
 		(uuid "e33224ae-0647-484d-8d0c-08a005860177")
 		(property "Reference" "H1"
-			(at 162.56 97.7899 0)
+			(at 162.56 95.2499 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4044,7 +4116,7 @@
 			)
 		)
 		(property "Value" "MountingHole"
-			(at 162.56 100.3299 0)
+			(at 162.56 97.7899 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4053,7 +4125,7 @@
 			)
 		)
 		(property "Footprint" "MountingHole:MountingHole_2.2mm_M2"
-			(at 160.02 99.06 0)
+			(at 160.02 96.52 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4062,7 +4134,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 160.02 99.06 0)
+			(at 160.02 96.52 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4071,7 +4143,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole without connection"
-			(at 160.02 99.06 0)
+			(at 160.02 96.52 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4230,7 +4302,7 @@
 	)
 	(symbol
 		(lib_id "Device:Buzzer")
-		(at 57.15 113.03 270)
+		(at 50.8 54.61 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -4238,7 +4310,7 @@
 		(dnp no)
 		(uuid "f02022de-3ed1-4875-b5ff-5412a48226b9")
 		(property "Reference" "BZ1"
-			(at 60.706 115.316 90)
+			(at 48.514 58.166 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4247,7 +4319,7 @@
 			)
 		)
 		(property "Value" "Buzzer"
-			(at 60.706 117.856 90)
+			(at 45.974 58.166 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4256,7 +4328,7 @@
 			)
 		)
 		(property "Footprint" "Avionics:Adafruit_5V_Buzzer"
-			(at 59.69 112.395 90)
+			(at 51.435 57.15 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4265,7 +4337,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 59.69 112.395 90)
+			(at 51.435 57.15 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4274,7 +4346,7 @@
 			)
 		)
 		(property "Description" "Buzzer, polarized"
-			(at 57.15 113.03 0)
+			(at 50.8 54.61 0)
 			(effects
 				(font
 					(size 1.27 1.27)
