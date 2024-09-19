@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "AvionicsState.h"
 #include "Pi.h"
+#include "AvionicsKF.h"
 
 
 #define BMP_ADDR_PIN 36
@@ -46,10 +47,18 @@ void FreeMem()
 // Free memory debug function
 
 Logger *logger;
+
 const int BUZZER_PIN = 33;
 const int BUILTIN_LED_PIN = LED_BUILTIN;
 int allowedPins[] = {BUILTIN_LED_PIN, BUZZER_PIN};
 BlinkBuzz bb(allowedPins, 2, true);
+
+const int SENSOR_BIAS_CORRECTION_DATA_LENGTH = 2;
+const int SENSOR_BIAS_CORRECTION_DATA_IGNORE = 1;
+const int UPDATE_RATE = 10;
+const int UPDATE_INTERVAL = 1000.0 / UPDATE_RATE;
+
+
 void setup()
 {
     logger = new Logger();
@@ -57,7 +66,7 @@ void setup()
     BNO055 imu;
     BMP390 baro;
     Sensor *sensors[3] = {&gps, &imu, &baro};
-    LinearKalmanFilter kfilter(3, 3, 6);
+    AvionicsKF kfilter;
     computer = new AvionicsState(sensors, 3, &kfilter, logger, false);
 
     logger->recordLogData(INFO_, "Initializing Avionics System. 5 second delay to prevent unnecessary file generation.", TO_USB);
