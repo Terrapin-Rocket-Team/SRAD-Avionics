@@ -3,7 +3,7 @@
 
 using namespace mmfs;
 
-AvionicsState::AvionicsState(Sensor **sensors, int numSensors, Filter *filter, Logger *logger, bool stateRecordsOwnData = true) : State(sensors, numSensors, filter, logger, stateRecordsOwnData)
+AvionicsState::AvionicsState(Sensor **sensors, int numSensors, Filter *filter, Logger *logger, bool stateRecordsOwnData) : State(sensors, numSensors, filter, logger, stateRecordsOwnData)
 {
     stage = 0;
     timeOfLaunch = 0;
@@ -22,7 +22,7 @@ void AvionicsState::determineStage()
     int timeSinceLaunch = currentTime - timeOfLaunch;
     IMU *imu = reinterpret_cast<IMU *>(getSensor(IMU_));
     Barometer *baro = reinterpret_cast<Barometer *>(getSensor(BAROMETER_));
-    GPS *gps = reinterpret_cast<GPS *>(getSensor(GPS_));
+    //GPS *gps = reinterpret_cast<GPS *>(getSensor(GPS_));
     if (stage == 0 &&
         (sensorOK(imu) || sensorOK(baro)) &&
         (sensorOK(imu) ? abs(imu->getAccelerationGlobal().z()) > 25 : true) &&
