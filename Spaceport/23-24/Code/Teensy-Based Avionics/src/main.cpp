@@ -1,9 +1,6 @@
 #include <Arduino.h>
-#include <SPI.h>
-#include <Wire.h>
 #include "AvionicsState.h"
-#include <MMFS.h>
-#include "Pi.h"
+
 
 #define BMP_ADDR_PIN 36
 #define RPI_PWR 0
