@@ -11,6 +11,7 @@
 
 using namespace mmfs;
 
+Logger logger(ALTERNATING_BOTH, 25000, 300);        // 25 kB buffer, 300 write interval
 
 BNO055 bno;         // I2C Address 0x29
 BMP390 bmp;         // I2C Address 0x77
@@ -46,8 +47,6 @@ void FreeMem()
 }
 // Free memory debug function
 
-Logger *logger;
-
 const int BUZZER_PIN = 33;
 const int BUILTIN_LED_PIN = LED_BUILTIN;
 int allowedPins[] = {BUILTIN_LED_PIN, BUZZER_PIN};
@@ -61,50 +60,49 @@ const int UPDATE_INTERVAL = 1000.0 / UPDATE_RATE;
 
 void setup()
 {
-    logger = new Logger();
     MAX_M10S gps;
     BNO055 imu;
     BMP390 baro;
     Sensor *sensors[3] = {&gps, &imu, &baro};
     AvionicsKF kfilter;
-    computer = new AvionicsState(sensors, 3, &kfilter, logger, false);
+    computer = new AvionicsState(sensors, 3, &kfilter, false);
 
-    logger->recordLogData(INFO_, "Initializing Avionics System. 5 second delay to prevent unnecessary file generation.", TO_USB);
     // delay(5000);
+    logger.init();
 
     pinMode(BMP_ADDR_PIN, OUTPUT);
     digitalWrite(BMP_ADDR_PIN, HIGH);
 
-    logger->init();
+    logger.recordLogData(INFO_, "Initializing Avionics System. 5 second delay to prevent unnecessary file generation.", TO_USB);
     // The SD card MUST be initialized first to allow proper data logging.
-    if (logger->isSdCardReady())
+    if (logger.isSdCardReady())
     {
 
-        logger->recordLogData(INFO_, "SD Card Initialized");
+        logger.recordLogData(INFO_, "SD Card Initialized");
         bb.onoff(BUZZER_PIN, 1000);
     }
     else
     {
-        logger->recordLogData(ERROR_, "SD Card Failed to Initialize");
+        logger.recordLogData(ERROR_, "SD Card Failed to Initialize");
 
         bb.onoff(BUZZER_PIN, 200, 3);
     }
 
     // The PSRAM must be initialized before the sensors to allow for proper data logging.
 
-    if (logger->isPsramReady())
-        logger->recordLogData(INFO_, "PSRAM Initialized");
+    if (logger.isPsramReady())
+        logger.recordLogData(INFO_, "PSRAM Initialized");
     else
-        logger->recordLogData(ERROR_, "PSRAM Failed to Initialize");
+        logger.recordLogData(ERROR_, "PSRAM Failed to Initialize");
 
     if (computer->init())
     {
-        logger->recordLogData(INFO_, "All Sensors Initialized");
+        logger.recordLogData(INFO_, "All Sensors Initialized");
         bb.onoff(BUZZER_PIN, 1000);
     }
     else
     {
-        logger->recordLogData(ERROR_, "Some Sensors Failed to Initialize. Disabling those sensors.");
+        logger.recordLogData(ERROR_, "Some Sensors Failed to Initialize. Disabling those sensors.");
         bb.onoff(BUZZER_PIN, 200, 3);
     }
     //sendSDCardHeader(computer->getCsvHeader());
@@ -131,7 +129,7 @@ void loop()
 
     last = time;
     computer->updateState();
-    logger->recordLogData(INFO_, computer->getStateString(), TO_USB);
+    logger.recordLogData(INFO_, computer->getStateString(), TO_USB);
     // Send Telemetry Data
     // if (time - radioTimer >= 500)
     // {
