@@ -947,7 +947,7 @@
 				)
 			)
 		)
-		(symbol "Connector:Screw_Terminal_01x02"
+		(symbol "Connector_Generic:Conn_01x02"
 			(pin_names
 				(offset 1.016) hide)
 			(exclude_from_sim no)
@@ -961,7 +961,7 @@
 					)
 				)
 			)
-			(property "Value" "Screw_Terminal_01x02"
+			(property "Value" "Conn_01x02"
 				(at 0 -5.08 0)
 				(effects
 					(font
@@ -987,7 +987,7 @@
 					(hide yes)
 				)
 			)
-			(property "Description" "Generic screw terminal, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(property "Description" "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
 				(at 0 0 0)
 				(effects
 					(font
@@ -996,7 +996,7 @@
 					(hide yes)
 				)
 			)
-			(property "ki_keywords" "screw terminal"
+			(property "ki_keywords" "connector"
 				(at 0 0 0)
 				(effects
 					(font
@@ -1005,7 +1005,7 @@
 					(hide yes)
 				)
 			)
-			(property "ki_fp_filters" "TerminalBlock*:*"
+			(property "ki_fp_filters" "Connector*:*_1x??_*"
 				(at 0 0 0)
 				(effects
 					(font
@@ -1014,7 +1014,29 @@
 					(hide yes)
 				)
 			)
-			(symbol "Screw_Terminal_01x02_1_1"
+			(symbol "Conn_01x02_1_1"
+				(rectangle
+					(start -1.27 -2.413)
+					(end 0 -2.667)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 0.127)
+					(end 0 -0.127)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
 				(rectangle
 					(start -1.27 1.27)
 					(end 1.27 -3.81)
@@ -1024,76 +1046,6 @@
 					)
 					(fill
 						(type background)
-					)
-				)
-				(circle
-					(center 0 -2.54)
-					(radius 0.635)
-					(stroke
-						(width 0.1524)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -0.5334 -2.2098) (xy 0.3302 -3.048)
-					)
-					(stroke
-						(width 0.1524)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -0.5334 0.3302) (xy 0.3302 -0.508)
-					)
-					(stroke
-						(width 0.1524)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -0.3556 -2.032) (xy 0.508 -2.8702)
-					)
-					(stroke
-						(width 0.1524)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -0.3556 0.508) (xy 0.508 -0.3302)
-					)
-					(stroke
-						(width 0.1524)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(circle
-					(center 0 0)
-					(radius 0.635)
-					(stroke
-						(width 0.1524)
-						(type default)
-					)
-					(fill
-						(type none)
 					)
 				)
 				(pin passive line
@@ -3806,6 +3758,211 @@
 		)
 	)
 	(symbol
+		(lib_id "Breakout Boards:Teensy_4.1")
+		(at 149.86 91.44 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "107bde8b-07df-40de-bccd-3d354a051c61")
+		(property "Reference" "Teensy4.2"
+			(at 149.86 55.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "~"
+			(at 149.86 58.42 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Breakout Boards:Teensy_4.1"
+			(at 149.86 59.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 149.86 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 149.86 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "5"
+			(uuid "797bfc0a-7295-48be-86b5-538d4ce43fcf")
+		)
+		(pin "16"
+			(uuid "29008c25-4345-4acc-b339-903bf640c986")
+		)
+		(pin "18"
+			(uuid "6762d2b0-4cfc-456b-8576-87510e44a162")
+		)
+		(pin "28"
+			(uuid "f78543b6-e904-4caa-a156-34591171656c")
+		)
+		(pin "4"
+			(uuid "4f4c84ce-e948-4382-8910-4ba41e7ca44f")
+		)
+		(pin "42"
+			(uuid "619f2ba7-0747-419e-bb07-7210f44a043b")
+		)
+		(pin "10"
+			(uuid "8d3e14bf-22f9-4918-bfc9-9500519e5da3")
+		)
+		(pin "11"
+			(uuid "7d961dbf-d6a8-487d-a0d9-1cb4bbb3b7e6")
+		)
+		(pin "9"
+			(uuid "6b33d8fd-feed-411c-9bc6-0e8639ef36b6")
+		)
+		(pin "0"
+			(uuid "5485ddb6-4981-44fa-a51e-036f26c66a66")
+		)
+		(pin "24"
+			(uuid "1b026715-0d82-4fe3-a4f6-57988b2492f3")
+		)
+		(pin "31"
+			(uuid "c9504521-e005-4b2b-8c11-8f07ddf9ca7d")
+		)
+		(pin "35"
+			(uuid "1ef8d4fb-747d-4a5f-b69f-444572f9512e")
+		)
+		(pin "7"
+			(uuid "2133668a-1569-4c61-aa03-7c36999beaa5")
+		)
+		(pin "29"
+			(uuid "496891bb-d910-45af-b1a6-7cdcfea1a230")
+		)
+		(pin "2"
+			(uuid "dfffdba8-b698-4604-9c71-b68fc955fc5a")
+		)
+		(pin "21"
+			(uuid "feabcd1c-bb14-4384-8833-91d73a5fb242")
+		)
+		(pin "14"
+			(uuid "8772d9ec-9753-4f9a-af1f-0439fd4fa389")
+		)
+		(pin "39"
+			(uuid "8c92fa39-ac9c-46d2-8208-f1d94abca841")
+		)
+		(pin "43"
+			(uuid "e10ed384-855f-461b-b73e-6011ab0e2bc6")
+		)
+		(pin "17"
+			(uuid "294eca97-90a2-4641-831a-e0de647d925e")
+		)
+		(pin "8"
+			(uuid "55af8e5d-e1c4-4898-8d00-22dedddcb12a")
+		)
+		(pin "19"
+			(uuid "1c3962c5-7344-44ae-8342-15d34d0c1590")
+		)
+		(pin "13"
+			(uuid "e4f37b1d-c5d0-436a-b26e-c16f7dd8c67b")
+		)
+		(pin "12"
+			(uuid "5ec79ce8-9181-4bdd-8ca6-1688ebe0216f")
+		)
+		(pin "6"
+			(uuid "485c563e-743e-435c-935f-2156393758b1")
+		)
+		(pin "20"
+			(uuid "fdbb8d80-d6dd-4db9-99d2-c1415f5d4a16")
+		)
+		(pin "15"
+			(uuid "72523a78-675a-4fe6-8db7-c3d50e1c4676")
+		)
+		(pin "32"
+			(uuid "51b8e0b8-0692-4f10-ba01-8b673ba5bce9")
+		)
+		(pin "46"
+			(uuid "b04a9377-9dc6-4c3c-8f04-762e943021a4")
+		)
+		(pin "34"
+			(uuid "d77f2223-6d72-4334-94ca-2e9718d9708c")
+		)
+		(pin "26"
+			(uuid "d71da9f5-92b7-4f3b-8042-7ccc13917065")
+		)
+		(pin "33"
+			(uuid "d54698e2-607e-48fd-a54b-c377bb8bfecf")
+		)
+		(pin "25"
+			(uuid "3c23528f-84d4-4cbc-8b21-7944d809370b")
+		)
+		(pin "44"
+			(uuid "f94d70a7-246e-4450-ad57-028c20c51b5d")
+		)
+		(pin "1"
+			(uuid "8493c201-125c-4fb3-9709-07701f1da927")
+		)
+		(pin "23"
+			(uuid "e04011f4-6758-4b1a-915d-e569724c7f4e")
+		)
+		(pin "22"
+			(uuid "247afe32-d411-49d7-9779-ae0b15871d7c")
+		)
+		(pin "3"
+			(uuid "9d8214a7-db99-455c-a640-594fa15900c4")
+		)
+		(pin "38"
+			(uuid "8bcd29d7-8905-4fe5-aa67-d056cb3cbef4")
+		)
+		(pin "40"
+			(uuid "d1f66413-acac-4daf-ba63-d6b296a9ba54")
+		)
+		(pin "27"
+			(uuid "58428e86-b4c9-4471-b860-f710e420119d")
+		)
+		(pin "41"
+			(uuid "709bebf1-ff1a-4c10-a9c6-0828056662ac")
+		)
+		(pin "45"
+			(uuid "b7288e8d-a674-4458-adaa-a7cf0d762896")
+		)
+		(pin "30"
+			(uuid "0d677a22-8437-4d6b-9663-3a6aa2d0ecae")
+		)
+		(pin "36"
+			(uuid "92c76d9f-83e5-4cbf-9449-f0992252c8fd")
+		)
+		(pin "37"
+			(uuid "2ae7fcdf-03e0-44eb-8a34-ca231463cead")
+		)
+		(pin "47"
+			(uuid "b94482a3-2893-4f6d-a0ed-4fb4cbdf56f7")
+		)
+		(instances
+			(project ""
+				(path "/8efcd76d-bb36-41a1-bdc2-22dea3d0088a"
+					(reference "Teensy4.2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:+3.3V")
 		(at 125.73 96.52 0)
 		(unit 1)
@@ -4029,7 +4186,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_JST:JST_EH_B6B-EH-A_1x06_P2.50mm_Vertical"
 			(at 245.11 110.49 0)
 			(effects
 				(font
@@ -4109,7 +4266,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical"
 			(at 45.72 135.89 0)
 			(effects
 				(font
@@ -4185,7 +4342,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric_Pad1.05x0.95mm_HandSolder"
 			(at 128.27 158.75 0)
 			(effects
 				(font
@@ -4222,211 +4379,6 @@
 			(project ""
 				(path "/8efcd76d-bb36-41a1-bdc2-22dea3d0088a"
 					(reference "D1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Breakout Boards:Teensy_4.1")
-		(at 149.86 91.44 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "2647ae60-f15a-43ba-8bec-ec9c298c0952")
-		(property "Reference" "Teensy4.1"
-			(at 149.86 54.61 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "~"
-			(at 149.86 57.15 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Breakout Boards:Teensy_4.1"
-			(at 149.86 58.42 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 149.86 91.44 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 149.86 91.44 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "37"
-			(uuid "5d91cf16-53de-4b80-bfa1-d5b103b90f85")
-		)
-		(pin "39"
-			(uuid "a85e022e-b935-4cf3-88c7-7d3a1306180b")
-		)
-		(pin "20"
-			(uuid "ed1d2840-2a29-4d61-bcf9-d7bfa4435b8d")
-		)
-		(pin "9"
-			(uuid "dd7041de-a234-49e1-9215-aef1cc7d977a")
-		)
-		(pin "18"
-			(uuid "61e3ca99-644d-44aa-ad2e-2183f57c08be")
-		)
-		(pin "28"
-			(uuid "2a31628b-61ae-45ab-b056-5ee7023234ae")
-		)
-		(pin "21"
-			(uuid "c8cdb452-1ad2-4145-9685-e23524c6597c")
-		)
-		(pin "30"
-			(uuid "398bef09-b8f2-4976-9939-b21ca58bd169")
-		)
-		(pin "2"
-			(uuid "0f11489e-491a-4923-8750-0ed147def770")
-		)
-		(pin "23"
-			(uuid "1a854edf-df19-4a74-be9f-0082e2a41a01")
-		)
-		(pin "31"
-			(uuid "e158749a-234e-4625-867a-c8c45f61dbff")
-		)
-		(pin "46"
-			(uuid "7f1ab232-f658-42c0-8dee-45034945e2bb")
-		)
-		(pin "17"
-			(uuid "f948f56c-9a96-4bb1-97a1-c2984218a6b2")
-		)
-		(pin "5"
-			(uuid "b73901eb-40a6-445c-8172-a12a2342c194")
-		)
-		(pin "45"
-			(uuid "ced71925-1a40-454c-895e-7681dd660dbe")
-		)
-		(pin "34"
-			(uuid "c286ebab-c3ba-4a55-9f6e-839ac5e9df70")
-		)
-		(pin "22"
-			(uuid "69fd7f90-26c6-49fa-92d9-26f8098399e8")
-		)
-		(pin "44"
-			(uuid "d47752e4-2733-4d9c-9bd0-f8fd2c08a0ca")
-		)
-		(pin "41"
-			(uuid "e5d4f8c9-7e46-465d-be5e-1de1fc984edd")
-		)
-		(pin "32"
-			(uuid "4f7d1f1e-3d45-412f-aebb-7efc8cd486ee")
-		)
-		(pin "29"
-			(uuid "743a9cad-fe86-4eaf-b47f-5a580d972fe0")
-		)
-		(pin "6"
-			(uuid "e79b605e-fdc3-405d-adbd-ffea1a31c68d")
-		)
-		(pin "24"
-			(uuid "7e3dece0-762a-4516-9914-8cb1603915fe")
-		)
-		(pin "15"
-			(uuid "62938a4e-ea80-47cb-bd79-bb81ac938dc0")
-		)
-		(pin "8"
-			(uuid "f1c5e8ae-6277-410f-b51e-65c3a639a7e0")
-		)
-		(pin "27"
-			(uuid "e7d126fa-5013-488a-a84c-02195ad054d5")
-		)
-		(pin "16"
-			(uuid "c2322545-4929-422f-928f-93424255f725")
-		)
-		(pin "0"
-			(uuid "84a1c2e6-72da-436c-96ad-ec88350562dc")
-		)
-		(pin "3"
-			(uuid "7a9dae08-0917-4004-9e95-c3511a85a8e8")
-		)
-		(pin "1"
-			(uuid "76de6e4c-b701-4b1e-ab17-64ffe074f8dc")
-		)
-		(pin "12"
-			(uuid "29ecf7bd-a0a1-4547-8b7f-9f2c87cc1537")
-		)
-		(pin "14"
-			(uuid "f3020360-b213-45f8-85e1-238d156c8b85")
-		)
-		(pin "13"
-			(uuid "1c5ebe49-5d08-44e1-b4c6-40ff453d4dda")
-		)
-		(pin "10"
-			(uuid "3645f999-9634-48db-8979-5552f0c99803")
-		)
-		(pin "33"
-			(uuid "dffda28f-e854-4bbd-8eff-14c8e298c979")
-		)
-		(pin "26"
-			(uuid "36e010f2-8b75-42d5-ab3c-86abb995bd5e")
-		)
-		(pin "35"
-			(uuid "6c669447-5555-4f57-89ff-24c3d3967045")
-		)
-		(pin "43"
-			(uuid "1fadc8fd-91c7-45bd-ad21-0911e5ba4226")
-		)
-		(pin "38"
-			(uuid "e089a3f7-4f41-4d54-a3f3-ea8e24704cfd")
-		)
-		(pin "7"
-			(uuid "098f9fdf-3b24-4fb1-a3b8-d380c8377a3c")
-		)
-		(pin "4"
-			(uuid "3bf07a3e-9080-422a-bcc1-5637cef42c44")
-		)
-		(pin "40"
-			(uuid "976dbf69-e47d-4b17-9dfd-5a6f7070f950")
-		)
-		(pin "36"
-			(uuid "e3d34784-bacd-43d1-adff-52028ed039b0")
-		)
-		(pin "47"
-			(uuid "b1c93d4c-c782-4d36-a271-55d096df6232")
-		)
-		(pin "42"
-			(uuid "77a8119c-ed4a-45eb-adeb-cc42081d2fd8")
-		)
-		(pin "19"
-			(uuid "bcaae922-73c8-4773-89c9-ced4000b401c")
-		)
-		(pin "25"
-			(uuid "a5ef5d41-f295-4644-91b8-6dc61f9ba1ea")
-		)
-		(pin "11"
-			(uuid "41c5bc28-71b5-414e-8f92-dffc54bbab85")
-		)
-		(instances
-			(project ""
-				(path "/8efcd76d-bb36-41a1-bdc2-22dea3d0088a"
-					(reference "Teensy4.1")
 					(unit 1)
 				)
 			)
@@ -4787,7 +4739,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
 			(at 97.282 59.69 90)
 			(effects
 				(font
@@ -4921,7 +4873,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_JST:JST_EH_B6B-EH-A_1x06_P2.50mm_Vertical"
 			(at 210.82 110.49 0)
 			(effects
 				(font
@@ -5199,7 +5151,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical"
 			(at 34.29 63.5 0)
 			(effects
 				(font
@@ -5380,6 +5332,76 @@
 		)
 	)
 	(symbol
+		(lib_id "Connector_Generic:Conn_01x02")
+		(at 185.42 62.23 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "76a75371-8b36-4ec1-9790-b5fe804b2203")
+		(property "Reference" "J9"
+			(at 187.96 62.2299 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "Conn_01x02"
+			(at 187.96 64.7699 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_JST:JST_EH_B2B-EH-A_1x02_P2.50mm_Vertical"
+			(at 185.42 62.23 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 185.42 62.23 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 185.42 62.23 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "8c035a00-0e1f-462c-9c85-d6cf4124c585")
+		)
+		(pin "2"
+			(uuid "7fb23b7f-e880-492a-bde4-2b59228a05b6")
+		)
+		(instances
+			(project ""
+				(path "/8efcd76d-bb36-41a1-bdc2-22dea3d0088a"
+					(reference "J9")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Connector_Generic:Conn_01x04")
 		(at 80.01 135.89 0)
 		(mirror y)
@@ -5405,7 +5427,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical"
 			(at 80.01 135.89 0)
 			(effects
 				(font
@@ -5479,7 +5501,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical"
 			(at 45.72 110.49 0)
 			(effects
 				(font
@@ -5553,7 +5575,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical"
 			(at 62.23 160.02 0)
 			(effects
 				(font
@@ -5758,7 +5780,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
 			(at 55.118 59.69 90)
 			(effects
 				(font
@@ -5892,7 +5914,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical"
 			(at 73.66 63.5 0)
 			(effects
 				(font
@@ -6031,7 +6053,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
 			(at 57.912 59.69 90)
 			(effects
 				(font
@@ -6099,7 +6121,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical"
 			(at 80.01 110.49 0)
 			(effects
 				(font
@@ -6238,7 +6260,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
 			(at 94.488 59.69 90)
 			(effects
 				(font
@@ -6413,76 +6435,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Connector:Screw_Terminal_01x02")
-		(at 185.42 62.23 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "dd454b6f-ec44-48b9-bd3d-4411105c9930")
-		(property "Reference" "J9"
-			(at 187.96 62.2299 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "Screw_Terminal_01x02"
-			(at 187.96 64.7699 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" ""
-			(at 185.42 62.23 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 185.42 62.23 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Generic screw terminal, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 185.42 62.23 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "d044cbb7-bdf9-4d2e-951d-9e86ad715bf9")
-		)
-		(pin "1"
-			(uuid "2ebdeeb5-9148-4967-ba3b-e580b105f2f8")
-		)
-		(instances
-			(project ""
-				(path "/8efcd76d-bb36-41a1-bdc2-22dea3d0088a"
-					(reference "J9")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:+3.3V")
 		(at 90.17 132.08 0)
 		(unit 1)
@@ -6576,7 +6528,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
 			(at 126.492 151.13 90)
 			(effects
 				(font
