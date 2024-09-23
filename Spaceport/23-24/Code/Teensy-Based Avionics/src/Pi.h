@@ -2,7 +2,7 @@
 #define PI_H
 
 #include <Arduino.h>
-#include <BlinkBuzz.h>
+#include <BlinkBuzz/BlinkBuzz.h>
 
 class Pi
 {
