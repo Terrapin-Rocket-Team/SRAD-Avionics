@@ -1,6 +1,5 @@
 #include "Arduino.h"
 #include "RadioMessage.h"
-#include "Si4463.h"
 
 void setup()
 {
