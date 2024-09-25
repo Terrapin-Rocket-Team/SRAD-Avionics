@@ -2020,7 +2020,7 @@
 		(descr "JST EH series connector, B4B-EH-A (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator")
 		(tags "connector JST EH vertical")
 		(property "Reference" "J1"
-			(at 10.04 -2.8 180)
+			(at 10.04 -2.92 180)
 			(layer "F.SilkS")
 			(uuid "0a55f30c-77e9-4b3c-9d9b-6d51fe4139ad")
 			(effects
@@ -2364,7 +2364,7 @@
 			(drill 0.95)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
-			(net 1 "/SCL0")
+			(net 3 "/SDA0")
 			(pinfunction "Pin_2")
 			(pintype "passive")
 			(uuid "006f1643-a615-465b-8367-f282779fff95")
@@ -2375,7 +2375,7 @@
 			(drill 0.95)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
-			(net 3 "/SDA0")
+			(net 1 "/SCL0")
 			(pinfunction "Pin_3")
 			(pintype "passive")
 			(uuid "6dd5478e-b770-4195-87ee-e632439e0fc0")
@@ -3339,7 +3339,7 @@
 		(descr "Mounting Hole 3.2mm, no annular, M3")
 		(tags "mounting hole 3.2mm no annular m3")
 		(property "Reference" "H1"
-			(at -5.08 0 360)
+			(at -5.08 0 0)
 			(layer "F.SilkS")
 			(uuid "b81c9253-458d-4380-bfeb-b2dd45a1c60f")
 			(effects
@@ -3350,7 +3350,7 @@
 			)
 		)
 		(property "Value" "MountingHole"
-			(at 0 4.2 360)
+			(at 0 4.2 0)
 			(layer "F.Fab")
 			(uuid "99ff777b-48be-410f-acef-08b722790bf0")
 			(effects
@@ -3427,7 +3427,7 @@
 			(uuid "e6d983f1-c66a-4383-b995-d9a7565f4dde")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 0 360)
+			(at 0 0 0)
 			(layer "F.Fab")
 			(uuid "ec908ed4-0fa6-4be6-8103-ab4d11819732")
 			(effects
@@ -3452,7 +3452,7 @@
 		(descr "JST EH series connector, B4B-EH-A (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator")
 		(tags "connector JST EH vertical")
 		(property "Reference" "J7"
-			(at -3.89 0 360)
+			(at -3.89 0 0)
 			(layer "F.SilkS")
 			(uuid "35376aae-2332-49e5-8d96-7071b0e26291")
 			(effects
@@ -3463,7 +3463,7 @@
 			)
 		)
 		(property "Value" "Conn_01x04"
-			(at 3.75 3.4 360)
+			(at 3.75 3.4 0)
 			(layer "F.Fab")
 			(uuid "02499afc-ebe5-4b07-a309-7a7a65a722a4")
 			(effects
@@ -3768,7 +3768,7 @@
 			(uuid "8bf442c1-a9de-40ae-983a-f7d61fe81612")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 3.75 1.5 360)
+			(at 3.75 1.5 0)
 			(layer "F.Fab")
 			(uuid "bbb86536-111c-4a28-9d37-e015edb20c00")
 			(effects
@@ -4023,7 +4023,7 @@
 			(size 1.2 1.4)
 			(layers "F.Cu" "F.Paste" "F.Mask")
 			(roundrect_rratio 0.208333)
-			(net 1 "/SCL0")
+			(net 3 "/SDA0")
 			(pintype "passive")
 			(uuid "36504dea-3066-4c8a-91a8-1b89e833add2")
 		)
@@ -4245,7 +4245,7 @@
 			(size 1.2 1.4)
 			(layers "F.Cu" "F.Paste" "F.Mask")
 			(roundrect_rratio 0.208333)
-			(net 3 "/SDA0")
+			(net 1 "/SCL0")
 			(pintype "passive")
 			(uuid "57c05976-f449-430d-8154-d5d84e1f1ddc")
 		)
@@ -4268,7 +4268,7 @@
 		(descr "JST EH series connector, B4B-EH-A (http://www.jst-mfg.com/product/pdf/eng/eEH.pdf), generated with kicad-footprint-generator")
 		(tags "connector JST EH vertical")
 		(property "Reference" "J6"
-			(at 11.35 0 360)
+			(at 11.35 0 0)
 			(layer "F.SilkS")
 			(uuid "66220bdc-1e73-4555-ab76-e7c13510a408")
 			(effects
@@ -4279,7 +4279,7 @@
 			)
 		)
 		(property "Value" "Conn_01x04"
-			(at 3.75 3.4 360)
+			(at 3.75 3.4 0)
 			(layer "F.Fab")
 			(uuid "c8f7ddf3-6657-4147-8cd4-74dcfc19c013")
 			(effects
@@ -4584,7 +4584,7 @@
 			(uuid "7799655a-5119-4e6f-b1a3-4ac7efc20910")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 3.75 1.5 360)
+			(at 3.75 1.5 0)
 			(layer "F.Fab")
 			(uuid "d9c00944-018d-4863-a95a-493827576d53")
 			(effects
@@ -7177,7 +7177,7 @@
 		)
 	)
 	(gr_text "GND"
-		(at 184.785 71.12 0)
+		(at 184.905 71.12 0)
 		(layer "F.SilkS")
 		(uuid "133c4505-f4d6-4378-bde0-aa00855f2a49")
 		(effects
@@ -7316,7 +7316,7 @@
 		)
 	)
 	(gr_text "SCL"
-		(at 184.785 66.04 0)
+		(at 184.905 68.6 0)
 		(layer "F.SilkS")
 		(uuid "3c00e1ea-5f2f-4bf8-887c-52e2f35794a9")
 		(effects
@@ -7529,7 +7529,7 @@
 		)
 	)
 	(gr_text "3V3\n"
-		(at 184.785 63.5 0)
+		(at 184.905 63.5 0)
 		(layer "F.SilkS")
 		(uuid "b4d58b2d-0830-4cce-a35b-a182557c47d1")
 		(effects
@@ -7553,7 +7553,7 @@
 		)
 	)
 	(gr_text "SDA"
-		(at 184.785 68.58 0)
+		(at 184.92 66.2 0)
 		(layer "F.SilkS")
 		(uuid "c08bd5eb-6b9b-49c1-938e-2c659ae42f82")
 		(effects
@@ -7744,36 +7744,68 @@
 		)
 	)
 	(segment
-		(start 182.88 66.12)
-		(end 180.055 66.12)
+		(start 174.6 66.2)
+		(end 174.6 61.6)
 		(width 0.2)
 		(layer "F.Cu")
 		(net 1)
-		(uuid "2ee9516c-6bd8-48e7-acd5-4a72733cee07")
+		(uuid "4a63ff83-488a-4ad7-bb98-d0aa8124112e")
 	)
 	(segment
-		(start 174.99 61.96)
+		(start 175.895 67.58)
+		(end 176.8 67.58)
+		(width 0.2)
+		(layer "F.Cu")
+		(net 1)
+		(uuid "67e34c78-60e7-4096-a1f1-381a60872e7b")
+	)
+	(segment
+		(start 172.72 59.72)
 		(end 172.72 59.69)
 		(width 0.2)
 		(layer "F.Cu")
 		(net 1)
-		(uuid "5e98b58c-c981-41c3-9b67-63ccc79eb181")
+		(uuid "a6bbd4bc-0142-431c-b8a2-4baa63a330d4")
 	)
 	(segment
-		(start 175.895 61.96)
-		(end 174.99 61.96)
+		(start 177.84 68.62)
+		(end 182.88 68.62)
 		(width 0.2)
 		(layer "F.Cu")
 		(net 1)
-		(uuid "a320a1b6-8cee-4370-b6e8-8fd6cf19680f")
+		(uuid "a76de83a-8ebe-458d-8273-9c8b08766ece")
 	)
 	(segment
-		(start 180.055 66.12)
-		(end 175.895 61.96)
+		(start 175.895 67.58)
+		(end 175.895 67.495)
 		(width 0.2)
 		(layer "F.Cu")
 		(net 1)
-		(uuid "e17a4c3a-c5ea-45f6-ad2f-eae623ce645e")
+		(uuid "c62fc013-826f-4b58-8481-f0b91ee726e8")
+	)
+	(segment
+		(start 174.6 61.6)
+		(end 172.72 59.72)
+		(width 0.2)
+		(layer "F.Cu")
+		(net 1)
+		(uuid "cb7b0db1-ab93-4f4f-b77d-590d29781074")
+	)
+	(segment
+		(start 175.895 67.495)
+		(end 174.6 66.2)
+		(width 0.2)
+		(layer "F.Cu")
+		(net 1)
+		(uuid "cec7194f-39cb-422f-b900-2da834de6a87")
+	)
+	(segment
+		(start 176.8 67.58)
+		(end 177.84 68.62)
+		(width 0.2)
+		(layer "F.Cu")
+		(net 1)
+		(uuid "f318fb8f-1e60-4d2e-bd07-370465b2c9c3")
 	)
 	(segment
 		(start 147.32 83.94)
@@ -8104,44 +8136,36 @@
 		(uuid "faa1e6f0-fd2c-43a4-9531-74954e59eea8")
 	)
 	(segment
-		(start 175.895 67.58)
-		(end 176.8 67.58)
+		(start 180.055 66.12)
+		(end 175.895 61.96)
 		(width 0.2)
 		(layer "F.Cu")
 		(net 3)
-		(uuid "67e34c78-60e7-4096-a1f1-381a60872e7b")
+		(uuid "582a88eb-e6ee-4ebd-bad6-a50ed2fbac92")
 	)
 	(segment
-		(start 175.895 65.405)
-		(end 175.895 67.58)
+		(start 182.88 66.12)
+		(end 180.055 66.12)
 		(width 0.2)
 		(layer "F.Cu")
 		(net 3)
-		(uuid "715e36e3-b902-43fe-85d0-4e4588589285")
+		(uuid "fe613d7a-9268-4e8f-a8e8-270d51985dc4")
 	)
 	(segment
-		(start 177.84 68.62)
-		(end 182.88 68.62)
+		(start 182.88 66.12)
+		(end 176.61 66.12)
 		(width 0.2)
-		(layer "F.Cu")
+		(layer "B.Cu")
 		(net 3)
-		(uuid "a76de83a-8ebe-458d-8273-9c8b08766ece")
+		(uuid "4d9eb83c-b214-4792-88c8-ccc221daf31b")
 	)
 	(segment
-		(start 172.72 62.23)
-		(end 175.895 65.405)
+		(start 176.61 66.12)
+		(end 172.72 62.23)
 		(width 0.2)
-		(layer "F.Cu")
+		(layer "B.Cu")
 		(net 3)
-		(uuid "de04f404-5bcc-44de-a731-3b18a284787c")
-	)
-	(segment
-		(start 176.8 67.58)
-		(end 177.84 68.62)
-		(width 0.2)
-		(layer "F.Cu")
-		(net 3)
-		(uuid "f318fb8f-1e60-4d2e-bd07-370465b2c9c3")
+		(uuid "a16db245-6eae-4c5d-853c-8b14714bde46")
 	)
 	(segment
 		(start 168.91 35.29)
