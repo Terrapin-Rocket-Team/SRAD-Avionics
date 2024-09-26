@@ -7,13 +7,12 @@
 #include <BMI088.h>
 #include <Sensors/IMU/IMU.h>
 
+
 class BMI088 : public mmfs::IMU {
 public:
-    BMI088(TwoWire &bus,uint8_t address) : accel(bus, address), gyro(bus, address) {
-        Sensor::setName("BMI088");
+    BMI088(const char* name = "BMI088", TwoWire &bus = Wire, uint8_t accelAddr = 0x18, uint8_t gyroAddr = 0x68) : accel(bus, accelAddr), gyro(bus, gyroAddr) {
+        Sensor::setName(name);
     }
-    ~BMI088() override;
-
     bool init() override;
     void read() override;
 
