@@ -4,14 +4,12 @@
 
 #include "BMI088.h"
 
-BMI088::~BMI088() {
-}
-
 bool BMI088::init() {
     int accelStatus = accel.begin();
     int gyroStatus = gyro.begin();
 
-    initialized = (accelStatus > 0 && gyroStatus > 0)
+    initialized = (accelStatus > 0 && gyroStatus > 0);
+    return initialized;
 }
 
 void BMI088::read() {
