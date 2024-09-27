@@ -18,7 +18,6 @@ Logger logger(ALTERNATING_BOTH, 25000, 300);        // 25 kB buffer, 300 write i
 BNO055 bno;         // I2C Address 0x29
 BMP390 bmp;         // I2C Address 0x77
 MAX_M10S gps; // I2C Address 0x42
-BMI088 bmi;
 
 //RadioSettings settings = {433.78, 0x01, 0x02, &hardware_spi, 10, 31, 32};
 //RFM69HCW radio(&settings);
