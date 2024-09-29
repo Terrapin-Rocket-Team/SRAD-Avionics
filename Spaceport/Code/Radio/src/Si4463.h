@@ -5,14 +5,14 @@
 #include "SPI.h"
 
 #define PART_NO 0x4463
-#define MAX_SET_PROPS 12
+#define MAX_NUM_PROPS 12
 
 class Si4463 : public Radio
 {
 public:
     Message m;
 
-    Si4463() {};
+    Si4463(uint32_t frequency) : freq(frequency) {};
     bool begin() override;
     // bool begin();
     bool tx(const uint8_t *message, int len = -1) override;
@@ -22,19 +22,36 @@ public:
     int RSSI() override;
 
 private:
+    // hardware config
+    uint32_t freq;
+    // spi interface
     SPIClass *spi;
-    // pins
     uint8_t _cs;
+    // gpio pins
+    uint8_t _gp1;
+    uint8_t _gp2;
+    uint8_t _gp3;
+    uint8_t _gp4;
+
+    // even higher level
+    void setModemConfig(uint8_t mod, uint64_t dataRate, uint32_t freq);
+
+    // higher level
+    void setProperty(uint8_t group, uint8_t start, uint8_t data);
+    void getProperty(uint8_t group, uint8_t start, uint8_t &data);
+    void setProperty(uint8_t group, const uint8_t num, uint8_t start, uint8_t *data);
+    void getProperty(uint8_t group, const uint8_t num, uint8_t start, uint8_t *data);
+    void readFRRs(uint8_t data[4], uint8_t start = 0);
+    void powerOn();
     // slightly higher level
     void waitCTS();
-    void setProperty();
-    void getProperty();
-    void sendCommand();
-    void powerOn();
+    void sendCommand(uint8_t cmd, uint8_t argcCmd, uint8_t *argvCmd, uint8_t argcRes, uint8_t *argvRes);
+    void sendCommandR(uint8_t cmd, uint8_t argcRes, uint8_t *argvRes);
+    void sendCommandC(uint8_t cmd, uint8_t argcCmd, uint8_t *argvCmd);
+    bool checkCTS();
     // low level abstractions
     void spi_write(uint8_t reg, uint8_t argc, uint8_t *argv);
-    void spi_read(uint8_t reg, uint8_t argc, uint8_t *argv);
-    uint8_t spi_read(uint8_t reg);
+    void spi_read(uint8_t argc, uint8_t *argv);
 
     static void from_bytes(uint16_t &val, uint8_t pos, uint8_t *arr, bool MSB = true);
     static void from_bytes(uint32_t &val, uint8_t pos, uint8_t *arr, bool MSB = true);
@@ -42,6 +59,50 @@ private:
     static void to_bytes(uint16_t val, uint8_t pos, uint8_t *arr, bool MSB = true);
     static void to_bytes(uint32_t val, uint8_t pos, uint8_t *arr, bool MSB = true);
     static void to_bytes(uint64_t val, uint8_t pos, uint8_t *arr, bool MSB = true);
+};
+
+// modulations
+enum Si4463Mod : uint8_t
+{
+    MOD_CW = 0b00000000,
+    MOD_OOK = 0b00000001,
+    MOD_2FSK = 0b00000010,
+    MOD_2GFSK = 0b00000011,
+    MOD_4FSK = 0b00000100,
+    MOD_4GFSK = 0b00000101,
+};
+
+// data rates
+enum Si4463DataRate : uint64_t
+{
+    // assumes Fxtal is 30 M (nominal value)
+    // actual data rate ends up being MDR/10
+    // format:
+    // only 7 total bytes, so skip first byte
+    // next 3 bytes are data rate
+    // next 4 bits are 0
+    // next 2 bits are TXOSR (only useful for low data rate GFSK)
+    // next 2 bits are the most signficiant 2 bits of NCO_MODE
+    // next 3 bytes are the rest of NCO_MODE
+    DR_500b = 0x0000138801C9C380, // MDR = 5000 bps, NCO_MODE = 30 M, TXOSR = 10
+    DR_4_8k = 0x0000BB8001C9C380, // MDR = 48 kbps, NCO_MODE = 30 M, TXOSR = 10
+    DR_9_6k = 0x0001770001C9C380, // MDR = 96 kbps, NCO_MODE = 30 M, TXOSR = 10
+    DR_40k = 0x00061A8001C9C380,  // MDR = 400 kbps, NCO_MODE = 30 M, TXOSR = 10
+    DR_100k = 0x000F424001C9C380, // MDR = 1000 kbps, NCO_MODE = 30 M, TXOSR = 10
+    DR_120k = 0x00124F8001C9C380, // MDR = 1200 kbps, NCO_MODE = 30 M, TXOSR = 10
+    DR_500k = 0x004C4B4001C9C380, // MDR = 5000 kbps, NCO_MODE = 30 M, TXOSR = 10
+    DR_1M = 0x0098968001C9C380,   // MDR = 10 Mbps, NCO_MODE = 30 M, TXOSR = 10
+};
+
+// band selection
+enum Si4463Band : uint8_t
+{
+    BAND_150 = 0b00001111,
+    BAND_225 = 0b00001100,
+    BAND_300 = 0b00001011,
+    BAND_450 = 0b00001010,
+    BAND_600 = 0b00001001,
+    BAND_900 = 0b00001000,
 };
 
 // commands
@@ -111,8 +172,7 @@ enum Si4463Property : uint8_t
     P_GLOBAL_LOW_BAT_THRESH = 0x02,           // 0x18
     P_GLOBAL_CONFIG = 0x03,                   // 0x20
     P_GLOBAL_WUT_CONFIG = 0x04,               // 0x00
-    P_GLOBAL_WUT_M1 = 0x05,                   // 0x00
-    P_GLOBAL_WUT_M2 = 0x06,                   // 0x01
+    P_GLOBAL_WUT_M2 = 0x05,                   // 0x00 0x01
     P_GLOBAL_WUT_R = 0x07,                    // 0x60
     P_GLOBAL_WUT_LDC = 0x08,                  // 0x00
     P_GLOBAL_WUT_CAL = 0x09,                  // 0x00
@@ -132,28 +192,17 @@ enum Si4463Property : uint8_t
     P_PREAMBLE_CONFIG_NSTD = 0x02,            // 0x00
     P_PREAMBLE_CONFIG_STD_2 = 0x03,           // 0x0f
     P_PREAMBLE_CONFIG = 0x04,                 // 0x21
-    P_PREAMBLE_PATTERN1 = 0x05,               // 0x00
-    P_PREAMBLE_PATTERN2 = 0x06,               // 0x00
-    P_PREAMBLE_PATTERN3 = 0x07,               // 0x00
-    P_PREAMBLE_PATTERN4 = 0x08,               // 0x00
+    P_PREAMBLE_PATTERN4 = 0x05,               // 0x00 0x00 0x00 0x00
     P_PREAMBLE_POSTAMBLE_CONFIG = 0x09,       // 0x00
-    P_PREAMBLE_POSTAMBLE_CONFIG1 = 0x0a,      // 0x00
-    P_PREAMBLE_POSTAMBLE_CONFIG2 = 0x0b,      // 0x00
-    P_PREAMBLE_POSTAMBLE_CONFIG3 = 0x0c,      // 0x00
-    P_PREAMBLE_POSTAMBLE_CONFIG4 = 0x0d,      // 0x00
+    P_PREAMBLE_POSTAMBLE_PATTERN4 = 0x0a,     // 0x00 0x00 0x00 0x00
                                               // default
     P_SYNC_CONFIG = 0x00,                     // 0x01
-    P_SYNC_BITS1 = 0x01,                      // 0x2d
-    P_SYNC_BITS2 = 0x02,                      // 0xd4
-    P_SYNC_BITS3 = 0x03,                      // 0x2d
-    P_SYNC_BITS4 = 0x04,                      // 0xd4
+    P_SYNC_BITS4 = 0x01,                      // 0x2d 0xd4 0x2d 0xd4
     P_SYNC_CONFIG2 = 0x05,                    // 0x00
                                               // default
     P_PKT_CRC_CONFIG = 0x00,                  // 0x00
-    P_PKT_WHT_POLY1 = 0x01,                   // 0x01
-    P_PKT_WHT_POLY2 = 0x02,                   // 0x08
-    P_PKT_WHT_SEED1 = 0x03,                   // 0xff
-    P_PKT_WHT_SEED2 = 0x04,                   // 0xff
+    P_PKT_WHT_POLY2 = 0x01,                   // 0x01 0x08
+    P_PKT_WHT_SEED2 = 0x03,                   // 0xff 0xff
     P_PKT_WHT_BIT_NUM = 0x05,                 // 0x00
     P_PKT_CONFIG1 = 0x06,                     // 0x00
     P_PKT_CONFIG2 = 0x07,                     // 0x00
@@ -162,66 +211,45 @@ enum Si4463Property : uint8_t
     P_PKT_LEN_ADJUST = 0x0a,                  // 0x00
     P_PKT_TX_THRESHOLD = 0x0b,                // 0x30
     P_PKT_RX_THRESHOLD = 0x0c,                // 0x30
-    P_PKT_FIELD_1_LENGTH1 = 0x0d,             // 0x00
-    P_PKT_FIELD_1_LENGTH2 = 0x0e,             // 0x00
+    P_PKT_FIELD_1_LENGTH2 = 0x0d,             // 0x00 0x00
     P_PKT_FIELD_1_CONFIG = 0x0f,              // 0x00
     P_PKT_FIELD_1_CRC_CONFIG = 0x10,          // 0x00
-    P_PKT_FIELD_2_LENGTH1 = 0x11,             // 0x00
-    P_PKT_FIELD_2_LENGTH2 = 0x12,             // 0x00
+    P_PKT_FIELD_2_LENGTH2 = 0x11,             // 0x00 0x00
     P_PKT_FIELD_2_CONFIG = 0x13,              // 0x00
     P_PKT_FIELD_2_CRC_CONFIG = 0x14,          // 0x00
-    P_PKT_FIELD_3_LENGTH1 = 0x15,             // 0x00
-    P_PKT_FIELD_3_LENGTH2 = 0x16,             // 0x00
+    P_PKT_FIELD_3_LENGTH2 = 0x15,             // 0x00 0x00
     P_PKT_FIELD_3_CONFIG = 0x17,              // 0x00
     P_PKT_FIELD_3_CRC_CONFIG = 0x18,          // 0x00
-    P_PKT_FIELD_4_LENGTH1 = 0x19,             // 0x00
-    P_PKT_FIELD_4_LENGTH2 = 0x1a,             // 0x00
+    P_PKT_FIELD_4_LENGTH2 = 0x19,             // 0x00 0x00
     P_PKT_FIELD_4_CONFIG = 0x1b,              // 0x00
     P_PKT_FIELD_4_CRC_CONFIG = 0x1c,          // 0x00
-    P_PKT_FIELD_5_LENGTH1 = 0x1d,             // 0x00
-    P_PKT_FIELD_5_LENGTH2 = 0x1e,             // 0x00
+    P_PKT_FIELD_5_LENGTH2 = 0x1d,             // 0x00 0x00
     P_PKT_FIELD_5_CONFIG = 0x1f,              // 0x00
     P_PKT_FIELD_5_CRC_CONFIG = 0x20,          // 0x00
-    P_PKT_RX_FIELD_1_LENGTH1 = 0x21,          // 0x00
-    P_PKT_RX_FIELD_1_LENGTH2 = 0x22,          // 0x00
+    P_PKT_RX_FIELD_1_LENGTH2 = 0x21,          // 0x00 0x00
     P_PKT_RX_FIELD_1_CONFIG = 0x23,           // 0x00
     P_PKT_RX_FIELD_1_CRC_CONFIG = 0x24,       // 0x00
-    P_PKT_RX_FIELD_2_LENGTH1 = 0x25,          // 0x00
-    P_PKT_RX_FIELD_2_LENGTH2 = 0x26,          // 0x00
+    P_PKT_RX_FIELD_2_LENGTH2 = 0x25,          // 0x00 0x00
     P_PKT_RX_FIELD_2_CONFIG = 0x27,           // 0x00
     P_PKT_RX_FIELD_2_CRC_CONFIG = 0x28,       // 0x00
-    P_PKT_RX_FIELD_3_LENGTH1 = 0x29,          // 0x00
-    P_PKT_RX_FIELD_3_LENGTH2 = 0x2a,          // 0x00
+    P_PKT_RX_FIELD_3_LENGTH2 = 0x29,          // 0x00 0x00
     P_PKT_RX_FIELD_3_CONFIG = 0x2b,           // 0x00
     P_PKT_RX_FIELD_3_CRC_CONFIG = 0x2c,       // 0x00
-    P_PKT_RX_FIELD_4_LENGTH1 = 0x2d,          // 0x00
-    P_PKT_RX_FIELD_4_LENGTH2 = 0x2e,          // 0x00
+    P_PKT_RX_FIELD_4_LENGTH2 = 0x2d,          // 0x00 0x00
     P_PKT_RX_FIELD_4_CONFIG = 0x2f,           // 0x00
     P_PKT_RX_FIELD_4_CRC_CONFIG = 0x30,       // 0x00
-    P_PKT_RX_FIELD_5_LENGTH1 = 0x31,          // 0x00
-    P_PKT_RX_FIELD_5_LENGTH2 = 0x32,          // 0x00
+    P_PKT_RX_FIELD_5_LENGTH2 = 0x31,          // 0x00 0x00
     P_PKT_RX_FIELD_5_CONFIG = 0x33,           // 0x00
     P_PKT_RX_FIELD_5_CRC_CONFIG = 0x34,       // 0x00
-    P_PKT_CRC_SEED1 = 0x36,                   // 0x00
-    P_PKT_CRC_SEED2 = 0x37,                   // 0x00
-    P_PKT_CRC_SEED3 = 0x38,                   // 0x00
-    P_PKT_CRC_SEED4 = 0x39,                   // 0x00
+    P_PKT_CRC_SEED4 = 0x36,                   // 0x00 0x00 0x00 0x00
                                               // default
     P_MODEM_MOD_TYPE = 0x00,                  // 0x02
     P_MODEM_MAP_CONTROL = 0x01,               // 0x80
     P_MODEM_DSM_CTRL = 0x02,                  // 0x07
-    P_MODEM_DATA_RATE1 = 0x03,                // 0x0f
-    P_MODEM_DATA_RATE2 = 0x04,                // 0x42
-    P_MODEM_DATA_RATE3 = 0x05,                // 0x40
-    P_MODEM_TX_NCO_MODE1 = 0x06,              // 0x01
-    P_MODEM_TX_NCO_MODE2 = 0x07,              // 0xc9
-    P_MODEM_TX_NCO_MODE3 = 0x08,              // 0xc3
-    P_MODEM_TX_NCO_MODE4 = 0x09,              // 0x80
-    P_MODEM_FREQ_DEV1 = 0x0a,                 // 0x00
-    P_MODEM_FREQ_DEV2 = 0x0b,                 // 0x06
-    P_MODEM_FREQ_DEV3 = 0x0c,                 // 0xd3
-    P_MODEM_FREQ_OFFSET1 = 0x0d,              // 0x00
-    P_MODEM_FREQ_OFFSET2 = 0x0e,              // 0x00
+    P_MODEM_DATA_RATE3 = 0x03,                // 0x0f 0x42 0x40
+    P_MODEM_TX_NCO_MODE4 = 0x06,              // 0x01 0xc9 0xc3 0x80
+    P_MODEM_FREQ_DEV3 = 0x0a,                 // 0x00 0x06 0xd3
+    P_MODEM_FREQ_OFFSET2 = 0x0d,              // 0x00 0x00
     P_MODEM_TX_FILTER_COEFF_8 = 0x0f,         // 0x67
     P_MODEM_TX_FILTER_COEFF_7 = 0x10,         // 0x60
     P_MODEM_TX_FILTER_COEFF_6 = 0x11,         // 0x4d
@@ -234,29 +262,21 @@ enum Si4463Property : uint8_t
     P_MODEM_TX_RAMP_DELAY = 0x18,             // 0x01
     P_MODEM_MBM_CTRL = 0x19,                  // 0x00
     P_MODEM_IF_CONTROL = 0x1a,                // 0x08
-    P_MODEM_IF_FREQ1 = 0x1b,                  // 0x03
-    P_MODEM_IF_FREQ2 = 0x1c,                  // 0xc0
-    P_MODEM_IF_FREQ3 = 0x1d,                  // 0x00
-    P_MODEM_DECIMATION_CFG1 = 0x1e,           // 0x10
-    P_MODEM_DECIMATION_CFG0 = 0x1f,           // 0x20
-    P_MODEM_DECIMATION_CFG2 = 0x20,           // 0x00
+    P_MODEM_IF_FREQ3 = 0x1b,                  // 0x03 0xc0 0x00
+    P_MODEM_DECIMATION_CFG_1 = 0x1e,          // 0x10
+    P_MODEM_DECIMATION_CFG_0 = 0x1f,          // 0x20
+    P_MODEM_DECIMATION_CFG_2 = 0x20,          // 0x00
     P_MODEM_IFPKD_THRESHOLDS = 0x21,          // 0xe8
-    P_MODEM_BCR_OSR1 = 0x22,                  // 0x00
-    P_MODEM_BCR_OSR2 = 0x23,                  // 0x4b
-    P_MODEM_BCR_NCO_OFFSET1 = 0x24,           // 0x06
-    P_MODEM_BCR_NCO_OFFSET2 = 0x25,           // 0xd3
-    P_MODEM_BCR_NCO_OFFSET3 = 0x26,           // 0xa0
-    P_MODEM_BCR_GAIN1 = 0x27,                 // 0x06
-    P_MODEM_BCR_GAIN2 = 0x28,                 // 0xd3
+    P_MODEM_BCR_OSR2 = 0x22,                  // 0x00 0x4b
+    P_MODEM_BCR_NCO_OFFSET3 = 0x24,           // 0x06 0xd3 0xa0
+    P_MODEM_BCR_GAIN2 = 0x27,                 // 0x06 0xd3
     P_MODEM_BCR_GEAR = 0x29,                  // 0x02
-    P_MODEM_BSR_MISC1 = 0x2a,                 // 0xc0
-    P_MODEM_BSR_MISC0 = 0x2b,                 // 0x00
+    P_MODEM_BSR_MISC_1 = 0x2a,                // 0xc0
+    P_MODEM_BSR_MISC_0 = 0x2b,                // 0x00
     P_MODEM_AFC_GEAR = 0x2c,                  // 0x00
     P_MODEM_AFC_WAIT = 0x2d,                  // 0x23
-    P_MODEM_AFC_GAIN1 = 0x2e,                 // 0x83
-    P_MODEM_AFC_GAIN2 = 0x2f,                 // 0x69
-    P_MODEM_AFC_LIMITER1 = 0x30,              // 0x00
-    P_MODEM_AFC_LIMITER2 = 0x31,              // 0x40
+    P_MODEM_AFC_GAIN2 = 0x2e,                 // 0x83 0x69
+    P_MODEM_AFC_LIMITER2 = 0x30,              // 0x00 0x40
     P_MODEM_AFC_MISC = 0x32,                  // 0xa0
     P_MODEM_AFC_ZIPOFF = 0x33,                // 0x00
     P_MODEM_ADC_CTRL = 0x34,                  // 0x00
@@ -264,18 +284,16 @@ enum Si4463Property : uint8_t
     P_MODEM_AGC_WINDOW_SIZE = 0x38,           // 0x11
     P_MODEM_AGC_RFPD_DECAY = 0x39,            // 0x10
     P_MODEM_AGC_IFPD_DECAY = 0x3a,            // 0x10
-    P_MODEM_FSK4_GAIN1 = 0x3b,                // 0x0b
-    P_MODEM_FSK4_GAIN0 = 0x3c,                // 0x1c
-    P_MODEM_FSK4_TH1 = 0x3d,                  // 0x40
-    P_MODEM_FSK4_TH2 = 0x3e,                  // 0x00
+    P_MODEM_FSK4_GAIN_1 = 0x3b,               // 0x0b
+    P_MODEM_FSK4_GAIN_0 = 0x3c,               // 0x1c
+    P_MODEM_FSK4_TH2 = 0x3d,                  // 0x40 0x00
     P_MODEM_FSK4_MAP = 0x3f,                  // 0x00
     P_MODEM_OOK_PDTC = 0x40,                  // 0x2b
     P_MODEM_OOK_BLOPK = 0x41,                 // 0x0c
     P_MODEM_OOK_CNT1 = 0x42,                  // 0xa4
     P_MODEM_OOK_MISC = 0x43,                  // 0x03
     P_MODEM_RAW_CONTROL = 0x45,               // 0x02
-    P_MODEM_RAW_EYE1 = 0x46,                  // 0x00
-    P_MODEM_RAW_EYE2 = 0x47,                  // 0xa3
+    P_MODEM_RAW_EYE2 = 0x46,                  // 0x00 0xa3
     P_MODEM_ANT_DIV_MODE = 0x48,              // 0x02
     P_MODEM_ANT_DIV_CONTROL = 0x49,           // 0x80
     P_MODEM_RSSI_THRESH = 0x4a,               // 0xff
@@ -290,10 +308,9 @@ enum Si4463Property : uint8_t
     P_MODEM_RSSI_HYSTERESIS = 0x56,           // 0xff
     P_MODEM_RSSI_MUTE = 0x57,                 // 0x00
     P_MODEM_FAST_RSSI_DELAY = 0x58,           // 0x00
-    P_MODEM_PSM1 = 0x59,                      // 0x00
-    P_MODEM_PSM2 = 0x5a,                      // 0x00
-    P_MODEM_DSA_CTRL1 = 0x5b,                 // 0x00
-    P_MODEM_DSA_CTRL2 = 0x5c,                 // 0x00
+    P_MODEM_PSM2 = 0x59,                      // 0x00 0x00
+    P_MODEM_DSA_CTRL_1 = 0x5b,                // 0x00
+    P_MODEM_DSA_CTRL_2 = 0x5c,                // 0x00
     P_MODEM_DSA_QUAL = 0x5d,                  // 0x00
     P_MODEM_DSA_RSSI = 0x5e,                  // 0x00
     P_MODEM_DSA_MISC = 0x5f,                  // 0x00
@@ -366,11 +383,8 @@ enum Si4463Property : uint8_t
     P_MATCH_CTRL_4 = 0x0b,                    // 0x00
                                               // default
     P_FREQ_CONTROL_INTE = 0x00,               // 0x3c
-    P_FREQ_CONTROL_FRAC1 = 0x01,              // 0x08
-    P_FREQ_CONTROL_FRAC2 = 0x02,              // 0x00
-    P_FREQ_CONTROL_FRAC3 = 0x03,              // 0x00
-    P_FREQ_CONTROL_CHANNEL_STEP_SIZE1 = 0x04, // 0x00
-    P_FREQ_CONTROL_CHANNEL_STEP_SIZE2 = 0x05, // 0x00
+    P_FREQ_CONTROL_FRAC3 = 0x01,              // 0x08 0x00 0x00
+    P_FREQ_CONTROL_CHANNEL_STEP_SIZE2 = 0x04, // 0x00 0x00
     P_FREQ_CONTROL_W_SIZE = 0x06,             // 0x20
     P_FREQ_CONTROL_VCOCNT_RX_ADJ = 0x07,      // 0xff
                                               // default
@@ -380,8 +394,7 @@ enum Si4463Property : uint8_t
     P_RX_HOP_TABLE_ENTRY_63 = 0x41,           // 0x3f
                                               // default
     P_PTI_CTL = 0x00,                         // 0x80
-    P_PTI_BAUD1 = 0x01,                       // 0x13
-    P_PTI_BAUD2 = 0x02,                       // 0x88
+    P_PTI_BAUD2 = 0x01,                       // 0x13 0x88
     P_PTI_LOG_EN = 0x03,                      // 0x00
 };
 
