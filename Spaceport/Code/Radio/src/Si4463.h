@@ -7,48 +7,82 @@
 #define PART_NO 0x4463
 #define MAX_NUM_PROPS 12
 
+struct Si4463HardwareConfig
+{
+    Si4463Mod mod;
+    Si4463DataRate dataRate;
+    uint32_t freq;
+    uint8_t pwr;
+};
+
+struct Si4463PinConfig
+{
+    SPIClass *spi;
+    uint8_t cs;
+
+    uint8_t sdn;
+    uint8_t irq;
+
+    uint8_t gpio0;
+    uint8_t gpio1;
+    uint8_t gpio2;
+    uint8_t gpio3;
+};
+
 class Si4463 : public Radio
 {
 public:
     Message m;
+    // hardware config
+    Si4463Mod mod;
+    Si4463DataRate dataRate;
+    uint32_t freq;
+    uint8_t pwr;
 
-    Si4463(uint32_t frequency) : freq(frequency) {};
+    Si4463(Si4463HardwareConfig hConfig, Si4463PinConfig pConfig);
+
+    // radio class methods
     bool begin() override;
-    // bool begin();
     bool tx(const uint8_t *message, int len = -1) override;
     const char *rx() override;
     bool send(Data &data) override;
     const char *receive(Data &data) override;
     int RSSI() override;
 
-private:
-    // hardware config
-    uint32_t freq;
-    // spi interface
-    SPIClass *spi;
-    uint8_t _cs;
-    // gpio pins
-    uint8_t _gp1;
-    uint8_t _gp2;
-    uint8_t _gp3;
-    uint8_t _gp4;
-
+    // interface methods
     // even higher level
-    void setModemConfig(uint8_t mod, uint64_t dataRate, uint32_t freq);
+    void setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t freq);
+    void setPower(uint8_t pwr); // see datasheet for correspondence between this value and actual power output
+    void setPins();
+    bool readGPIO0();
+    bool readGPIO1();
+    bool readGPIO2();
+    bool readGPIO3();
 
     // higher level
-    void setProperty(uint8_t group, uint8_t start, uint8_t data);
-    void getProperty(uint8_t group, uint8_t start, uint8_t &data);
-    void setProperty(uint8_t group, const uint8_t num, uint8_t start, uint8_t *data);
-    void getProperty(uint8_t group, const uint8_t num, uint8_t start, uint8_t *data);
+    void setProperty(Si4463Group group, Si4463Property start, uint8_t data);
+    void getProperty(Si4463Group group, Si4463Property start, uint8_t &data);
+    void setProperty(Si4463Group group, const uint8_t num, Si4463Property start, uint8_t *data);
+    void getProperty(Si4463Group group, const uint8_t num, Si4463Property start, uint8_t *data);
     void readFRRs(uint8_t data[4], uint8_t start = 0);
     void powerOn();
     // slightly higher level
     void waitCTS();
-    void sendCommand(uint8_t cmd, uint8_t argcCmd, uint8_t *argvCmd, uint8_t argcRes, uint8_t *argvRes);
-    void sendCommandR(uint8_t cmd, uint8_t argcRes, uint8_t *argvRes);
-    void sendCommandC(uint8_t cmd, uint8_t argcCmd, uint8_t *argvCmd);
+    void sendCommand(Si4463Cmd cmd, uint8_t argcCmd, uint8_t *argvCmd, uint8_t argcRes, uint8_t *argvRes);
+    void sendCommandR(Si4463Cmd cmd, uint8_t argcRes, uint8_t *argvRes);
+    void sendCommandC(Si4463Cmd cmd, uint8_t argcCmd, uint8_t *argvCmd);
     bool checkCTS();
+
+private:
+    // spi interface
+    SPIClass *spi;
+    uint8_t _cs;
+    // gpio pins
+    uint8_t _gp0;
+    uint8_t _gp1;
+    uint8_t _gp2;
+    uint8_t _gp3;
+
     // low level abstractions
     void spi_write(uint8_t reg, uint8_t argc, uint8_t *argv);
     void spi_read(uint8_t argc, uint8_t *argv);
@@ -77,21 +111,22 @@ enum Si4463DataRate : uint64_t
 {
     // assumes Fxtal is 30 M (nominal value)
     // actual data rate ends up being MDR/10
+    // most likely symbol rate, so doubled for 4 level FSK
     // format:
-    // only 7 total bytes, so skip first byte
     // next 3 bytes are data rate
     // next 4 bits are 0
     // next 2 bits are TXOSR (only useful for low data rate GFSK)
     // next 2 bits are the most signficiant 2 bits of NCO_MODE
     // next 3 bytes are the rest of NCO_MODE
-    DR_500b = 0x0000138801C9C380, // MDR = 5000 bps, NCO_MODE = 30 M, TXOSR = 10
-    DR_4_8k = 0x0000BB8001C9C380, // MDR = 48 kbps, NCO_MODE = 30 M, TXOSR = 10
-    DR_9_6k = 0x0001770001C9C380, // MDR = 96 kbps, NCO_MODE = 30 M, TXOSR = 10
-    DR_40k = 0x00061A8001C9C380,  // MDR = 400 kbps, NCO_MODE = 30 M, TXOSR = 10
-    DR_100k = 0x000F424001C9C380, // MDR = 1000 kbps, NCO_MODE = 30 M, TXOSR = 10
-    DR_120k = 0x00124F8001C9C380, // MDR = 1200 kbps, NCO_MODE = 30 M, TXOSR = 10
-    DR_500k = 0x004C4B4001C9C380, // MDR = 5000 kbps, NCO_MODE = 30 M, TXOSR = 10
-    DR_1M = 0x0098968001C9C380,   // MDR = 10 Mbps, NCO_MODE = 30 M, TXOSR = 10
+    // only 7 total bytes, so skip last byte
+    DR_500b = 0x00138801C9C38000, // MDR = 5000 sps, NCO_MODE = 30 M, TXOSR = 10
+    DR_4_8k = 0x00BB8001C9C38000, // MDR = 48 ksps, NCO_MODE = 30 M, TXOSR = 10
+    DR_9_6k = 0x01770001C9C38000, // MDR = 96 ksps, NCO_MODE = 30 M, TXOSR = 10
+    DR_40k = 0x061A8001C9C38000,  // MDR = 400 ksps, NCO_MODE = 30 M, TXOSR = 10
+    DR_100k = 0x0F424001C9C38000, // MDR = 1000 ksps, NCO_MODE = 30 M, TXOSR = 10
+    DR_120k = 0x124F8001C9C38000, // MDR = 1200 ksps, NCO_MODE = 30 M, TXOSR = 10
+    DR_500k = 0x4C4B4001C9C38000, // MDR = 5000 ksps, NCO_MODE = 30 M, TXOSR = 10
+                                  // DR_1M = 0x98968001C9C38000,   // MDR = 10 Msps, NCO_MODE = 30 M, TXOSR = 10
 };
 
 // band selection
@@ -103,6 +138,36 @@ enum Si4463Band : uint8_t
     BAND_450 = 0b00001010,
     BAND_600 = 0b00001001,
     BAND_900 = 0b00001000,
+};
+
+// pin settings
+enum Si4463Pin : uint8_t
+{
+    PIN_DO_NOTHING = 0x00,
+    PIN_TRISTATE = 0x01,
+    PIN_DRIVE0 = 0x02,
+    PIN_DRIVE1 = 0x03,
+    PIN_INPUT = 0x04,
+    PIN_DIV_CLK = 0x07,
+    PIN_CTS = 0x08,
+    PIN_SDO = 0x0B,
+    PIN_POR = 0x0C,
+    PIN_EN_PA = 0x0F,
+    PIN_TX_DATA_CLK = 0x10,
+    PIN_RX_DATA_CLK = 0x11,
+    PIN_EN_LNA = 0x12,
+    PIN_TX_DATA = 0x13,
+    PIN_RX_DATA = 0x14,
+    PIN_RX_RAW_DATA = 0x15,
+    PIN_ANTENNA1_SW = 0x16,
+    PIN_ANTENNA2_SW = 0x17,
+    PIN_VALID_PREAMBLE = 0x18,
+    PIN_INVALID_PREAMBLE = 0x19,
+    PIN_SYNC_WORD_DETECT = 0x1A,
+    PIN_CCA = 0x1B,
+    PIN_PKT_TRACE = 0x1D,
+    PIN_TX_RX_DATA_CLK = 0x1F,
+    PIN_NIRQ = 0x27,
 };
 
 // commands
