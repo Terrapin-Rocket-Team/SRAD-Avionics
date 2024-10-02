@@ -3,29 +3,27 @@
 #include "Pi.h"
 #include "AvionicsKF.h"
 
-
 #define BMP_ADDR_PIN 36
 #define RPI_PWR 0
 #define RPI_VIDEO 1
 
-
 using namespace mmfs;
 
-Logger logger(ALTERNATING_BOTH, 25000, 300);        // 25 kB buffer, 300 write interval
+Logger logger(ALTERNATING_BOTH, 25000, 300); // 25 kB buffer, 300 write interval
 
-BNO055 bno;         // I2C Address 0x29
-BMP390 bmp;         // I2C Address 0x77
+BNO055 bno;   // I2C Address 0x29
+BMP390 bmp;   // I2C Address 0x77
 MAX_M10S gps; // I2C Address 0x42
 
-//RadioSettings settings = {433.78, 0x01, 0x02, &hardware_spi, 10, 31, 32};
-//RFM69HCW radio(&settings);
-// APRSHeader header = {"KC3UTM", "APRS", "WIDE1-1", '^', 'M'};
-// APRSCmdData currentCmdData = {800000, 800000, 800000, false};
-// APRSCmdMsg cmd(header);
-// APRSTelemMsg telem(header);
-// int timeOfLastCmd = 0;
-// const int CMD_TIMEOUT_SEC = 100; // 10 seconds
-// void processCurrentCmdData(double time);
+// RadioSettings settings = {433.78, 0x01, 0x02, &hardware_spi, 10, 31, 32};
+// RFM69HCW radio(&settings);
+//  APRSHeader header = {"KC3UTM", "APRS", "WIDE1-1", '^', 'M'};
+//  APRSCmdData currentCmdData = {800000, 800000, 800000, false};
+//  APRSCmdMsg cmd(header);
+//  APRSTelemMsg telem(header);
+//  int timeOfLastCmd = 0;
+//  const int CMD_TIMEOUT_SEC = 100; // 10 seconds
+//  void processCurrentCmdData(double time);
 
 AvionicsState *computer; // = useKalmanFilter = true, stateRecordsOwnData = true
 uint32_t radioTimer = millis();
@@ -56,7 +54,6 @@ const int SENSOR_BIAS_CORRECTION_DATA_LENGTH = 2;
 const int SENSOR_BIAS_CORRECTION_DATA_IGNORE = 1;
 const int UPDATE_RATE = 10;
 const int UPDATE_INTERVAL = 1000.0 / UPDATE_RATE;
-
 
 void setup()
 {
@@ -105,7 +102,7 @@ void setup()
         logger.recordLogData(ERROR_, "Some Sensors Failed to Initialize. Disabling those sensors.");
         bb.onoff(BUZZER_PIN, 200, 3);
     }
-    //sendSDCardHeader(computer->getCsvHeader());
+    // sendSDCardHeader(computer->getCsvHeader());
 }
 
 void loop()
@@ -143,7 +140,4 @@ void loop()
     //     radio.enqueueSend(&telem);
     //     radioTimer = time;
     // }
-
 }
-
-

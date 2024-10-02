@@ -1,6 +1,7 @@
 #include <Adafruit_DPS310.h>
 
 #include <Sensors/Baro/Barometer.h>
+#include <RecordData/Logger.h>
 
 namespace mmfs
 {
