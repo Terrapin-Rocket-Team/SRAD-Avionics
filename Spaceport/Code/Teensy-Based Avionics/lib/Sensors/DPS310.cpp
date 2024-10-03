@@ -17,7 +17,7 @@ namespace mmfs
         }
 
         // Set up sampling rate and oversampling
-        dps.configurePressure(DPS310_64HZ, DPS310_64SAMPLES);
+        dps.configurePressure(DPS310_64HZ, DPS310_32SAMPLES);
         dps.configureTemperature(DPS310_64HZ, DPS310_8SAMPLES);
 
         // Operation mode of the sensor. See section 8.5 of the datasheet.
