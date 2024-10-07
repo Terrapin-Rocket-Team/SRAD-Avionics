@@ -5,7 +5,7 @@
 Si4463HardwareConfig hwcfg = {
     MOD_2GFSK, // modulation
     DR_40k,    // data rate
-    433000000, // frequency (Hz)
+    433e6,     // frequency (Hz)
     127,       // tx power (127 = ~20dBm)
     48,        // preamble length
     16,        // required received valid preamble
@@ -27,7 +27,7 @@ uint32_t timer = millis();
 
 APRSConfig aprscfg = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
 
-APRSText testMessage(aprscfg);
+APRSText testMessage(aprscfg, "RSSI test", "");
 
 void setup()
 {
@@ -44,10 +44,10 @@ void setup()
 
 void loop()
 {
-    if (radio.avail())
+    if (millis() - timer > 2000)
     {
-        radio.receive(testMessage);
-        Serial.println(testMessage.msg);
+        Serial.println("Sending message");
+        radio.send(testMessage);
     }
     // need to call as fast as possible every loop
     radio.update();
