@@ -13,6 +13,8 @@ struct Si4463HardwareConfig
     Si4463DataRate dataRate;
     uint32_t freq;
     uint8_t pwr;
+    uint8_t preambleLen;
+    uint8_t preambleThresh;
 };
 
 struct Si4463PinConfig
@@ -32,32 +34,51 @@ struct Si4463PinConfig
 class Si4463 : public Radio
 {
 public:
+    static const uint16_t maxLen = 0x1FFF;
+    Si4463State state = STATE_IDLE;
     Message m;
+    // message variables
+    uint8_t buf[maxLen];
+    uint16_t length = 0;
+    uint16_t xfrd = 0;
+    int rssi = 100;
     // hardware config
     Si4463Mod mod;
     Si4463DataRate dataRate;
     uint32_t freq;
     uint8_t pwr;
+    uint8_t preambleLen;
+    uint8_t preambleThresh;
 
     Si4463(Si4463HardwareConfig hConfig, Si4463PinConfig pConfig);
 
     // radio class methods
     bool begin() override;
     bool tx(const uint8_t *message, int len = -1) override;
-    const char *rx() override;
+    bool rx() override;
     bool send(Data &data) override;
     const char *receive(Data &data) override;
     int RSSI() override;
+
+    // tx/rx helper functions
+    void update(); // should be called every loop()
+    void handleTX();
+    void handleRX();
+    bool avail();
 
     // interface methods
     // even higher level
     void setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t freq);
     void setPower(uint8_t pwr); // see datasheet for correspondence between this value and actual power output
-    void setPins();
-    bool readGPIO0();
-    bool readGPIO1();
-    bool readGPIO2();
-    bool readGPIO3();
+    void setPins(Si4463Pin gpio0Mode, Si4463Pin gpio1Mode, Si4463Pin gpio2Mode, Si4463Pin gpio3Mode, Si4463Pin irqMode, bool pullup = true);
+    void setFRRs(Si4463FRR regAMode, Si4463FRR regBMode = FRR_NO_CHANGE, Si4463FRR regCMode = FRR_NO_CHANGE, Si4463FRR regDMode = FRR_NO_CHANGE);
+    void setAFC(bool enabled);
+    bool gpio0();
+    bool gpio1();
+    bool gpio2();
+    bool gpio3();
+    bool irq();
+    int readFRR(int index);
 
     // higher level
     void setProperty(Si4463Group group, Si4463Property start, uint8_t data);
@@ -77,6 +98,8 @@ private:
     // spi interface
     SPIClass *spi;
     uint8_t _cs;
+    uint8_t _irq;
+
     // gpio pins
     uint8_t _gp0;
     uint8_t _gp1;
@@ -93,6 +116,17 @@ private:
     static void to_bytes(uint16_t val, uint8_t pos, uint8_t *arr, bool MSB = true);
     static void to_bytes(uint32_t val, uint8_t pos, uint8_t *arr, bool MSB = true);
     static void to_bytes(uint64_t val, uint8_t pos, uint8_t *arr, bool MSB = true);
+};
+
+// tx/rx states
+enum Si4463State : uint8_t
+{
+    STATE_IDLE,        // not doing anything
+    STATE_ENTER_TX,    // chip commanded to enter TX mode
+    STATE_TX,          // in the middle of TX
+    STATE_ENTER_RX,    // chip commanded to enter RX mode
+    STATE_RX,          // in the middle of RX
+    STATE_RX_COMPLETE, // finished RX
 };
 
 // modulations
@@ -148,10 +182,16 @@ enum Si4463Pin : uint8_t
     PIN_DRIVE0 = 0x02,
     PIN_DRIVE1 = 0x03,
     PIN_INPUT = 0x04,
+    PIN_32K_CLK = 0x05,
+    PIN_BOOT_CLK = 0x06,
     PIN_DIV_CLK = 0x07,
     PIN_CTS = 0x08,
+    PIN_INV_CTS = 0x09,
+    PIN_CMD_OVERLAP = 0x0A,
     PIN_SDO = 0x0B,
     PIN_POR = 0x0C,
+    PIN_CAL_WUT = 0x0D,
+    PIN_WUT = 0x0E,
     PIN_EN_PA = 0x0F,
     PIN_TX_DATA_CLK = 0x10,
     PIN_RX_DATA_CLK = 0x11,
@@ -165,9 +205,33 @@ enum Si4463Pin : uint8_t
     PIN_INVALID_PREAMBLE = 0x19,
     PIN_SYNC_WORD_DETECT = 0x1A,
     PIN_CCA = 0x1B,
+    PIN_IN_SLEEP = 0x1C,
     PIN_PKT_TRACE = 0x1D,
     PIN_TX_RX_DATA_CLK = 0x1F,
+    PIN_TX_STATE = 0x20,
+    PIN_RX_STATE = 0x21,
+    PIN_RX_FIFO_FULL = 0x22,
+    PIN_TX_FIFO_EMPTY = 0x23,
+    PIN_LOW_DATT = 0x24,
+    PIN_CCA_LATCH = 0x25,
+    PIN_HOPPED = 0x26,
     PIN_NIRQ = 0x27,
+};
+
+enum Si4463FRR : uint8_t
+{
+    FRR_DISABLED = 0x00,
+    FRR_INT_STATUS = 0x01,
+    FRR_INT_PEND = 0x02,
+    FRR_INT_PH_STATUS = 0x03,
+    FRR_INT_PH_PEND = 0x04,
+    FRR_INT_MODEM_STATUS = 0x05,
+    FRR_INT_MODEM_PEND = 0x06,
+    FRR_INT_CHIP_STATUS = 0x07,
+    FRR_INT_CHIP_PEND = 0x08,
+    FRR_CURRENT_STATE = 0x09,
+    FRR_LATCHED_RSSI = 0x0A,
+    FRR_NO_CHANGE = 0xFF, // does not modify this FRR's mode
 };
 
 // commands

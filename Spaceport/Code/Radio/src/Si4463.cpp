@@ -1,36 +1,17 @@
 #include "Si4463.h"
 
-/*struct Si4463HardwareConfig
-{
-    Si4463Mod mod;
-    Si4463DataRate dataRate;
-    uint32_t freq;
-    uint8_t pwr;
-};
-
-struct Si4463PinConfig
-{
-    SPIClass spi;
-    uint8_t cs;
-
-    uint8_t sdn;
-    uint8_t irq;
-
-    uint8_t gpio0;
-    uint8_t gpio1;
-    uint8_t gpio2;
-    uint8_t gpio3;
-};*/
-
 Si4463::Si4463(Si4463HardwareConfig hConfig, Si4463PinConfig pConfig)
 {
     this->mod = hConfig.mod;
     this->dataRate = hConfig.dataRate;
     this->freq = hConfig.freq;
     this->pwr = hConfig.pwr;
+    this->preambleLen = hConfig.preambleLen;
+    this->preambleThresh = hConfig.preambleThresh;
 
     this->spi = pConfig.spi;
     this->_cs = pConfig.cs;
+    this->_irq = pConfig.irq;
 
     this->_gp0 = pConfig.gpio0;
     this->_gp1 = pConfig.gpio1;
@@ -40,6 +21,14 @@ Si4463::Si4463(Si4463HardwareConfig hConfig, Si4463PinConfig pConfig)
 
 bool Si4463::begin()
 {
+    // set pins
+    pinMode(_cs, OUTPUT);
+    pinMode(_irq, INPUT);
+    pinMode(_gp0, INPUT);
+    pinMode(_gp1, INPUT);
+    pinMode(_gp2, INPUT);
+    pinMode(_gp3, INPUT);
+
     // complete power on sequence
     this->powerOn();
 
@@ -57,23 +46,214 @@ bool Si4463::begin()
 
     // set modem (frequency related) config
     this->setModemConfig(this->mod, this->dataRate, this->freq);
-    // set power level (127 = 20 dBm)
+    // set power level (127 = ~20 dBm)
     this->setPower(127);
+    // turn on AFC
+    this->setAFC(true);
+    // set preamble length
+    setProperty(G_PREAMBLE, P_PREAMBLE_TX_LENGTH, this->preambleLen);
+    // set preamble threshold
+    setProperty(G_PREAMBLE, P_PREAMBLE_CONFIG_STD_1, this->preambleThresh & 0b01111111); // first bit must be 0
+    // leaving sync word params at defaults
+
+    // set defaults for gpio pins
+    this->setPins(PIN_TX_FIFO_EMPTY, PIN_RX_FIFO_FULL, PIN_RX_STATE, PIN_TX_STATE, PIN_VALID_PREAMBLE);
+
+    // set defaults for FRRs
+    this->setFRRs(FRR_CURRENT_STATE, FRR_LATCHED_RSSI, FRR_INT_STATUS, FRR_INT_CHIP_STATUS);
+
+    // packet handling setup
+    setProperty(G_PKT, P_PKT_LEN, 0b00011010);
+    setProperty(G_PKT, P_PKT_LEN_FIELD_SOURCE, 0b00000001);
+    setProperty(G_PKT, P_PKT_TX_THRESHOLD, 10); // fire interrupt when 10 bytes in FIFO
+    setProperty(G_PKT, P_PKT_RX_THRESHOLD, 54); // fire interrupt when 54 bytes in FIFO
+    uint8_t lengthFieldLen[2] = {0, 4};
+    setProperty(G_PKT, 2, P_PKT_FIELD_1_LENGTH2, lengthFieldLen);
+    uint8_t dataMaxLen[2] = {0};
+    to_bytes(this->maxLen, 0, dataMaxLen);
+    setProperty(G_PKT, 2, P_PKT_FIELD_1_LENGTH2, dataMaxLen);
 
     return true;
 }
 
-void Si4463::setPower(uint8_t pwr)
+bool Si4463::tx(const uint8_t *message, int len)
 {
-    const uint8_t PA_MODE = 0b000001000; // this is the default
-    // setProperty(G_PA, P_PA_MODE, PA_MODE);
-    setProperty(G_PA, P_PA_PWR_LVL, pwr & 0b01111111); // first bit should be 0
+    if (len > this->maxLen)
+        return false;
+
+    this->length = len;
+    memcpy(this->buf, message, this->length);
+    // prefill fifo in idle state
+    if (this->state == STATE_IDLE)
+    {
+        digitalWrite(this->_cs, LOW);
+
+        this->spi->transfer(C_WRITE_TX_FIFO);
+
+        // send length
+        uint8_t mLen[2] = {0};
+        to_bytes(this->length, 0, mLen);
+        this->spi->transfer(mLen[0]);
+        this->spi->transfer(mLen[1]);
+
+        // send message body
+        while (!gpio1() && this->xfrd < this->length)
+        {
+            this->spi->transfer(this->buf[this->xfrd++]);
+        }
+
+        digitalWrite(this->_cs, HIGH);
+
+        // start tx
+        uint8_t txArgs[6] = {0, 0b00110000, 0, 0, 0, 0};
+        spi_write(C_START_TX, 6, txArgs);
+
+        this->state = STATE_TX;
+        return true;
+    }
+    return false;
 }
+
+void Si4463::handleTX()
+{
+    if (this->state == STATE_TX)
+    {
+        digitalWrite(this->_cs, LOW);
+
+        this->spi->transfer(C_WRITE_TX_FIFO);
+
+        while (!gpio1() && this->xfrd < this->length)
+        {
+            this->spi->transfer(this->buf[this->xfrd++]);
+        }
+
+        digitalWrite(this->_cs, HIGH);
+
+        if (this->xfrd > this->length)
+            return; // should never be here
+        if (this->xfrd == this->length)
+        {
+            // automatically placed into an idle state
+            this->state = STATE_IDLE;
+            memset(this->buf, 0, this->length);
+            this->length = 0;
+            this->xfrd = 0;
+        }
+    }
+}
+
+bool Si4463::rx()
+{
+    if (this->state == STATE_IDLE)
+    {
+        uint8_t rxArgs[7] = {0, 0, 0, 0, 0, 0b00000011, 0b00000011};
+        spi_write(C_START_RX, 7, rxArgs);
+        this->state = STATE_ENTER_RX;
+    }
+}
+
+void Si4463::handleRX()
+{
+    if (this->state == STATE_RX)
+    {
+        digitalWrite(this->_cs, LOW);
+
+        this->spi->transfer(C_READ_RX_FIFO);
+
+        if (this->length == 0 && this->xfrd == 0)
+        {
+            // first message, need to read length
+            uint8_t mLen[2] = {0};
+            mLen[0] = this->spi->transfer(0x00);
+            mLen[1] = this->spi->transfer(0x00);
+            from_bytes(length, 0, mLen);
+            if (length > this->maxLen)
+            {
+                length = 0;
+                return; // error, message too long
+            }
+        }
+
+        while (!gpio0() && this->xfrd < this->length)
+        {
+            this->buf[this->xfrd++] = this->spi->transfer(0x00);
+        }
+
+        digitalWrite(this->_cs, HIGH);
+
+        if (this->xfrd > this->length)
+            return; // should never be here
+        if (this->xfrd == this->length)
+        {
+            // automatically placed into an idle state
+            this->state = STATE_RX_COMPLETE;
+            // only reset xfrd
+            // length and buf need to stay so they can be read
+            this->xfrd = 0;
+        }
+    }
+}
+
+void Si4463::update()
+{
+    // save this for later
+    // if (this->state == STATE_ENTER_TX && gpio3())
+    //     this->state = STATE_TX;
+    // if (this->state == STATE_ENTER_RX && gpio2())
+    //     this->state = STATE_RX;
+
+    // slightly worse version to use while we don't have access to GPIO 2 and 3 (COTS radio)
+    if (this->state == STATE_ENTER_TX && checkCTS())
+        this->state = STATE_TX;
+    if (this->state == STATE_ENTER_RX && checkCTS())
+        this->state = STATE_RX;
+
+    if (gpio0() && this->state == STATE_TX)
+    {
+        handleTX();
+    }
+    if (gpio1() && this->state == STATE_RX)
+    {
+        handleRX();
+    }
+    if (irq() && (this->state == STATE_RX || this->state == STATE_RX_COMPLETE))
+    {
+        this->rssi = readFRR(1);
+    }
+}
+
+int Si4463::RSSI()
+{
+    return this->rssi;
+}
+
+bool Si4463::avail() { return this->state == STATE_RX_COMPLETE; }
 
 void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t freq)
 {
     // set modulation
-    setProperty(G_MODEM, P_MODEM_MOD_TYPE, MOD_CW);
+    setProperty(G_MODEM, P_MODEM_MOD_TYPE, mod);
+
+    // set modulation dependant properties
+    uint8_t pktConfArgs = 0b00000000;
+    uint8_t pktFieldConfArgs = 0b00000000;
+    // need to enable 4 level at packet handler and field level
+    if (mod == MOD_4FSK || mod == MOD_4GFSK)
+    {
+        pktConfArgs |= 0b01000000;
+        pktFieldConfArgs |= 0b00010000;
+    }
+    setProperty(G_PKT, P_PKT_CONFIG1, pktConfArgs);
+    setProperty(G_PKT, P_PKT_FIELD_1_CONFIG, pktConfArgs);
+    setProperty(G_PKT, P_PKT_FIELD_2_CONFIG, pktConfArgs);
+    setProperty(G_PKT, P_PKT_FIELD_3_CONFIG, pktConfArgs);
+    setProperty(G_PKT, P_PKT_FIELD_4_CONFIG, pktConfArgs);
+    setProperty(G_PKT, P_PKT_FIELD_5_CONFIG, pktConfArgs);
+    setProperty(G_PKT, P_PKT_RX_FIELD_1_CONFIG, pktConfArgs);
+    setProperty(G_PKT, P_PKT_RX_FIELD_2_CONFIG, pktConfArgs);
+    setProperty(G_PKT, P_PKT_RX_FIELD_3_CONFIG, pktConfArgs);
+    setProperty(G_PKT, P_PKT_RX_FIELD_4_CONFIG, pktConfArgs);
+    setProperty(G_PKT, P_PKT_RX_FIELD_5_CONFIG, pktConfArgs);
 
     // figure out which band to use
 
@@ -163,6 +343,95 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
     // first 7 bits should be 0
     to_bytes((uint32_t)fDev & 0x0001FFFF, 0, fDevArgs);
     setProperty(G_MODEM, 3, P_MODEM_FREQ_DEV3, fDevArgs);
+}
+
+void Si4463::setPower(uint8_t pwr)
+{
+    const uint8_t PA_MODE = 0b000001000; // this is the default
+    // setProperty(G_PA, P_PA_MODE, PA_MODE);
+    setProperty(G_PA, P_PA_PWR_LVL, pwr & 0b01111111); // first bit should be 0
+}
+
+void Si4463::setPins(Si4463Pin gpio0Mode, Si4463Pin gpio1Mode, Si4463Pin gpio2Mode, Si4463Pin gpio3Mode, Si4463Pin irqMode, bool pullup)
+{
+    uint8_t pullupMask = 0b00000000;
+    if (pullup)
+    {
+        pullupMask = 0b01000000;
+    }
+    uint8_t gpioArgs[7] = {gpio0Mode | pullupMask, gpio1Mode | pullupMask,
+                           gpio2Mode | pullupMask, gpio3Mode | pullupMask,
+                           PIN_DO_NOTHING | pullupMask, PIN_SDO | pullupMask, 0x00};
+
+    if (irqMode < 0x04 || irqMode == 0x07 || irqMode == 0x08 || irqMode == 0x0B || irqMode == 0x0C ||
+        (irqMode >= 0x0F && irqMode <= 0x1B) || irqMode == 0x1D || irqMode == 0x1F || irqMode == 0x27)
+    {
+        gpioArgs[4] = irqMode | pullupMask;
+    }
+
+    sendCommandC(C_GPIO_PIN_CFG, 7, gpioArgs);
+}
+
+void Si4463::setFRRs(Si4463FRR regAMode, Si4463FRR regBMode, Si4463FRR regCMode, Si4463FRR regDMode)
+{
+    if (regAMode != FRR_NO_CHANGE)
+        setProperty(G_FRR_CTL, P_FRR_CTL_A_MODE, regAMode);
+    if (regBMode != FRR_NO_CHANGE)
+        setProperty(G_FRR_CTL, P_FRR_CTL_B_MODE, regBMode);
+    if (regCMode != FRR_NO_CHANGE)
+        setProperty(G_FRR_CTL, P_FRR_CTL_C_MODE, regCMode);
+    if (regDMode != FRR_NO_CHANGE)
+        setProperty(G_FRR_CTL, P_FRR_CTL_D_MODE, regDMode);
+}
+
+void Si4463::setAFC(bool enabled)
+{
+    uint8_t afcGainArgs[2] = {0b1000011, 0x69}; // default
+    if (!enabled)
+    {
+        afcGainArgs[0] = 0b0000011;
+        afcGainArgs[1] = 0x69;
+    }
+    setProperty(G_MODEM, 2, P_MODEM_AFC_GAIN2, afcGainArgs);
+    if (enabled)
+    {
+        uint8_t afcLimiterArgs[8] = {0b01000000, 0xBE}; // set max AFC deviation to 190*8 = 1.52 kHz
+        setProperty(G_MODEM, 2, P_MODEM_AFC_LIMITER2, afcLimiterArgs);
+        uint8_t afcMiscArgs = 0b11101000; // turns on AFC feedback to the PLL
+        setProperty(G_MODEM, P_MODEM_AFC_MISC, afcMiscArgs);
+    }
+}
+
+bool Si4463::gpio0()
+{
+    return digitalRead(this->_gp0);
+}
+
+bool Si4463::gpio1()
+{
+    return digitalRead(this->_gp1);
+}
+
+bool Si4463::gpio2()
+{
+    return digitalRead(this->_gp2);
+}
+
+bool Si4463::gpio3()
+{
+    return digitalRead(this->_gp3);
+}
+
+bool Si4463::irq()
+{
+    return digitalRead(this->_irq);
+}
+
+int Si4463::readFRR(int index)
+{
+    uint8_t data[4] = {0};
+    readFRRs(data, index);
+    return data[0];
 }
 
 void Si4463::setProperty(Si4463Group group, Si4463Property start, uint8_t data)
