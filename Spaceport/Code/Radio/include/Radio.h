@@ -10,7 +10,7 @@ public:
     virtual ~Radio() {}; // Virtual descructor. Very important
     virtual bool begin() = 0;
     virtual bool tx(const uint8_t *message, int len = -1) = 0;
-    virtual const char *rx() = 0;
+    virtual bool rx() = 0;
     virtual bool send(Data &data) = 0;
     virtual const char *receive(Data &data) = 0;
     virtual int RSSI() = 0;
