@@ -47,7 +47,7 @@ bool Si4463::begin()
     // set modem (frequency related) config
     this->setModemConfig(this->mod, this->dataRate, this->freq);
     // set power level (127 = ~20 dBm)
-    this->setPower(127);
+    this->setPower(this->pwr);
     // turn on AFC
     this->setAFC(true);
     // set preamble length
@@ -149,7 +149,9 @@ bool Si4463::rx()
         uint8_t rxArgs[7] = {0, 0, 0, 0, 0, 0b00000011, 0b00000011};
         spi_write(C_START_RX, 7, rxArgs);
         this->state = STATE_ENTER_RX;
+        return true;
     }
+    return false;
 }
 
 void Si4463::handleRX()
@@ -222,12 +224,31 @@ void Si4463::update()
     }
 }
 
-int Si4463::RSSI()
+bool Si4463::send(Data &data)
 {
-    return this->rssi;
+    this->m.encode(&data);
+    return this->tx(m.buf, m.size);
 }
 
-bool Si4463::avail() { return this->state == STATE_RX_COMPLETE; }
+bool Si4463::receive(Data &data)
+{
+    if (this->state == STATE_RX_COMPLETE)
+    {
+        m.fill(this->buf, this->length)->decode(&data);
+        return true;
+    }
+    return false;
+}
+
+int Si4463::RSSI() { return this->rssi / 2 - 64 - 70; } // magic formula from datasheet
+
+bool Si4463::avail()
+{
+    if (this->state == STATE_IDLE)
+        return this->rx();
+    else
+        return this->state == STATE_RX_COMPLETE;
+}
 
 void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t freq)
 {
@@ -265,8 +286,8 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
     int freqBand = freq / 1e6; // truncated due to integer division
     // index of correct band
     int band = -1;
-    uint8_t fInt = -1;
-    uint32_t fFrac = -1;
+    uint8_t fInt = 0;
+    uint32_t fFrac = 0;
     for (int i = 0; i < 6; i++)
     {
         if (freqBand > bands[i])
@@ -294,10 +315,10 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
     }
 
     // set frequency
-    if (band != -1 && fInt != -1 && fFrac != -1)
+    if (band != -1 && !(fInt == 0 && fFrac == 0))
     {
         setProperty(G_MODEM, P_MODEM_CLKGEN_BAND, bandConfigs[band]);
-        uint8_t freqArgs[4] = {fInt & 0b01111111};                     // first bit must be 0
+        uint8_t freqArgs[4] = {(uint8_t)(fInt & 0b01111111)};          // first bit must be 0
         fFrac &= 0x00FFFFFF;                                           // first byte must be 0
         to_bytes(fFrac, 1, freqArgs);                                  // put fFrac into freqArgs
         setProperty(G_FREQ_CONTROL, 4, P_FREQ_CONTROL_INTE, freqArgs); // set FREQ_CONTROL_INTE and FREQ_CONTROL_FRAC
@@ -347,7 +368,7 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
 
 void Si4463::setPower(uint8_t pwr)
 {
-    const uint8_t PA_MODE = 0b000001000; // this is the default
+    // const uint8_t PA_MODE = 0b000001000; // this is the default
     // setProperty(G_PA, P_PA_MODE, PA_MODE);
     setProperty(G_PA, P_PA_PWR_LVL, pwr & 0b01111111); // first bit should be 0
 }
@@ -359,9 +380,9 @@ void Si4463::setPins(Si4463Pin gpio0Mode, Si4463Pin gpio1Mode, Si4463Pin gpio2Mo
     {
         pullupMask = 0b01000000;
     }
-    uint8_t gpioArgs[7] = {gpio0Mode | pullupMask, gpio1Mode | pullupMask,
-                           gpio2Mode | pullupMask, gpio3Mode | pullupMask,
-                           PIN_DO_NOTHING | pullupMask, PIN_SDO | pullupMask, 0x00};
+    uint8_t gpioArgs[7] = {(uint8_t)(gpio0Mode | pullupMask), (uint8_t)(gpio1Mode | pullupMask),
+                           (uint8_t)(gpio2Mode | pullupMask), (uint8_t)(gpio3Mode | pullupMask),
+                           (uint8_t)(PIN_DO_NOTHING | pullupMask), (uint8_t)(PIN_SDO | pullupMask), 0x00};
 
     if (irqMode < 0x04 || irqMode == 0x07 || irqMode == 0x08 || irqMode == 0x0B || irqMode == 0x0C ||
         (irqMode >= 0x0F && irqMode <= 0x1B) || irqMode == 0x1D || irqMode == 0x1F || irqMode == 0x27)
@@ -573,16 +594,17 @@ void Si4463::spi_read(uint8_t argc, uint8_t *argv)
 
 void Si4463::from_bytes(uint16_t &val, uint8_t pos, uint8_t *arr, bool MSB)
 {
+    int iterNum = 2 - pos;
     if (MSB)
     {
-        for (int i = 1; i >= 0; i--)
+        for (int i = iterNum - 1; i >= 0; i--)
         {
             val += arr[pos++] << (i * 8);
         }
     }
     else
     {
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < iterNum; i++)
         {
             val += arr[pos++] << (i * 8);
         }
@@ -591,16 +613,17 @@ void Si4463::from_bytes(uint16_t &val, uint8_t pos, uint8_t *arr, bool MSB)
 
 void Si4463::from_bytes(uint32_t &val, uint8_t pos, uint8_t *arr, bool MSB)
 {
+    int iterNum = 4 - pos;
     if (MSB)
     {
-        for (int i = 3; i >= 0; i--)
+        for (int i = iterNum - 1; i >= 0; i--)
         {
             val += arr[pos++] << (i * 8);
         }
     }
     else
     {
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < iterNum; i++)
         {
             val += arr[pos++] << (i * 8);
         }
@@ -609,16 +632,17 @@ void Si4463::from_bytes(uint32_t &val, uint8_t pos, uint8_t *arr, bool MSB)
 
 void Si4463::from_bytes(uint64_t &val, uint8_t pos, uint8_t *arr, bool MSB)
 {
+    int iterNum = 8 - pos;
     if (MSB)
     {
-        for (int i = 7; i >= 0; i--)
+        for (int i = iterNum - 1; i >= 0; i--)
         {
             val += arr[pos++] << (i * 8);
         }
     }
     else
     {
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < iterNum; i++)
         {
             val += arr[pos++] << (i * 8);
         }
@@ -627,16 +651,17 @@ void Si4463::from_bytes(uint64_t &val, uint8_t pos, uint8_t *arr, bool MSB)
 
 void Si4463::to_bytes(uint16_t val, uint8_t pos, uint8_t *arr, bool MSB)
 {
+    int iterNum = 2 - pos;
     if (MSB)
     {
-        for (int i = 1; i >= 0; i--)
+        for (int i = iterNum - 1; i >= 0; i--)
         {
             arr[pos++] = (val & (0x00ff << (i * 8))) >> (i * 8);
         }
     }
     else
     {
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < iterNum; i++)
         {
             arr[pos++] = (val & (0x00ff << (i * 8))) >> (i * 8);
         }
@@ -645,16 +670,17 @@ void Si4463::to_bytes(uint16_t val, uint8_t pos, uint8_t *arr, bool MSB)
 
 void Si4463::to_bytes(uint32_t val, uint8_t pos, uint8_t *arr, bool MSB)
 {
+    int iterNum = 4 - pos;
     if (MSB)
     {
-        for (int i = 3; i >= 0; i--)
+        for (int i = iterNum - 1; i >= 0; i--)
         {
             arr[pos++] = (val & (0x000000ff << (i * 8))) >> (i * 8);
         }
     }
     else
     {
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < iterNum; i++)
         {
             arr[pos++] = (val & (0x000000ff << (i * 8))) >> (i * 8);
         }
@@ -663,16 +689,17 @@ void Si4463::to_bytes(uint32_t val, uint8_t pos, uint8_t *arr, bool MSB)
 
 void Si4463::to_bytes(uint64_t val, uint8_t pos, uint8_t *arr, bool MSB)
 {
+    int iterNum = 8 - pos;
     if (MSB)
     {
-        for (int i = 7; i >= 0; i--)
+        for (int i = iterNum - 1; i >= 0; i--)
         {
             arr[pos++] = (val & (0x00000000000000ff << (i * 8))) >> (i * 8);
         }
     }
     else
     {
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < iterNum; i++)
         {
             arr[pos++] = (val & (0x00000000000000ff << (i * 8))) >> (i * 8);
         }
