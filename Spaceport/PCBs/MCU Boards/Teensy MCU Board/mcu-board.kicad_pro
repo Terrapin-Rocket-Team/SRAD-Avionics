@@ -6,7 +6,7 @@
         "apply_defaults_to_fp_fields": false,
         "apply_defaults_to_fp_shapes": false,
         "apply_defaults_to_fp_text": false,
-        "board_outline_line_width": 0.1,
+        "board_outline_line_width": 0.05,
         "copper_line_width": 0.2,
         "copper_text_italic": false,
         "copper_text_size_h": 1.5,
@@ -30,34 +30,28 @@
         "fab_text_size_v": 1.0,
         "fab_text_thickness": 0.15,
         "fab_text_upright": false,
-        "other_line_width": 0.15,
+        "other_line_width": 0.1,
         "other_text_italic": false,
         "other_text_size_h": 1.0,
         "other_text_size_v": 1.0,
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 0.762,
-          "height": 1.524,
-          "width": 1.524
+          "drill": 1.02,
+          "height": 2.0,
+          "width": 2.0
         },
-        "silk_line_width": 0.15,
+        "silk_line_width": 0.1,
         "silk_text_italic": false,
         "silk_text_size_h": 1.0,
         "silk_text_size_v": 1.0,
-        "silk_text_thickness": 0.15,
+        "silk_text_thickness": 0.1,
         "silk_text_upright": false,
         "zones": {
-          "min_clearance": 0.2
+          "min_clearance": 0.5
         }
       },
-      "diff_pair_dimensions": [
-        {
-          "gap": 0.0,
-          "via_gap": 0.0,
-          "width": 0.0
-        }
-      ],
+      "diff_pair_dimensions": [],
       "drc_exclusions": [],
       "meta": {
         "version": 2
@@ -118,7 +112,7 @@
         "max_error": 0.005,
         "min_clearance": 0.0,
         "min_connection": 0.0,
-        "min_copper_edge_clearance": 0.0,
+        "min_copper_edge_clearance": 0.5,
         "min_hole_clearance": 0.25,
         "min_hole_to_hole": 0.25,
         "min_microvia_diameter": 0.2,
@@ -131,8 +125,6 @@
         "min_track_width": 0.0,
         "min_via_annular_width": 0.1,
         "min_via_diameter": 0.5,
-        "solder_mask_clearance": 0.0,
-        "solder_mask_min_width": 0.0,
         "solder_mask_to_copper_clearance": 0.0,
         "use_height_for_length_calcs": true
       },
@@ -179,12 +171,7 @@
           "td_width_to_size_filter_ratio": 0.9
         }
       ],
-      "track_widths": [
-        0.0,
-        0.16,
-        0.335596,
-        2.0
-      ],
+      "track_widths": [],
       "tuning_pattern_settings": {
         "diff_pair_defaults": {
           "corner_radius_percentage": 80,
@@ -211,12 +198,7 @@
           "spacing": 0.6
         }
       },
-      "via_dimensions": [
-        {
-          "diameter": 0.0,
-          "drill": 0.0
-        }
-      ],
+      "via_dimensions": [],
       "zones_allow_external_fillets": false
     },
     "ipc2581": {
@@ -234,7 +216,10 @@
     "equivalence_files": []
   },
   "erc": {
-    "erc_exclusions": [],
+    "erc_exclusions": [
+      "power_pin_not_driven|1257300|635000|cc50b833-fba7-4fa3-8aaa-f6a944ecb181|00000000-0000-0000-0000-000000000000|/8efcd76d-bb36-41a1-bdc2-22dea3d0088a|/8efcd76d-bb36-41a1-bdc2-22dea3d0088a|",
+      "power_pin_not_driven|444500|596900|c1f61648-6500-4c63-b1d9-1d584f1a2f31|00000000-0000-0000-0000-000000000000|/8efcd76d-bb36-41a1-bdc2-22dea3d0088a|/8efcd76d-bb36-41a1-bdc2-22dea3d0088a|"
+    ],
     "meta": {
       "version": 0
     },
@@ -449,7 +434,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "RF4463F30-test-board.kicad_pro",
+    "filename": "mcu-board.kicad_pro",
     "version": 1
   },
   "net_settings": {
@@ -466,9 +451,9 @@
         "name": "Default",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.25,
-        "via_diameter": 0.8,
-        "via_drill": 0.4,
+        "track_width": 0.2,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
         "wire_width": 6
       }
     ],
@@ -484,10 +469,10 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "plot": "../Gerbers/RF4463F30-Test-Board-v1.0/",
+      "plot": "../../Gerbers/Teensy-MCU-Board-v1.1/",
       "pos_files": "",
       "specctra_dsn": "",
-      "step": "RF4463F30-test-board.step",
+      "step": "",
       "svg": "",
       "vrml": ""
     },
@@ -594,7 +579,7 @@
   },
   "sheets": [
     [
-      "10b1ca65-3bbd-4272-bddd-c70184b19a75",
+      "8efcd76d-bb36-41a1-bdc2-22dea3d0088a",
       "Root"
     ]
   ],
