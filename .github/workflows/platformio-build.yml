@@ -3,9 +3,13 @@
 name: PlatformIO Build
 
 on:
-  pull_request:  # Trigger on pull requests only
+  pull_request:  # Trigger on pull requests
     branches:
       - main  
+
+  commit:
+    branches:
+      - main
 
 jobs:
   build:
