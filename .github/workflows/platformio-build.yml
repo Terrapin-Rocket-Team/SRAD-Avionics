@@ -1,0 +1,36 @@
+# .github/workflows/platformio-build.yml
+
+name: PlatformIO Build
+
+on:
+  pull_request:  # Trigger on pull requests only
+    branches:
+      - main  
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        platformio_project:
+          # add any PlatformIO project folder names here
+          - Spaceport/Code/Teensy-Based-Avionics
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'  # Random python version, may need to be changed
+
+      - name: Install PlatformIO
+        run: |
+          python -m pip install --upgrade pip
+          pip install platformio
+
+      - name: Build Project
+        working-directory: ${{ matrix.platformio_project }}  # Navigate to each PlatformIO project folder
+        run: platformio run
