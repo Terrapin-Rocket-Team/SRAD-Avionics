@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <Sensors/BMI088.h>
+#include "BMI088.h"
 
 #include "AvionicsState.h"
 #include "Pi.h"
