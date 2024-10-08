@@ -3,9 +3,15 @@
 name: KiCad DRC Check
 
 on:
-  pull_request:  # Trigger on pull requests only
+  pull_request:  # Trigger on pull requests
     branches:
-      - main  # Specify branches to trigger on
+      - main  
+
+  commit:
+    paths:
+      - '**/*.kicad_pcb'  # Trigger on any changes to PCB files
+    branches:
+      - main
 
 jobs:
   drc_check:
