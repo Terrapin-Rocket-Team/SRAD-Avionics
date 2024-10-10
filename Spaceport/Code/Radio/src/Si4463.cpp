@@ -168,10 +168,10 @@ void Si4463::handleRX()
             uint8_t mLen[2] = {0};
             mLen[0] = this->spi->transfer(0x00);
             mLen[1] = this->spi->transfer(0x00);
-            from_bytes(length, 0, mLen);
-            if (length > this->maxLen)
+            from_bytes(this->length, 0, mLen);
+            if (this->length > this->maxLen)
             {
-                length = 0;
+                this->length = 0;
                 return; // error, message too long
             }
         }
@@ -245,9 +245,10 @@ int Si4463::RSSI() { return this->rssi / 2 - 64 - 70; } // magic formula from da
 bool Si4463::avail()
 {
     if (this->state == STATE_IDLE)
-        return this->rx();
+        this->rx();
     else
         return this->state == STATE_RX_COMPLETE;
+    return false;
 }
 
 void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t freq)
@@ -525,7 +526,6 @@ void Si4463::powerOn()
     sendCommandC(C_POWER_UP, 6, options);
 }
 
-// used when the command has args and a response besides CTS
 void Si4463::sendCommand(Si4463Cmd cmd, uint8_t argcCmd, uint8_t *argvCmd, uint8_t argcRes, uint8_t *argvRes)
 {
     spi_write(cmd, argcCmd, argvCmd);
@@ -533,7 +533,6 @@ void Si4463::sendCommand(Si4463Cmd cmd, uint8_t argcCmd, uint8_t *argvCmd, uint8
     spi_read(argcRes, argvRes);
 }
 
-// used when the command has no args but has a response besides CTS
 void Si4463::sendCommandR(Si4463Cmd cmd, uint8_t argcRes, uint8_t *argvRes)
 {
     spi_write(cmd, 0, {});
@@ -541,7 +540,6 @@ void Si4463::sendCommandR(Si4463Cmd cmd, uint8_t argcRes, uint8_t *argvRes)
     spi_read(argcRes, argvRes);
 }
 
-// used when the command has args but no response besides CTS
 void Si4463::sendCommandC(Si4463Cmd cmd, uint8_t argcCmd, uint8_t *argvCmd)
 {
     spi_write(cmd, argcCmd, argvCmd);
