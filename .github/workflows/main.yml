@@ -1,4 +1,4 @@
-name: Manage linked issues based on PR events
+name: Manage Linked Issues Based on PR Events
 
 on:
   pull_request:
@@ -12,11 +12,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Print Debug Information
+        run: |
+          echo "PR ID: ${{ github.event.pull_request.node_id }}"
+          echo "PR Number: ${{ github.event.pull_request.number }}"
+          echo "PR Event: ${{ github.event.action }}"
+          echo "PR Review State: ${{ github.event.pull_request_review.state }}"
+
       # Step 1: Get all linked issues
       - name: Fetch Linked Issues
         env:
           GH_TOKEN: ${{ secrets.TEST }}
         run: |
+          # Retrieve the linked issues using GraphQL
           linked_issues=$(gh api graphql -f query='
             query($pr:ID!) {
               node(id: $pr) {
@@ -35,28 +43,34 @@ jobs:
                 }
               }
             }' -f pr=${{ github.event.pull_request.node_id }} --jq '.data.node.closingIssuesReferences.nodes')
-          
-          # Echo out the issues for debug
-          echo "Linked issues: $linked_issues"
 
-          # Extract issue IDs and save them to a new environment variable
+          # Print the retrieved issues for debugging
+          echo "Linked Issues: $linked_issues"
+
+          # Prepare an empty variable to hold all issue IDs
+          all_linked_issues=""
+          
+          # Extract issue IDs and append to the all_linked_issues variable
           echo "$linked_issues" | jq -r '.[].projectItems.nodes[0].id' | while read -r issue_id; do
-            echo "LINKED_ISSUE_ID=$issue_id" >> $GITHUB_ENV
+            all_linked_issues="$all_linked_issues $issue_id"
           done
 
-      # Step 2: Update each issue based on the PR event
-      - name: Update status for each issue
+          # Save the list of issue IDs to the environment for the next steps
+          echo "ALL_LINKED_ISSUE_IDS=$all_linked_issues" >> $GITHUB_ENV
+
+      # Step 2: Set status based on PR event
+      - name: Set Status for Linked Issues
         env:
           GH_TOKEN: ${{ secrets.TEST }}
-          PROJECT_ID: PVT_kwHOCXMlSM4Ap8fI  # Your Project ID
-          STATUS_FIELD_ID: PVTSSF_lAHOCXMlSM4Ap8fIzghRdVc  # Your Status Field ID
+          PROJECT_ID: PVT_kwHOCXMlSM4Ap8fI  # Replace with your Project ID
+          STATUS_FIELD_ID: PVTSSF_lAHOCXMlSM4Ap8fIzghRdVc  # Replace with your Status Field ID
         run: |
-          # Check the PR event type and set the corresponding status
+          # Determine the correct status based on the event type
           if [[ "${{ github.event.action }}" == "opened" ]] || [[ "${{ github.event.action }}" == "review_requested" ]]; then
-            status_option_id="d73ac60e"  # ID for "Ready"
+            status_option_id="d73ac60e"  # Option ID for "Ready"
             echo "Setting status to 'Ready'"
           elif [[ "${{ github.event.pull_request_review.state }}" == "changes_requested" ]] || [[ "${{ github.event.action }}" == "reopened" ]]; then
-            status_option_id="another-id-for-requires-changes"  # ID for "Requires Changes"
+            status_option_id="96a49a79"  # Option ID for "Requires Changes"
             echo "Setting status to 'Requires Changes'"
           else
             echo "No valid event type for status update."
@@ -64,15 +78,17 @@ jobs:
           fi
 
           # Loop through each linked issue and update the status
-          while IFS= read -r issue_id; do
-            echo "Updating status for issue: $issue_id"
-            gh api graphql -f query='
-            mutation($issueId:ID!, $projectId:ID!) {
-              updateProjectV2ItemFieldValue(input: {projectId: $projectId, fieldId: "${{env.STATUS_FIELD_ID}}", itemId: $issueId, value: {singleSelectOptionId: "'$status_option_id'"}}) {
-                projectV2Item {
-                  type
-                  updatedAt
+          for issue_id in $ALL_LINKED_ISSUE_IDS; do
+            if [ -n "$issue_id" ]; then
+              echo "Updating status for issue ID: $issue_id"
+              gh api graphql -f query='
+              mutation($issueId:ID!, $projectId:ID!) {
+                updateProjectV2ItemFieldValue(input: {projectId: $projectId, fieldId: "${{env.STATUS_FIELD_ID}}", itemId: $issueId, value: {singleSelectOptionId: "'$status_option_id'"}}) {
+                  projectV2Item {
+                    type
+                    updatedAt
+                  }
                 }
-              }
-            }' -f issueId=$issue_id -f projectId=$PROJECT_ID
-          done < <(echo "$LINKED_ISSUE_ID")
+              }' -f issueId=$issue_id -f projectId=$PROJECT_ID
+            fi
+          done
