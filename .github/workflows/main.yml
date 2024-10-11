@@ -8,6 +8,11 @@ jobs:
     runs-on: ubuntu-latest
     name: Get id of a linked issue
     steps:
+      - name: Debug - Print PR Node ID
+        run: |
+          echo "PR_ID=${{ github.event.pull_request.node_id }}"
+          echo "PR_NUMBER=${{ github.event.pull_request.number }}"
+          echo "PR_URL=${{ github.event.pull_request.html_url }}"
       - name: Get linked issues of a PR
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} #check link below for different authentication methods
