@@ -12,12 +12,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Debug - Print PR Node ID
-        run: |
-          echo "PR_ID=${{ github.event.pull_request.node_id }}"
-          echo "PR_NUMBER=${{ github.event.pull_request.number }}"
-          echo "PR_URL=${{ github.event.pull_request.html_url }}"
-
       # Step 1: Get all linked issues
       - name: Fetch Linked Issues
         env:
