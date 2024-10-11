@@ -13,6 +13,22 @@ jobs:
           echo "PR_ID=${{ github.event.pull_request.node_id }}"
           echo "PR_NUMBER=${{ github.event.pull_request.number }}"
           echo "PR_URL=${{ github.event.pull_request.html_url }}"
+      - name: Test Linked Issues Query
+        run: |
+          response=$(gh api graphql -f query='
+            query($pr:ID!) {
+              node(id: $pr) {
+                ... on PullRequest {
+                  closingIssuesReferences(first:5) {
+                    nodes {
+                      id
+                      number
+                    }
+                  }
+                }
+              }
+            }' -f pr=${{ github.event.pull_request.node_id }})
+            echo "$response"
       - name: Get linked issues of a PR
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} #check link below for different authentication methods
