@@ -1,0 +1,56 @@
+name: Manage issue status based on PR activity
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - review_requested
+
+  pull_request_review:
+    types:
+      - submitted
+
+jobs:
+  update_issue_status:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository's code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Check if the pull request is linked to any issues
+      - name: Get linked issues
+        id: get_issues
+        uses: dorny/paths-filter@v2
+        with:
+          list-files: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Set issue status to Ready when PR is opened or review is requested
+      - name: Set issue status to Ready
+        if: |
+          github.event.action == 'opened' || 
+          github.event.action == 'reopened' ||
+          github.event.action == 'review_requested'
+        uses: octokit/request-action@v2.0.0
+        with:
+          route: POST /projects/columns/cards
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          card_id: ${{ steps.get_issues.outputs.issue_id }}
+          project_url: <your-project-url>
+          status: 'Ready'
+
+      # Set issue status to Requires Changes when PR review requests changes
+      - name: Set issue status to Requires Changes
+        if: |
+          github.event.pull_request_review.state == 'changes_requested' || 
+          github.event.action == 'reopened'
+        uses: octokit/request-action@v2.0.0
+        with:
+          route: POST /projects/columns/cards
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          card_id: ${{ steps.get_issues.outputs.issue_id }}
+          project_url: <your-project-url>
+          status: 'Requires Changes'
