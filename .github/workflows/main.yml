@@ -1,56 +1,59 @@
-name: Manage issue status based on PR activity
-
+name: Change status of linked issue to "Being Worked On"
 on:
   pull_request:
-    types:
-      - opened
-      - reopened
-      - review_requested
-
-  pull_request_review:
-    types:
-      - submitted
+    types: [opened, reopened]
 
 jobs:
-  update_issue_status:
+  move-to-in-progress:
     runs-on: ubuntu-latest
-
+    name: Get id of a linked issue
     steps:
-      # Checkout the repository's code
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      # Check if the pull request is linked to any issues
-      - name: Get linked issues
-        id: get_issues
-        uses: dorny/paths-filter@v2
-        with:
-          list-files: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      # Set issue status to Ready when PR is opened or review is requested
-      - name: Set issue status to Ready
-        if: |
-          github.event.action == 'opened' || 
-          github.event.action == 'reopened' ||
-          github.event.action == 'review_requested'
-        uses: octokit/request-action@v2.0.0
-        with:
-          route: POST /projects/columns/cards
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          card_id: ${{ steps.get_issues.outputs.issue_id }}
-          project_url: <your-project-url>
-          status: 'Ready'
-
-      # Set issue status to Requires Changes when PR review requests changes
-      - name: Set issue status to Requires Changes
-        if: |
-          github.event.pull_request_review.state == 'changes_requested' || 
-          github.event.action == 'reopened'
-        uses: octokit/request-action@v2.0.0
-        with:
-          route: POST /projects/columns/cards
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          card_id: ${{ steps.get_issues.outputs.issue_id }}
-          project_url: <your-project-url>
-          status: 'Requires Changes'
+      - name: Get linked issues of a PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} #check link below for different authentication methods
+          ORGANIZATION: your-org
+          PROJECT_NUMBER: 1 #from project url
+          PR_ID: ${{ github.event.pull_request.node_id }}
+        #the id of the node is not the id we want
+        #we need to get the project item id - this may break if there is more linked project items
+        run: |
+          linked_issue_id="$( gh api graphql -f query='
+          query($pr:ID!) {
+            node(id: $pr) {
+              ... on PullRequest {
+                closingIssuesReferences(first:1, userLinkedOnly:false) {
+                  totalCount
+                  nodes { 
+                    id 
+                    projectItems(first: 5) {
+                      nodes {
+                        id
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }' -f pr=$PR_ID --jq '.data.node.closingIssuesReferences.nodes[0].projectItems.nodes[0].id')"
+          echo "ISSUE ID:"
+          echo "$linked_issue_id"
+          echo "PR_ID:"
+          echo "${{env.PR_ID}}"
+          echo "LINKED_ISSUE_ID=$linked_issue_id" >> $GITHUB_ENV
+      - name: Change status to "Being Worked On"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROJECT_ID: PVT_kwHOCXMlSM4Ap8fI #retrieved calling GraphQL Github API organization { project }
+          ISSUE_ID: ${{ env.LINKED_ISSUE_ID }}
+          STATUS_FIELD_ID: PVTSSF_lAHOCXMlSM4Ap8fIzghRdVc #you can retrieve this by api or inspecting GraphQL responses when editing available project statuses in your Github project in a browser
+          BEING_WORKED_ON_OPTION_ID: d73ac60e #same as above
+        run: |
+          updatedAt="$( gh api graphql -f query='
+          mutation($issueId:ID!, $projectId:ID!) {
+            updateProjectV2ItemFieldValue(input: {projectId: $projectId, fieldId: "${{env.STATUS_FIELD_ID}}", itemId: $issueId, value: {singleSelectOptionId: "${{env.BEING_WORKED_ON_OPTION_ID}}"}}) {
+              projectV2Item {
+                type
+                updatedAt
+              }
+            }
+          }' -f issueId=$ISSUE_ID -f projectId=$PROJECT_ID  --jq '.data.updateProjectV2ItemFieldValue.projectV2Item.updatedAt')"
