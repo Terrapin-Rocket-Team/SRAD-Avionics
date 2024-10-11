@@ -49,14 +49,18 @@ jobs:
 
           # Prepare an empty variable to hold all issue IDs
           all_linked_issues=""
-          
-          # Extract issue IDs and append to the all_linked_issues variable
-          echo "$linked_issues" | jq -r '.[].projectItems.nodes[0].id' | while read -r issue_id; do
+
+          # Use jq to directly iterate over the JSON array and append issue IDs
+          for issue_id in $(echo "$linked_issues" | jq -r '.[].projectItems.nodes[0].id'); do
             all_linked_issues="$all_linked_issues $issue_id"
           done
 
+          # Print the collected issue IDs for debugging
+          echo "Collected Linked Issue IDs: $all_linked_issues"
+
           # Save the list of issue IDs to the environment for the next steps
           echo "ALL_LINKED_ISSUE_IDS=$all_linked_issues" >> $GITHUB_ENV
+
 
       # Step 2: Set status based on PR event
       - name: Set Status for Linked Issues
