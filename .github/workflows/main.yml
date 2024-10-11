@@ -67,10 +67,10 @@ jobs:
         run: |
           # Determine the correct status based on the event type
           if [[ "${{ github.event.action }}" == "opened" ]] || [[ "${{ github.event.action }}" == "review_requested" ]]; then
-            status_option_id="d73ac60e"  # Option ID for "Ready"
+            status_option_id="96a49a79"  # Option ID for "Ready"
             echo "Setting status to 'Ready'"
           elif [[ "${{ github.event.pull_request_review.state }}" == "changes_requested" ]] || [[ "${{ github.event.action }}" == "reopened" ]]; then
-            status_option_id="96a49a79"  # Option ID for "Requires Changes"
+            status_option_id="d73ac60e"  # Option ID for "Requires Changes"
             echo "Setting status to 'Requires Changes'"
           else
             echo "No valid event type for status update."
