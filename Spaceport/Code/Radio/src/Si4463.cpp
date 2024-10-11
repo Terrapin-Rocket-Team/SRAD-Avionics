@@ -2,6 +2,7 @@
 
 Si4463::Si4463(Si4463HardwareConfig hConfig, Si4463PinConfig pConfig)
 {
+    // update internal variables with hardware configuration
     this->mod = hConfig.mod;
     this->dataRate = hConfig.dataRate;
     this->freq = hConfig.freq;
@@ -9,6 +10,7 @@ Si4463::Si4463(Si4463HardwareConfig hConfig, Si4463PinConfig pConfig)
     this->preambleLen = hConfig.preambleLen;
     this->preambleThresh = hConfig.preambleThresh;
 
+    // update internal variables with pin/SPI configuration
     this->spi = pConfig.spi;
     this->_cs = pConfig.cs;
     this->_irq = pConfig.irq;
@@ -21,7 +23,7 @@ Si4463::Si4463(Si4463HardwareConfig hConfig, Si4463PinConfig pConfig)
 
 bool Si4463::begin()
 {
-    // set pins
+    // set pins for correct modes
     pinMode(_cs, OUTPUT);
     pinMode(_irq, INPUT);
     pinMode(_gp0, INPUT);
@@ -32,16 +34,16 @@ bool Si4463::begin()
     // complete power on sequence
     this->powerOn();
 
-    // check part info
+    // check part info to make sure proper communication has been established
     uint8_t args[8] = {0};
     this->sendCommandR(C_PART_INFO, 8, args);
 
     uint16_t partNo = 0;
     from_bytes(partNo, 1, args);
     if (partNo != PART_NO)
-        return false; // make sure proper communication has been established
+        return false; // Error: did not receive the correct part number
 
-    // apparently this needs to be set manually
+    // set the global config, this is the defaults, but apparently a reserved field needs to be set manually
     this->setProperty(G_GLOBAL, P_GLOBAL_CONFIG, 0b01100000);
 
     // set modem (frequency related) config
@@ -63,12 +65,14 @@ bool Si4463::begin()
     this->setFRRs(FRR_CURRENT_STATE, FRR_LATCHED_RSSI, FRR_INT_STATUS, FRR_INT_CHIP_STATUS);
 
     // packet handling setup
-    setProperty(G_PKT, P_PKT_LEN, 0b00011010);
-    setProperty(G_PKT, P_PKT_LEN_FIELD_SOURCE, 0b00000001);
-    setProperty(G_PKT, P_PKT_TX_THRESHOLD, 10); // fire interrupt when 10 bytes in FIFO
-    setProperty(G_PKT, P_PKT_RX_THRESHOLD, 54); // fire interrupt when 54 bytes in FIFO
+    setProperty(G_PKT, P_PKT_LEN, 0b00011010);              // set received field length to be 2 bytes, leave in the length bytes, and set the variable length field to field 2
+    setProperty(G_PKT, P_PKT_LEN_FIELD_SOURCE, 0b00000001); // set the length field to be field 1
+    setProperty(G_PKT, P_PKT_TX_THRESHOLD, 10);             // fire interrupt when 10 bytes in FIFO
+    setProperty(G_PKT, P_PKT_RX_THRESHOLD, 54);             // fire interrupt when 54 bytes in FIFO
+    // set the length of the length field (field 1) to be 4 bytes
     uint8_t lengthFieldLen[2] = {0, 4};
     setProperty(G_PKT, 2, P_PKT_FIELD_1_LENGTH2, lengthFieldLen);
+    // set the length of the data field (field 2) to be the maximum data length of 8191 bytes
     uint8_t dataMaxLen[2] = {0};
     to_bytes(this->maxLen, 0, dataMaxLen);
     setProperty(G_PKT, 2, P_PKT_FIELD_1_LENGTH2, dataMaxLen);
@@ -78,9 +82,11 @@ bool Si4463::begin()
 
 bool Si4463::tx(const uint8_t *message, int len)
 {
+    // make sure the packet isn't too long
     if (len > this->maxLen)
-        return false;
+        return false; // Error: the packet is too long
 
+    // otherwise add the message to the internal buffer
     this->length = len;
     memcpy(this->buf, message, this->length);
     // prefill fifo in idle state
@@ -88,6 +94,7 @@ bool Si4463::tx(const uint8_t *message, int len)
     {
         digitalWrite(this->_cs, LOW);
 
+        // write to TX FIFO
         this->spi->transfer(C_WRITE_TX_FIFO);
 
         // send length
@@ -116,12 +123,15 @@ bool Si4463::tx(const uint8_t *message, int len)
 
 void Si4463::handleTX()
 {
+    // this function assumes we are in tx mode already, so check that we are in tx mode
     if (this->state == STATE_TX)
     {
         digitalWrite(this->_cs, LOW);
 
+        // write to the TX FIFO
         this->spi->transfer(C_WRITE_TX_FIFO);
 
+        // write remaining data
         while (!gpio1() && this->xfrd < this->length)
         {
             this->spi->transfer(this->buf[this->xfrd++]);
@@ -129,12 +139,12 @@ void Si4463::handleTX()
 
         digitalWrite(this->_cs, HIGH);
 
-        if (this->xfrd > this->length)
-            return; // should never be here
+        // if we've sent this->length bytes, the message is complete
         if (this->xfrd == this->length)
         {
             // automatically placed into an idle state
             this->state = STATE_IDLE;
+            // clear internal variables
             memset(this->buf, 0, this->length);
             this->length = 0;
             this->xfrd = 0;
@@ -144,8 +154,10 @@ void Si4463::handleTX()
 
 bool Si4463::rx()
 {
+    // make sure we aren't already in RX mode
     if (this->state == STATE_IDLE)
     {
+        // enter RX mode
         uint8_t rxArgs[7] = {0, 0, 0, 0, 0, 0b00000011, 0b00000011};
         spi_write(C_START_RX, 7, rxArgs);
         this->state = STATE_ENTER_RX;
@@ -156,19 +168,24 @@ bool Si4463::rx()
 
 void Si4463::handleRX()
 {
+    // we need to be in RX mode to be receiving a message
     if (this->state == STATE_RX)
     {
         digitalWrite(this->_cs, LOW);
 
+        // read from RX FIFO
         this->spi->transfer(C_READ_RX_FIFO);
 
+        // if the internal length and xfrd variables are 0, then this is the first part of the message
         if (this->length == 0 && this->xfrd == 0)
         {
-            // first message, need to read length
+            // so we need to read length
             uint8_t mLen[2] = {0};
             mLen[0] = this->spi->transfer(0x00);
             mLen[1] = this->spi->transfer(0x00);
+            // convert individual bytes to uint16_t
             from_bytes(this->length, 0, mLen);
+            // make sure the message is not too long (could be erroneous transmission)
             if (this->length > this->maxLen)
             {
                 this->length = 0;
@@ -176,6 +193,7 @@ void Si4463::handleRX()
             }
         }
 
+        // recevie message data
         while (!gpio0() && this->xfrd < this->length)
         {
             this->buf[this->xfrd++] = this->spi->transfer(0x00);
@@ -183,8 +201,7 @@ void Si4463::handleRX()
 
         digitalWrite(this->_cs, HIGH);
 
-        if (this->xfrd > this->length)
-            return; // should never be here
+        // if we've transferred length bytes, we've received the whole message
         if (this->xfrd == this->length)
         {
             // automatically placed into an idle state
@@ -210,14 +227,17 @@ void Si4463::update()
     if (this->state == STATE_ENTER_RX && checkCTS())
         this->state = STATE_RX;
 
-    if (gpio0() && this->state == STATE_TX)
+    // check if we are transmitting and the FIFO is almost empty
+    if (this->state == STATE_TX && gpio0())
     {
         handleTX();
     }
-    if (gpio1() && this->state == STATE_RX)
+    // check if we are receving and the FIFO is almost full
+    if (this->state == STATE_RX && gpio1())
     {
         handleRX();
     }
+    // check if we've detected a valid preamble in receive mode so we can get the rssi
     if (irq() && (this->state == STATE_RX || this->state == STATE_RX_COMPLETE))
     {
         this->rssi = readFRR(1);
@@ -226,14 +246,18 @@ void Si4463::update()
 
 bool Si4463::send(Data &data)
 {
+    // encode the data
     this->m.encode(&data);
+    // send the data
     return this->tx(m.buf, m.size);
 }
 
 bool Si4463::receive(Data &data)
 {
+    // check if we have received the whole message
     if (this->state == STATE_RX_COMPLETE)
     {
+        // decode the message
         m.fill(this->buf, this->length)->decode(&data);
         return true;
     }
@@ -244,9 +268,11 @@ int Si4463::RSSI() { return this->rssi / 2 - 64 - 70; } // magic formula from da
 
 bool Si4463::avail()
 {
+    // if we are not in receive mode, enter receive mode
     if (this->state == STATE_IDLE)
         this->rx();
     else
+        // otherwise return whether we have fully received a message
         return this->state == STATE_RX_COMPLETE;
     return false;
 }
@@ -259,12 +285,13 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
     // set modulation dependant properties
     uint8_t pktConfArgs = 0b00000000;
     uint8_t pktFieldConfArgs = 0b00000000;
-    // need to enable 4 level at packet handler and field level
+    // need to enable 4 FSK at packet handler and field level
     if (mod == MOD_4FSK || mod == MOD_4GFSK)
     {
         pktConfArgs |= 0b01000000;
         pktFieldConfArgs |= 0b00010000;
     }
+    // setup all packet fields
     setProperty(G_PKT, P_PKT_CONFIG1, pktConfArgs);
     setProperty(G_PKT, P_PKT_FIELD_1_CONFIG, pktConfArgs);
     setProperty(G_PKT, P_PKT_FIELD_2_CONFIG, pktConfArgs);
@@ -284,38 +311,49 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
     float bandDivs[6] = {24.0, 16.0, 12.0, 8.0, 6.0, 4.0};
     int bands[6] = {150, 225, 300, 450, 600, 900};
 
-    int freqBand = freq / 1e6; // truncated due to integer division
+    int freqBand = freq / 1e6; // purposefully truncated due to integer division
     // index of correct band
     int band = -1;
+    // fInt and fFrac (see datasheet for formula)
     uint8_t fInt = 0;
     uint32_t fFrac = 0;
-    for (int i = 0; i < 6; i++)
-    {
-        if (freqBand > bands[i])
-        {
-            if (band < 5)
-            {
-                int lowerDiff = freq - bands[i - 1] * 1e6;
-                int upperDiff = -1 * (freq - bands[i] * 1e6);
-                if (lowerDiff < upperDiff)
-                    band = i - 1;
-                else
-                    band = i;
 
-                // see API reference FREQ_CONTROL_INTE for math
-                int combinedIntFrac = freq / (2 * (int)30e6 / (int)bandDivs[band]);           // we want to truncate
-                fInt = combinedIntFrac - 1;                                                   // subtract one since fraction part is between 1-2
-                float intFracFraction = freq / (2 * 30e6 / bandDivs[band]) - combinedIntFrac; // don't want to truncate to get fractional part
-                fFrac = intFracFraction * pow(2, 19);                                         // from math, may truncate, but this is as close as we can get
-            }
+    if (!(freqBand >= 142 && freqBand <= 175) ||
+        !(freqBand >= 284 && freqBand <= 350) ||
+        !(freqBand >= 350 && freqBand <= 420) ||
+        !(freqBand >= 420 && freqBand <= 525) ||
+        !(freqBand >= 850 && freqBand <= 1050))
+    {
+        return; // Error: cannot tune to this frequency
+    }
+
+    // loop through each band
+    for (int i = 0; i < 5; i++)
+    {
+        // check if our frequency is above the current band and below the next band
+        if (freqBand > bands[i] && freqBand < bands[i + 1])
+        {
+            // find the difference between our frequency and the current band
+            int lowerDiff = freq - bands[i] * 1e6;
+            // find the difference between our frequency and the next band
+            int upperDiff = -1 * (freq - bands[i + 1] * 1e6);
+            // see which difference is smaller
+            if (lowerDiff < upperDiff)
+                band = i;
             else
-            {
-                return; // error frequency too low
-            }
+                band = i + 1;
+
+            // see API reference FREQ_CONTROL_INTE for math
+            int combinedIntFrac = freq / (2 * (int)30e6 / (int)bandDivs[band]);           // we want to truncate to find the integer part
+            fInt = combinedIntFrac - 1;                                                   // subtract one since fraction part is between 1-2
+            float intFracFraction = freq / (2 * 30e6 / bandDivs[band]) - combinedIntFrac; // don't want to truncate to get fractional part
+            fFrac = intFracFraction * pow(2, 19);                                         // from dtasheet math, may truncate, but this is as close as we can get
+            break;
         }
     }
 
     // set frequency
+    // make sure we found the band and computed fInt and fFrac
     if (band != -1 && !(fInt == 0 && fFrac == 0))
     {
         setProperty(G_MODEM, P_MODEM_CLKGEN_BAND, bandConfigs[band]);
@@ -324,6 +362,10 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
         to_bytes(fFrac, 1, freqArgs);                                  // put fFrac into freqArgs
         setProperty(G_FREQ_CONTROL, 4, P_FREQ_CONTROL_INTE, freqArgs); // set FREQ_CONTROL_INTE and FREQ_CONTROL_FRAC
     }
+    else
+    {
+        return; // Error: could not find frequency
+    }
 
     // set data rate
     uint8_t drArgs[8] = {};
@@ -331,9 +373,10 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
     setProperty(G_MODEM, 7, P_MODEM_DATA_RATE3, drArgs);
 
     // set frequency deviation
+    // see datasheet for math, this includes everything but a bitrate dependent factor and 4-FSK correction
     float fDev = (float)pow(2, 19) * bandDivs[band] / (float)(2 * 30e6);
     if (mod == MOD_4FSK || mod == MOD_4GFSK)
-        fDev /= 3.0; // should be the inner deviation for 4FSK
+        fDev /= 3.0; // we want the inner deviation when we are using 4-FSK
     switch (dataRate)
     {
     case DR_500b:
@@ -358,7 +401,7 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
         fDev *= (500e3 / 2.0);
         break;
     default:
-        return; // error data rate is not part of the Si4463DataRate enum (should never happen)
+        return; // Error: data rate is not part of the Si4463DataRate enum (should never happen)
     }
 
     uint8_t fDevArgs[4] = {};
@@ -377,14 +420,17 @@ void Si4463::setPower(uint8_t pwr)
 void Si4463::setPins(Si4463Pin gpio0Mode, Si4463Pin gpio1Mode, Si4463Pin gpio2Mode, Si4463Pin gpio3Mode, Si4463Pin irqMode, bool pullup)
 {
     uint8_t pullupMask = 0b00000000;
+    // need to set this bit to 1 if we want to pull up the output pins
     if (pullup)
     {
         pullupMask = 0b01000000;
     }
+    // put all the mode arguments into an array, except irq which is set to DO_NOTHING
     uint8_t gpioArgs[7] = {(uint8_t)(gpio0Mode | pullupMask), (uint8_t)(gpio1Mode | pullupMask),
                            (uint8_t)(gpio2Mode | pullupMask), (uint8_t)(gpio3Mode | pullupMask),
                            (uint8_t)(PIN_DO_NOTHING | pullupMask), (uint8_t)(PIN_SDO | pullupMask), 0x00};
 
+    // irq can only be set to specific values, if we were given a valid value, update irq in the array here
     if (irqMode < 0x04 || irqMode == 0x07 || irqMode == 0x08 || irqMode == 0x0B || irqMode == 0x0C ||
         (irqMode >= 0x0F && irqMode <= 0x1B) || irqMode == 0x1D || irqMode == 0x1F || irqMode == 0x27)
     {
@@ -396,6 +442,7 @@ void Si4463::setPins(Si4463Pin gpio0Mode, Si4463Pin gpio1Mode, Si4463Pin gpio2Mo
 
 void Si4463::setFRRs(Si4463FRR regAMode, Si4463FRR regBMode, Si4463FRR regCMode, Si4463FRR regDMode)
 {
+    // update the behavior of each register individually
     if (regAMode != FRR_NO_CHANGE)
         setProperty(G_FRR_CTL, P_FRR_CTL_A_MODE, regAMode);
     if (regBMode != FRR_NO_CHANGE)
@@ -408,13 +455,15 @@ void Si4463::setFRRs(Si4463FRR regAMode, Si4463FRR regBMode, Si4463FRR regCMode,
 
 void Si4463::setAFC(bool enabled)
 {
-    uint8_t afcGainArgs[2] = {0b1000011, 0x69}; // default
+    uint8_t afcGainArgs[2] = {0b1000011, 0x69}; // default value
+    // set first bit to 0 to disable AFC
     if (!enabled)
     {
         afcGainArgs[0] = 0b0000011;
         afcGainArgs[1] = 0x69;
     }
     setProperty(G_MODEM, 2, P_MODEM_AFC_GAIN2, afcGainArgs);
+    // set up the AFC if enabled
     if (enabled)
     {
         uint8_t afcLimiterArgs[8] = {0b01000000, 0xBE}; // set max AFC deviation to 190*8 = 1.52 kHz
@@ -451,6 +500,7 @@ bool Si4463::irq()
 
 int Si4463::readFRR(int index)
 {
+    // call readFRRs, but only return the value of the first index in the array
     uint8_t data[4] = {0};
     readFRRs(data, index);
     return data[0];
@@ -458,21 +508,26 @@ int Si4463::readFRR(int index)
 
 void Si4463::setProperty(Si4463Group group, Si4463Property start, uint8_t data)
 {
+    // three args plus length of the data
     uint8_t cmdArgs[3 + 1] = {group, 1, start, data};
     sendCommandC(C_SET_PROPERTY, 3 + 1, cmdArgs);
 }
 
 void Si4463::getProperty(Si4463Group group, Si4463Property start, uint8_t &data)
 {
+    // three command args, reading 1 byte of data
     uint8_t cmdArgs[3] = {group, 1, start};
-    sendCommand(C_SET_PROPERTY, 3, cmdArgs, 1, &data);
+    sendCommand(C_GET_PROPERTY, 3, cmdArgs, 1, &data);
 }
 
 void Si4463::setProperty(Si4463Group group, const uint8_t num, Si4463Property start, uint8_t *data)
 {
+    // make sure we're not exceed the max number of properties the chip can set at a time
     if (num > MAX_NUM_PROPS)
         return;
+    // three args plus length of data
     uint8_t cmdArgs[3 + num] = {group, num, start};
+    // add data to cmdArgs
     for (int i = 0; i < num; i++)
         cmdArgs[3 + i] = data[i];
 
@@ -481,10 +536,12 @@ void Si4463::setProperty(Si4463Group group, const uint8_t num, Si4463Property st
 
 void Si4463::getProperty(Si4463Group group, const uint8_t num, Si4463Property start, uint8_t *data)
 {
+    // make sure we're not exceed the max number of properties we can get at a time
     if (num > MAX_NUM_PROPS)
         return;
+    // three args, reading num bytes of data
     uint8_t cmdArgs[3] = {group, num, start};
-    sendCommand(C_SET_PROPERTY, 3, cmdArgs, num, data);
+    sendCommand(C_GET_PROPERTY, 3, cmdArgs, num, data);
 }
 
 void Si4463::readFRRs(uint8_t data[4], uint8_t start)
@@ -492,6 +549,7 @@ void Si4463::readFRRs(uint8_t data[4], uint8_t start)
     // CS needs to stay low throughout reading FRRs
     digitalWrite(this->_cs, LOW);
 
+    // figure out which FRR to read from first
     uint8_t cmd = C_FRR_A_READ;
     if (start == 1)
         cmd = C_FRR_B_READ;
@@ -511,12 +569,14 @@ void Si4463::readFRRs(uint8_t data[4], uint8_t start)
 
 void Si4463::powerOn()
 {
+    // must wait for CTS before sending power up command
     waitCTS();
 
     uint8_t BOOT_OPTIONS = 0b00000000;
-    uint8_t XTAL_OPTIONS = 0b00000001; // assume external crystal
+    uint8_t XTAL_OPTIONS = 0b00000001; // assume external crystal (need to change if we have no external crystal)
     uint32_t XO_FREQ = 0x01C9C380;     // 30000000 (30 MHz)
 
+    // assmble power up options
     uint8_t options[6] = {
         BOOT_OPTIONS,
         XTAL_OPTIONS,
@@ -528,26 +588,35 @@ void Si4463::powerOn()
 
 void Si4463::sendCommand(Si4463Cmd cmd, uint8_t argcCmd, uint8_t *argvCmd, uint8_t argcRes, uint8_t *argvRes)
 {
+    // send the cmd with its args
     spi_write(cmd, argcCmd, argvCmd);
+    // need to wait for cts before we read
     waitCTS();
+    // read command response
     spi_read(argcRes, argvRes);
 }
 
 void Si4463::sendCommandR(Si4463Cmd cmd, uint8_t argcRes, uint8_t *argvRes)
 {
+    // send the cmd with no args
     spi_write(cmd, 0, {});
+    // need to wait for cts before we read
     waitCTS();
+    // read command response
     spi_read(argcRes, argvRes);
 }
 
 void Si4463::sendCommandC(Si4463Cmd cmd, uint8_t argcCmd, uint8_t *argvCmd)
 {
+    // send the cmd with its args
     spi_write(cmd, argcCmd, argvCmd);
+    // need to wait for cts in case other commands are called after
     waitCTS();
 }
 
 void Si4463::waitCTS()
 {
+    // blocking while loop (should yield to other functions)
     while (!checkCTS())
     {
         yield();
@@ -556,6 +625,7 @@ void Si4463::waitCTS()
 
 bool Si4463::checkCTS()
 {
+    // use READ_CMD_BUFF command to check the value of CTS
     uint8_t args[1] = {0};
     sendCommandR(C_READ_CMD_BUFF, 1, args);
     return args[0] == 0xff;
@@ -565,9 +635,12 @@ bool Si4463::checkCTS()
 
 void Si4463::spi_write(uint8_t cmd, uint8_t argc, uint8_t *argv)
 {
+    // CS low through entire SPI command
     digitalWrite(this->_cs, LOW);
 
+    // send the command
     this->spi->transfer(cmd);
+    // send the args
     for (int i = 0; i < argc; i++)
     {
         this->spi->transfer(argv[i]);
@@ -578,10 +651,12 @@ void Si4463::spi_write(uint8_t cmd, uint8_t argc, uint8_t *argv)
 
 void Si4463::spi_read(uint8_t argc, uint8_t *argv)
 {
+    // CS low through entire SPI command
     digitalWrite(this->_cs, LOW);
 
     uint8_t pos = 0;
 
+    // read in the args (CTS must already have been received)
     while (pos < argc)
     {
         argv[pos++] = this->spi->transfer(0x00);
@@ -597,14 +672,14 @@ void Si4463::from_bytes(uint16_t &val, uint8_t pos, uint8_t *arr, bool MSB)
     {
         for (int i = iterNum - 1; i >= 0; i--)
         {
-            val += arr[pos++] << (i * 8);
+            val += arr[pos++] << (i * 8); // starts shifted all the way left, then moves right
         }
     }
     else
     {
         for (int i = 0; i < iterNum; i++)
         {
-            val += arr[pos++] << (i * 8);
+            val += arr[pos++] << (i * 8); // starts shifted all the way right, then moves left
         }
     }
 }
@@ -654,6 +729,8 @@ void Si4463::to_bytes(uint16_t val, uint8_t pos, uint8_t *arr, bool MSB)
     {
         for (int i = iterNum - 1; i >= 0; i--)
         {
+            // isolate the leftmost byte, moving one step right each iteration
+            // then shift the current byte all the way to the right so it fits in a uint8_t
             arr[pos++] = (val & (0x00ff << (i * 8))) >> (i * 8);
         }
     }
@@ -661,6 +738,8 @@ void Si4463::to_bytes(uint16_t val, uint8_t pos, uint8_t *arr, bool MSB)
     {
         for (int i = 0; i < iterNum; i++)
         {
+            // isolate the rightmost byte, moving one step left each iteration
+            // then shift the current byte all the way to the right so it fits in a uint8_t
             arr[pos++] = (val & (0x00ff << (i * 8))) >> (i * 8);
         }
     }
@@ -704,11 +783,18 @@ void Si4463::to_bytes(uint64_t val, uint8_t pos, uint8_t *arr, bool MSB)
     }
 }
 
+// Basic power function
+// exponent must be > 0
+// Returns: base^exponent
 int pow(int base, int exponent)
 {
+    // take base^exponent
     int val = base;
+    // since we put 1 base in val, that's already base^1
+    // so take one off of exponent
     exponent--;
-    while (exponent--)
+    // multiple the rest of the way
+    while (exponent-- > 0)
         val *= base;
     return val;
 }
