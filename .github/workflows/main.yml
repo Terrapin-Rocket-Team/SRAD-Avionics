@@ -15,7 +15,7 @@ jobs:
           echo "PR_URL=${{ github.event.pull_request.html_url }}"
       - name: Test Linked Issues Query
         env:
-          GH_TOKEN: ${{ secrets.testing }} #check link below for different authentication methods
+          GH_TOKEN: ${{ secrets.TEST }} #check link below for different authentication methods
         run: |
           response=$(gh api graphql -f query='
             query($pr:ID!) {
@@ -57,7 +57,7 @@ jobs:
             echo "$response2"
       - name: Get linked issues of a PR
         env:
-          GH_TOKEN: ${{ secrets.testing }} #check link below for different authentication methods
+          GH_TOKEN: ${{ secrets.TEST }} #check link below for different authentication methods
           ORGANIZATION: your-org
           PROJECT_NUMBER: 1 #from project url
           PR_ID: ${{ github.event.pull_request.node_id }}
@@ -89,7 +89,7 @@ jobs:
           echo "LINKED_ISSUE_ID=$linked_issue_id" >> $GITHUB_ENV
       - name: Change status to "Being Worked On"
         env:
-          GH_TOKEN: ${{ secrets.testing }}
+          GH_TOKEN: ${{ secrets.TEST }}
           PROJECT_ID: PVT_kwHOCXMlSM4Ap8fI #retrieved calling GraphQL Github API organization { project }
           ISSUE_ID: ${{ env.LINKED_ISSUE_ID }}
           STATUS_FIELD_ID: PVTSSF_lAHOCXMlSM4Ap8fIzghRdVc #you can retrieve this by api or inspecting GraphQL responses when editing available project statuses in your Github project in a browser
