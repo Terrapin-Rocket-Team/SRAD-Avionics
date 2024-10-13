@@ -2,7 +2,11 @@
 #include "IMU.h"
 
 
-int main()
+int main(){
+    Magnetometer
+
+
+}
 
 
 
@@ -21,12 +25,4 @@ public:
 
 void LIS::read(){
     
-}
-
-
-
-
-
-
-
 }
