@@ -205,6 +205,8 @@ public:
     Returns: the state of IRQ
     */
     bool irq();
+
+    void shutdown(bool shutdown);
     /*
     Used to read the state of only one FRR
     - index : the FRR to read from
@@ -290,6 +292,7 @@ public:
 private:
     // spi interface
     SPIClass *spi;
+    uint8_t _sdn;
     uint8_t _cs;
     uint8_t _irq;
 
@@ -322,7 +325,7 @@ private:
     - arr : the array to read bytes from
     - MSB : whether the bytes should be read most significant byte first
     */
-    static void from_bytes(uint16_t &val, uint8_t pos, uint8_t *arr, bool MSB = true);
+    static void from_bytes(uint16_t &val, uint8_t pos, uint8_t bytePos, uint8_t *arr, bool MSB = true);
     /*
     Converts the bytes stored in ```arr``` into a uint32_t
     - val : the resulting value from the array
@@ -330,7 +333,7 @@ private:
     - arr : the array to read bytes from
     - MSB : whether the bytes should be read most significant byte first
     */
-    static void from_bytes(uint32_t &val, uint8_t pos, uint8_t *arr, bool MSB = true);
+    static void from_bytes(uint32_t &val, uint8_t pos, uint8_t bytePos, uint8_t *arr, bool MSB = true);
     /*
     Converts the bytes stored in ```arr``` into a uint64_t
     - val : the resulting value from the array
@@ -338,7 +341,7 @@ private:
     - arr : the array to read bytes from
     - MSB : whether the bytes should be read most significant byte first
     */
-    static void from_bytes(uint64_t &val, uint8_t pos, uint8_t *arr, bool MSB = true);
+    static void from_bytes(uint64_t &val, uint8_t pos, uint8_t bytePos, uint8_t *arr, bool MSB = true);
     /*
     Converts a uint16_t to a series of bytes stored in ```arr```
     - val : the value to be stored in the array
@@ -346,7 +349,7 @@ private:
     - arr : the array to write bytes into
     - MSB : whether the bytes should be written most significant byte first
     */
-    static void to_bytes(uint16_t val, uint8_t pos, uint8_t *arr, bool MSB = true);
+    static void to_bytes(uint16_t val, uint8_t pos, uint8_t bytePos, uint8_t *arr, bool MSB = true);
     /*
     Converts a uint32_t to a series of bytes stored in ```arr```
     - val : the value to be stored in the array
@@ -354,7 +357,7 @@ private:
     - arr : the array to write bytes into
     - MSB : whether the bytes should be written most significant byte first
     */
-    static void to_bytes(uint32_t val, uint8_t pos, uint8_t *arr, bool MSB = true);
+    static void to_bytes(uint32_t val, uint8_t pos, uint8_t bytePos, uint8_t *arr, bool MSB = true);
     /*
     Converts a uint64_t to a series of bytes stored in ```arr```
     - val : the value to be stored in the array
@@ -362,7 +365,7 @@ private:
     - arr : the array to write bytes into
     - MSB : whether the bytes should be written most significant byte first
     */
-    static void to_bytes(uint64_t val, uint8_t pos, uint8_t *arr, bool MSB = true);
+    static void to_bytes(uint64_t val, uint8_t pos, uint8_t bytePos, uint8_t *arr, bool MSB = true);
 };
 
 #endif
