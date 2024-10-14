@@ -12,6 +12,7 @@ Si4463::Si4463(Si4463HardwareConfig hConfig, Si4463PinConfig pConfig)
 
     // update internal variables with pin/SPI configuration
     this->spi = pConfig.spi;
+    this->_sdn = pConfig.sdn;
     this->_cs = pConfig.cs;
     this->_irq = pConfig.irq;
 
@@ -25,11 +26,18 @@ bool Si4463::begin()
 {
     // set pins for correct modes
     pinMode(_cs, OUTPUT);
+    pinMode(_sdn, OUTPUT);
     pinMode(_irq, INPUT);
     pinMode(_gp0, INPUT);
     pinMode(_gp1, INPUT);
     pinMode(_gp2, INPUT);
     pinMode(_gp3, INPUT);
+
+    this->shutdown(true);
+    delay(100);
+    this->shutdown(false);
+
+    this->spi->begin();
 
     // complete power on sequence
     this->powerOn();
@@ -39,7 +47,7 @@ bool Si4463::begin()
     this->sendCommandR(C_PART_INFO, 8, args);
 
     uint16_t partNo = 0;
-    from_bytes(partNo, 1, args);
+    from_bytes(partNo, 1, 0, args);
     if (partNo != PART_NO)
         return false; // Error: did not receive the correct part number
 
@@ -53,9 +61,9 @@ bool Si4463::begin()
     // turn on AFC
     this->setAFC(true);
     // set preamble length
-    setProperty(G_PREAMBLE, P_PREAMBLE_TX_LENGTH, this->preambleLen);
+    this->setProperty(G_PREAMBLE, P_PREAMBLE_TX_LENGTH, this->preambleLen);
     // set preamble threshold
-    setProperty(G_PREAMBLE, P_PREAMBLE_CONFIG_STD_1, this->preambleThresh & 0b01111111); // first bit must be 0
+    this->setProperty(G_PREAMBLE, P_PREAMBLE_CONFIG_STD_1, this->preambleThresh & 0b01111111); // first bit must be 0
     // leaving sync word params at defaults
 
     // set defaults for gpio pins
@@ -65,17 +73,17 @@ bool Si4463::begin()
     this->setFRRs(FRR_CURRENT_STATE, FRR_LATCHED_RSSI, FRR_INT_STATUS, FRR_INT_CHIP_STATUS);
 
     // packet handling setup
-    setProperty(G_PKT, P_PKT_LEN, 0b00011010);              // set received field length to be 2 bytes, leave in the length bytes, and set the variable length field to field 2
-    setProperty(G_PKT, P_PKT_LEN_FIELD_SOURCE, 0b00000001); // set the length field to be field 1
-    setProperty(G_PKT, P_PKT_TX_THRESHOLD, 10);             // fire interrupt when 10 bytes in FIFO
-    setProperty(G_PKT, P_PKT_RX_THRESHOLD, 54);             // fire interrupt when 54 bytes in FIFO
+    this->setProperty(G_PKT, P_PKT_LEN, 0b00011010);              // set received field length to be 2 bytes, leave in the length bytes, and set the variable length field to field 2
+    this->setProperty(G_PKT, P_PKT_LEN_FIELD_SOURCE, 0b00000001); // set the length field to be field 1
+    this->setProperty(G_PKT, P_PKT_TX_THRESHOLD, 10);             // fire interrupt when 10 bytes in FIFO
+    this->setProperty(G_PKT, P_PKT_RX_THRESHOLD, 54);             // fire interrupt when 54 bytes in FIFO
     // set the length of the length field (field 1) to be 4 bytes
     uint8_t lengthFieldLen[2] = {0, 4};
-    setProperty(G_PKT, 2, P_PKT_FIELD_1_LENGTH2, lengthFieldLen);
+    this->setProperty(G_PKT, 2, P_PKT_FIELD_1_LENGTH2, lengthFieldLen);
     // set the length of the data field (field 2) to be the maximum data length of 8191 bytes
     uint8_t dataMaxLen[2] = {0};
-    to_bytes(this->maxLen, 0, dataMaxLen);
-    setProperty(G_PKT, 2, P_PKT_FIELD_1_LENGTH2, dataMaxLen);
+    to_bytes(this->maxLen, 0, 0, dataMaxLen);
+    this->setProperty(G_PKT, 2, P_PKT_FIELD_1_LENGTH2, dataMaxLen);
 
     return true;
 }
@@ -99,7 +107,7 @@ bool Si4463::tx(const uint8_t *message, int len)
 
         // send length
         uint8_t mLen[2] = {0};
-        to_bytes(this->length, 0, mLen);
+        to_bytes(this->length, 0, 0, mLen);
         this->spi->transfer(mLen[0]);
         this->spi->transfer(mLen[1]);
 
@@ -184,7 +192,7 @@ void Si4463::handleRX()
             mLen[0] = this->spi->transfer(0x00);
             mLen[1] = this->spi->transfer(0x00);
             // convert individual bytes to uint16_t
-            from_bytes(this->length, 0, mLen);
+            from_bytes(this->length, 0, 0, mLen);
             // make sure the message is not too long (could be erroneous transmission)
             if (this->length > this->maxLen)
             {
@@ -359,7 +367,7 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
         setProperty(G_MODEM, P_MODEM_CLKGEN_BAND, bandConfigs[band]);
         uint8_t freqArgs[4] = {(uint8_t)(fInt & 0b01111111)};          // first bit must be 0
         fFrac &= 0x00FFFFFF;                                           // first byte must be 0
-        to_bytes(fFrac, 1, freqArgs);                                  // put fFrac into freqArgs
+        to_bytes(fFrac, 1, 1, freqArgs);                               // put fFrac into freqArgs
         setProperty(G_FREQ_CONTROL, 4, P_FREQ_CONTROL_INTE, freqArgs); // set FREQ_CONTROL_INTE and FREQ_CONTROL_FRAC
     }
     else
@@ -369,7 +377,7 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
 
     // set data rate
     uint8_t drArgs[8] = {};
-    to_bytes(dataRate, 0, drArgs);
+    to_bytes(dataRate, 0, 0, drArgs);
     setProperty(G_MODEM, 7, P_MODEM_DATA_RATE3, drArgs);
 
     // set frequency deviation
@@ -404,9 +412,9 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
         return; // Error: data rate is not part of the Si4463DataRate enum (should never happen)
     }
 
-    uint8_t fDevArgs[4] = {};
+    uint8_t fDevArgs[3] = {};
     // first 7 bits should be 0
-    to_bytes((uint32_t)fDev & 0x0001FFFF, 0, fDevArgs);
+    to_bytes((uint32_t)fDev & 0x0001FFFF, 0, 1, fDevArgs);
     setProperty(G_MODEM, 3, P_MODEM_FREQ_DEV3, fDevArgs);
 }
 
@@ -498,6 +506,18 @@ bool Si4463::irq()
     return digitalRead(this->_irq);
 }
 
+void Si4463::shutdown(bool shutdown)
+{
+    if (shutdown)
+    {
+        digitalWrite(this->_sdn, HIGH);
+    }
+    else
+    {
+        digitalWrite(this->_sdn, LOW);
+    }
+}
+
 int Si4463::readFRR(int index)
 {
     // call readFRRs, but only return the value of the first index in the array
@@ -569,11 +589,16 @@ void Si4463::readFRRs(uint8_t data[4], uint8_t start)
 
 void Si4463::powerOn()
 {
+    Serial.println("Starting power up");
+    Serial.flush();
     // must wait for CTS before sending power up command
     waitCTS();
 
+    Serial.println("CTS high, chip active");
+    Serial.flush();
+
     uint8_t BOOT_OPTIONS = 0b00000000;
-    uint8_t XTAL_OPTIONS = 0b00000001; // assume external crystal (need to change if we have no external crystal)
+    uint8_t XTAL_OPTIONS = 0b00000000; // assume external crystal (need to change if we have no external crystal)
     uint32_t XO_FREQ = 0x01C9C380;     // 30000000 (30 MHz)
 
     // assmble power up options
@@ -581,7 +606,7 @@ void Si4463::powerOn()
         BOOT_OPTIONS,
         XTAL_OPTIONS,
     };
-    to_bytes(XO_FREQ, 2, options);
+    to_bytes(XO_FREQ, 2, 0, options);
 
     sendCommandC(C_POWER_UP, 6, options);
 }
@@ -617,18 +642,32 @@ void Si4463::sendCommandC(Si4463Cmd cmd, uint8_t argcCmd, uint8_t *argvCmd)
 void Si4463::waitCTS()
 {
     // blocking while loop (should yield to other functions)
+    Serial.println("Start CTS");
+    Serial.flush();
     while (!checkCTS())
     {
-        yield();
+        Serial.println("CTS");
+        Serial.flush();
     }
 }
 
 bool Si4463::checkCTS()
 {
     // use READ_CMD_BUFF command to check the value of CTS
-    uint8_t args[1] = {0};
-    sendCommandR(C_READ_CMD_BUFF, 1, args);
-    return args[0] == 0xff;
+    // CS low through entire SPI command
+    digitalWrite(this->_cs, LOW);
+
+    // send the command
+    Serial.println("CTS check start");
+    this->spi->transfer(C_READ_CMD_BUFF);
+    uint8_t cts = this->spi->transfer(0x00);
+    Serial.print("CTS check: ");
+    Serial.println(cts);
+    Serial.flush();
+
+    digitalWrite(this->_cs, HIGH);
+    // delay(1000);
+    return cts == 0xff;
 }
 
 // private methods
@@ -652,9 +691,17 @@ void Si4463::spi_write(uint8_t cmd, uint8_t argc, uint8_t *argv)
 void Si4463::spi_read(uint8_t argc, uint8_t *argv)
 {
     // CS low through entire SPI command
-    digitalWrite(this->_cs, LOW);
-
     uint8_t pos = 0;
+
+    uint8_t cts = 0x00;
+    while (cts != 0xFF)
+    {
+        digitalWrite(this->_cs, LOW);
+        this->spi->transfer(C_READ_CMD_BUFF);
+        cts = this->spi->transfer(0x00);
+        if (cts != 0xFF)
+            digitalWrite(this->_cs, HIGH);
+    }
 
     // read in the args (CTS must already have been received)
     while (pos < argc)
@@ -665,9 +712,9 @@ void Si4463::spi_read(uint8_t argc, uint8_t *argv)
     digitalWrite(this->_cs, HIGH);
 }
 
-void Si4463::from_bytes(uint16_t &val, uint8_t pos, uint8_t *arr, bool MSB)
+void Si4463::from_bytes(uint16_t &val, uint8_t pos, uint8_t bytePos, uint8_t *arr, bool MSB)
 {
-    int iterNum = 2 - pos;
+    int iterNum = 2 - bytePos;
     if (MSB)
     {
         for (int i = iterNum - 1; i >= 0; i--)
@@ -684,9 +731,9 @@ void Si4463::from_bytes(uint16_t &val, uint8_t pos, uint8_t *arr, bool MSB)
     }
 }
 
-void Si4463::from_bytes(uint32_t &val, uint8_t pos, uint8_t *arr, bool MSB)
+void Si4463::from_bytes(uint32_t &val, uint8_t pos, uint8_t bytePos, uint8_t *arr, bool MSB)
 {
-    int iterNum = 4 - pos;
+    int iterNum = 4 - bytePos;
     if (MSB)
     {
         for (int i = iterNum - 1; i >= 0; i--)
@@ -703,9 +750,9 @@ void Si4463::from_bytes(uint32_t &val, uint8_t pos, uint8_t *arr, bool MSB)
     }
 }
 
-void Si4463::from_bytes(uint64_t &val, uint8_t pos, uint8_t *arr, bool MSB)
+void Si4463::from_bytes(uint64_t &val, uint8_t pos, uint8_t bytePos, uint8_t *arr, bool MSB)
 {
-    int iterNum = 8 - pos;
+    int iterNum = 8 - bytePos;
     if (MSB)
     {
         for (int i = iterNum - 1; i >= 0; i--)
@@ -722,9 +769,9 @@ void Si4463::from_bytes(uint64_t &val, uint8_t pos, uint8_t *arr, bool MSB)
     }
 }
 
-void Si4463::to_bytes(uint16_t val, uint8_t pos, uint8_t *arr, bool MSB)
+void Si4463::to_bytes(uint16_t val, uint8_t pos, uint8_t bytePos, uint8_t *arr, bool MSB)
 {
-    int iterNum = 2 - pos;
+    int iterNum = 2 - bytePos;
     if (MSB)
     {
         for (int i = iterNum - 1; i >= 0; i--)
@@ -745,9 +792,9 @@ void Si4463::to_bytes(uint16_t val, uint8_t pos, uint8_t *arr, bool MSB)
     }
 }
 
-void Si4463::to_bytes(uint32_t val, uint8_t pos, uint8_t *arr, bool MSB)
+void Si4463::to_bytes(uint32_t val, uint8_t pos, uint8_t bytePos, uint8_t *arr, bool MSB)
 {
-    int iterNum = 4 - pos;
+    int iterNum = 4 - bytePos;
     if (MSB)
     {
         for (int i = iterNum - 1; i >= 0; i--)
@@ -764,9 +811,9 @@ void Si4463::to_bytes(uint32_t val, uint8_t pos, uint8_t *arr, bool MSB)
     }
 }
 
-void Si4463::to_bytes(uint64_t val, uint8_t pos, uint8_t *arr, bool MSB)
+void Si4463::to_bytes(uint64_t val, uint8_t pos, uint8_t bytePos, uint8_t *arr, bool MSB)
 {
-    int iterNum = 8 - pos;
+    int iterNum = 8 - bytePos;
     if (MSB)
     {
         for (int i = iterNum - 1; i >= 0; i--)
