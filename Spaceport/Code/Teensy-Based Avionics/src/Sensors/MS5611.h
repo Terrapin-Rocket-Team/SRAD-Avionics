@@ -14,7 +14,7 @@ namespace mmfs
            MS5611 ms;
   
    public:
-       MS5611(const char *name);
+       MS5611("MS5611");
        virtual bool init() override;
        virtual void read() override;
    };
