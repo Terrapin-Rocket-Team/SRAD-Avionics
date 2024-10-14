@@ -14,11 +14,11 @@ namespace mmfs
    {
        if(!ms.begin())
        {
-           return false;
+           return initialized = false;
        }
        ms.setOversampling(OSR_ULTRA_LOW) 
 
-       return true;
+       return initialized = true;
    }
    void MS5611::read()
    {
