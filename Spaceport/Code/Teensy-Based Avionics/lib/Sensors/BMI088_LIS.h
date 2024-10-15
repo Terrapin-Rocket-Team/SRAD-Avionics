@@ -2,9 +2,9 @@
 // Created by ramykaddouri on 9/24/24.
 //
 
-#ifndef BMI088_H
-#define BMI088_H
-#include <BMI088.h>
+#ifndef BMI088_LIS_H
+#define BMI088_LIS_H
+#include "BMI088_LIS.h"
 #include <Sensors/IMU/IMU.h>
 
 
@@ -20,6 +20,7 @@ public:
 protected:
     Bmi088Accel accel;
     Bmi088Gyro gyro;
+    LISMag mag;
 };
 
 

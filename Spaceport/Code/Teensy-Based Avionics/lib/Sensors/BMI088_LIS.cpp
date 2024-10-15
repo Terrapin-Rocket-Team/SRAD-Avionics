@@ -2,7 +2,7 @@
 // Created by ramykaddouri on 9/24/24.
 //
 
-#include "BMI088.h"
+#include "BMI088_LIS.h"
 
 bool BMI088::init() {
     int accelStatus = accel.begin();
@@ -15,9 +15,11 @@ bool BMI088::init() {
 void BMI088::read() {
     accel.readSensor();
     gyro.readSensor();
+    mag.readSensor();
 
     measuredAcc = mmfs::Vector<3>(accel.getAccelX_mss(), accel.getAccelY_mss(), accel.getAccelZ_mss());
     measuredGyro = mmfs::Vector<3>(gyro.getGyroX_rads(), gyro.getGyroY_rads(), gyro.getGyroZ_rads());
+    measuredMag = mmfs::Vector<3>(mag.getG)
 }
 
 
