@@ -1,10 +1,11 @@
 //
 // Created by ramykaddouri on 9/24/24.
+// Modified to combine with LIS3MDL magnetometer
 //
 
-#include "BMI088.h"
+#include "BMI088andLIS3MDL.h"
 
-bool BMI088::init() {
+bool BMI088andLIS3MDL::init() {
     int accelStatus = accel.begin();
     int gyroStatus = gyro.begin();
 
@@ -12,7 +13,7 @@ bool BMI088::init() {
     return initialized;
 }
 
-void BMI088::read() {
+void BMI088andLIS3MDL::read() {
     accel.readSensor();
     gyro.readSensor();
 
