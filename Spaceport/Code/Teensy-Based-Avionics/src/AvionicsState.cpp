@@ -3,7 +3,7 @@
 
 using namespace mmfs;
 
-AvionicsState::AvionicsState(Sensor **sensors, int numSensors, LinearKalmanFilter *kfilter, bool stateRecordsOwnData) : State(sensors, numSensors, kfilter, stateRecordsOwnData)
+AvionicsState::AvionicsState(Sensor **sensors, int numSensors, LinearKalmanFilter *kfilter) : State(sensors, numSensors, kfilter)
 {
     stage = 0;
     timeOfLaunch = 0;
@@ -46,7 +46,7 @@ void AvionicsState::determineStage()
             if (sensorOK(sensors[i]))
             {
                 char logData[200];
-                snprintf(logData, 200, "%s: %s", sensors[i]->getName(), sensors[i]->getStaticDataString());
+                //snprintf(logData, 200, "%s: %s", sensors[i]->getName(), sensors[i]->getStaticDataString());
                 logger.recordLogData(INFO_, logData);
                 sensors[i]->setBiasCorrectionMode(false);
             }
