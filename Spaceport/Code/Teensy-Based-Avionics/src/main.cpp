@@ -35,7 +35,7 @@ extern char *__brkval;
 
 void FreeMem()
 {
-    void *heapTop = malloc(50);
+    void *heapTop = malloc(500);
     Serial.print((long)heapTop);
     Serial.print(" ");
     free(heapTop);
@@ -45,7 +45,7 @@ void FreeMem()
 const int BUZZER_PIN = 33;
 const int BUILTIN_LED_PIN = LED_BUILTIN;
 int allowedPins[] = {BUILTIN_LED_PIN, BUZZER_PIN};
-BlinkBuzz bb(allowedPins, 1, true);
+BlinkBuzz bb(allowedPins, 2, true);
 
 const int UPDATE_RATE = 10;
 const int UPDATE_INTERVAL = 1000.0 / UPDATE_RATE;
@@ -57,7 +57,7 @@ void setup()
     Wire.begin();
     SENSOR_BIAS_CORRECTION_DATA_LENGTH = 2;
     SENSOR_BIAS_CORRECTION_DATA_IGNORE = 1;
-    computer = new AvionicsState(sensors, 3, &kfilter);
+    computer = new AvionicsState(sensors, 3, nullptr);
 
     psram = new PSRAM();
 
@@ -104,6 +104,7 @@ void setup()
         logger.recordLogData(ERROR_, "Some Sensors Failed to Initialize. Disabling those sensors.");
         bb.onoff(BUZZER_PIN, 200, 3);
     }
+    baro.setBiasCorrectionMode(false);
     // sendSDCardHeader(computer->getCsvHeader());
 }
 
@@ -118,10 +119,11 @@ void loop()
     last = time;
     computer->updateState();
     // time, alt1, alt2, vel, accel, gyro, mag, lat, lon
-    printf("%.2f | %.2f, %.2f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f = %.2f, %.2f, %.2f | %.2f, %.2f, %.2f | %.7f, %.7f\n",
+    printf("%.2f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f = %.2f, %.2f, %.2f | %.2f, %.2f, %.2f | %.7f, %.7f\n",
            time / 1000.0,
            computer->getPosition().z(),
            baro.getASLAltM(),
+           baro.getPressure(),
            computer->getVelocity().x(),
            computer->getVelocity().y(),
            computer->getVelocity().z(),
@@ -137,4 +139,6 @@ void loop()
            gps.getPos().x(),
            gps.getPos().y());
     logger.recordFlightData();
+
+    FreeMem();
 }
