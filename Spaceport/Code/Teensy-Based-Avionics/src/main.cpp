@@ -54,6 +54,7 @@ void setup()
 {
     Serial.begin(9600);
     delay(3000);
+    Wire.begin();
     SENSOR_BIAS_CORRECTION_DATA_LENGTH = 2;
     SENSOR_BIAS_CORRECTION_DATA_IGNORE = 1;
     computer = new AvionicsState(sensors, 3, &kfilter);
