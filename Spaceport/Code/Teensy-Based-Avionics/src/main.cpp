@@ -4,6 +4,9 @@
 #include "AvionicsState.h"
 #include "Pi.h"
 #include "AvionicsKF.h"
+#include "DPS310.h"
+#include "MS5611F.h"
+#include "BMI088andLIS3MDL.h"
 
 #define BMP_ADDR_PIN 36
 #define RPI_PWR 0
@@ -14,10 +17,11 @@ using namespace mmfs;
 Logger logger;
 
 MAX_M10S gps;
-BNO055 bno;
-BMP390 baro;
+DPS310 baro1;
+mmfs::MS5611 baro2;
+BMI088andLIS3MDL bno;
 
-Sensor *sensors[3] = {&gps, &bno, &baro};
+Sensor *sensors[4] = {&gps, &bno, &baro1, &baro2};
 AvionicsKF kfilter;
 
 AvionicsState *computer; // = useKalmanFilter = true
@@ -57,7 +61,7 @@ void setup()
     Wire.begin();
     SENSOR_BIAS_CORRECTION_DATA_LENGTH = 2;
     SENSOR_BIAS_CORRECTION_DATA_IGNORE = 1;
-    computer = new AvionicsState(sensors, 3, nullptr);
+    computer = new AvionicsState(sensors, 4, nullptr);
 
     psram = new PSRAM();
 
@@ -104,7 +108,8 @@ void setup()
         logger.recordLogData(ERROR_, "Some Sensors Failed to Initialize. Disabling those sensors.");
         bb.onoff(BUZZER_PIN, 200, 3);
     }
-    baro.setBiasCorrectionMode(false);
+    baro1.setBiasCorrectionMode(false);
+    baro2.setBiasCorrectionMode(false);
     // sendSDCardHeader(computer->getCsvHeader());
 }
 
@@ -119,11 +124,13 @@ void loop()
     last = time;
     computer->updateState();
     // time, alt1, alt2, vel, accel, gyro, mag, lat, lon
-    printf("%.2f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f = %.2f, %.2f, %.2f | %.2f, %.2f, %.2f | %.7f, %.7f\n",
+    printf("%.2f | %.2f | %.2f, %.2f # %.2f, %.2f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f = %.2f, %.2f, %.2f | %.2f, %.2f, %.2f | %.7f, %.7f\n",
            time / 1000.0,
            computer->getPosition().z(),
-           baro.getASLAltM(),
-           baro.getPressure(),
+           baro1.getASLAltM(),
+           baro1.getPressure(),
+           baro2.getASLAltM(),
+           baro2.getPressure(),
            computer->getVelocity().x(),
            computer->getVelocity().y(),
            computer->getVelocity().z(),
@@ -140,5 +147,4 @@ void loop()
            gps.getPos().y());
     logger.recordFlightData();
 
-    FreeMem();
 }
