@@ -14,7 +14,7 @@ AvionicsState::AvionicsState(Sensor **sensors, int numSensors, LinearKalmanFilte
 void AvionicsState::updateState(double newTime)
 {
     State::updateState(newTime); // call base version for sensor updates
-    determineStage(); // determine the stage of the flight
+    //determineStage(); // determine the stage of the flight
 }
 
 void AvionicsState::determineStage()
@@ -35,7 +35,7 @@ void AvionicsState::determineStage()
     // essentially, if we have either sensor and they meet launch threshold, launch. Otherwise, it will never detect a launch.
     {
         bb.aonoff(33, 200);
-        logger.setRecordMode(FLIGHT);
+        // logger.setRecordMode(FLIGHT);
         stage = 1;
         timeOfLaunch = currentTime;
         timeOfLastStage = currentTime;
