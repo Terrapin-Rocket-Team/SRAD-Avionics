@@ -14,7 +14,7 @@
 
 using namespace mmfs;
 
-Logger logger;
+Logger logger(30, 30, false, SD_);
 
 MAX_M10S gps;
 DPS310 baro1;
@@ -48,8 +48,8 @@ void FreeMem()
 
 const int BUZZER_PIN = 33;
 const int BUILTIN_LED_PIN = LED_BUILTIN;
-int allowedPins[] = {BUILTIN_LED_PIN, BUZZER_PIN};
-BlinkBuzz bb(allowedPins, 2, true);
+int allowedPins[] = {BUILTIN_LED_PIN, BUZZER_PIN, 32};
+BlinkBuzz bb(allowedPins, 3, true);
 
 const int UPDATE_RATE = 10;
 const int UPDATE_INTERVAL = 1000.0 / UPDATE_RATE;
@@ -98,7 +98,7 @@ void setup()
     else
         logger.recordLogData(ERROR_, "PSRAM Failed to Initialize");
 
-    if (computer->init())
+    if (computer->init(false))
     {
         logger.recordLogData(INFO_, "All Sensors Initialized");
         bb.onoff(BUZZER_PIN, 1000);
@@ -108,9 +108,8 @@ void setup()
         logger.recordLogData(ERROR_, "Some Sensors Failed to Initialize. Disabling those sensors.");
         bb.onoff(BUZZER_PIN, 200, 3);
     }
-    baro1.setBiasCorrectionMode(false);
-    baro2.setBiasCorrectionMode(false);
-    // sendSDCardHeader(computer->getCsvHeader());
+    logger.writeCsvHeader();
+    bb.aonoff(32, *(new BBPattern(200, 1)), true);
 }
 
 void loop()
@@ -134,9 +133,9 @@ void loop()
            computer->getVelocity().x(),
            computer->getVelocity().y(),
            computer->getVelocity().z(),
-           computer->getAcceleration().x(),
-           computer->getAcceleration().y(),
-           computer->getAcceleration().z(),
+           bno.getAccReading().x(),
+           bno.getAccReading().y(),
+           bno.getAccReading().z(),
            bno.getGyroReading().x(),
            bno.getGyroReading().y(),
            bno.getGyroReading().z(),
@@ -146,5 +145,8 @@ void loop()
            gps.getPos().x(),
            gps.getPos().y());
     logger.recordFlightData();
-
+    if(gps.getHasFirstFix()){
+        bb.clearQueue(32);
+        bb.on(32);
+    }
 }
