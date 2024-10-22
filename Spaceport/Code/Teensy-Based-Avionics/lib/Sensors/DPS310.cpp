@@ -13,6 +13,7 @@ namespace mmfs
     {
         if (!dps.begin_I2C())
         {
+            printf("Failed to initialize DPS310 sensor\n");
             return initialized = false;
         }
 
