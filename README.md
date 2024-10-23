@@ -5,6 +5,14 @@ The avionics subteam manages this repo, as well as the `Multi-Mission-Flight-Sof
 repositories. Look at the *Issues* tab for tasks that need to be done, and the *Projects* tab for the current
 status of the Avionics subteam as a whole. 
 
+Most of our development for our competition rocket systems will be within the `/Spaceport/` directory. Here, the parts 
+are broken up by whether they are hardware, PCBs, or code. 
+
+If writing software for the main embedded system, open the [`Teensy-Based-Avionics`](./Spaceport/Code/Teensy-Based-Avionics) 
+folder using [Platformio](https://platformio.org/) in VSCode, and make your edits there. For hardware, the files for a single 
+board come in sets of 3, with the extensions `.kicad_pro`, `.kicad_pcb`, and `.kicad_sch`. Editing these files affects the 
+PCB's layup.
+
 ## Setup
 Visit the Software Training and Electronics Training modules for more information on how to start learning 
 and getting started.
