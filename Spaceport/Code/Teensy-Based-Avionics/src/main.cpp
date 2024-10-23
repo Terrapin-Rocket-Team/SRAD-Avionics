@@ -27,7 +27,6 @@ AvionicsKF kfilter;
 AvionicsState *computer; // = useKalmanFilter = true
 uint32_t radioTimer = millis();
 Pi rpi(RPI_PWR, RPI_VIDEO);
-PSRAM *psram;
 ErrorHandler errorHandler;
 
 static double last = 0; // for better timing than "delay(100)"
@@ -57,21 +56,16 @@ const int UPDATE_INTERVAL = 1000.0 / UPDATE_RATE;
 void setup()
 {
     Serial.begin(9600);
+    logger.recordLogData(INFO_, "Initializing Avionics System. 5 second delay to prevent unnecessary file generation.", TO_USB);
     delay(3000);
     Wire.begin();
+
     SENSOR_BIAS_CORRECTION_DATA_LENGTH = 2;
     SENSOR_BIAS_CORRECTION_DATA_IGNORE = 1;
     computer = new AvionicsState(sensors, 4, nullptr);
 
     psram = new PSRAM();
-
-    // delay(5000);
     logger.init(computer);
-
-    pinMode(BMP_ADDR_PIN, OUTPUT);
-    digitalWrite(BMP_ADDR_PIN, HIGH);
-
-    logger.recordLogData(INFO_, "Initializing Avionics System. 5 second delay to prevent unnecessary file generation.", TO_USB);
 
     if (CrashReport)
     {
@@ -109,7 +103,7 @@ void setup()
         bb.onoff(BUZZER_PIN, 200, 3);
     }
     logger.writeCsvHeader();
-    bb.aonoff(32, *(new BBPattern(200, 1)), true);
+    bb.aonoff(32, BBPattern(200, 1), true);
 }
 
 void loop()
