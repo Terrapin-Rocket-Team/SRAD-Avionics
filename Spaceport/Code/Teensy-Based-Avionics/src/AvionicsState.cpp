@@ -3,7 +3,7 @@
 
 using namespace mmfs;
 
-AvionicsState::AvionicsState(Sensor **sensors, int numSensors, LinearKalmanFilter *kfilter, bool stateRecordsOwnData) : State(sensors, numSensors, kfilter, stateRecordsOwnData)
+AvionicsState::AvionicsState(Sensor **sensors, int numSensors, LinearKalmanFilter *kfilter) : State(sensors, numSensors, kfilter)
 {
     stage = 0;
     timeOfLaunch = 0;
@@ -14,7 +14,7 @@ AvionicsState::AvionicsState(Sensor **sensors, int numSensors, LinearKalmanFilte
 void AvionicsState::updateState(double newTime)
 {
     State::updateState(newTime); // call base version for sensor updates
-    determineStage(); // determine the stage of the flight
+    //determineStage(); // determine the stage of the flight
 }
 
 void AvionicsState::determineStage()
@@ -35,7 +35,7 @@ void AvionicsState::determineStage()
     // essentially, if we have either sensor and they meet launch threshold, launch. Otherwise, it will never detect a launch.
     {
         bb.aonoff(33, 200);
-        logger.setRecordMode(FLIGHT);
+        // logger.setRecordMode(FLIGHT);
         stage = 1;
         timeOfLaunch = currentTime;
         timeOfLastStage = currentTime;
@@ -46,7 +46,7 @@ void AvionicsState::determineStage()
             if (sensorOK(sensors[i]))
             {
                 char logData[200];
-                snprintf(logData, 200, "%s: %s", sensors[i]->getName(), sensors[i]->getStaticDataString());
+                //snprintf(logData, 200, "%s: %s", sensors[i]->getName(), sensors[i]->getStaticDataString());
                 logger.recordLogData(INFO_, logData);
                 sensors[i]->setBiasCorrectionMode(false);
             }
