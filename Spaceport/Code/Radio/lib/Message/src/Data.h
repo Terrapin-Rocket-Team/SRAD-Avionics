@@ -20,6 +20,8 @@ public:
     virtual uint16_t encode(uint8_t *data, uint16_t sz) = 0;
     // decode the data stored in ```data``` and place it in the ```Data``` object, ```sz``` is the number of bytes from ```data``` to decode
     virtual uint16_t decode(uint8_t *data, uint16_t sz) = 0;
+
+    virtual uint16_t toJSON(char *json, uint16_t sz) = 0;
 };
 
 #endif

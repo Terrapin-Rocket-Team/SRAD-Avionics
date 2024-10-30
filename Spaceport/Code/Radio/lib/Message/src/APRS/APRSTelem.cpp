@@ -124,3 +124,16 @@ uint16_t APRSTelem::decode(uint8_t *data, uint16_t sz)
 
     return pos;
 }
+
+uint16_t APRSTelem::toJSON(char *json, uint16_t sz)
+{
+    uint16_t result = (uint16_t)snprintf(json, sz, "{\"type\": \"APRSTelem\", \"data\": {\"lat\": %.3lf, \"lng\": %.7lf, \"alt\": %lf, \"spd\": %lf, \"hdg\": %lf, \"orient\": [%lf, %lf, %lf], \"stateflags\": %lu}}", this->lat, this->lng, this->alt, this->spd, this->hdg, this->orient[0], this->orient[1], this->orient[2], this->stateFlags);
+
+    if (result < sz)
+    {
+        // ran properly
+        return result;
+    }
+    // output too large
+    return 0;
+}

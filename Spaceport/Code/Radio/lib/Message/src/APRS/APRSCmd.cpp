@@ -49,3 +49,16 @@ uint16_t APRSCmd::decode(uint8_t *data, uint16_t sz)
 
     return pos;
 }
+
+uint16_t APRSCmd::toJSON(char *json, uint16_t sz)
+{
+    uint16_t result = (uint16_t)snprintf(json, sz, "{\"type\": \"APRSCmd\", \"data\": {\"cmd\": %d, \"args\": %d}}", this->cmd, this->args);
+
+    if (result < sz)
+    {
+        // ran properly
+        return result;
+    }
+    // output too large
+    return 0;
+}

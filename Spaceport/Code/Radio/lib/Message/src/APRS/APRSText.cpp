@@ -87,3 +87,16 @@ uint16_t APRSText::decode(uint8_t *data, uint16_t sz)
 
     return pos;
 }
+
+uint16_t APRSText::toJSON(char *json, uint16_t sz)
+{
+    uint16_t result = (uint16_t)snprintf(json, sz, "{\"type\": \"APRSText\", \"data\": {\"message\": %s, \"addressee\": %s}}", this->msg, this->addressee);
+
+    if (result < sz)
+    {
+        // ran properly
+        return result;
+    }
+    // output too large
+    return 0;
+}
