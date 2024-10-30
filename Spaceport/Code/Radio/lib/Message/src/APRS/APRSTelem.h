@@ -41,6 +41,8 @@ public:
     uint16_t encode(uint8_t *data, uint16_t sz) override;
     // decode the data stored in ```data``` and place it in the ```Data``` object
     uint16_t decode(uint8_t *data, uint16_t sz) override;
+
+    uint16_t toJSON(char *json, uint16_t sz) override;
 };
 
 #endif

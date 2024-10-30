@@ -72,3 +72,49 @@ GSData *GSData::fill(uint8_t *buf, uint16_t size)
     }
     return this;
 }
+
+uint16_t GSData::toJSON(char *json, uint16_t sz)
+{
+    uint16_t result = (uint16_t)snprintf(json, sz, "{\"type\": \"GSData\", \"data\": {\"index\": %d, \"size\": [", this->index);
+
+    if (result >= sz)
+    {
+        // output too large
+        return 0;
+    }
+
+    // result should be the index of the \0
+
+    // need to dynamically adjust the number of bytes added based on size
+    for (int i = 0; i < this->size; i++)
+    {
+        if (result + 4 < sz)
+        {
+            int added = sprintf(json + result, "%d,", this->buf[i]);
+            if (added > 0 && added < sz)
+                result += added;
+            else
+                return 0; // output too large
+        }
+        else
+            return 0; // output too large
+    }
+
+    // result should be the index of \0
+
+    // add closing braces
+    // need to overwrite the last trailing comma
+    if (result + 3 < sz)
+    {
+        json[result - 1] = ']';
+        json[result] = '}';
+        json[result + 1] = '}';
+        json[result + 2] = '\0';
+
+        // ran properly
+        return result;
+    }
+
+    // output too large
+    return 0;
+}
