@@ -42,7 +42,8 @@ public:
     // decode the data stored in ```data``` and place it in the ```Data``` object
     uint16_t decode(uint8_t *data, uint16_t sz) override;
 
-    uint16_t toJSON(char *json, uint16_t sz) override;
+    uint16_t toJSON(char *json, uint16_t sz, const char *streamName = "") override;
+    uint16_t fromJSON(char *json, uint16_t sz, char *streamName) override;
 };
 
 #endif

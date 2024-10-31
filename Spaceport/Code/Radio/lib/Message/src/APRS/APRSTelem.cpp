@@ -125,9 +125,9 @@ uint16_t APRSTelem::decode(uint8_t *data, uint16_t sz)
     return pos;
 }
 
-uint16_t APRSTelem::toJSON(char *json, uint16_t sz)
+uint16_t APRSTelem::toJSON(char *json, uint16_t sz, const char *streamName)
 {
-    uint16_t result = (uint16_t)snprintf(json, sz, "{\"type\": \"APRSTelem\", \"data\": {\"lat\": %.3lf, \"lng\": %.7lf, \"alt\": %lf, \"spd\": %lf, \"hdg\": %lf, \"orient\": [%lf, %lf, %lf], \"stateflags\": %lu}}", this->lat, this->lng, this->alt, this->spd, this->hdg, this->orient[0], this->orient[1], this->orient[2], this->stateFlags);
+    uint16_t result = (uint16_t)snprintf(json, sz, "{\"type\": \"APRSTelem\", \"name\":\"%s\", \"data\": {\"lat\": %.7lf, \"lng\": %.7lf, \"alt\": %lf, \"spd\": %lf, \"hdg\": %lf, \"orient\": [%lf, %lf, %lf], \"stateflags\": \"%#lx\"}}", streamName, this->lat, this->lng, this->alt, this->spd, this->hdg, this->orient[0], this->orient[1], this->orient[2], this->stateFlags);
 
     if (result < sz)
     {
@@ -136,4 +136,52 @@ uint16_t APRSTelem::toJSON(char *json, uint16_t sz)
     }
     // output too large
     return 0;
+}
+
+uint16_t APRSTelem::fromJSON(char *json, uint16_t sz, char *streamName)
+{
+    char lat[14] = {0};
+    char lng[14] = {0};
+    char alt[14] = {0};
+    char spd[14] = {0};
+    char hdg[14] = {0};
+    char sf[11] = {0};
+    if (!extractStr(json, sz, "\"name\":\"", '"', streamName))
+        return 0;
+    if (!extractStr(json, sz, "\"lat\": ", ',', lat, 14))
+        return 0;
+    if (!extractStr(json, sz, "\"lng\": ", ',', lng, 14))
+        return 0;
+    if (!extractStr(json, sz, "\"alt\": ", ',', alt, 14))
+        return 0;
+    if (!extractStr(json, sz, "\"spd\": ", ',', spd, 14))
+        return 0;
+    if (!extractStr(json, sz, "\"hdg\": ", ',', hdg, 14))
+        return 0;
+    if (!extractStr(json, sz, "\"stateflags\": \"", '"', sf, 11))
+        return 0;
+
+    this->lat = atof(lat);
+    this->lng = atof(lng);
+    this->alt = atof(alt);
+    this->spd = atof(spd);
+    this->hdg = atof(hdg);
+    this->stateFlags = strtol(sf, NULL, 16);
+
+    char *orientStrPos = strstr(json, "\"orient\": [");
+    int orientPos = int(orientStrPos - json) + 11;
+    int orientIndex = 0;
+    char orientStr[14] = {0};
+    while (json[orientPos] != ']' && orientPos < sz && orientIndex < 3)
+    {
+        int counter = 0;
+        while (json[orientPos] != ',' && json[orientPos] != ']' && orientPos < sz)
+        {
+            orientStr[counter++] = json[orientPos++];
+        }
+        this->orient[orientIndex++] = atof(orientStr);
+        orientPos++;
+    }
+
+    return 1;
 }
