@@ -4,6 +4,7 @@ VideoData::VideoData(uint8_t *data)
 {
     // copy maxSize bytes from data into internal buffer
     memcpy(this->data, data, this->maxSize);
+    this->size = this->maxSize;
 }
 
 VideoData::VideoData(uint8_t *data, uint16_t sz)
@@ -41,9 +42,9 @@ uint16_t VideoData::decode(uint8_t *data, uint16_t sz)
     return sz;
 }
 
-uint16_t VideoData::toJSON(char *json, uint16_t sz)
+uint16_t VideoData::toJSON(char *json, uint16_t sz, const char *streamName)
 {
-    uint16_t result = (uint16_t)snprintf(json, sz, "{\"type\": \"VideoData\", \"data\": {\"data\": [");
+    uint16_t result = (uint16_t)snprintf(json, sz, "{\"type\": \"VideoData\", \"name\":\"%s\", \"data\": {\"data\": [", streamName);
 
     if (result >= sz)
     {
@@ -51,7 +52,7 @@ uint16_t VideoData::toJSON(char *json, uint16_t sz)
         return 0;
     }
 
-    // result should be the index of the \0
+    // result should be the index of the [
 
     // need to dynamically adjust the number of bytes added based on size
     for (int i = 0; i < this->size; i++)
@@ -59,7 +60,7 @@ uint16_t VideoData::toJSON(char *json, uint16_t sz)
         if (result + 4 < sz)
         {
             int added = sprintf(json + result, "%d,", this->data[i]);
-            if (added > 0 && added < sz)
+            if (added > 0 && result + added < sz)
                 result += added;
             else
                 return 0; // output too large
@@ -69,6 +70,9 @@ uint16_t VideoData::toJSON(char *json, uint16_t sz)
     }
 
     // result should be the index of \0
+    // unless size is 0
+    if (this->size == 0)
+        result++;
 
     // add closing braces
     // need to overwrite the last trailing comma
@@ -85,4 +89,33 @@ uint16_t VideoData::toJSON(char *json, uint16_t sz)
 
     // output too large
     return 0;
+}
+
+uint16_t VideoData::fromJSON(char *json, uint16_t sz, char *streamName) //
+{
+    if (!extractStr(json, sz, "\"name\":\"", '"', streamName))
+        return 0;
+
+    char *dataStrPos = strstr(json, "{\"data\": [");
+    int current = int(dataStrPos - json) + 10; // add 10 to move to the "["
+    this->size = 0;
+
+    while (json[current] != ']' && current < sz)
+    {
+        char dataByte[4] = {0};
+        int index = 0;
+        while (json[current] != ',' && current < sz)
+        {
+            if (index < 3)
+            {
+                dataByte[index] = json[current];
+                index++;
+            }
+            current++;
+        }
+        this->data[this->size] = atoi(dataByte);
+        this->size++;
+        current++;
+    }
+    return this->size;
 }

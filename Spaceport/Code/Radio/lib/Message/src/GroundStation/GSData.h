@@ -43,7 +43,8 @@ public:
     // fill internal buffer with ```size``` bytes using the data in ```buf```
     GSData *fill(uint8_t *buf, uint16_t size);
 
-    uint16_t toJSON(char *json, uint16_t sz) override;
+    uint16_t toJSON(char *json, uint16_t sz, const char *streamName = "") override;
+    uint16_t fromJSON(char *json, uint16_t sz, char *streamName) override;
 };
 
 #endif

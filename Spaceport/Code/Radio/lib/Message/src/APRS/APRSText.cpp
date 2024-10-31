@@ -88,9 +88,9 @@ uint16_t APRSText::decode(uint8_t *data, uint16_t sz)
     return pos;
 }
 
-uint16_t APRSText::toJSON(char *json, uint16_t sz)
+uint16_t APRSText::toJSON(char *json, uint16_t sz, const char *streamName)
 {
-    uint16_t result = (uint16_t)snprintf(json, sz, "{\"type\": \"APRSText\", \"data\": {\"message\": %s, \"addressee\": %s}}", this->msg, this->addressee);
+    uint16_t result = (uint16_t)snprintf(json, sz, "{\"type\": \"APRSText\", \"name\":\"%s\", \"data\": {\"message\": \"%s\", \"addressee\": \"%s\"}}", streamName, this->msg, this->addressee);
 
     if (result < sz)
     {
@@ -99,4 +99,19 @@ uint16_t APRSText::toJSON(char *json, uint16_t sz)
     }
     // output too large
     return 0;
+}
+
+uint16_t APRSText::fromJSON(char *json, uint16_t sz, char *streamName)
+{
+    if (!extractStr(json, sz, "\"name\":\"", '"', streamName))
+        return 0;
+    if (!extractStr(json, sz, "\"message\": \"", '"', this->msg))
+        return 0;
+    if (!extractStr(json, sz, "\"addressee\": \"", '"', this->addressee))
+        return 0;
+
+    this->msgLen = strlen(this->msg);
+    this->addrLen = strlen(this->addressee);
+
+    return this->msgLen;
 }

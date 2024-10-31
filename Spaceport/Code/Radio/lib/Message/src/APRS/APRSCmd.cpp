@@ -50,9 +50,9 @@ uint16_t APRSCmd::decode(uint8_t *data, uint16_t sz)
     return pos;
 }
 
-uint16_t APRSCmd::toJSON(char *json, uint16_t sz)
+uint16_t APRSCmd::toJSON(char *json, uint16_t sz, const char *streamName)
 {
-    uint16_t result = (uint16_t)snprintf(json, sz, "{\"type\": \"APRSCmd\", \"data\": {\"cmd\": %d, \"args\": %d}}", this->cmd, this->args);
+    uint16_t result = (uint16_t)snprintf(json, sz, "{\"type\": \"APRSCmd\", \"name\":\"%s\", \"data\": {\"cmd\": \"%#x\", \"args\": \"%#x\"}}", streamName, this->cmd, this->args);
 
     if (result < sz)
     {
@@ -61,4 +61,21 @@ uint16_t APRSCmd::toJSON(char *json, uint16_t sz)
     }
     // output too large
     return 0;
+}
+
+uint16_t APRSCmd::fromJSON(char *json, uint16_t sz, char *streamName)
+{
+    char cmdStr[5] = {0};
+    char argsStr[7] = {0};
+    if (!extractStr(json, sz, "\"name\":\"", '"', streamName))
+        return 0;
+    if (!extractStr(json, sz, "\"cmd\": \"", '"', cmdStr))
+        return 0;
+    if (!extractStr(json, sz, "\"args\": \"", '"', argsStr))
+        return 0;
+
+    this->cmd = strtol(cmdStr, NULL, 16);
+    this->args = strtol(argsStr, NULL, 16);
+
+    return 1;
 }

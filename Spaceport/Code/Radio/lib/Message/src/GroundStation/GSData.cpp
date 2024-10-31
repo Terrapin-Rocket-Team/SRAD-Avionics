@@ -73,10 +73,9 @@ GSData *GSData::fill(uint8_t *buf, uint16_t size)
     return this;
 }
 
-uint16_t GSData::toJSON(char *json, uint16_t sz)
+uint16_t GSData::toJSON(char *json, uint16_t sz, const char *streamName)
 {
-    uint16_t result = (uint16_t)snprintf(json, sz, "{\"type\": \"GSData\", \"data\": {\"index\": %d, \"size\": [", this->index);
-
+    uint16_t result = (uint16_t)snprintf(json, sz, "{\"type\": \"GSData\", \"name\":\"%s\", \"data\": {\"index\": %d, \"buf\": [", streamName, this->index);
     if (result >= sz)
     {
         // output too large
@@ -91,7 +90,7 @@ uint16_t GSData::toJSON(char *json, uint16_t sz)
         if (result + 4 < sz)
         {
             int added = sprintf(json + result, "%d,", this->buf[i]);
-            if (added > 0 && added < sz)
+            if (added > 0 && result + added < sz)
                 result += added;
             else
                 return 0; // output too large
@@ -101,6 +100,9 @@ uint16_t GSData::toJSON(char *json, uint16_t sz)
     }
 
     // result should be the index of \0
+    // unless size is 0
+    if (this->size == 0)
+        result++;
 
     // add closing braces
     // need to overwrite the last trailing comma
@@ -117,4 +119,39 @@ uint16_t GSData::toJSON(char *json, uint16_t sz)
 
     // output too large
     return 0;
+}
+
+uint16_t GSData::fromJSON(char *json, uint16_t sz, char *streamName)
+{
+    char indexTxt[10] = {0};
+
+    if (!extractStr(json, sz, "\"name\":\"", '"', streamName))
+        return 0;
+    if (!extractStr(json, sz, "\"index\": ", ',', indexTxt, 3))
+        return 0;
+
+    this->index = atoi(indexTxt);
+
+    char *dataStrPos = strstr(json, "\"buf\": [");
+    int current = int(dataStrPos - json) + 8; // add 8 to move to the "["
+    this->size = 0;
+
+    while (json[current] != ']' && current < sz)
+    {
+        char dataByte[4] = {0};
+        int index = 0;
+        while (json[current] != ',' && current < sz)
+        {
+            if (index < 3)
+            {
+                dataByte[index] = json[current];
+                index++;
+            }
+            current++;
+        }
+        this->buf[this->size] = atoi(dataByte);
+        this->size++;
+        current++;
+    }
+    return this->size;
 }
