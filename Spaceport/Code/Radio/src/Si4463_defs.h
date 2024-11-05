@@ -9,6 +9,7 @@ enum Si4463State : uint8_t
     STATE_IDLE,        // not doing anything
     STATE_ENTER_TX,    // chip commanded to enter TX mode
     STATE_TX,          // in the middle of TX
+    STATE_TX_COMPLETE, // finished transferring bytes to the radio
     STATE_ENTER_RX,    // chip commanded to enter RX mode
     STATE_RX,          // in the middle of RX
     STATE_RX_COMPLETE, // finished RX
@@ -32,19 +33,19 @@ enum Si4463DataRate : uint64_t
     // actual data rate ends up being MDR/10
     // most likely symbol rate, so doubled for 4 level FSK
     // format:
+    // only 7 total bytes, so skip first byte
     // next 3 bytes are data rate
     // next 4 bits are 0
     // next 2 bits are TXOSR (only useful for low data rate GFSK)
     // next 2 bits are the most signficiant 2 bits of NCO_MODE
     // next 3 bytes are the rest of NCO_MODE
-    // only 7 total bytes, so skip last byte
-    DR_500b = 0x00138801C9C38000, // MDR = 5000 sps, NCO_MODE = 30 M, TXOSR = 10
-    DR_4_8k = 0x00BB8001C9C38000, // MDR = 48 ksps, NCO_MODE = 30 M, TXOSR = 10
-    DR_9_6k = 0x01770001C9C38000, // MDR = 96 ksps, NCO_MODE = 30 M, TXOSR = 10
-    DR_40k = 0x061A8001C9C38000,  // MDR = 400 ksps, NCO_MODE = 30 M, TXOSR = 10
-    DR_100k = 0x0F424001C9C38000, // MDR = 1000 ksps, NCO_MODE = 30 M, TXOSR = 10
-    DR_120k = 0x124F8001C9C38000, // MDR = 1200 ksps, NCO_MODE = 30 M, TXOSR = 10
-    DR_500k = 0x4C4B4001C9C38000, // MDR = 5000 ksps, NCO_MODE = 30 M, TXOSR = 10
+    DR_500b = 0x000186A001C9C380, // MDR = 5000 sps, NCO_MODE = 30 M, TXOSR = 10
+    DR_4_8k = 0x0000BB8001C9C380, // MDR = 48 ksps, NCO_MODE = 30 M, TXOSR = 10
+    DR_9_6k = 0x0001770001C9C380, // MDR = 96 ksps, NCO_MODE = 30 M, TXOSR = 10
+    DR_40k = 0x00061A8001C9C380,  // MDR = 400 ksps, NCO_MODE = 30 M, TXOSR = 10
+    DR_100k = 0x000F424001C9C380, // MDR = 1000 ksps, NCO_MODE = 30 M, TXOSR = 10
+    DR_120k = 0x00124F8001C9C380, // MDR = 1200 ksps, NCO_MODE = 30 M, TXOSR = 10
+    DR_500k = 0x004C4B4001C9C380, // MDR = 5000 ksps, NCO_MODE = 30 M, TXOSR = 10
                                   // DR_1M = 0x98968001C9C38000,   // MDR = 10 Msps, NCO_MODE = 30 M, TXOSR = 10
 };
 
@@ -274,7 +275,7 @@ enum Si4463Property : uint8_t
     P_MODEM_TX_FILTER_COEFF_1 = 0x16,         // 0x03
     P_MODEM_TX_FILTER_COEFF_0 = 0x17,         // 0x01
     P_MODEM_TX_RAMP_DELAY = 0x18,             // 0x01
-    P_MODEM_MBM_CTRL = 0x19,                  // 0x00
+    P_MODEM_MDM_CTRL = 0x19,                  // 0x00
     P_MODEM_IF_CONTROL = 0x1a,                // 0x08
     P_MODEM_IF_FREQ3 = 0x1b,                  // 0x03 0xc0 0x00
     P_MODEM_DECIMATION_CFG_1 = 0x1e,          // 0x10
@@ -285,8 +286,8 @@ enum Si4463Property : uint8_t
     P_MODEM_BCR_NCO_OFFSET3 = 0x24,           // 0x06 0xd3 0xa0
     P_MODEM_BCR_GAIN2 = 0x27,                 // 0x06 0xd3
     P_MODEM_BCR_GEAR = 0x29,                  // 0x02
-    P_MODEM_BSR_MISC_1 = 0x2a,                // 0xc0
-    P_MODEM_BSR_MISC_0 = 0x2b,                // 0x00
+    P_MODEM_BCR_MISC_1 = 0x2a,                // 0xc0
+    P_MODEM_BCR_MISC_0 = 0x2b,                // 0x00
     P_MODEM_AFC_GEAR = 0x2c,                  // 0x00
     P_MODEM_AFC_WAIT = 0x2d,                  // 0x23
     P_MODEM_AFC_GAIN2 = 0x2e,                 // 0x83 0x69

@@ -16,8 +16,6 @@
 #include <Si446x.h>
 #include <Si4463.h>
 
-#define BUZZER 0
-
 #define CHANNEL 0
 #define MAX_PACKET_SIZE 10
 #define TIMEOUT 1000
@@ -80,19 +78,9 @@ void SI446X_CB_RXINVALID(int16_t rssi)
     pingInfo.rssi = rssi;
 }
 
-void beep(int d)
-{
-    digitalWrite(BUZZER, HIGH);
-    delay(d);
-    digitalWrite(BUZZER, LOW);
-    delay(d);
-}
-
 void setup()
 {
     Serial.begin(9600);
-
-    pinMode(BUZZER, OUTPUT);
 
     // pinMode(A5, OUTPUT); // LED
 
@@ -104,8 +92,6 @@ void setup()
     Si446x_init();
     Si446x_setTxPower(SI446X_MAX_TX_POWER);
     Serial.println("Setup");
-
-    beep(500);
 }
 
 void loop()
@@ -124,7 +110,6 @@ void loop()
     Serial.print(F("Sending data"));
     Serial.println(data);
 
-    beep(100);
     uint32_t startTime = millis();
 
     // Send the data
