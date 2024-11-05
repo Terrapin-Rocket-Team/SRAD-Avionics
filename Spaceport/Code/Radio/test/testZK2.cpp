@@ -1,5 +1,5 @@
 /*
- * Project: Si4463 Radio Library for AVR and Arduino (Ping client example)
+ * Project: Si4463 Radio Library for AVR and Arduino (Ping server example)
  * Author: Zak Kemble, contact@zakkemble.co.uk
  * Copyright: (C) 2017 by Zak Kemble
  * License: GNU GPL v3 (see License.txt)
@@ -7,20 +7,16 @@
  */
 
 /*
- * Ping client
+ * Ping server
  *
- * Time how long it takes to send some data and get a reply
- * Should be around 5-6ms with default settings
+ * Listen for packets and send them back
  */
 
 #include <Si446x.h>
 #include <Si4463.h>
 
-#define BUZZER 0
-
 #define CHANNEL 0
 #define MAX_PACKET_SIZE 10
-#define TIMEOUT 1000
 
 #define PACKET_NONE 0
 #define PACKET_OK 1
@@ -51,7 +47,6 @@ Si4463 radio(hwcfg, pincfg);
 typedef struct
 {
     uint8_t ready;
-    uint32_t timestamp;
     int16_t rssi;
     uint8_t length;
     uint8_t buffer[MAX_PACKET_SIZE];
@@ -65,7 +60,6 @@ void SI446X_CB_RXCOMPLETE(uint8_t length, int16_t rssi)
         length = MAX_PACKET_SIZE;
 
     pingInfo.ready = PACKET_OK;
-    pingInfo.timestamp = millis();
     pingInfo.rssi = rssi;
     pingInfo.length = length;
 
@@ -80,19 +74,9 @@ void SI446X_CB_RXINVALID(int16_t rssi)
     pingInfo.rssi = rssi;
 }
 
-void beep(int d)
-{
-    digitalWrite(BUZZER, HIGH);
-    delay(d);
-    digitalWrite(BUZZER, LOW);
-    delay(d);
-}
-
 void setup()
 {
     Serial.begin(9600);
-
-    pinMode(BUZZER, OUTPUT);
 
     // pinMode(A5, OUTPUT); // LED
 
@@ -104,76 +88,47 @@ void setup()
     Si446x_init();
     Si446x_setTxPower(SI446X_MAX_TX_POWER);
     Serial.println("Setup");
-
-    beep(500);
 }
 
 void loop()
 {
-    static uint8_t counter;
-    static uint32_t sent;
-    static uint32_t replies;
-    static uint32_t timeouts;
+    static uint32_t pings;
     static uint32_t invalids;
 
-    // Make data
-    char data[MAX_PACKET_SIZE] = {0};
-    sprintf_P(data, PSTR("test %hhu"), counter);
-    counter++;
+    // Put into receive mode
+    Si446x_RX(CHANNEL);
 
-    Serial.print(F("Sending data"));
-    Serial.println(data);
+    Serial.println(F("Waiting for ping..."));
 
-    beep(100);
-    uint32_t startTime = millis();
+    // Wait for data
+    while (pingInfo.ready == PACKET_NONE)
+        ;
 
-    // Send the data
-    Si446x_TX(data, sizeof(data), CHANNEL, SI446X_STATE_RX);
-    sent++;
-
-    Serial.println(F("Data sent, waiting for reply..."));
-
-    uint8_t success;
-
-    // Wait for reply with timeout
-    uint32_t sendStartTime = millis();
-    while (1)
+    if (pingInfo.ready != PACKET_OK)
     {
-        success = pingInfo.ready;
-        if (success != PACKET_NONE)
-            break;
-        else if (millis() - sendStartTime > TIMEOUT) // Timeout // TODO typecast to uint16_t
-            break;
-    }
-
-    pingInfo.ready = PACKET_NONE;
-
-    if (success == PACKET_NONE)
-    {
-        Serial.println(F("Ping timed out"));
-        timeouts++;
-    }
-    else if (success == PACKET_INVALID)
-    {
+        invalids++;
+        pingInfo.ready = PACKET_NONE;
         Serial.print(F("Invalid packet! Signal: "));
         Serial.print(pingInfo.rssi);
         Serial.println(F("dBm"));
-        invalids++;
+        Si446x_RX(CHANNEL);
     }
     else
     {
-        // If success toggle LED and send ping time over UART
-        uint16_t totalTime = pingInfo.timestamp - startTime;
+        pings++;
+        pingInfo.ready = PACKET_NONE;
 
+        Serial.println(F("Got ping, sending reply..."));
+
+        // Send back the data, once the transmission has completed go into receive mode
+        Si446x_TX((uint8_t *)pingInfo.buffer, pingInfo.length, CHANNEL, SI446X_STATE_RX);
+
+        Serial.println(F("Reply sent"));
+
+        // Toggle LED
         static uint8_t ledState;
         digitalWrite(A5, ledState ? HIGH : LOW);
         ledState = !ledState;
-
-        replies++;
-
-        Serial.print(F("Ping time: "));
-        Serial.print(totalTime);
-        Serial.println(F("ms"));
 
         Serial.print(F("Signal strength: "));
         Serial.print(pingInfo.rssi);
@@ -186,15 +141,9 @@ void loop()
     }
 
     Serial.print(F("Totals: "));
-    Serial.print(sent);
-    Serial.print(F(" Sent, "));
-    Serial.print(replies);
-    Serial.print(F(" Replies, "));
-    Serial.print(timeouts);
-    Serial.print(F(" Timeouts, "));
+    Serial.print(pings);
+    Serial.print(F("Pings, "));
     Serial.print(invalids);
-    Serial.println(F(" Invalid"));
+    Serial.println(F("Invalid"));
     Serial.println(F("------"));
-
-    delay(1000);
 }

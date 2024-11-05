@@ -289,11 +289,12 @@ public:
     */
     void sendCommandC(Si4463Cmd cmd, uint8_t argcCmd, uint8_t *argvCmd);
 
+    SPIClass *spi;
+    uint8_t _cs;
+
 private:
     // spi interface
-    SPIClass *spi;
     uint8_t _sdn;
-    uint8_t _cs;
     uint8_t _irq;
 
     // gpio pins
