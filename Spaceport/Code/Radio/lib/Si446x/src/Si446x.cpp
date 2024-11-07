@@ -789,7 +789,7 @@ uint8_t Si446x_TX(void *packet, uint8_t len, uint8_t channel, si446x_state_t onT
 
 #if !SI446X_FIXED_LENGTH
 		// Set packet length
-		// Serial.println("4");
+		Serial.println("4");
 		setProperty(SI446X_PKT_FIELD_2_LENGTH_LOW, len);
 #endif
 
@@ -941,7 +941,7 @@ ISR(INT_VECTOR)
 #endif
 
 	uint8_t interrupts[8];
-	interrupt(interrupts);
+	// interrupt(interrupts);
 
 	// TODO remove
 	// SI446X_CB_DEBUG(interrupts);
@@ -988,6 +988,7 @@ ISR(INT_VECTOR)
 	// Valid packet
 	if (interrupts[2] & (1 << SI446X_PACKET_RX_PEND))
 	{
+		Serial.println("uh oh");
 #if !SI446X_FIXED_LENGTH
 		uint8_t len = 0;
 		Si446x_read(&len, 1);

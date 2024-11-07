@@ -16,6 +16,8 @@
 #include <Si446x.h>
 #include <Si4463.h>
 
+#define BUZZER 0
+
 #define CHANNEL 0
 #define MAX_PACKET_SIZE 10
 #define TIMEOUT 1000
@@ -78,9 +80,19 @@ void SI446X_CB_RXINVALID(int16_t rssi)
     pingInfo.rssi = rssi;
 }
 
+void beep(int d)
+{
+    digitalWrite(BUZZER, HIGH);
+    delay(d);
+    digitalWrite(BUZZER, LOW);
+    delay(d);
+}
+
 void setup()
 {
     Serial.begin(9600);
+
+    pinMode(BUZZER, OUTPUT);
 
     // pinMode(A5, OUTPUT); // LED
 
@@ -92,7 +104,11 @@ void setup()
     Si446x_init();
     Si446x_setTxPower(SI446X_MAX_TX_POWER);
     Serial.println("Setup");
+
+    beep(500);
 }
+
+uint32_t timer = millis();
 
 void loop()
 {
@@ -102,84 +118,95 @@ void loop()
     static uint32_t timeouts;
     static uint32_t invalids;
 
-    // Make data
-    char data[MAX_PACKET_SIZE] = {0};
-    sprintf_P(data, PSTR("test %hhu"), counter);
-    counter++;
-
-    Serial.print(F("Sending data"));
-    Serial.println(data);
-
-    uint32_t startTime = millis();
-
-    // Send the data
-    Si446x_TX(data, sizeof(data), CHANNEL, SI446X_STATE_RX);
-    sent++;
-
-    Serial.println(F("Data sent, waiting for reply..."));
-
-    uint8_t success;
-
-    // Wait for reply with timeout
-    uint32_t sendStartTime = millis();
-    while (1)
+    if (millis() - timer > 1500)
     {
-        success = pingInfo.ready;
-        if (success != PACKET_NONE)
-            break;
-        else if (millis() - sendStartTime > TIMEOUT) // Timeout // TODO typecast to uint16_t
-            break;
+        timer = millis();
+        // Make data
+        char data[MAX_PACKET_SIZE] = {0};
+        sprintf_P(data, PSTR("test %hhu"), counter);
+        counter++;
+
+        Serial.print(F("Sending data: "));
+        Serial.println(data);
+
+        beep(100);
+        uint32_t startTime = millis();
+
+        // Send the data
+        // Si446x_TX(data, sizeof(data), CHANNEL, SI446X_STATE_RX);
+        radio.tx((const uint8_t *)data, sizeof(data));
+        sent++;
+
+        Serial.println(F("Data sent, waiting for reply..."));
+
+        uint8_t success;
+
+        // Wait for reply with timeout
+        uint32_t sendStartTime = millis();
+        while (1)
+        {
+            if (radio.avail())
+                break;
+
+            else if (millis() - sendStartTime > TIMEOUT) // Timeout // TODO typecast to uint16_t
+                break;
+        }
+        uint32_t endTime = millis();
+
+        // pingInfo.ready = PACKET_NONE;
+
+        if (!radio.available)
+        {
+            Serial.println(F("Ping timed out"));
+            timeouts++;
+        }
+        // else if (success == PACKET_INVALID)
+        // {
+        //     Serial.print(F("Invalid packet! Signal: "));
+        //     Serial.print(pingInfo.rssi);
+        //     Serial.println(F("dBm"));
+        //     invalids++;
+        // }
+        else
+        {
+            radio.available = false;
+
+            uint8_t message[radio.maxLen] = {0};
+            uint16_t messageLen = radio.length;
+            memcpy(message, radio.buf, radio.length);
+            // If success toggle LED and send ping time over UART
+            uint16_t totalTime = endTime - startTime;
+
+            // static uint8_t ledState;
+            // digitalWrite(A5, ledState ? HIGH : LOW);
+            // ledState = !ledState;
+
+            replies++;
+
+            Serial.print(F("Ping time: "));
+            Serial.print(totalTime);
+            Serial.println(F("ms"));
+
+            Serial.print(F("Signal strength: "));
+            Serial.print(radio.RSSI());
+            Serial.println(F("dBm"));
+
+            // Print out ping contents
+            Serial.print(F("Data from server: "));
+            Serial.write(message, messageLen);
+            Serial.println();
+        }
+
+        Serial.print(F("Totals: "));
+        Serial.print(sent);
+        Serial.print(F(" Sent, "));
+        Serial.print(replies);
+        Serial.print(F(" Replies, "));
+        Serial.print(timeouts);
+        Serial.print(F(" Timeouts, "));
+        Serial.print(invalids);
+        Serial.println(F(" Invalid"));
+        Serial.println(F("------"));
     }
-
-    pingInfo.ready = PACKET_NONE;
-
-    if (success == PACKET_NONE)
-    {
-        Serial.println(F("Ping timed out"));
-        timeouts++;
-    }
-    else if (success == PACKET_INVALID)
-    {
-        Serial.print(F("Invalid packet! Signal: "));
-        Serial.print(pingInfo.rssi);
-        Serial.println(F("dBm"));
-        invalids++;
-    }
-    else
-    {
-        // If success toggle LED and send ping time over UART
-        uint16_t totalTime = pingInfo.timestamp - startTime;
-
-        static uint8_t ledState;
-        digitalWrite(A5, ledState ? HIGH : LOW);
-        ledState = !ledState;
-
-        replies++;
-
-        Serial.print(F("Ping time: "));
-        Serial.print(totalTime);
-        Serial.println(F("ms"));
-
-        Serial.print(F("Signal strength: "));
-        Serial.print(pingInfo.rssi);
-        Serial.println(F("dBm"));
-
-        // Print out ping contents
-        Serial.print(F("Data from server: "));
-        Serial.write((uint8_t *)pingInfo.buffer, sizeof(pingInfo.buffer));
-        Serial.println();
-    }
-
-    Serial.print(F("Totals: "));
-    Serial.print(sent);
-    Serial.print(F(" Sent, "));
-    Serial.print(replies);
-    Serial.print(F(" Replies, "));
-    Serial.print(timeouts);
-    Serial.print(F(" Timeouts, "));
-    Serial.print(invalids);
-    Serial.println(F(" Invalid"));
-    Serial.println(F("------"));
-
-    delay(1000);
+    radio.update();
 }
