@@ -88,62 +88,79 @@ void setup()
     Si446x_init();
     Si446x_setTxPower(SI446X_MAX_TX_POWER);
     Serial.println("Setup");
+
+    // Put into receive mode
+    // Si446x_RX(CHANNEL);
+    radio.rx();
+
+    Serial.println(F("Waiting for ping..."));
 }
+
+uint32_t timer = millis();
 
 void loop()
 {
     static uint32_t pings;
     static uint32_t invalids;
 
-    // Put into receive mode
-    Si446x_RX(CHANNEL);
-
-    Serial.println(F("Waiting for ping..."));
-
     // Wait for data
-    while (pingInfo.ready == PACKET_NONE)
-        ;
+    if (radio.avail())
+    {
+        radio.available = false;
 
-    if (pingInfo.ready != PACKET_OK)
-    {
-        invalids++;
-        pingInfo.ready = PACKET_NONE;
-        Serial.print(F("Invalid packet! Signal: "));
-        Serial.print(pingInfo.rssi);
-        Serial.println(F("dBm"));
-        Si446x_RX(CHANNEL);
-    }
-    else
-    {
+        uint8_t message[radio.maxLen] = {0};
+        uint16_t messageLen = radio.length;
+        memcpy(message, radio.buf, radio.length);
+
+        // if (pingInfo.ready != PACKET_OK)
+        // {
+        //     invalids++;
+        //     pingInfo.ready = PACKET_NONE;
+        //     Serial.print(F("Invalid packet! Signal: "));
+        //     Serial.print(pingInfo.rssi);
+        //     Serial.println(F("dBm"));
+        //     Si446x_RX(CHANNEL);
+        // }
+        // else
+        // {
         pings++;
-        pingInfo.ready = PACKET_NONE;
 
         Serial.println(F("Got ping, sending reply..."));
 
         // Send back the data, once the transmission has completed go into receive mode
-        Si446x_TX((uint8_t *)pingInfo.buffer, pingInfo.length, CHANNEL, SI446X_STATE_RX);
+        radio.tx(message, messageLen);
 
         Serial.println(F("Reply sent"));
 
         // Toggle LED
-        static uint8_t ledState;
-        digitalWrite(A5, ledState ? HIGH : LOW);
-        ledState = !ledState;
+        // static uint8_t ledState;
+        // digitalWrite(A5, ledState ? HIGH : LOW);
+        // ledState = !ledState;
 
         Serial.print(F("Signal strength: "));
-        Serial.print(pingInfo.rssi);
+        Serial.print(radio.RSSI());
         Serial.println(F("dBm"));
 
         // Print out ping contents
         Serial.print(F("Data from server: "));
-        Serial.write((uint8_t *)pingInfo.buffer, sizeof(pingInfo.buffer));
+        Serial.write(message, messageLen);
+        Serial.println();
+        // }
+
+        Serial.print(F("Totals: "));
+        Serial.print(pings);
+        Serial.print(F("Pings, "));
+        Serial.print(invalids);
+        Serial.println(F("Invalid"));
+        Serial.println(F("------"));
+
+        // Put into receive mode
+        // Si446x_RX(CHANNEL);
+        // radio.rx();
+
+        Serial.println(F("Waiting for ping..."));
         Serial.println();
     }
 
-    Serial.print(F("Totals: "));
-    Serial.print(pings);
-    Serial.print(F("Pings, "));
-    Serial.print(invalids);
-    Serial.println(F("Invalid"));
-    Serial.println(F("------"));
+    radio.update();
 }

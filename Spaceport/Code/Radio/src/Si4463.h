@@ -82,6 +82,8 @@ public:
     // the current preamble length threshold for packet detection in symbols
     uint8_t preambleThresh;
 
+    bool available = false;
+
     /*
     Si4463 constructor
     - hConfig : the hardware configuration to initialize the radio with
