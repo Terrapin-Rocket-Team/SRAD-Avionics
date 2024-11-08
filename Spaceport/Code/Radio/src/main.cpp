@@ -82,7 +82,7 @@ void SI446X_CB_RXINVALID(int16_t rssi)
 
 void beep(int d)
 {
-    digitalWrite(BUZZER, HIGH);
+    // digitalWrite(BUZZER, HIGH);
     delay(d);
     digitalWrite(BUZZER, LOW);
     delay(d);
@@ -135,6 +135,9 @@ void loop()
         // Send the data
         // Si446x_TX(data, sizeof(data), CHANNEL, SI446X_STATE_RX);
         radio.tx((const uint8_t *)data, sizeof(data));
+        while (!radio.sent())
+            ;
+        radio.txComplete = false;
         sent++;
 
         Serial.println(F("Data sent, waiting for reply..."));
@@ -153,7 +156,7 @@ void loop()
 
         // pingInfo.ready = PACKET_NONE;
 
-        if (!radio.available)
+        if (!radio.rxComplete)
         {
             Serial.println(F("Ping timed out"));
             timeouts++;
@@ -167,7 +170,7 @@ void loop()
         // }
         else
         {
-            radio.available = false;
+            radio.rxComplete = false;
 
             uint8_t message[radio.maxLen] = {0};
             uint16_t messageLen = radio.length;
