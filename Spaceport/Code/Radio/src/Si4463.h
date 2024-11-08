@@ -82,7 +82,8 @@ public:
     // the current preamble length threshold for packet detection in symbols
     uint8_t preambleThresh;
 
-    bool available = false;
+    bool txComplete = false;
+    bool rxComplete = false;
 
     /*
     Si4463 constructor
@@ -145,6 +146,8 @@ public:
     Returns: whether a new message is available
     */
     bool avail();
+
+    bool sent();
 
     // high level hardware configuration methods
     /*
@@ -215,6 +218,8 @@ public:
     Returns: the state of the FRR specified by ```index```
     */
     int readFRR(int index);
+
+    void updateState();
 
     // high level functions to use various radio commands
     /*

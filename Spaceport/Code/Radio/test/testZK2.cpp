@@ -44,36 +44,6 @@ Si4463PinConfig pincfg = {
 
 Si4463 radio(hwcfg, pincfg);
 
-typedef struct
-{
-    uint8_t ready;
-    int16_t rssi;
-    uint8_t length;
-    uint8_t buffer[MAX_PACKET_SIZE];
-} pingInfo_t;
-
-static volatile pingInfo_t pingInfo;
-
-void SI446X_CB_RXCOMPLETE(uint8_t length, int16_t rssi)
-{
-    if (length > MAX_PACKET_SIZE)
-        length = MAX_PACKET_SIZE;
-
-    pingInfo.ready = PACKET_OK;
-    pingInfo.rssi = rssi;
-    pingInfo.length = length;
-
-    Si446x_read((uint8_t *)pingInfo.buffer, length);
-
-    // Radio will now be in idle mode
-}
-
-void SI446X_CB_RXINVALID(int16_t rssi)
-{
-    pingInfo.ready = PACKET_INVALID;
-    pingInfo.rssi = rssi;
-}
-
 void setup()
 {
     Serial.begin(9600);
@@ -106,7 +76,7 @@ void loop()
     // Wait for data
     if (radio.avail())
     {
-        radio.available = false;
+        radio.rxComplete = false;
 
         uint8_t message[radio.maxLen] = {0};
         uint16_t messageLen = radio.length;
@@ -129,6 +99,8 @@ void loop()
 
         // Send back the data, once the transmission has completed go into receive mode
         radio.tx(message, messageLen);
+        // while (!radio.sent())
+        //     ;
 
         Serial.println(F("Reply sent"));
 

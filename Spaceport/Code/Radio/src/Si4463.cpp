@@ -97,7 +97,7 @@ bool Si4463::begin()
     this->setPins(PIN_RX_STATE, PIN_TX_STATE, PIN_RX_STATE, PIN_TX_STATE, PIN_VALID_PREAMBLE, false);
 
     // // set defaults for FRRs
-    this->setFRRs(FRR_CURRENT_STATE, FRR_LATCHED_RSSI, FRR_INT_MODEM_PEND, FRR_INT_PH_STATUS);
+    this->setFRRs(FRR_CURRENT_STATE, FRR_LATCHED_RSSI, FRR_INT_MODEM_PEND, FRR_INT_PH_PEND);
 
     // // packet handling setup, doubly make sure this is being done correctly
     // this->setProperty(G_PKT, P_PKT_LEN, 0b00011010);              // set received field length to be 2 bytes, leave in the length bytes, and set the variable length field to field 2
@@ -172,7 +172,7 @@ bool Si4463::tx(const uint8_t *message, int len)
         uint8_t txArgs[6] = {0, 0b10000000, 0, 0, 0, 0};
         spi_write(C_START_TX, sizeof(txArgs), txArgs);
 
-        this->state = STATE_ENTER_TX;
+        this->state = STATE_TX;
 
         // set back to max length for rx mode?
         uint8_t cLen2[2] = {0, 0x80};
@@ -180,12 +180,16 @@ bool Si4463::tx(const uint8_t *message, int len)
 
         return true;
     }
+
     return false;
 }
 
 void Si4463::handleTX()
 {
-    // Serial.println("handleTX");
+    uint8_t intPH = this->readFRR(3);
+
+    Serial.println("handleTX");
+    Serial.println(intPH, BIN);
     // Serial.println(this->xfrd);
     // Serial.println(this->length);
     // this function assumes we are in tx mode already, so check that we are in tx mode
@@ -208,18 +212,10 @@ void Si4463::handleTX()
     }
     // if we've sent this->length bytes, the message is complete
     // needed
-    if (this->xfrd == this->length)
+    if (this->xfrd == this->length && (intPH & 0b00100000)) // PACKET_RX_PEND
     {
         // automatically placed into an idle state
-        this->state = STATE_TX_COMPLETE;
-        // uint8_t cIntArgs[3] = {0, 0, 0};
-        // uint8_t rIntArgs[8] = {};
-        // Serial.println("INTERRUPTS");
-        // sendCommand(C_GET_INT_STATUS, 3, cIntArgs, 8, rIntArgs);
-        // for (int i = 0; i < 8; i++)
-        // {
-        //     Serial.println(rIntArgs[i], BIN);
-        // }
+        this->txComplete = true;
         // clear internal variables
         memset(this->buf, 0, this->length);
         this->length = 0;
@@ -230,7 +226,7 @@ void Si4463::handleTX()
 bool Si4463::rx()
 {
     // make sure we aren't already in RX mode
-    if (this->state == STATE_IDLE)
+    if (this->state != STATE_RX)
     {
         // enter idle state
         uint8_t cIdleArgs[1] = {0b00000011};
@@ -247,7 +243,7 @@ bool Si4463::rx()
         // enter RX mode
         uint8_t rxArgs[7] = {0, 0, 0, 0, 0, 0b00000011, 0b00000001};
         spi_write(C_START_RX, 7, rxArgs);
-        this->state = STATE_ENTER_RX;
+        this->state = STATE_RX;
         return true;
     }
     return false;
@@ -258,16 +254,14 @@ void Si4463::handleRX()
     // we need to be in RX mode to be receiving a message
     if (this->state == STATE_RX)
     {
-        uint8_t cIntArgs[3] = {0, 0, 0};
-        uint8_t rIntArgs[8] = {};
-        sendCommand(C_GET_INT_STATUS, 3, cIntArgs, 8, rIntArgs);
-
-        if (rIntArgs[4] & 0b00000001) // Latched RSSI
+        uint8_t intPH = this->readFRR(3);
+        uint8_t intM = this->readFRR(2);
+        if (intM & 0b00000001) // Latched RSSI
         {
             this->rssi = this->readFRR(0);
         }
 
-        if (rIntArgs[2] & 0b00010000) // PACKET_RX_PEND
+        if (intPH & 0b00010000) // PACKET_RX_PEND
         {
             digitalWrite(this->_cs, LOW);
 
@@ -304,14 +298,13 @@ void Si4463::handleRX()
             if (this->xfrd == this->length)
             {
                 // automatically placed into an idle state
-                this->state = STATE_RX_COMPLETE;
-                this->available = true;
+                this->rxComplete = true;
                 // only reset xfrd
                 // length and buf need to stay so they can be read
                 this->xfrd = 0;
             }
         }
-        if (rIntArgs[2] & 0b00001000)
+        if (intPH & 0b00001000)
         {
             Serial.println("Invalid packet! CRC failed.");
         }
@@ -326,89 +319,17 @@ void Si4463::update()
     // if (this->state == STATE_ENTER_RX && gpio2())
     //     this->state = STATE_RX;
 
-    // slightly worse version to use while we don't have access to GPIO 2 and 3 (COTS radio)
-    // Serial.println(gpio1());
-    // bool cts = checkCTS();
-    if (this->state == STATE_ENTER_TX)
-    {
-        // this->state = STATE_TX;
-        // Serial.println("FRR");
-        // Serial.println(this->readFRR(0));
-        // uint8_t args[2] = {};
-        // uint8_t argst[1] = {0};
-        // Serial.println("FIFO_INFO");
-        // sendCommand(C_FIFO_INFO, 1, argst, 2, args);
-        // Serial.println(args[0]);
-        // Serial.println(args[1]);
-        uint8_t status = this->readFRR(1);
-        if (status == 7) // TX state
-        {
-            this->state = STATE_TX;
-        }
-        if (status == 8) // RX state
-        {
-            this->state = STATE_RX;
-        }
-        if (status == 3) // ready state
-        {
-            this->state = STATE_IDLE;
-        }
-    }
-
-    if (this->state == STATE_TX_COMPLETE)
-    {
-        uint8_t status = this->readFRR(1);
-        Serial.println("TX_COMPLETE");
-        if (status == 8) // RX state
-        {
-            this->state = STATE_RX;
-        }
-        if (status == 3) // ready state
-        {
-            this->state = STATE_IDLE;
-        }
-        else
-        {
-            Serial.println(status);
-        }
-    }
-
-    if (this->state == STATE_ENTER_RX)
-    {
-        uint8_t status = this->readFRR(1);
-        if (status == 8) // RX state
-        {
-            this->state = STATE_RX;
-        }
-        if (status == 3) // ready state
-        {
-            this->state = STATE_IDLE;
-        }
-    }
-
-    if (this->state == STATE_RX_COMPLETE)
-    {
-        uint8_t status = this->readFRR(1);
-        Serial.println("RX_COMPLETE");
-        if (status == 8) // RX state
-        {
-            this->state = STATE_RX;
-        }
-        if (status == 3) // ready state
-        {
-            this->state = STATE_IDLE;
-        }
-    }
-
     // check if we are transmitting and the FIFO is almost empty
     if (this->state == STATE_TX)
     {
         handleTX();
+        this->updateState();
     }
     // check if we are receving and the FIFO is almost full
     if (this->state == STATE_RX) // for now read interrupts here instead of checking GPIO
     {
         handleRX();
+        this->updateState();
     }
 }
 
@@ -435,8 +356,9 @@ bool Si4463::send(Data &data)
 bool Si4463::receive(Data &data)
 {
     // check if we have received the whole message
-    if (this->state == STATE_RX_COMPLETE)
+    if (this->rxComplete)
     {
+        this->rxComplete = false;
         // decode the message
         m.fill(this->buf, this->length)->decode(&data);
         return true;
@@ -448,13 +370,18 @@ int Si4463::RSSI() { return this->rssi / 2 - 64 - 70; } // magic formula from da
 
 bool Si4463::avail()
 {
+    this->update();
     // if we are not in receive mode, enter receive mode
-    if (this->state == STATE_IDLE)
+    if (this->state != STATE_RX)
         this->rx();
-    else
-        // otherwise return whether we have fully received a message
-        return this->available;
-    return false;
+    // return whether we have fully received a message
+    return this->rxComplete;
+}
+
+bool Si4463::sent()
+{
+    this->update();
+    return this->txComplete;
 }
 
 void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t freq)
@@ -714,6 +641,56 @@ int Si4463::readFRR(int index)
     uint8_t data[4] = {0};
     readFRRs(data, index);
     return data[0];
+}
+
+void Si4463::updateState()
+{
+    uint8_t chipState[4] = {0};
+    // Serial.println("FRRs");
+    // this->readFRRs(chipState);
+    // for (int i = 0; i < 4; i++)
+    // {
+    //     Serial.println(chipState[i]);
+    // }
+    if (chipState[1] < 5)
+    {
+        this->state = STATE_IDLE;
+    }
+    else if (chipState[1] == 6 || chipState[1] == 8)
+    {
+        this->state = STATE_RX;
+    }
+    else if ((chipState[1] == 5 || chipState[1] == 7) && this->state != STATE_TX_COMPLETE)
+    {
+        this->state = STATE_TX;
+    }
+    else if (chipState[1] == 255)
+    {
+        Serial.print("state: ");
+        Serial.println(this->state);
+
+        uint8_t args[8] = {0};
+        this->sendCommandR(C_PART_INFO, 8, args);
+        Serial.println("PART_INFO");
+        for (int i = 0; i < 8; i++)
+        {
+            Serial.println(args[i], HEX);
+        }
+
+        uint8_t cIntArgs[3] = {0, 0, 0};
+        uint8_t rIntArgs[8] = {};
+        sendCommand(C_GET_INT_STATUS, 3, cIntArgs, 8, rIntArgs);
+
+        Serial.println("INTERRUPTS");
+        for (int i = 0; i < 8; i++)
+        {
+            Serial.println(rIntArgs[i], BIN);
+        }
+        Serial.flush();
+        while (1)
+        {
+        }
+    }
 }
 
 void Si4463::setProperty(Si4463Group group, Si4463Property start, uint8_t data)
