@@ -24,6 +24,7 @@ Si4463::Si4463(Si4463HardwareConfig hConfig, Si4463PinConfig pConfig)
 
 bool Si4463::begin()
 {
+    // NOTE: Settings are currently to match Si446X library
     // set pins for correct modes
     pinMode(_cs, OUTPUT);
     digitalWrite(_cs, HIGH);
@@ -77,7 +78,7 @@ bool Si4463::begin()
         return false; // Error: did not receive the correct part number
 
     // set the global config, this is the defaults, but apparently a reserved field needs to be set manually
-    this->setProperty(G_GLOBAL, P_GLOBAL_CONFIG, 0b01100000);
+    this->setProperty(G_GLOBAL, P_GLOBAL_CONFIG, 0b01110000);
 
     this->setProperty(G_GLOBAL, P_GLOBAL_XO_TUNE, 0x62); // from rf4463f30 datasheet
 
@@ -87,6 +88,8 @@ bool Si4463::begin()
     this->setPower(this->pwr);
     // turn on AFC
     // this->setAFC(true); // make sure this is being done correctly
+    // set preamble configuration
+    this->setProperty(G_PREAMBLE, P_PREAMBLE_CONFIG, 0b00110001);
     // set preamble length
     this->setProperty(G_PREAMBLE, P_PREAMBLE_TX_LENGTH, this->preambleLen);
     // set preamble threshold
@@ -358,7 +361,7 @@ void Si4463::update()
     if (this->state == STATE_TX_COMPLETE)
     {
         uint8_t status = this->readFRR(1);
-        Serial.println("TX_COMPLETE");
+        // Serial.println("TX_COMPLETE");
         if (status == 8) // RX state
         {
             this->state = STATE_RX;
@@ -369,7 +372,7 @@ void Si4463::update()
         }
         else
         {
-            Serial.println(status);
+            // Serial.println(status);
         }
     }
 
@@ -461,6 +464,7 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
 {
     // set modulation
     setProperty(G_MODEM, P_MODEM_MOD_TYPE, mod);
+    setProperty(G_MODEM, P_MODEM_MAP_CONTROL, 0x00);
 
     // set modulation dependant properties
     uint8_t pktConfArgs = 0b00000000;
@@ -591,6 +595,29 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
     // first 7 bits should be 0
     to_bytes((uint32_t)fDev & 0x0001FFFF, 0, 1, fDevArgs);
     setProperty(G_MODEM, 3, P_MODEM_FREQ_DEV3, fDevArgs);
+
+    // set additional config
+    // uint8_t MODEM_TX_RAMP_DELAY[12] = {0x01, 0x00, 0x08, 0x03, 0x80, 0x00, 0xB0, 0x10, 0x0C, 0xE8, 0x00, 0x4E};
+    // setProperty(G_MODEM, 12, P_MODEM_TX_RAMP_DELAY, MODEM_TX_RAMP_DELAY);
+    // uint8_t MODEM_BCR_NCO_OFFSET_2[12] = {0x06, 0x8D, 0xB9, 0x00, 0x00, 0x02, 0xC0, 0x08, 0x00, 0x12, 0x00, 0x23};
+    // setProperty(G_MODEM, 12, P_MODEM_BCR_NCO_OFFSET3, MODEM_BCR_NCO_OFFSET_2);
+    // uint8_t MODEM_AFC_LIMITER[3] = {0x01, 0x5C, 0xA0};
+    // setProperty(G_MODEM, 3, P_MODEM_AFC_LIMITER2, MODEM_AFC_LIMITER);
+    // uint8_t MODEM_AGC_CONTROL = 0xE0;
+    // setProperty(G_MODEM, P_MODEM_AGC_CONTROL, MODEM_AGC_CONTROL);
+    // uint8_t MODEM_AGC_WINDOW_SIZE[12] = {0x11, 0x11, 0x11, 0x80, 0x1A, 0x20, 0x00, 0x00, 0x28, 0x0C, 0xA4, 0x23};
+    // setProperty(G_MODEM, 12, P_MODEM_AGC_WINDOW_SIZE, MODEM_AGC_WINDOW_SIZE);
+    // uint8_t MODEM_RAW_CONTROL[5] = {0x03, 0x00, 0x85, 0x01, 0x00};
+    // setProperty(G_MODEM, 5, P_MODEM_RAW_CONTROL, MODEM_RAW_CONTROL);
+    // uint8_t MODEM_RSSI_JUMP_THRESH[4] = {0x06, 0x09, 0x10, 0x40};
+    // setProperty(G_MODEM, 4, P_MODEM_RSSI_JUMP_THRESH, MODEM_RSSI_JUMP_THRESH);
+    // uint8_t MODEM_RAW_SEARCH2[2] = {0x94, 0x0A};
+    // setProperty(G_MODEM, 2, P_MODEM_RAW_SEARCH2, MODEM_RAW_SEARCH2);
+    // uint8_t MODEM_SPIKE_DET[2] = {0x03, 0x07};
+    // setProperty(G_MODEM, 2, P_MODEM_SPIKE_DET, MODEM_SPIKE_DET);
+    // skip MODEM_RSSI_MUTE
+    // uint8_t MODEM_DSA_CTRL1[5] = {0x40, 0x04, 0x04, 0x78, 0x20};
+    // setProperty(G_MODEM, 5, P_MODEM_DSA_CTRL_1, MODEM_DSA_CTRL1);
 }
 
 void Si4463::setPower(uint8_t pwr)
