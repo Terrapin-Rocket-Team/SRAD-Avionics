@@ -27,12 +27,12 @@
 #define PACKET_INVALID 2
 
 Si4463HardwareConfig hwcfg = {
-    MOD_2FSK, // modulation
-    DR_40k,   // data rate
-    433e6,    // frequency (Hz)
-    127,      // tx power (127 = ~20dBm)
-    48,       // preamble length
-    16,       // required received valid preamble
+    MOD_2GFSK, // modulation
+    DR_40k,    // data rate
+    433e6,     // frequency (Hz)
+    127,       // tx power (127 = ~20dBm)
+    48,        // preamble length
+    16,        // required received valid preamble
 };
 
 Si4463PinConfig pincfg = {
@@ -82,7 +82,7 @@ void SI446X_CB_RXINVALID(int16_t rssi)
 
 void beep(int d)
 {
-    digitalWrite(BUZZER, HIGH);
+    // digitalWrite(BUZZER, HIGH);
     delay(d);
     digitalWrite(BUZZER, LOW);
     delay(d);
