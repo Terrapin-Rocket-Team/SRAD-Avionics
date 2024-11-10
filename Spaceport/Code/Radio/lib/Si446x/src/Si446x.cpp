@@ -466,6 +466,14 @@ static void applyStartupConfig(void)
 	for (uint16_t i = 0; i < sizeof(config); i++)
 	{
 		memcpy_P(buff, &config[i], sizeof(buff));
+		for (int j = 1; j < buff[0] + 1; j++)
+		{
+			char str[5] = {};
+			snprintf(str, 5, "%#02x", buff[j]);
+			Serial.print(str);
+			Serial.print(" ");
+		}
+		Serial.println();
 		doAPI(&buff[1], buff[0], NULL, 0);
 		i += buff[0];
 	}
@@ -500,17 +508,17 @@ void Si446x_init()
 
 	// 	resetDevice();
 	applyStartupConfig();
-	interrupt(NULL);
-	Si446x_sleep();
+	// interrupt(NULL);
+	// Si446x_sleep();
 
-	enabledInterrupts[IRQ_PACKET] = (1 << SI446X_PACKET_RX_PEND) | (1 << SI446X_CRC_ERROR_PEND);
+	// enabledInterrupts[IRQ_PACKET] = (1 << SI446X_PACKET_RX_PEND) | (1 << SI446X_CRC_ERROR_PEND);
 	// enabledInterrupts[IRQ_MODEM] = (1<<SI446X_SYNC_DETECT_PEND);
 
 #ifndef ARDUINO
 	// TODO Interrupt should trigger on low level, not falling edge?
 #endif
 
-	Si446x_irq_on(1);
+	// Si446x_irq_on(1);
 }
 
 void Si446x_getInfo(si446x_info_t *info)

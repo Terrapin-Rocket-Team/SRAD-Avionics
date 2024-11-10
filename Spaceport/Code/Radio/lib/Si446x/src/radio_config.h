@@ -2,11 +2,11 @@
 #ifndef RADIO_CONFIG_H_
 #define RADIO_CONFIG_H_
 
-#define RF_POWER_UP 0x02, 0x01, 0x00, 0x01, 0xC9, 0xC3, 0x80
-#define RF_GPIO_PIN_CFG 0x13, 0x41, 0x41, 0x21, 0x20, 0x67, 0x4B, 0x00
-#define GLOBAL_2_0 0x11, 0x00, 0x04, 0x00, 0x52, 0x00, 0x18, 0x30
-#define MODEM_2_0 0x11, 0x20, 0x0C, 0x00, 0x03, 0x00, 0x07, 0x02, 0x71, 0x00, 0x05, 0xC9, 0xC3, 0x80, 0x00, 0x00
-#define MODEM_2_1 0x11, 0x20, 0x01, 0x0C, 0x46
+#define RF_POWER_UP 0x02, 0x01, 0x00, 0x01, 0xC9, 0xC3, 0x80                                                     //
+#define RF_GPIO_PIN_CFG 0x13, 0x41, 0x41, 0x21, 0x20, 0x67, 0x4B, 0x00                                           //
+#define GLOBAL_2_0 0x11, 0x00, 0x04, 0x00, 0x52, 0x00, 0x18, 0x30                                                //
+#define MODEM_2_0 0x11, 0x20, 0x0C, 0x00, 0x03, 0x00, 0x07, 0x02, 0x71, 0x00, 0x05, 0xC9, 0xC3, 0x80, 0x00, 0x00 //
+#define MODEM_2_1 0x11, 0x20, 0x01, 0x0C, 0x46                                                                   //
 #define MODEM_2_2 0x11, 0x20, 0x0C, 0x1C, 0x80, 0x00, 0xB0, 0x10, 0x0C, 0xE8, 0x00, 0x4E, 0x06, 0x8D, 0xB9, 0x00
 #define MODEM_2_3 0x11, 0x20, 0x0A, 0x28, 0x00, 0x02, 0xC0, 0x08, 0x00, 0x12, 0xC6, 0xD4, 0x01, 0x5C
 #define MODEM_2_4 0x11, 0x20, 0x0B, 0x39, 0x11, 0x11, 0x80, 0x1A, 0x20, 0x00, 0x00, 0x28, 0x0C, 0xA4, 0x23
@@ -24,7 +24,7 @@
 #define RF_IRCAL_1 0x17, 0x13, 0x10, 0xCA, 0xF0
 #define INT_CTL_5_0 0x11, 0x01, 0x04, 0x00, 0x07, 0x18, 0x00, 0x00
 #define FRR_CTL_5_0 0x11, 0x02, 0x03, 0x00, 0x0A, 0x09, 0x00
-#define PREAMBLE_5_0 0x11, 0x10, 0x01, 0x04, 0x31
+#define PREAMBLE_5_0 0x11, 0x10, 0x01, 0x04, 0x31 //
 #define SYNC_5_0 0x11, 0x11, 0x04, 0x01, 0xB4, 0x2B, 0x00, 0x00
 #define PKT_5_0 0x11, 0x12, 0x0A, 0x00, 0x04, 0x01, 0x08, 0xFF, 0xFF, 0x20, 0x00, 0x00, 0x2A, 0x01
 #define PKT_5_1 0x11, 0x12, 0x07, 0x0E, 0x01, 0x06, 0xAA, 0x00, 0x80, 0x02, 0x2A
@@ -42,7 +42,7 @@
 #define SYNTH_5_0 0x11, 0x23, 0x06, 0x00, 0x34, 0x04, 0x0B, 0x04, 0x07, 0x70
 #define FREQ_CONTROL_5_0 0x11, 0x40, 0x04, 0x00, 0x38, 0x0D, 0xDD, 0xDD
 
-#define RADIO_CONFIGURATION_DATA_ARRAY { \
+/*
     0x07,                                \
     RF_POWER_UP,                         \
     0x08,                                \
@@ -53,20 +53,9 @@
     MODEM_2_0,                           \
     0x05,                                \
     MODEM_2_1,                           \
-    0x10,                                \
-    MODEM_2_2,                           \
-    0x0E,                                \
-    MODEM_2_3,                           \
-    0x0F,                                \
-    MODEM_2_4,                           \
-    0x0D,                                \
-    MODEM_2_5,                           \
-    0x06,                                \
-    MODEM_2_6,                           \
-    0x06,                                \
-    MODEM_2_7,                           \
-    0x09,                                \
-    MODEM_2_8,                           \
+*/
+
+#define RADIO_CONFIGURATION_DATA_ARRAY { \
     0x10,                                \
     MODEM_CHFLT_2_0,                     \
     0x10,                                \
@@ -87,14 +76,38 @@
     INT_CTL_5_0,                         \
     0x07,                                \
     FRR_CTL_5_0,                         \
-    0x05,                                \
-    PREAMBLE_5_0,                        \
     0x08,                                \
     SYNC_5_0,                            \
     0x0E,                                \
     PKT_5_0,                             \
     0x0B,                                \
     PKT_5_1,                             \
+    0x10,                                \
+    MODEM_CHFLT_5_0,                     \
+    0x10,                                \
+    MODEM_CHFLT_5_1,                     \
+    0x0F,                                \
+    MODEM_CHFLT_5_2,                     \
+    0x0A,                                \
+    SYNTH_5_0,                           \
+    0x08,                                \
+    FREQ_CONTROL_5_0,                    \
+    0x10,                                \
+    MODEM_2_2,                           \
+    0x0E,                                \
+    MODEM_2_3,                           \
+    0x0F,                                \
+    MODEM_2_4,                           \
+    0x0D,                                \
+    MODEM_2_5,                           \
+    0x06,                                \
+    MODEM_2_6,                           \
+    0x06,                                \
+    MODEM_2_7,                           \
+    0x09,                                \
+    MODEM_2_8,                           \
+    0x05,                                \
+    PREAMBLE_5_0,                        \
     0x0E,                                \
     MODEM_5_0,                           \
     0x0F,                                \
@@ -111,16 +124,6 @@
     MODEM_5_6,                           \
     0x05,                                \
     MODEM_5_7,                           \
-    0x10,                                \
-    MODEM_CHFLT_5_0,                     \
-    0x10,                                \
-    MODEM_CHFLT_5_1,                     \
-    0x0F,                                \
-    MODEM_CHFLT_5_2,                     \
-    0x0A,                                \
-    SYNTH_5_0,                           \
-    0x08,                                \
-    FREQ_CONTROL_5_0,                    \
 }
 
 #endif
