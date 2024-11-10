@@ -5,12 +5,12 @@
 #define BUZZER 0
 
 Si4463HardwareConfig hwcfg = {
-    MOD_2FSK, // modulation
-    DR_40k,   // data rate
-    433e6,    // frequency (Hz)
-    127,      // tx power (127 = ~20dBm)
-    48,       // preamble length
-    16,       // required received valid preamble
+    MOD_2GFSK, // modulation
+    DR_40k,    // data rate
+    433e6,     // frequency (Hz)
+    127,       // tx power (127 = ~20dBm)
+    48,        // preamble length
+    16,        // required received valid preamble
 };
 
 Si4463PinConfig pincfg = {
@@ -56,53 +56,6 @@ void setup()
             beep(1000);
         }
     }
-
-    radio.setProperty(G_MODEM, P_MODEM_MOD_TYPE, 0x03);
-    radio.setProperty(G_MODEM, P_MODEM_MAP_CONTROL, 0x00);
-    // radio.setProperty(G_FREQ_CONTROL, P_FREQ_CONTROL_VCOCNT_RX_ADJ, 0xff);
-    // radio.setProperty(G_MODEM, P_MODEM_MDM_CTRL, 0x00);
-    // radio.setProperty(G_MODEM, P_MODEM_IF_CONTROL, 0x08);
-    // uint8_t mIFFreq[3] = {0x03, 0xc0, 0x00};
-    // radio.setProperty(G_MODEM, 3, P_MODEM_IF_FREQ3, mIFFreq);
-    // radio.setProperty(G_MODEM, P_MODEM_DECIMATION_CFG_0, 0x20);
-    // radio.setProperty(G_MODEM, P_MODEM_DECIMATION_CFG_1, 0xb0);
-    // uint8_t mBCROSR[2] = {0x00, 0x5e};
-    // radio.setProperty(G_MODEM, 2, P_MODEM_BCR_OSR2, mBCROSR);
-    // uint8_t mBCRNCOOff[3] = {0x50, 0x76, 0x1a};
-    // radio.setProperty(G_MODEM, 3, P_MODEM_BCR_NCO_OFFSET3, mBCRNCOOff);
-    // uint8_t mBCRGain[2] = {0x07, 0xff};
-    // radio.setProperty(G_MODEM, 2, P_MODEM_BCR_GAIN2, mBCRGain);
-    // radio.setProperty(G_MODEM, P_MODEM_BCR_GEAR, 0x02);
-    // radio.setProperty(G_MODEM, P_MODEM_BCR_MISC_1, 0x00);
-    // radio.setProperty(G_MODEM, P_MODEM_BCR_MISC_0, 0x00);
-    // radio.setProperty(G_MODEM, P_MODEM_AFC_GEAR, 0x00);
-    // radio.setProperty(G_MODEM, P_MODEM_AFC_WAIT, 0x12);
-    // uint8_t mAFCGain[2] = {0x80, 0x16};
-    // radio.setProperty(G_MODEM, 2, P_MODEM_AFC_GAIN2, mAFCGain);
-    // uint8_t mAFCLimiter[2] = {0x01, 0x76};
-    // radio.setProperty(G_MODEM, 2, P_MODEM_AFC_LIMITER2, mAFCLimiter);
-    // radio.setProperty(G_MODEM, P_MODEM_AFC_MISC, 0xe0);
-    // radio.setProperty(G_MODEM, P_MODEM_AGC_CONTROL, 0xe2);
-    // radio.setProperty(G_MODEM, P_MODEM_AGC_WINDOW_SIZE, 0x11);
-    // radio.setProperty(G_MODEM, P_MODEM_AGC_RFPD_DECAY, 0x15);
-    // radio.setProperty(G_MODEM, P_MODEM_AGC_IFPD_DECAY, 0x15);
-    // radio.setProperty(G_MODEM, P_MODEM_OOK_CNT1, 0xa4);
-    // radio.setProperty(G_MODEM, P_MODEM_OOK_MISC, 0x03);
-    // radio.setProperty(G_MODEM, P_MODEM_RAW_SEARCH2, 0xd6);
-    // radio.setProperty(G_MODEM, P_MODEM_RAW_CONTROL, 0x03);
-    // uint8_t mRawEye[2] = {0x00, 0xde};
-    // radio.setProperty(G_MODEM, 2, P_MODEM_RAW_EYE2, mRawEye);
-    // radio.setProperty(G_MODEM, P_MODEM_RSSI_COMP, 0x40);
-    // radio.setProperty(G_MODEM, P_MODEM_RSSI_CONTROL, 0x00);
-    // radio.setProperty(G_MODEM, P_MODEM_RSSI_THRESH, 0xff);
-    // radio.setProperty(G_MODEM, P_MODEM_RSSI_JUMP_THRESH, 0x0c);
-    radio.setProperty(G_PREAMBLE, P_PREAMBLE_CONFIG, 0x02);
-    radio.setProperty(G_PREAMBLE, P_PREAMBLE_CONFIG_STD_1, 0x14);
-    radio.setProperty(G_PREAMBLE, P_PREAMBLE_CONFIG_STD_2, 0x08);
-    radio.setProperty(G_SYNC, P_SYNC_CONFIG, 0x01);
-    uint8_t pField1Length[2] = {0x00, 0x0A};
-    radio.setProperty(G_PKT, 2, P_PKT_FIELD_1_LENGTH2, pField1Length);
-    radio.setProperty(G_PKT, P_PKT_FIELD_1_CONFIG, 0x00);
 
     Serial.println("Radio began successfully");
 

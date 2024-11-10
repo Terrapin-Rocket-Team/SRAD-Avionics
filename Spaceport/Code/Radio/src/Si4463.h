@@ -82,8 +82,7 @@ public:
     // the current preamble length threshold for packet detection in symbols
     uint8_t preambleThresh;
 
-    bool txComplete = false;
-    bool rxComplete = false;
+    bool available = false;
 
     /*
     Si4463 constructor
@@ -146,8 +145,6 @@ public:
     Returns: whether a new message is available
     */
     bool avail();
-
-    bool sent();
 
     // high level hardware configuration methods
     /*
@@ -219,7 +216,7 @@ public:
     */
     int readFRR(int index);
 
-    void updateState();
+    void setRegisters();
 
     // high level functions to use various radio commands
     /*
@@ -252,6 +249,8 @@ public:
     - data : the variable to be updated with the property values
     */
     void getProperty(Si4463Group group, const uint8_t num, Si4463Property start, uint8_t *data);
+
+    void setProperty(uint8_t *data, uint8_t size);
     /*
     Reads all the FRRs
     - data : the array to be populated with the values of the FRRs

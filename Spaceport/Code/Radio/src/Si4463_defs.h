@@ -46,7 +46,8 @@ enum Si4463DataRate : uint64_t
     DR_100k = 0x000F424001C9C380, // MDR = 1000 ksps, NCO_MODE = 30 M, TXOSR = 10
     DR_120k = 0x00124F8001C9C380, // MDR = 1200 ksps, NCO_MODE = 30 M, TXOSR = 10
     DR_500k = 0x004C4B4001C9C380, // MDR = 5000 ksps, NCO_MODE = 30 M, TXOSR = 10
-                                  // DR_1M = 0x98968001C9C38000,   // MDR = 10 Msps, NCO_MODE = 30 M, TXOSR = 10
+    DR_TEST = 0x0002710005C9C380
+    // DR_1M = 0x98968001C9C38000,   // MDR = 10 Msps, NCO_MODE = 30 M, TXOSR = 10
 };
 
 // band selection
