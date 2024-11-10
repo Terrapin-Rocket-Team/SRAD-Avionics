@@ -13,7 +13,7 @@
  * Should be around 5-6ms with default settings
  */
 
-#include <Si446x.h>
+// #include <Si446x.h>
 #include <Si4463.h>
 
 #define BUZZER 0
@@ -59,26 +59,26 @@ typedef struct
 
 static volatile pingInfo_t pingInfo;
 
-void SI446X_CB_RXCOMPLETE(uint8_t length, int16_t rssi)
-{
-    if (length > MAX_PACKET_SIZE)
-        length = MAX_PACKET_SIZE;
+// void SI446X_CB_RXCOMPLETE(uint8_t length, int16_t rssi)
+// {
+//     if (length > MAX_PACKET_SIZE)
+//         length = MAX_PACKET_SIZE;
 
-    pingInfo.ready = PACKET_OK;
-    pingInfo.timestamp = millis();
-    pingInfo.rssi = rssi;
-    pingInfo.length = length;
+//     pingInfo.ready = PACKET_OK;
+//     pingInfo.timestamp = millis();
+//     pingInfo.rssi = rssi;
+//     pingInfo.length = length;
 
-    Si446x_read((uint8_t *)pingInfo.buffer, length);
+//     Si446x_read((uint8_t *)pingInfo.buffer, length);
 
-    // Radio will now be in idle mode
-}
+//     // Radio will now be in idle mode
+// }
 
-void SI446X_CB_RXINVALID(int16_t rssi)
-{
-    pingInfo.ready = PACKET_INVALID;
-    pingInfo.rssi = rssi;
-}
+// void SI446X_CB_RXINVALID(int16_t rssi)
+// {
+//     pingInfo.ready = PACKET_INVALID;
+//     pingInfo.rssi = rssi;
+// }
 
 void beep(int d)
 {
@@ -97,12 +97,11 @@ void setup()
     // pinMode(A5, OUTPUT); // LED
 
     Serial.println("Starting Setup");
-
     radio.begin();
 
     // Start up
-    Si446x_init();
-    Si446x_setTxPower(SI446X_MAX_TX_POWER);
+    // Si446x_init();
+    // Si446x_setTxPower(SI446X_MAX_TX_POWER);
     Serial.println("Setup");
 
     beep(500);

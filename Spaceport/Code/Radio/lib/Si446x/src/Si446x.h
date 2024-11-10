@@ -355,6 +355,8 @@ extern "C"
 	 */
 	void Si446x_RX(uint8_t channel);
 
+	void applyStartupConfig();
+
 	/*-*
 	 * @brief Changes will be applied next time the radio enters RX mode (NOT SUPPORTED)
 	 *
@@ -373,6 +375,8 @@ extern "C"
 	 * @return (none)
 	 */
 	void Si446x_setLowBatt(uint16_t voltage);
+
+	static void doAPI(void *data, uint8_t len, void *out, uint8_t outLen);
 
 	/**
 	 * @brief Configure the wake up timer

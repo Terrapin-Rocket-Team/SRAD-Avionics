@@ -53,38 +53,6 @@
     MODEM_2_0,                           \
     0x05,                                \
     MODEM_2_1,                           \
-    0x10,                                \
-    MODEM_2_2,                           \
-    0x0E,                                \
-    MODEM_2_3,                           \
-    0x0F,                                \
-    MODEM_2_4,                           \
-    0x0D,                                \
-    MODEM_2_5,                           \
-    0x06,                                \
-    MODEM_2_6,                           \
-    0x06,                                \
-    MODEM_2_7,                           \
-    0x09,                                \
-    MODEM_2_8,                           \
-    0x05,                                \
-    PREAMBLE_5_0,                        \
-    0x0E,                                \
-    MODEM_5_0,                           \
-    0x0F,                                \
-    MODEM_5_1,                           \
-    0x0D,                                \
-    MODEM_5_2,                           \
-    0x09,                                \
-    MODEM_5_3,                           \
-    0x0C,                                \
-    MODEM_5_4,                           \
-    0x05,                                \
-    MODEM_5_5,                           \
-    0x05,                                \
-    MODEM_5_6,                           \
-    0x05,                                \
-    MODEM_5_7,                           \
 */
 
 #define RADIO_CONFIGURATION_DATA_ARRAY { \
@@ -124,6 +92,38 @@
     SYNTH_5_0,                           \
     0x08,                                \
     FREQ_CONTROL_5_0,                    \
+    0x10,                                \
+    MODEM_2_2,                           \
+    0x0E,                                \
+    MODEM_2_3,                           \
+    0x0F,                                \
+    MODEM_2_4,                           \
+    0x0D,                                \
+    MODEM_2_5,                           \
+    0x06,                                \
+    MODEM_2_6,                           \
+    0x06,                                \
+    MODEM_2_7,                           \
+    0x09,                                \
+    MODEM_2_8,                           \
+    0x05,                                \
+    PREAMBLE_5_0,                        \
+    0x0E,                                \
+    MODEM_5_0,                           \
+    0x0F,                                \
+    MODEM_5_1,                           \
+    0x0D,                                \
+    MODEM_5_2,                           \
+    0x09,                                \
+    MODEM_5_3,                           \
+    0x0C,                                \
+    MODEM_5_4,                           \
+    0x05,                                \
+    MODEM_5_5,                           \
+    0x05,                                \
+    MODEM_5_6,                           \
+    0x05,                                \
+    MODEM_5_7,                           \
 }
 
 #endif
