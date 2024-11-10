@@ -216,6 +216,8 @@ public:
     */
     int readFRR(int index);
 
+    void setRegisters();
+
     // high level functions to use various radio commands
     /*
     Sets a single property on the radio
@@ -247,6 +249,8 @@ public:
     - data : the variable to be updated with the property values
     */
     void getProperty(Si4463Group group, const uint8_t num, Si4463Property start, uint8_t *data);
+
+    void setProperty(uint8_t *data, uint8_t size);
     /*
     Reads all the FRRs
     - data : the array to be populated with the values of the FRRs
