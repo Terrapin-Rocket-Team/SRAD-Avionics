@@ -31,7 +31,7 @@ uint32_t timeouts = 0;
 
 APRSConfig aprscfg = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
 
-APRSText testMessage(aprscfg);
+APRSTelem testMessage(aprscfg);
 
 void logStats();
 
@@ -54,7 +54,7 @@ void loop()
     {
         radio.receive(testMessage);
         Serial.print("\nReceived message: ");
-        Serial.println(testMessage.msg);
+        Serial.println(testMessage.alt);
         Serial.print("RSSI: ");
         Serial.print(radio.RSSI());
         Serial.println(" dBm");
