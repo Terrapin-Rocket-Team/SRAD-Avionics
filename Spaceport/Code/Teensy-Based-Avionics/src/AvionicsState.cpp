@@ -14,7 +14,7 @@ AvionicsState::AvionicsState(Sensor **sensors, int numSensors, LinearKalmanFilte
 void AvionicsState::updateState(double newTime)
 {
     State::updateState(newTime); // call base version for sensor updates
-    //determineStage(); // determine the stage of the flight
+    determineStage(); // determine the stage of the flight
 }
 
 void AvionicsState::determineStage()
@@ -25,8 +25,8 @@ void AvionicsState::determineStage()
     //GPS *gps = reinterpret_cast<GPS *>(getSensor(GPS_));
     if (stage == 0 &&
         (sensorOK(imu) || sensorOK(baro)) &&
-        (sensorOK(imu) ? abs(imu->getAccelerationGlobal().z()) > 25 : true) &&
-        (sensorOK(baro) ? baro->getAGLAltFt() > 60 : true))
+        //(sensorOK(imu) ? abs(imu->getAccelerationGlobal().z()) > 25 : true) &&
+        (sensorOK(baro) ? baro->getAGLAltFt() > 3 : true))
     // if we are in preflight AND
     // we have either the IMU OR the barometer AND
     // imu is ok AND the z acceleration is greater than 29 ft/s^2 OR imu is not ok AND
@@ -34,6 +34,7 @@ void AvionicsState::determineStage()
 
     // essentially, if we have either sensor and they meet launch threshold, launch. Otherwise, it will never detect a launch.
     {
+        logger.setRecordMode(FLIGHT);
         bb.aonoff(33, 200);
         // logger.setRecordMode(FLIGHT);
         stage = 1;
@@ -47,7 +48,7 @@ void AvionicsState::determineStage()
             {
                 char logData[200];
                 //snprintf(logData, 200, "%s: %s", sensors[i]->getName(), sensors[i]->getStaticDataString());
-                logger.recordLogData(INFO_, logData);
+                //logger.recordLogData(INFO_, logData);
                 sensors[i]->setBiasCorrectionMode(false);
             }
         }
@@ -85,6 +86,7 @@ void AvionicsState::determineStage()
     }
     else if (stage == 5 && currentTime - timeOfLastStage > 5)
     {
+        stage = 6;
         logger.setRecordMode(GROUND);
         logger.recordLogData(INFO_, "Dumped data after landing.");
     }

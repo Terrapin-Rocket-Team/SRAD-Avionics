@@ -4,6 +4,7 @@
 #include "AvionicsState.h"
 #include "Pi.h"
 #include "AvionicsKF.h"
+#include "RadioMessage.h"
 
 #define BMP_ADDR_PIN 36
 #define RPI_PWR 0
@@ -11,12 +12,16 @@
 
 using namespace mmfs;
 
-Logger logger;
+Logger logger(15,5);
 
 MAX_M10S gps;
 mmfs::DPS310 baro1;
 mmfs::MS5611 baro2;
 mmfs::BMI088andLIS3MDL bno;
+
+APRSConfig aprsConfig = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
+APRSTelem aprs(aprsConfig);
+Message msg;
 
 Sensor *sensors[4] = {&gps, &bno, &baro1, &baro2};
 AvionicsKF kfilter;
@@ -53,7 +58,8 @@ const int UPDATE_INTERVAL = 1000.0 / UPDATE_RATE;
 
 void setup()
 {
-    Serial.begin(9600);
+    Serial.begin(115200);
+    Serial1.begin(460800);
     delay(3000);
     Wire.begin();
     SENSOR_BIAS_CORRECTION_DATA_LENGTH = 2;
@@ -102,9 +108,9 @@ void setup()
         bb.onoff(BUZZER_PIN, 200, 3);
     }
     logger.writeCsvHeader();
-    bb.aonoff(32, *(new BBPattern(200, 1)), true); //blink a status LED (until GPS fix)
+    bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
 }
-
+double radio_last;
 void loop()
 {
     double time = millis();
@@ -115,32 +121,56 @@ void loop()
 
     last = time;
     computer->updateState();
-    // time, alt1, alt2, vel, accel, gyro, mag, lat, lon
-    // printf("%.2f | %.2f | %.2f, %.2f # %.2f, %.2f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f = %.2f, %.2f, %.2f | %.2f, %.2f, %.2f | %.7f, %.7f\n",
-    //        time / 1000.0,
-    //        computer->getPosition().z(),
-    //        baro1.getASLAltM(),
-    //        baro1.getPressure(),
-    //        baro2.getASLAltM(),
-    //        baro2.getPressure(),
-    //        computer->getVelocity().x(),
-    //        computer->getVelocity().y(),
-    //        computer->getVelocity().z(),
-    //        bno.getAcceleration().x(),
-    //        bno.getAcceleration().y(),
-    //        bno.getAcceleration().z(),
-    //        bno.getAngularVelocity().x(),
-    //        bno.getAngularVelocity().y(),
-    //        bno.getAngularVelocity().z(),
-    //        bno.getMagField().x(),
-    //        bno.getMagField().y(),
-    //        bno.getMagField().z(),
-    //        gps.getPos().x(),
-    //        gps.getPos().y());
-    printf("%.2f | %.2f = %.2f | %.2f\n", baro1.getASLAltFt(), baro2.getASLAltFt(), baro1.getAGLAltFt(), baro2.getAGLAltFt());
+
+    // printf("%.2f | %.2f = %.2f | %.2f\n", baro1.getASLAltFt(), baro2.getASLAltFt(), baro1.getAGLAltFt(), baro2.getAGLAltFt());
     logger.recordFlightData();
-    if(gps.getHasFirstFix()){
+    if (gps.getHasFirstFix())
+    {
         bb.clearQueue(32);
         bb.on(32);
     }
+    if (time - radio_last < 100) return;
+
+    radio_last = time;
+    msg.clear();
+    aprs.alt = baro1.getAGLAltFt();
+    aprs.hdg = gps.getHeading();
+    aprs.lat = gps.getPos().x();
+    aprs.lng = gps.getPos().y();
+    aprs.spd = computer->getVelocity().z();
+    aprs.orient[0] = bno.getAngularVelocity().x();
+    aprs.orient[1] = bno.getAngularVelocity().y();
+    aprs.orient[2] = bno.getAngularVelocity().z();
+    aprs.stateFlags = computer->getStage();
+    msg.encode(&aprs);
+    Serial1.write(msg.buf, msg.size);
+    Serial1.write('\n');
+    Serial.write(msg.buf, msg.size);
+    Serial.write('\n');
+    char* logData = new char[100];
+    snprintf(logData, 100, "Sent APRS message: %d", computer->getStage());
+    logger.recordLogData(INFO_, logData);
 }
+
+// time, alt1, alt2, vel, accel, gyro, mag, lat, lon
+// printf("%.2f | %.2f | %.2f, %.2f # %.2f, %.2f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f = %.2f, %.2f, %.2f | %.2f, %.2f, %.2f | %.7f, %.7f\n",
+//        time / 1000.0,
+//        computer->getPosition().z(),
+//        baro1.getASLAltM(),
+//        baro1.getPressure(),
+//        baro2.getASLAltM(),
+//        baro2.getPressure(),
+//        computer->getVelocity().x(),
+//        computer->getVelocity().y(),
+//        computer->getVelocity().z(),
+//        bno.getAcceleration().x(),
+//        bno.getAcceleration().y(),
+//        bno.getAcceleration().z(),
+//        bno.getAngularVelocity().x(),
+//        bno.getAngularVelocity().y(),
+//        bno.getAngularVelocity().z(),
+//        bno.getMagField().x(),
+//        bno.getMagField().y(),
+//        bno.getMagField().z(),
+//        gps.getPos().x(),
+//        gps.getPos().y());
