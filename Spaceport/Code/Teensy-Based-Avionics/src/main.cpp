@@ -43,7 +43,7 @@ void FreeMem()
 {
     void *heapTop = malloc(500);
     Serial.print((long)heapTop);
-    Serial.print(" ");
+    Serial.print("\n");
     free(heapTop);
 }
 // Free memory debug function
@@ -121,7 +121,7 @@ void loop()
 
     last = time;
     computer->updateState();
-
+ 
     // printf("%.2f | %.2f = %.2f | %.2f\n", baro1.getASLAltFt(), baro2.getASLAltFt(), baro1.getAGLAltFt(), baro2.getAGLAltFt());
     logger.recordFlightData();
     if (gps.getHasFirstFix())
@@ -145,11 +145,11 @@ void loop()
     msg.encode(&aprs);
     Serial1.write(msg.buf, msg.size);
     Serial1.write('\n');
-    Serial.write(msg.buf, msg.size);
-    Serial.write('\n');
-    char* logData = new char[100];
+    // Serial.write(msg.buf, msg.size);
+    // Serial.write('\n');
+    char logData[100];
     snprintf(logData, 100, "Sent APRS message: %d", computer->getStage());
-    logger.recordLogData(INFO_, logData);
+    //logger.recordLogData(INFO_, logData);
 }
 
 // time, alt1, alt2, vel, accel, gyro, mag, lat, lon
