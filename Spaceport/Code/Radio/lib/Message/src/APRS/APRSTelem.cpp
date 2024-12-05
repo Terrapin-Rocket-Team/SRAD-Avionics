@@ -120,7 +120,7 @@ uint16_t APRSTelem::decode(uint8_t *data, uint16_t sz)
         return 0; // error too small for state flags
 
     base91toNum(data, pos, decodedNum, 5);
-    this->stateFlags += decodedNum;
+    this->stateFlags = decodedNum;
 
     return pos;
 }
