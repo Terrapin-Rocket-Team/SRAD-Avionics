@@ -16,6 +16,10 @@ uint16_t APRSData::decodeHeader(uint8_t *data, uint16_t sz, uint16_t &pos)
 {
     // APRS header ("callsign>tocall,path:")
 
+    memset(this->config.callsign, 0, sizeof(this->config.callsign));
+    memset(this->config.tocall, 0, sizeof(this->config.tocall));
+    memset(this->config.path, 0, sizeof(this->config.path));
+
     int varPos = 0;
     while (pos < sz && data[pos] != '>')
         this->config.callsign[varPos++] = data[pos++];
