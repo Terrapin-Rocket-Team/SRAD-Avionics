@@ -12,7 +12,7 @@
 
 using namespace mmfs;
 
-Logger logger(15,5);
+Logger logger(15, 5);
 
 MAX_M10S gps;
 mmfs::DPS310 baro1;
@@ -64,7 +64,7 @@ void setup()
     Wire.begin();
     SENSOR_BIAS_CORRECTION_DATA_LENGTH = 2;
     SENSOR_BIAS_CORRECTION_DATA_IGNORE = 1;
-    computer = new AvionicsState(sensors, 4, & kfilter);
+    computer = new AvionicsState(sensors, 4, &kfilter);
 
     psram = new PSRAM();
 
@@ -121,7 +121,7 @@ void loop()
 
     last = time;
     computer->updateState();
- 
+
     // printf("%.2f | %.2f = %.2f | %.2f\n", baro1.getASLAltFt(), baro2.getASLAltFt(), baro1.getAGLAltFt(), baro2.getAGLAltFt());
     logger.recordFlightData();
     if (gps.getHasFirstFix())
@@ -132,12 +132,10 @@ void loop()
 
     Vector<3> orient = bno.getOrientation().toEuler() * 180 / PI;
 
-    //printf("%.2f | %.2f | %.2f\n", orient.x(), orient.y(), orient.z());
+    // printf("%.2f | %.2f | %.2f\n", orient.x(), orient.y(), orient.z());
 
-
-
-
-    if (time - radio_last < 100) return;
+    if (time - radio_last < 100)
+        return;
 
     radio_last = time;
     msg.clear();
@@ -154,28 +152,19 @@ void loop()
     Serial1.write(msg.buf, msg.size);
     Serial1.write('\n');
 
-    Serial.println(gps.getFixQual());
-}
+    // Serial.println(gps.getFixQual());
 
-// time, alt1, alt2, vel, accel, gyro, mag, lat, lon
-// printf("%.2f | %.2f | %.2f, %.2f # %.2f, %.2f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f = %.2f, %.2f, %.2f | %.2f, %.2f, %.2f | %.7f, %.7f\n",
-//        time / 1000.0,
-//        computer->getPosition().z(),
-//        baro1.getASLAltM(),
-//        baro1.getPressure(),
-//        baro2.getASLAltM(),
-//        baro2.getPressure(),
-//        computer->getVelocity().x(),
-//        computer->getVelocity().y(),
-//        computer->getVelocity().z(),
-//        bno.getAcceleration().x(),
-//        bno.getAcceleration().y(),
-//        bno.getAcceleration().z(),
-//        bno.getAngularVelocity().x(),
-//        bno.getAngularVelocity().y(),
-//        bno.getAngularVelocity().z(),
-//        bno.getMagField().x(),
-//        bno.getMagField().y(),
-//        bno.getMagField().z(),
-//        gps.getPos().x(),
-//        gps.getPos().y());
+    // time, alt1, alt2, vel, accel, gyro, mag, lat, lon
+printf("%.3f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f \n",
+       time / 1000.0,
+       computer->getPosition().x(),
+         computer->getPosition().y(),
+            computer->getPosition().z(),
+         computer->getVelocity().x(),
+            computer->getVelocity().y(),
+               computer->getVelocity().z(),
+            computer->getAcceleration().x(),
+                computer->getAcceleration().y(),
+                    computer->getAcceleration().z());
+                    
+}
