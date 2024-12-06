@@ -26,7 +26,7 @@ void AvionicsState::determineStage()
     if (stage == 0 &&
         (sensorOK(imu) || sensorOK(baro)) &&
         //(sensorOK(imu) ? abs(imu->getAccelerationGlobal().z()) > 25 : true) &&
-        (sensorOK(baro) ? baro->getAGLAltFt() > 3 : true))
+        (sensorOK(baro) ? baro->getAGLAltFt() > 5 : true))
     // if we are in preflight AND
     // we have either the IMU OR the barometer AND
     // imu is ok AND the z acceleration is greater than 29 ft/s^2 OR imu is not ok AND

@@ -64,7 +64,7 @@ void setup()
     Wire.begin();
     SENSOR_BIAS_CORRECTION_DATA_LENGTH = 2;
     SENSOR_BIAS_CORRECTION_DATA_IGNORE = 1;
-    computer = new AvionicsState(sensors, 4, nullptr);
+    computer = new AvionicsState(sensors, 4, & kfilter);
 
     psram = new PSRAM();
 
@@ -132,7 +132,7 @@ void loop()
 
     Vector<3> orient = bno.getOrientation().toEuler() * 180 / PI;
 
-    printf("%.2f | %.2f | %.2f\n", orient.x(), orient.y(), orient.z());
+    //printf("%.2f | %.2f | %.2f\n", orient.x(), orient.y(), orient.z());
 
 
 
@@ -153,6 +153,8 @@ void loop()
     msg.encode(&aprs);
     Serial1.write(msg.buf, msg.size);
     Serial1.write('\n');
+
+    Serial.println(gps.getFixQual());
 }
 
 // time, alt1, alt2, vel, accel, gyro, mag, lat, lon
