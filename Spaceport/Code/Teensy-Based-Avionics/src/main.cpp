@@ -129,6 +129,14 @@ void loop()
         bb.clearQueue(32);
         bb.on(32);
     }
+
+    Vector<3> orient = bno.getOrientation().toEuler() * 180 / PI;
+
+    printf("%.2f | %.2f | %.2f\n", orient.x(), orient.y(), orient.z());
+
+
+
+
     if (time - radio_last < 100) return;
 
     radio_last = time;
@@ -145,11 +153,6 @@ void loop()
     msg.encode(&aprs);
     Serial1.write(msg.buf, msg.size);
     Serial1.write('\n');
-    // Serial.write(msg.buf, msg.size);
-    // Serial.write('\n');
-    char logData[100];
-    snprintf(logData, 100, "Sent APRS message: %d", computer->getStage());
-    //logger.recordLogData(INFO_, logData);
 }
 
 // time, alt1, alt2, vel, accel, gyro, mag, lat, lon
