@@ -46,7 +46,7 @@ void AvionicsState::determineStage()
         {
             if (sensorOK(sensors[i]))
             {
-                char logData[200];
+                //char logData[200];
                 //snprintf(logData, 200, "%s: %s", sensors[i]->getName(), sensors[i]->getStaticDataString());
                 //logger.recordLogData(INFO_, logData);
                 sensors[i]->setBiasCorrectionMode(false);
