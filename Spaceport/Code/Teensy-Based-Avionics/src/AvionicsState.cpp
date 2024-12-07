@@ -77,7 +77,7 @@ void AvionicsState::determineStage()
         timeOfLastStage = currentTime;
         logger.recordLogData(INFO_, "Main parachute conditions detected.");
     }
-    else if (stage == 4 && baroVelocity > -1 && baro->getAGLAltFt() < 66 && timeSinceLaunch > 15)
+    else if (stage == 4 && baroVelocity > -1 && baro->getAGLAltFt() < 66 && timeSinceLaunch > 40)
     {
         bb.aonoff(33, 200, 5);
         timeOfLastStage = currentTime;
