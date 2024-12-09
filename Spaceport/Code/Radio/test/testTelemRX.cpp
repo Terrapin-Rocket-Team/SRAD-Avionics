@@ -2,11 +2,9 @@
 #include "RadioMessage.h"
 #include "Si4463.h"
 
-#define BUZZER 0
-
 Si4463HardwareConfig hwcfg = {
     MOD_2GFSK, // modulation
-    DR_500b,   // data rate
+    DR_40k,    // data rate
     433e6,     // frequency (Hz)
     127,       // tx power (127 = ~20dBm)
     48,        // preamble length
@@ -26,47 +24,124 @@ Si4463PinConfig pincfg = {
 
 Si4463 radio(hwcfg, pincfg);
 uint32_t timer = millis();
+uint32_t timeout = 2100;
 
-APRSConfig aprscfg = {"KC3UTM", "ALL", "WIDE1-1", TextMessage, '\\', 'M'};
+uint32_t received = 0;
+uint32_t timeouts = 0;
 
-APRSText testMessage(aprscfg, "RSSI test, longer test message", "");
+APRSConfig aprscfg = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
 
-void beep(int d)
-{
-    digitalWrite(BUZZER, HIGH);
-    delay(d);
-    digitalWrite(BUZZER, LOW);
-    delay(d);
-}
+APRSTelem testMessage(aprscfg);
+
+// void logStats();
+
+char *s_min_nn(uint32_t min_nnnnn, int high_precision);
+String create_lat_aprs(String lat, bool hp);
+String create_long_aprs(String lng, bool hp);
+String create_dao_aprs(String lat, String lng);
+String padding(unsigned int number, unsigned int width);
 
 void setup()
 {
-    Serial.begin(9600);
-    pinMode(BUZZER, OUTPUT);
-    digitalWrite(BUZZER, LOW);
-
+    Serial.begin(115200);
     if (!radio.begin())
     {
         Serial.println("Error: radio failed to begin");
         Serial.flush();
         while (1)
-        {
-            beep(1000);
-        }
+            ;
     }
     Serial.println("Radio began successfully");
-
-    beep(100);
 }
+
+int spd_zero_counter = 0;
 
 void loop()
 {
-    if (millis() - timer > 1000)
+    if (radio.avail())
+    {
+        radio.receive(testMessage);
+        // Serial.println((char *)radio.buf);
+        Serial.print("s\r\n");
+        Serial.print("Source:");
+        Serial.print(testMessage.config.callsign);
+        Serial.print(",Destination:");
+        Serial.print(testMessage.config.tocall);
+        Serial.print(",Path:");
+        Serial.print("WIDE1-1");
+        Serial.print(",Type:");
+        Serial.print(testMessage.config.type);
+        Serial.print(",Data:");
+
+        // Quarantine the old code
+
+        String body;
+        // format lat/long
+        String dao = create_dao_aprs(String(testMessage.lat, 7), String(testMessage.lng, 7));
+        String lat = create_lat_aprs(String(testMessage.lat, 7), 1);
+        String lng = create_long_aprs(String(testMessage.lng, 7), 1);
+
+        // add alt
+        int alt_int = max(-99999, min(999999, testMessage.alt));
+        String alt;
+        if (alt_int < 0)
+        {
+            alt = "/A=-" + padding(alt_int * -1, 5);
+        }
+        else
+        {
+            alt = "/A=" + padding(alt_int, 6);
+        }
+
+        // add course/speed
+        int spd_int = max(0, min(999, testMessage.spd));
+        String hdg_spd = "";
+        String spd;
+        String hdg;
+        if (spd_int == 0 && spd_zero_counter < 3)
+        {
+            spd_zero_counter++;
+        }
+        else if (spd_int != 0)
+        {
+            spd_zero_counter = 0;
+        }
+        // we don't want to keep sending that our speed is 0, so we stop after the second time
+        if (spd_zero_counter < 3)
+        {
+            int hdg_int = max(0, min(360, testMessage.hdg));
+            if (hdg_int == 0)
+                hdg_int = 360;
+            spd = padding(spd_int, 3);
+            hdg = padding(hdg_int, 3);
+            hdg_spd = hdg + "/" + spd;
+        }
+
+        // put it together
+        body = "!" + lat + "/" + lng + "[" + hdg_spd + alt;
+
+        // add any other info
+        body += "/S" + String(testMessage.stateFlags & 0x0000000f) + "/00:00:00";
+
+        // add dao
+        body += " " + dao;
+
+        // Quarantine the old code
+        Serial.print(body);
+        Serial.print(",RSSI:");
+        Serial.print(radio.RSSI());
+        Serial.print("\r\ne\r\n");
+
+        // reset timeout
+        timer = millis();
+        received++;
+        // logStats();
+    }
+    if (millis() - timer > timeout)
     {
         timer = millis();
-        Serial.println("Sending message");
-        Serial.println(testMessage.msg);
-        radio.send(testMessage);
+        timeouts++;
+        // logStats();
     }
     // need to call as fast as possible every loop
     radio.update();
@@ -90,7 +165,7 @@ char *s_min_nn(uint32_t min_nnnnn, int high_precision)
      */
 
     static char buf[6];
-    min_nnnnn = min_nnnnn * 0.006;
+    min_nnnnn = min_nnnnn * 0.6;
 
     if (high_precision)
     {
