@@ -68,7 +68,7 @@ void loop()
 {
     if (Serial5.available() > 0 && !msgComplete)
     {
-        char c = Serial5.read();
+        char c = Serial5.
         Serial.write(c);
         if (c == '\n')
             msgComplete = true;

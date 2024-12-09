@@ -51,14 +51,14 @@ void FreeMem()
 const int BUZZER_PIN = 33;
 const int BUILTIN_LED_PIN = LED_BUILTIN;
 int allowedPins[] = {BUILTIN_LED_PIN, BUZZER_PIN, 32};
-BlinkBuzz bb(allowedPins, 0, true);
+BlinkBuzz bb(allowedPins, 3, true);
 
 const int UPDATE_RATE = 10;
 const int UPDATE_INTERVAL = 1000.0 / UPDATE_RATE;
 
 void setup()
 {
-    Serial.begin(115200);
+    Serial.begin(9600);
     Serial1.begin(460800);
     delay(3000);
     Wire.begin();
@@ -122,7 +122,7 @@ void loop()
     last = time;
     computer->updateState();
 
-    printf("%.2f | %.2f = %.2f | %.2f\n", baro1.getASLAltFt(), baro2.getASLAltFt(), baro1.getAGLAltFt(), baro2.getAGLAltFt());
+    // printf("%.2f | %.2f = %.2f | %.2f\n", baro1.getASLAltFt(), baro2.getASLAltFt(), baro1.getAGLAltFt(), baro2.getAGLAltFt());
     logger.recordFlightData();
     if (gps.getHasFirstFix())
     {
@@ -134,7 +134,7 @@ void loop()
 
     // printf("%.2f | %.2f | %.2f\n", orient.x(), orient.y(), orient.z());
 
-    if (time - radio_last < 100)
+    if (time - radio_last < 1000)
         return;
 
     radio_last = time;
@@ -149,22 +149,25 @@ void loop()
     aprs.orient[2] = bno.getAngularVelocity().z();
     aprs.stateFlags = computer->getStage();
     msg.encode(&aprs);
+    Message m(&aprs);
+    APRSTelem aprs2(aprsConfig);
+    m.decode(&aprs2);
     Serial1.write(msg.buf, msg.size);
     Serial1.write('\n');
+    // printf("%0.7f | %0.7f | %d\n", aprs2.lat, aprs.lng, gps.getFixQual());
 
     // Serial.println(gps.getFixQual());
 
     // time, alt1, alt2, vel, accel, gyro, mag, lat, lon
-// printf("%.3f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f \n",
-//        time / 1000.0,
-//        computer->getPosition().x(),
-//          computer->getPosition().y(),
-//             computer->getPosition().z(),
-//          computer->getVelocity().x(),
-//             computer->getVelocity().y(),
-//                computer->getVelocity().z(),
-//             computer->getAcceleration().x(),
-//                 computer->getAcceleration().y(),
-//                     computer->getAcceleration().z());
-
+    // printf("%.3f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f \n",
+    //        time / 1000.0,
+    //        computer->getPosition().x(),
+    //          computer->getPosition().y(),
+    //             computer->getPosition().z(),
+    //          computer->getVelocity().x(),
+    //             computer->getVelocity().y(),
+    //                computer->getVelocity().z(),
+    //             computer->getAcceleration().x(),
+    //                 computer->getAcceleration().y(),
+    //                     computer->getAcceleration().z());
 }
