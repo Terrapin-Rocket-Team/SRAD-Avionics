@@ -77,9 +77,9 @@ void loop()
 
         String body;
         // format lat/long
-        String dao = create_dao_aprs(String(testMessage.lat), String(testMessage.lng));
-        String lat = create_lat_aprs(String(testMessage.lat), 1);
-        String lng = create_long_aprs(String(testMessage.lng), 1);
+        String dao = create_dao_aprs(String(testMessage.lat, 7), String(testMessage.lng, 7));
+        String lat = create_lat_aprs(String(testMessage.lat, 7), 1);
+        String lng = create_long_aprs(String(testMessage.lng, 7), 1);
 
         // add alt
         int alt_int = max(-99999, min(999999, testMessage.alt));
@@ -165,7 +165,7 @@ char *s_min_nn(uint32_t min_nnnnn, int high_precision)
      */
 
     static char buf[6];
-    min_nnnnn = min_nnnnn * 0.006;
+    min_nnnnn = min_nnnnn * 0.6;
 
     if (high_precision)
     {
