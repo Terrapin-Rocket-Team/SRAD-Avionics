@@ -6,7 +6,7 @@
 
 Si4463HardwareConfig hwcfg = {
     MOD_2GFSK, // modulation
-    DR_500b,   // data rate
+    DR_40k,    // data rate
     433e6,     // frequency (Hz)
     127,       // tx power (127 = ~20dBm)
     48,        // preamble length
@@ -44,7 +44,7 @@ void beep(int d)
 void setup()
 {
     Serial.begin(9600);
-    Serial5.begin(460800);
+    Serial5.begin(115200);
     pinMode(BUZZER, OUTPUT);
     digitalWrite(BUZZER, LOW);
 
@@ -66,7 +66,7 @@ void setup()
 
 void loop()
 {
-    if (Serial5.available() > 0 && !msgComplete)
+    if (Serial5.available() > 0 && !msgComplete && pos < Message::maxSize)
     {
         char c = Serial5.read();
         Serial.write(c);
