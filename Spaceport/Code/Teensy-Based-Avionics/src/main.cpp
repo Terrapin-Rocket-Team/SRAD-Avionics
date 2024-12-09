@@ -51,7 +51,7 @@ void FreeMem()
 const int BUZZER_PIN = 33;
 const int BUILTIN_LED_PIN = LED_BUILTIN;
 int allowedPins[] = {BUILTIN_LED_PIN, BUZZER_PIN, 32};
-BlinkBuzz bb(allowedPins, 3, true);
+BlinkBuzz bb(allowedPins, 0, true);
 
 const int UPDATE_RATE = 10;
 const int UPDATE_INTERVAL = 1000.0 / UPDATE_RATE;
@@ -122,7 +122,7 @@ void loop()
     last = time;
     computer->updateState();
 
-    // printf("%.2f | %.2f = %.2f | %.2f\n", baro1.getASLAltFt(), baro2.getASLAltFt(), baro1.getAGLAltFt(), baro2.getAGLAltFt());
+    printf("%.2f | %.2f = %.2f | %.2f\n", baro1.getASLAltFt(), baro2.getASLAltFt(), baro1.getAGLAltFt(), baro2.getAGLAltFt());
     logger.recordFlightData();
     if (gps.getHasFirstFix())
     {
@@ -155,16 +155,16 @@ void loop()
     // Serial.println(gps.getFixQual());
 
     // time, alt1, alt2, vel, accel, gyro, mag, lat, lon
-printf("%.3f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f \n",
-       time / 1000.0,
-       computer->getPosition().x(),
-         computer->getPosition().y(),
-            computer->getPosition().z(),
-         computer->getVelocity().x(),
-            computer->getVelocity().y(),
-               computer->getVelocity().z(),
-            computer->getAcceleration().x(),
-                computer->getAcceleration().y(),
-                    computer->getAcceleration().z());
-                    
+// printf("%.3f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f \n",
+//        time / 1000.0,
+//        computer->getPosition().x(),
+//          computer->getPosition().y(),
+//             computer->getPosition().z(),
+//          computer->getVelocity().x(),
+//             computer->getVelocity().y(),
+//                computer->getVelocity().z(),
+//             computer->getAcceleration().x(),
+//                 computer->getAcceleration().y(),
+//                     computer->getAcceleration().z());
+
 }
