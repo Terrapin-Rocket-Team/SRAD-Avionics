@@ -1,7 +1,8 @@
 #GaussianNoiseGenerator.py
 import numpy as np
 def GaussianNoiseGenerator(data,sigma):
-    noise = sigma*np.random.randn((data.shape));
-    noisy_data = data + noise;
+    data = np.array(data)
+    noise = sigma*np.random.randn(len(data))
+    noisy_data = np.array(data) + noise
     return noisy_data
 

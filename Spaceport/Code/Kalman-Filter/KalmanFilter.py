@@ -1,108 +1,101 @@
-# KalmanFilter.py
 import numpy as np
+
 class LinearKalmanFilter:
-    def __init__(self,F,G,U,X,H,P,R,K,Q,c,):
-        self.f = F # State transition matrix
-        self.g = G # Control Matrix
-        self.u = U # Control Vector
-        self.x = X # State Vector
-        self.h = H # Observation Matrix
-        self.p = P # Estimate Covariance Matrix
-        self.r = R # Measurement uncertainty Matrix
-        self.k = K # Kalman Gain
-        self.q = Q # Process noise matrix
-        self.C = c # Drag thing
-        self.meas_uncertainty = .5;
-        self.process_noise = 5;
+    def __init__(self, X, P, U):
+        # Constructor initializes the matrices and vectors
+        if not (isinstance(U, np.ndarray) and isinstance(X, np.ndarray) and isinstance(P, np.ndarray)):
+            raise ValueError('Incorrect argument types for U, X, or P')
 
-    @property
-    def LinearKalmanFilter(self,X,P,U):
-        self.x = X; 
-        self.p = P;
-        self.u = U;
-        return self.LinearKalmanFilter
+        self.u = U  # Control Vector
+        self.x = X  # State Vector
+        self.p = P  # Estimate Covariance Matrix
+        self.f = None  # Placeholder for State Transition Matrix
+        self.g = None  # Placeholder for Control Matrix
+        self.h = None  # Placeholder for Observation Matrix
+        self.k = None  # Kalman Gain
+        self.r = None  # Measurement Uncertainty Matrix
+        self.q = None  # Process Noise Matrix
+        self.c = None  # Drag thing
 
-    @property
+        self.meas_uncertainty = 0.5
+        self.process_noise = 5
+
     def predictState(self):
-        self.x = (self.f*self.x) + (self.g*self.u)
-        return self.x
-    
-
-    @property
-    def estimateState(self,measurement):
-        self.x = self.x + self.k*(measurement - self.h*self.x)
+        # Predict the next state
+        self.x = (self.f @ self.x) + (self.g @ self.u)
         return self.x
 
-    
-    @property
+    def estimateState(self, measurement):
+        # Estimate the state based on measurement
+        self.x = self.x + self.k * (measurement - (self.h @ self.x))
+        return self.x
+
     def calculateKalmanGain(self):
-        self.k = self.p * self.h * np.linalg.inv(self.h * self.p * np.transpose(self.h) + self.r);
+        # Calculate Kalman Gain
+        self.k = self.p @ self.h.T @ np.linalg.inv(self.h @ self.p @ self.h.T + self.r)
         return self.k
 
-    @property
     def covarianceUpdate(self):
-        n = 6;
-        self.p = np.transpose((np.eye(n) - self.k * self.h) * self.p * (np.eye(n) - self.k * self.h)) + self.k*self.r*np.transpose(self.k);
-        return self.p  
-    
-    @property
-    def covarianceExtrapolate(self):
-        self.p = self.f * self. p * np.transpose(self.f) + self.q;
+        # Update the covariance matrix
+        n = 6
+        self.p = (np.eye(n) - self.k @ self.h) @ self.p @ (np.eye(n) - self.k @ self.h).T + self.k @ self.r @ self.k.T
         return self.p
 
-    @property 
+    def covarianceExtrapolate(self):
+        # Extrapolate the covariance matrix
+        self.p = self.f @ self.p @ self.f.T + self.q
+        return self.p
+
     def calculateInitialValues(self, dt):
-        self.F = np.array([1, 0, 0, dt, 0, 0],
-                          [0, 1, 0, 0, dt, 0],
-                          [0, 0, 1, 0, 0, dt],
-                          [0, 0, 0, 1, 0,  0],
-                          [0, 0, 0, 0, 1,  0],
-                          [0, 0, 0, 0, 0,  1]);
-        self.g = np.array([0.5*dt*dt, 0, 0]
-                          [0, 0.5*dt*dt, 0],
-                          [0, 0, 0.5*dt*dt],
-                          [dt, 0,        0],
-                          [0, dt,        0],
-                          [0, 0,        dt]);
+        # Calculate initial values for F, G, Q, etc.
+        self.f = np.array([[1, 0, 0, dt, 0, 0],
+                           [0, 1, 0, 0, dt, 0],
+                           [0, 0, 1, 0, 0, dt],
+                           [0, 0, 0, 1, 0,  0],
+                           [0, 0, 0, 0, 1,  0],
+                           [0, 0, 0, 0, 0,  1]])
 
-        self.q = self.g*self.process_noise*self.process_noise*np.transpose(self.g);
-        
+        self.g = np.array([[0.5 * dt**2, 0, 0],
+                           [0, 0.5 * dt**2, 0],
+                           [0, 0, 0.5 * dt**2],
+                           [dt, 0, 0],
+                           [0, dt, 0],
+                           [0, 0, dt]])
+
+        self.q = self.g @ (self.process_noise**2) @ self.g.T
+
         self.predictState()
-        
         self.covarianceExtrapolate()
-        
-       
 
-    @property
-    def iterate(self,dt,measurement,control):
-        self.z = measurement;
-        self.u = control;
+    def iterate(self, dt, measurement, control):
+        # Update step
+        self.u = control  # Update control vector
+        z = measurement  # Measurement vector
 
-        self.F = np.array([1, 0, 0, dt, 0, 0],
-                          [0, 1, 0, 0, dt, 0],
-                          [0, 0, 1, 0, 0, dt],
-                          [0, 0, 0, 1, 0,  0],
-                          [0, 0, 0, 0, 1,  0],
-                          [0, 0, 0, 0, 0,  1]);
-        self.g = np.array([0.5*dt*dt, 0, 0]
-                          [0, 0.5*dt*dt, 0],
-                          [0, 0, 0.5*dt*dt],
-                          [dt, 0,        0],
-                          [0, dt,        0],
-                          [0, 0,        dt]);
+        self.f = np.array([[1, 0, 0, dt, 0, 0],
+                           [0, 1, 0, 0, dt, 0],
+                           [0, 0, 1, 0, 0, dt],
+                           [0, 0, 0, 1, 0,  0],
+                           [0, 0, 0, 0, 1,  0],
+                           [0, 0, 0, 0, 0,  1]])
 
-        self.q = self.g*self.process_noise*self.process_noise*np.transpose(self.g);
-        self.r = np.eye(3)*self.meas_uncertainty
-        self.h = np.array([1, 0, 0, 0, 0, 0],
-                          [0, 1, 0, 0, 0, 0],
-                          [0, 0, 1, 0, 0, 0])
+        self.g = np.array([[0.5 * dt**2, 0, 0],
+                           [0, 0.5 * dt**2, 0],
+                           [0, 0, 0.5 * dt**2],
+                           [dt, 0, 0],
+                           [0, dt, 0],
+                           [0, 0, dt]])
 
-        self.calculateKalmanGain()           
-        self.estimateState()         
+        self.q = self.g @ (self.process_noise**2) @ self.g.T
+        self.r = np.eye(3) * self.meas_uncertainty
+        self.h = np.array([[1, 0, 0, 0, 0, 0],
+                           [0, 1, 0, 0, 0, 0],
+                           [0, 0, 1, 0, 0, 0]])
+
+        self.calculateKalmanGain()
+        self.estimateState(measurement)
         self.covarianceUpdate()
-        
-        #predict step
 
-        self.predictState()          
+        # Predict step
+        self.predictState()
         self.covarianceExtrapolate()
-    
