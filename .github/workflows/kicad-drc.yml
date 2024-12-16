@@ -1,0 +1,53 @@
+# .github/workflows/kicad-drc.yml
+
+name: KiCad DRC Check
+
+on:
+  pull_request:  # Trigger on pull requests
+    branches:
+      - main  
+
+  push:
+    branches:
+      - main
+
+jobs:
+  drc_check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install KiCad
+        run: |
+          sudo add-apt-repository --yes ppa:kicad/kicad-8.0-releases
+          sudo apt update
+          sudo apt install --install-recommends kicad
+
+      - name: Find and run DRC on all PCB files
+        run: |
+          find . -name "*.kicad_pcb" -print0 | while IFS= read -r -d '' file; do
+            echo "Running DRC for $file"
+            
+            # run the DRC and save the report to a temporary file
+            report_file=$(mktemp)
+            kicad-cli pcb drc "$file" --output "$report_file"
+            
+            # check for errors in the report
+            unconnected_pads=$(grep -oP '(?<=Found )\d+(?= unconnected pads)' "$report_file")
+            footprint_errors=$(grep -oP '(?<=Found )\d+(?= Footprint errors)' "$report_file")
+
+            echo "Unconnected pads: $unconnected_pads"
+            echo "Footprint errors: $footprint_errors"
+
+            # if any unconnected pads or footprint errors are found, fail the action
+            if [ "$unconnected_pads" -ne 0 ] || [ "$footprint_errors" -ne 0 ]; then
+              echo "DRC found errors. Failing..."
+              exit 1
+            fi
+
+            # clean up temporary report file
+            rm "$report_file"
+
+          done

@@ -32,7 +32,7 @@ uint32_t debugTimer = millis();
 
 // radio
 APRSConfig config = {"KC3UTM", "APRS", "WIDE1-1", '[', '/'};
-RadioSettings settings = {433.775, true, true, &hardware_spi, 10, 15, 14, 8, 4, 9};
+RadioSettings settings = {433.0, true, true, &hardware_spi, 10, 15, 14, 8, 4, 9};
 RFM69HCW transmit = {&settings, &config};
 
 void setup()
@@ -58,10 +58,10 @@ void loop()
 {
 
   // reading from Raspi
-  while (Serial1.available() > 0 && top < MSG_SIZE * 3)
+  while (top + 1 < MSG_SIZE * 3)
   {
     txTimeout = millis();
-    buf[top] = Serial1.read();
+    buf[top] = '1';
     top++;
 
     if (bytesThisMessage + toSend < MSG_SIZE && hasTransmission)
