@@ -4,9 +4,7 @@
 #include "AvionicsState.h"
 #include "Pi.h"
 #include "AvionicsKF.h"
-#include "DPS310.h"
-#include "MS5611F.h"
-#include "BMI088andLIS3MDL.h"
+#include "RadioMessage.h"
 
 #define BMP_ADDR_PIN 36
 #define RPI_PWR 0
@@ -14,12 +12,16 @@
 
 using namespace mmfs;
 
-Logger logger(30, 30, false, SD_);
+Logger logger(15, 5);
 
 MAX_M10S gps;
-DPS310 baro1;
+mmfs::DPS310 baro1;
 mmfs::MS5611 baro2;
-BMI088andLIS3MDL bno;
+mmfs::BMI088andLIS3MDL bno;
+
+APRSConfig aprsConfig = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
+APRSTelem aprs(aprsConfig);
+Message msg;
 
 Sensor *sensors[4] = {&gps, &bno, &baro1, &baro2};
 AvionicsKF kfilter;
@@ -41,7 +43,7 @@ void FreeMem()
 {
     void *heapTop = malloc(500);
     Serial.print((long)heapTop);
-    Serial.print(" ");
+    Serial.print("\n");
     free(heapTop);
 }
 // Free memory debug function
@@ -57,21 +59,18 @@ const int UPDATE_INTERVAL = 1000.0 / UPDATE_RATE;
 void setup()
 {
     Serial.begin(9600);
+    Serial1.begin(460800);
     delay(3000);
     Wire.begin();
     SENSOR_BIAS_CORRECTION_DATA_LENGTH = 2;
     SENSOR_BIAS_CORRECTION_DATA_IGNORE = 1;
-    computer = new AvionicsState(sensors, 4, nullptr);
+    computer = new AvionicsState(sensors, 4, &kfilter);
 
     psram = new PSRAM();
 
-    // delay(5000);
     logger.init(computer);
 
-    pinMode(BMP_ADDR_PIN, OUTPUT);
-    digitalWrite(BMP_ADDR_PIN, HIGH);
-
-    logger.recordLogData(INFO_, "Initializing Avionics System. 5 second delay to prevent unnecessary file generation.", TO_USB);
+    logger.recordLogData(INFO_, "Initializing Avionics System.", TO_USB);
 
     if (CrashReport)
     {
@@ -98,7 +97,7 @@ void setup()
     else
         logger.recordLogData(ERROR_, "PSRAM Failed to Initialize");
 
-    if (computer->init(false))
+    if (computer->init(true))
     {
         logger.recordLogData(INFO_, "All Sensors Initialized");
         bb.onoff(BUZZER_PIN, 1000);
@@ -109,9 +108,9 @@ void setup()
         bb.onoff(BUZZER_PIN, 200, 3);
     }
     logger.writeCsvHeader();
-    bb.aonoff(32, *(new BBPattern(200, 1)), true);
+    bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
 }
-
+double radio_last;
 void loop()
 {
     double time = millis();
@@ -122,31 +121,53 @@ void loop()
 
     last = time;
     computer->updateState();
-    // time, alt1, alt2, vel, accel, gyro, mag, lat, lon
-    printf("%.2f | %.2f | %.2f, %.2f # %.2f, %.2f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f = %.2f, %.2f, %.2f | %.2f, %.2f, %.2f | %.7f, %.7f\n",
-           time / 1000.0,
-           computer->getPosition().z(),
-           baro1.getASLAltM(),
-           baro1.getPressure(),
-           baro2.getASLAltM(),
-           baro2.getPressure(),
-           computer->getVelocity().x(),
-           computer->getVelocity().y(),
-           computer->getVelocity().z(),
-           bno.getAccReading().x(),
-           bno.getAccReading().y(),
-           bno.getAccReading().z(),
-           bno.getGyroReading().x(),
-           bno.getGyroReading().y(),
-           bno.getGyroReading().z(),
-           bno.getMagnetometerReading().x(),
-           bno.getMagnetometerReading().y(),
-           bno.getMagnetometerReading().z(),
-           gps.getPos().x(),
-           gps.getPos().y());
+
+    // printf("%.2f | %.2f = %.2f | %.2f\n", baro1.getASLAltFt(), baro2.getASLAltFt(), baro1.getAGLAltFt(), baro2.getAGLAltFt());
     logger.recordFlightData();
-    if(gps.getHasFirstFix()){
+    if (gps.getHasFirstFix())
+    {
         bb.clearQueue(32);
         bb.on(32);
     }
+
+    Vector<3> orient = bno.getOrientation().toEuler() * 180 / PI;
+
+    // printf("%.2f | %.2f | %.2f\n", orient.x(), orient.y(), orient.z());
+
+    if (time - radio_last < 1000)
+        return;
+
+    radio_last = time;
+    msg.clear();
+    aprs.alt = baro1.getAGLAltFt();
+    aprs.hdg = gps.getHeading();
+    aprs.lat = gps.getPos().x();
+    aprs.lng = gps.getPos().y();
+    aprs.spd = computer->getVelocity().z();
+    aprs.orient[0] = bno.getAngularVelocity().x();
+    aprs.orient[1] = bno.getAngularVelocity().y();
+    aprs.orient[2] = bno.getAngularVelocity().z();
+    aprs.stateFlags = computer->getStage();
+    msg.encode(&aprs);
+    Message m(&aprs);
+    APRSTelem aprs2(aprsConfig);
+    m.decode(&aprs2);
+    Serial1.write(msg.buf, msg.size);
+    Serial1.write('\n');
+    // printf("%0.7f | %0.7f | %d\n", aprs2.lat, aprs.lng, gps.getFixQual());
+
+    // Serial.println(gps.getFixQual());
+
+    // time, alt1, alt2, vel, accel, gyro, mag, lat, lon
+    // printf("%.3f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f \n",
+    //        time / 1000.0,
+    //        computer->getPosition().x(),
+    //          computer->getPosition().y(),
+    //             computer->getPosition().z(),
+    //          computer->getVelocity().x(),
+    //             computer->getVelocity().y(),
+    //                computer->getVelocity().z(),
+    //             computer->getAcceleration().x(),
+    //                 computer->getAcceleration().y(),
+    //                     computer->getAcceleration().z());
 }

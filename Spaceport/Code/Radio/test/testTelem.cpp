@@ -2,6 +2,8 @@
 #include "RadioMessage.h"
 #include "Si4463.h"
 
+#define BUZZER 0
+
 Si4463HardwareConfig hwcfg = {
     MOD_2GFSK, // modulation
     DR_40k,    // data rate
@@ -24,60 +26,67 @@ Si4463PinConfig pincfg = {
 
 Si4463 radio(hwcfg, pincfg);
 uint32_t timer = millis();
-uint32_t timeout = 2100;
 
-uint32_t received = 0;
-uint32_t timeouts = 0;
+APRSConfig aprscfg = {"KC3UTM", "ALL", "WIDE1-1", TextMessage, '\\', 'M'};
 
-APRSConfig aprscfg = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
+char msg[Message::maxSize + 1];
+uint16_t pos = 0;
+bool msgComplete = false;
 
-APRSText testMessage(aprscfg);
-
-void logStats();
+void beep(int d)
+{
+    digitalWrite(BUZZER, HIGH);
+    delay(d);
+    digitalWrite(BUZZER, LOW);
+    delay(d);
+}
 
 void setup()
 {
     Serial.begin(9600);
+    Serial5.begin(115200);
+    pinMode(BUZZER, OUTPUT);
+    digitalWrite(BUZZER, LOW);
+
     if (!radio.begin())
     {
         Serial.println("Error: radio failed to begin");
         Serial.flush();
         while (1)
-            ;
+        {
+            beep(1000);
+        }
     }
     Serial.println("Radio began successfully");
+
+    memset(msg, 0, sizeof(msg));
+
+    beep(100);
 }
 
 void loop()
 {
-    if (radio.avail())
+    if (Serial5.available() > 0 && !msgComplete && pos < Message::maxSize)
     {
-        radio.receive(testMessage);
-        Serial.print("\nReceived message: ");
-        Serial.println(testMessage.msg);
-        Serial.print("RSSI: ");
-        Serial.print(radio.RSSI());
-        Serial.println(" dBm");
-
-        // reset timeout
-        timer = millis();
-        received++;
-        logStats();
+        char c = Serial5.
+        Serial.write(c);
+        if (c == '\n')
+            msgComplete = true;
+        if (pos < Message::maxSize && c != '\0' && c != '\n')
+        {
+            msg[pos++] = c;
+        }
     }
-    if (millis() - timer > timeout)
+    if (msgComplete)
     {
         timer = millis();
-        timeouts++;
-        logStats();
+        Serial.println("Sending message");
+        // Serial.println(msg);
+        radio.tx((uint8_t *)msg, pos);
+        memset(msg, 0, sizeof(msg));
+        pos = 0;
+        msgComplete = false;
     }
     // need to call as fast as possible every loop
     radio.update();
-}
-
-void logStats()
-{
-    Serial.print("Received: ");
-    Serial.print(received);
-    Serial.print(" | Timeouts: ");
-    Serial.println(timeouts);
 }
