@@ -21,5 +21,5 @@ class Rocket:
 
 # hardcoded values 
 if __name__ == '__main__':
- rocket_instance = Rocket(9.8, 100, 0.5, 1.2)
- print(rocket_instance.rocket_info)
+    rocket_instance = Rocket(9.8, 100, 0.5, 1.2)
+    print(rocket_instance.rocket_info)

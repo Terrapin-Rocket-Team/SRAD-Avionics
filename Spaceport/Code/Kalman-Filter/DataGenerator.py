@@ -3,7 +3,7 @@ import csv
 
 dataFileName = "mock_data"
 loopFrequency = 50
-rocket_instance = rocket_module.Rocket(125,100,0.5,.07296) # (MotorAccel, BurnTime, DragCoef, CrossSectionalArea)
+rocket_instance = rocket_module.Rocket(125,2.5,0.5,.07296) # (MotorAccel, BurnTime, DragCoef, CrossSectionalArea)
 
 def DataGenerator(dataFileName, loopFrequency, rocket):
     density = 1.225  # kg/m^3
