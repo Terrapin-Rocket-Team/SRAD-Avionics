@@ -4,6 +4,7 @@
 #include "AvionicsState.h"
 #include "Pi.h"
 #include "AvionicsKF.h"
+#include "RadioMessage.h"
 
 #define BMP_ADDR_PIN 36
 #define RPI_PWR 0
@@ -11,25 +12,25 @@
 
 using namespace mmfs;
 
-Logger logger(ALTERNATING_BOTH, 25000, 300); // 25 kB buffer, 300 write interval
+Logger logger(15, 5);
 
-BNO055 bno;   // I2C Address 0x29
-BMP390 bmp;   // I2C Address 0x77
-MAX_M10S gps; // I2C Address 0x42
+MAX_M10S gps;
+mmfs::DPS310 baro1;
+mmfs::MS5611 baro2;
+mmfs::BMI088andLIS3MDL bno;
 
-// RadioSettings settings = {433.78, 0x01, 0x02, &hardware_spi, 10, 31, 32};
-// RFM69HCW radio(&settings);
-//  APRSHeader header = {"KC3UTM", "APRS", "WIDE1-1", '^', 'M'};
-//  APRSCmdData currentCmdData = {800000, 800000, 800000, false};
-//  APRSCmdMsg cmd(header);
-//  APRSTelemMsg telem(header);
-//  int timeOfLastCmd = 0;
-//  const int CMD_TIMEOUT_SEC = 100; // 10 seconds
-//  void processCurrentCmdData(double time);
+APRSConfig aprsConfig = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
+APRSTelem aprs(aprsConfig);
+Message msg;
 
-AvionicsState *computer; // = useKalmanFilter = true, stateRecordsOwnData = true
+Sensor *sensors[4] = {&gps, &bno, &baro1, &baro2};
+AvionicsKF kfilter;
+
+AvionicsState *computer; // = useKalmanFilter = true
 uint32_t radioTimer = millis();
 Pi rpi(RPI_PWR, RPI_VIDEO);
+PSRAM *psram;
+ErrorHandler errorHandler;
 
 static double last = 0; // for better timing than "delay(100)"
 
@@ -40,39 +41,41 @@ extern char *__brkval;
 
 void FreeMem()
 {
-    void *heapTop = malloc(50);
+    void *heapTop = malloc(500);
     Serial.print((long)heapTop);
-    Serial.print(" ");
+    Serial.print("\n");
     free(heapTop);
 }
 // Free memory debug function
 
 const int BUZZER_PIN = 33;
 const int BUILTIN_LED_PIN = LED_BUILTIN;
-int allowedPins[] = {BUILTIN_LED_PIN, BUZZER_PIN};
-BlinkBuzz bb(allowedPins, 2, true);
+int allowedPins[] = {BUILTIN_LED_PIN, BUZZER_PIN, 32};
+BlinkBuzz bb(allowedPins, 3, true);
 
-const int SENSOR_BIAS_CORRECTION_DATA_LENGTH = 2;
-const int SENSOR_BIAS_CORRECTION_DATA_IGNORE = 1;
 const int UPDATE_RATE = 10;
 const int UPDATE_INTERVAL = 1000.0 / UPDATE_RATE;
 
 void setup()
 {
-    MAX_M10S gps;
-    BNO055 imu;
-    BMP390 baro;
-    Sensor *sensors[3] = {&gps, &imu, &baro};
-    AvionicsKF kfilter;
-    computer = new AvionicsState(sensors, 3, &kfilter, false);
+    Serial.begin(9600);
+    Serial1.begin(460800);
+    delay(3000);
+    Wire.begin();
+    SENSOR_BIAS_CORRECTION_DATA_LENGTH = 2;
+    SENSOR_BIAS_CORRECTION_DATA_IGNORE = 1;
+    computer = new AvionicsState(sensors, 4, &kfilter);
 
-    // delay(5000);
-    logger.init();
+    psram = new PSRAM();
 
-    pinMode(BMP_ADDR_PIN, OUTPUT);
-    digitalWrite(BMP_ADDR_PIN, HIGH);
+    logger.init(computer);
 
-    logger.recordLogData(INFO_, "Initializing Avionics System. 5 second delay to prevent unnecessary file generation.", TO_USB);
+    logger.recordLogData(INFO_, "Initializing Avionics System.", TO_USB);
+
+    if (CrashReport)
+    {
+        Serial.println(CrashReport);
+    }
     // The SD card MUST be initialized first to allow proper data logging.
     if (logger.isSdCardReady())
     {
@@ -94,7 +97,7 @@ void setup()
     else
         logger.recordLogData(ERROR_, "PSRAM Failed to Initialize");
 
-    if (computer->init())
+    if (computer->init(true))
     {
         logger.recordLogData(INFO_, "All Sensors Initialized");
         bb.onoff(BUZZER_PIN, 1000);
@@ -104,42 +107,67 @@ void setup()
         logger.recordLogData(ERROR_, "Some Sensors Failed to Initialize. Disabling those sensors.");
         bb.onoff(BUZZER_PIN, 200, 3);
     }
-    // sendSDCardHeader(computer->getCsvHeader());
+    logger.writeCsvHeader();
+    bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
 }
-
+double radio_last;
 void loop()
 {
     double time = millis();
     bb.update();
-
-    // Update the Radio
-    // if (radio.update()) // if there is a message to be read
-    // {
-    //     timeOfLastCmd = time;
-    //     APRSCmdData old = cmd.data;
-    //     if (radio.dequeueReceive(&cmd))
-    //         radioHandler::processCmdData(cmd, old, currentCmdData, time);
-    // }
-    // radioHandler::processCurrentCmdData(currentCmdData, computer, rpi, time);
-
     // Update the state of the rocket
     if (time - last < 100)
         return;
 
     last = time;
     computer->updateState();
-    logger.recordLogData(INFO_, computer->getStateString(), TO_USB);
-    // Send Telemetry Data
-    // if (time - radioTimer >= 500)
-    // {
-    //     computer.fillAPRSData(telem.data);
 
-    //     int status = PI_ON * rpi.isOn() +
-    //                  PI_VIDEO * rpi.isRecording() +
-    //                  RECORDING_DATA * computer.getRecordOwnFlightData();
-    //     telem.data.statusFlags = status;
+    // printf("%.2f | %.2f = %.2f | %.2f\n", baro1.getASLAltFt(), baro2.getASLAltFt(), baro1.getAGLAltFt(), baro2.getAGLAltFt());
+    logger.recordFlightData();
+    if (gps.getHasFirstFix())
+    {
+        bb.clearQueue(32);
+        bb.on(32);
+    }
 
-    //     radio.enqueueSend(&telem);
-    //     radioTimer = time;
-    // }
+    Vector<3> orient = bno.getOrientation().toEuler() * 180 / PI;
+
+    // printf("%.2f | %.2f | %.2f\n", orient.x(), orient.y(), orient.z());
+
+    if (time - radio_last < 1000)
+        return;
+
+    radio_last = time;
+    msg.clear();
+    aprs.alt = baro1.getAGLAltFt();
+    aprs.hdg = gps.getHeading();
+    aprs.lat = gps.getPos().x();
+    aprs.lng = gps.getPos().y();
+    aprs.spd = computer->getVelocity().z();
+    aprs.orient[0] = bno.getAngularVelocity().x();
+    aprs.orient[1] = bno.getAngularVelocity().y();
+    aprs.orient[2] = bno.getAngularVelocity().z();
+    aprs.stateFlags = computer->getStage();
+    msg.encode(&aprs);
+    Message m(&aprs);
+    APRSTelem aprs2(aprsConfig);
+    m.decode(&aprs2);
+    Serial1.write(msg.buf, msg.size);
+    Serial1.write('\n');
+    // printf("%0.7f | %0.7f | %d\n", aprs2.lat, aprs.lng, gps.getFixQual());
+
+    // Serial.println(gps.getFixQual());
+
+    // time, alt1, alt2, vel, accel, gyro, mag, lat, lon
+    // printf("%.3f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f \n",
+    //        time / 1000.0,
+    //        computer->getPosition().x(),
+    //          computer->getPosition().y(),
+    //             computer->getPosition().z(),
+    //          computer->getVelocity().x(),
+    //             computer->getVelocity().y(),
+    //                computer->getVelocity().z(),
+    //             computer->getAcceleration().x(),
+    //                 computer->getAcceleration().y(),
+    //                     computer->getAcceleration().z());
 }
