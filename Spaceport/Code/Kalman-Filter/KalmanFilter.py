@@ -22,17 +22,21 @@ class LinearKalmanFilter:
 
     def predictState(self):
         # Predict the next state
+        # print(self.f)
+        # print(self.x)
+        # print(self.g)
+        # print(self.u)
         self.x = (self.f @ self.x) + (self.g @ self.u)
         return self.x
 
     def estimateState(self, measurement):
         # Estimate the state based on measurement
-        self.x = self.x + self.k * (measurement - (self.h @ self.x))
+        self.x = self.x + (self.k @ (measurement - (self.h @ self.x)))
         return self.x
 
     def calculateKalmanGain(self):
         # Calculate Kalman Gain
-        self.k = self.p @ self.h.T @ np.linalg.inv(self.h @ self.p @ self.h.T + self.r)
+        self.k = self.p @ self.h.T @ np.linalg.inv((self.h @ self.p @ self.h.T) + self.r)
         return self.k
 
     def covarianceUpdate(self):
@@ -86,7 +90,7 @@ class LinearKalmanFilter:
                            [0, dt, 0],
                            [0, 0, dt]])
 
-        self.q = self.g @ (self.process_noise**2) @ self.g.T
+        self.q = (self.process_noise**2) * self.g @ self.g.T
         self.r = np.eye(3) * self.meas_uncertainty
         self.h = np.array([[1, 0, 0, 0, 0, 0],
                            [0, 1, 0, 0, 0, 0],
@@ -99,3 +103,4 @@ class LinearKalmanFilter:
         # Predict step
         self.predictState()
         self.covarianceExtrapolate()
+        return self
