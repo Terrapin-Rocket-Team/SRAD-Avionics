@@ -11,12 +11,17 @@ class AvionicsState : public State
 public:
     AvionicsState(Sensor **sensors, int numSensors, LinearKalmanFilter *kfilter);
     void updateState(double newTime = -1) override;
-    int getStage() { return stage; }
+    uint32_t getStage() { return stage; }
+
+    virtual const PackedType *getPackedOrder() const override;
+    virtual const int getNumPackedDataPoints() const override;
+    virtual const char **getPackedDataLabels() const override;
 
 private:
-    char stages[6][15] = {"Pre-Flight", "Boosting", "Coasting", "Drogue Descent", "Main Descent", "Post-Flight"};
+    virtual void packData() override;
+    char stages[7][20] = {"Pre-Flight", "Boosting", "Coasting", "Drogue Descent", "Main Descent", "Post-Flight", "Dumped"};
     void determineStage();
-    int stage;
+    uint32_t stage;
     double timeOfLaunch;
     double timeOfLastStage;
     double timeOfDay;

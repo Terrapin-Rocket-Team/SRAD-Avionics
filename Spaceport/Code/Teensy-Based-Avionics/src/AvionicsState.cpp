@@ -15,6 +15,7 @@ void AvionicsState::updateState(double newTime)
 {
     State::updateState(newTime); // call base version for sensor updates
     determineStage(); // determine the stage of the flight
+    determineStage();            // determine the stage of the flight
 }
 
 void AvionicsState::determineStage()
@@ -23,7 +24,7 @@ void AvionicsState::determineStage()
     int timeSinceLastStage = currentTime - timeOfLastStage;
     IMU *imu = reinterpret_cast<IMU *>(getSensor(IMU_));
     Barometer *baro = reinterpret_cast<Barometer *>(getSensor(BAROMETER_));
-    //GPS *gps = reinterpret_cast<GPS *>(getSensor(GPS_));
+    // GPS *gps = reinterpret_cast<GPS *>(getSensor(GPS_));
     if (stage == 0 &&
         (((sensorOK(imu) || sensorOK(baro)) &&
         (sensorOK(imu) ? abs(imu->getAccelerationGlobal().z()) > 25 : true) &&
@@ -36,6 +37,7 @@ void AvionicsState::determineStage()
 
     // essentially, if we have either sensor and they meet launch threshold, launch. Otherwise, it will never detect a launch.
     {
+        logger.setRecordMode(FLIGHT);
         bb.aonoff(33, 200);
         // logger.setRecordMode(FLIGHT);
         stage = 1;
@@ -47,9 +49,9 @@ void AvionicsState::determineStage()
         {
             if (sensorOK(sensors[i]))
             {
-                char logData[200];
-                //snprintf(logData, 200, "%s: %s", sensors[i]->getName(), sensors[i]->getStaticDataString());
-                logger.recordLogData(INFO_, logData);
+                // char logData[200];
+                // snprintf(logData, 200, "%s: %s", sensors[i]->getName(), sensors[i]->getStaticDataString());
+                // logger.recordLogData(INFO_, logData);
                 sensors[i]->setBiasCorrectionMode(false);
             }
         }
@@ -88,7 +90,72 @@ void AvionicsState::determineStage()
     }
     else if (stage == 5 && timeSinceLastStage > 5)
     {
+        stage = 6;
         logger.setRecordMode(GROUND);
         logger.recordLogData(INFO_, "Dumped data after landing.");
     }
+}
+
+const int AvionicsState::getNumPackedDataPoints() const { return 11; }
+
+const PackedType *AvionicsState::getPackedOrder() const
+{
+    static const PackedType order[11] = {
+        FLOAT, INT, FLOAT, FLOAT, FLOAT, FLOAT, FLOAT, FLOAT, FLOAT, FLOAT, FLOAT};
+    return order;
+}
+
+const char **AvionicsState::getPackedDataLabels() const
+{
+    static const char *labels[] = {
+        "Time (s)",
+        "Stage",
+        "PX (m)",
+        "PY (m)",
+        "PZ (m)",
+        "VX (m/s)",
+        "VY (m/s)",
+        "VZ (m/s)",
+        "AX (m/s/s)",
+        "AY (m/s/s)",
+        "AZ (m/s/s)"};
+    return labels;
+}
+
+void AvionicsState::packData()
+{
+    float t = currentTime;
+    float px = position.x();
+    float py = position.y();
+    float pz = position.z();
+    float vx = velocity.x();
+    float vy = velocity.y();
+    float vz = velocity.z();
+    float ax = acceleration.x();
+    float ay = acceleration.y();
+    float az = acceleration.z();
+
+    int cursor = 0;
+    memcpy(packedData + cursor, &t, sizeof(float));
+    cursor += sizeof(float);
+    memcpy(packedData + cursor, &stage, sizeof(int));
+    cursor += sizeof(int);
+    memcpy(packedData + cursor, &px, sizeof(float));
+    cursor += sizeof(float);
+    memcpy(packedData + cursor, &py, sizeof(float));
+    cursor += sizeof(float);
+    memcpy(packedData + cursor, &pz, sizeof(float));
+    cursor += sizeof(float);
+    memcpy(packedData + cursor, &vx, sizeof(float));
+    cursor += sizeof(float);
+    memcpy(packedData + cursor, &vy, sizeof(float));
+    cursor += sizeof(float);
+    memcpy(packedData + cursor, &vz, sizeof(float));
+    cursor += sizeof(float);
+    memcpy(packedData + cursor, &ax, sizeof(float));
+    cursor += sizeof(float);
+    memcpy(packedData + cursor, &ay, sizeof(float));
+    cursor += sizeof(float);
+    memcpy(packedData + cursor, &az, sizeof(float));
+    cursor += sizeof(float);
 }
