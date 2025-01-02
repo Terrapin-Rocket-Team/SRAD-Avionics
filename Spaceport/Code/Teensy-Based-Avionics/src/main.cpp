@@ -5,10 +5,11 @@
 #include "Pi.h"
 #include "AvionicsKF.h"
 #include "RadioMessage.h"
+#include "RotCam/RotCam.h"
 
 #define BMP_ADDR_PIN 36
-#define RPI_PWR 0
-#define RPI_VIDEO 1
+#define RPI_CMD 34
+#define RPI_RESP 35
 
 using namespace mmfs;
 
@@ -28,7 +29,7 @@ AvionicsKF kfilter;
 
 AvionicsState *computer; // = useKalmanFilter = true
 uint32_t radioTimer = millis();
-Pi rpi(RPI_PWR, RPI_VIDEO);
+Pi rpi(RPI_CMD, RPI_RESP);
 PSRAM *psram;
 ErrorHandler errorHandler;
 
@@ -52,10 +53,14 @@ const int BUZZER_PIN = 33;
 const int BUILTIN_LED_PIN = LED_BUILTIN;
 int allowedPins[] = {BUILTIN_LED_PIN, BUZZER_PIN, 32};
 BlinkBuzz bb(allowedPins, 3, true);
+RotCam cam;
 
 const int UPDATE_RATE = 10;
 const int UPDATE_INTERVAL = 1000.0 / UPDATE_RATE;
 
+double startTime = 0;
+
+void checkRotCam(int stage, int vertVel);
 void setup()
 {
     Serial.begin(9600);
@@ -97,6 +102,7 @@ void setup()
     else
         logger.recordLogData(ERROR_, "PSRAM Failed to Initialize");
 
+    if (computer->init())
     if (computer->init(true))
     {
         logger.recordLogData(INFO_, "All Sensors Initialized");
@@ -109,20 +115,25 @@ void setup()
     }
     logger.writeCsvHeader();
     bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
+    cam.home();
 }
 double radio_last;
 void loop()
 {
     double time = millis();
+
     bb.update();
+    cam.run();
+    rpi.check();
+
     // Update the state of the rocket
     if (time - last < 100)
         return;
 
     last = time;
     computer->updateState();
-
-    // printf("%.2f | %.2f = %.2f | %.2f\n", baro1.getASLAltFt(), baro2.getASLAltFt(), baro1.getAGLAltFt(), baro2.getAGLAltFt());
+    printf("Alt: %f\n", baro1.getAGLAltFt());
+    checkRotCam(computer->getStage(), computer->getVelocity().z());
     logger.recordFlightData();
     if (gps.getHasFirstFix())
     {
@@ -170,4 +181,44 @@ void loop()
     //             computer->getAcceleration().x(),
     //                 computer->getAcceleration().y(),
     //                     computer->getAcceleration().z());
+}
+
+int lastStage = 0;
+void checkRotCam(int stage, int vertVel)
+{
+    if (lastStage == stage)
+        return;
+
+    if (stage == 2)
+    {
+        cam.moveToAngle(90);
+    }
+    if (stage == 3)
+    {
+        cam.moveToAngle(180);
+    }
+    if (stage == 4)
+    {
+        cam.moveToAngle(360);
+    }
+}
+
+int lastStage = 0;
+void checkRotCam(int stage, int vertVel)
+{
+    if (lastStage == stage)
+        return;
+
+    if (stage == 2)
+    {
+        cam.moveToAngle(90);
+    }
+    if (stage == 3)
+    {
+        cam.moveToAngle(180);
+    }
+    if (stage == 4)
+    {
+        cam.moveToAngle(360);
+    }
 }
