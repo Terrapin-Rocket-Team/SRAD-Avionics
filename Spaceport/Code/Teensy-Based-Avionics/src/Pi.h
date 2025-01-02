@@ -3,21 +3,23 @@
 
 #include <Arduino.h>
 #include <BlinkBuzz/BlinkBuzz.h>
+#include <RecordData/Logger.h>
 
 class Pi
 {
 public:
-    Pi(int pinControl, int pinVideo);
-    void setOn(bool on);
-    void setRecording(bool recording);
-    bool isOn();
+    Pi(int pinCmd, int pinResp);
+    void startRec();
+    void stopRec();
     bool isRecording();
+    void check();
+    ~Pi() { stopRec(); pinMode(pinCmd, INPUT); pinMode(pinResp, INPUT); }
 
 private:
-    int pinControl;
-    int pinVideo;
-    bool on;
-    bool recording;
+    int pinCmd;
+    int pinResp;
+    bool recReqst;
+    bool recAkn;
 };
 
 #endif // PI_H
