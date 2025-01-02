@@ -14,19 +14,21 @@ AvionicsState::AvionicsState(Sensor **sensors, int numSensors, LinearKalmanFilte
 void AvionicsState::updateState(double newTime)
 {
     State::updateState(newTime); // call base version for sensor updates
-    //determineStage(); // determine the stage of the flight
+    determineStage(); // determine the stage of the flight
 }
 
 void AvionicsState::determineStage()
 {
     int timeSinceLaunch = currentTime - timeOfLaunch;
+    int timeSinceLastStage = currentTime - timeOfLastStage;
     IMU *imu = reinterpret_cast<IMU *>(getSensor(IMU_));
     Barometer *baro = reinterpret_cast<Barometer *>(getSensor(BAROMETER_));
     //GPS *gps = reinterpret_cast<GPS *>(getSensor(GPS_));
     if (stage == 0 &&
-        (sensorOK(imu) || sensorOK(baro)) &&
+        (((sensorOK(imu) || sensorOK(baro)) &&
         (sensorOK(imu) ? abs(imu->getAccelerationGlobal().z()) > 25 : true) &&
         (sensorOK(baro) ? baro->getAGLAltFt() > 60 : true))
+        || currentTime > 25))
     // if we are in preflight AND
     // we have either the IMU OR the barometer AND
     // imu is ok AND the z acceleration is greater than 29 ft/s^2 OR imu is not ok AND
@@ -52,14 +54,14 @@ void AvionicsState::determineStage()
             }
         }
     } // TODO: Add checks for each sensor being ok and decide what to do if they aren't.
-    else if (stage == 1 && abs(acceleration.z()) < 10)
+    else if (stage == 1 && abs(acceleration.z()) < 10 && timeSinceLastStage > 5)
     {
         bb.aonoff(33, 200, 2);
         timeOfLastStage = currentTime;
         stage = 2;
         logger.recordLogData(INFO_, "Coasting detected.");
     }
-    else if (stage == 2 && baroVelocity <= 0 && timeSinceLaunch > 5)
+    else if (stage == 2 && baroVelocity <= 0 && timeSinceLastStage > 5)
     {
         bb.aonoff(33, 200, 3);
         char logData[100];
@@ -69,21 +71,22 @@ void AvionicsState::determineStage()
         stage = 3;
         logger.recordLogData(INFO_, "Drogue conditions detected.");
     }
-    else if (stage == 3 && baro->getAGLAltFt() < 1000 && timeSinceLaunch > 10)
+    else if (stage == 3 && baro->getAGLAltFt() < 1000 && timeSinceLastStage > 5)
     {
         bb.aonoff(33, 200, 4);
         stage = 4;
         timeOfLastStage = currentTime;
         logger.recordLogData(INFO_, "Main parachute conditions detected.");
+        printf("Alt: %f\n", baro->getAGLAltFt());
     }
-    else if (stage == 4 && baroVelocity > -1 && baro->getAGLAltFt() < 66 && timeSinceLaunch > 15)
+    else if (stage == 4 && baroVelocity > -1 && baro->getAGLAltFt() < 66 && timeSinceLastStage > 5)
     {
         bb.aonoff(33, 200, 5);
         timeOfLastStage = currentTime;
         stage = 5;
         logger.recordLogData(INFO_, "Landing detected. Waiting for 5 seconds to dump data.");
     }
-    else if (stage == 5 && currentTime - timeOfLastStage > 5)
+    else if (stage == 5 && timeSinceLastStage > 5)
     {
         logger.setRecordMode(GROUND);
         logger.recordLogData(INFO_, "Dumped data after landing.");
