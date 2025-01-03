@@ -1,48 +1,40 @@
 #include "Pi.h"
 
-Pi::Pi(int pinCmd, int pinResp)
+Pi::Pi(int pinControl, int pinVideo)
 {
-    this->pinCmd = pinCmd;
-    this->pinResp = pinResp;
+    this->pinControl = pinControl;
+    this->pinVideo = pinVideo;
 
-    pinMode(pinCmd, OUTPUT);
-    pinMode(pinResp, INPUT);
+    pinMode(pinControl, OUTPUT);
+    pinMode(pinVideo, OUTPUT);
 
-    digitalWrite(pinCmd, LOW); // Set video pin to high (off) by default
+    digitalWrite(pinVideo, HIGH); // Set video pin to high (off) by default
 
-    recReqst = false; 
-    recAkn = false;
+    on = false;
+    recording = false;
 }
 
-void Pi::startRec(){
-    recReqst = true;
-    recAkn = false;
-    digitalWrite(this->pinCmd, HIGH);
-    logger.recordLogData(mmfs::INFO_, "Recording start requested.");
+void Pi::setOn(bool on)
+{
+    digitalWrite(this->pinControl, on ? HIGH : LOW);
+    this->on = on;
 }
 
-void Pi::stopRec(){
-    recReqst = false;
-    recAkn = false;
-    digitalWrite(this->pinCmd, LOW);
-    logger.recordLogData(mmfs::INFO_, "Recording stop requested.");
+void Pi::setRecording(bool recording)
+{
+    if(this->recording == recording) return; // If the recording state is the same, do nothing
+
+    bb.aonoff(BUZZER, 100, 3); // Buzz 3 times (100ms on, 100ms off)
+    digitalWrite(pinVideo, recording ? LOW : HIGH);
+    this->recording = recording;
+}
+
+bool Pi::isOn()
+{
+    return on;
 }
 
 bool Pi::isRecording()
 {
-    return digitalRead(this->pinResp) == HIGH;
-}
-
-void Pi::check()
-{
-    if(!recAkn && recReqst && isRecording())
-    {
-        recAkn = true;
-        logger.recordLogData(mmfs::INFO_, "Recording start acknowledged.");
-    }
-    else if(!recAkn && !recReqst && !isRecording())
-    {
-        recAkn = false;
-        logger.recordLogData(mmfs::INFO_, "Recording stop acknowledged.");
-    }
+    return recording;
 }
