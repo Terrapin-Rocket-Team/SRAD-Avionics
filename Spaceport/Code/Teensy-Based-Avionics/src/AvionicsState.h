@@ -4,7 +4,6 @@
 // Platformio is such a fucking pile of trash
 #include "MMFS.h"
 
-
 using namespace mmfs;
 class AvionicsState : public State
 {
