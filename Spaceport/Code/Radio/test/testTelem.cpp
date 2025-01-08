@@ -68,7 +68,7 @@ void loop()
 {
     if (Serial5.available() > 0 && !msgComplete && pos < Message::maxSize)
     {
-        char c = Serial5.
+        char c = Serial5.read();
         Serial.write(c);
         if (c == '\n')
             msgComplete = true;
