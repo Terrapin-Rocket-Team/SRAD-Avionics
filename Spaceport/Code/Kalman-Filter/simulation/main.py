@@ -1,6 +1,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import plot_manager as pm
 
 # Import your classes
 from models.rocket import Rocket
@@ -73,12 +74,13 @@ def main():
         initial_state=initial_state,
         initial_covariance=initial_covariance,
         control_input=control_input,
-        process_noise=5.0,       # Example
-        measurement_noise=0.5    # Example
+        measurement_noise=0.5 * np.eye(3),  # Example
+        process_noise=5.0       # Example
     )
 
     # 4. Run the filter in a loop
     estimated_positions = []
+    estimated_velocities = []
     estimated_times = []
 
     for i in range(1, len(time_data)):
@@ -95,24 +97,40 @@ def main():
         # One iteration
         kf.iterate(dt, measurement, ctrl)
         estimated_positions.append(kf.get_state()[:3])  # x, y, z from the filter
+        estimated_velocities.append(kf.get_state()[3:])  # vx, vy, vz from the filter
         estimated_times.append(time_data[i])
 
     # 5. Plot results
-    estimated_positions = np.array(estimated_positions).reshape(-1, 3)
-    
-    plt.figure()
-    plt.plot(time_data, r_z, 'r-', label='True Z')
-    # Example: sensor noisy measurement is the third row in each measurement
-    # but it’s appended as 3x1. We can flatten or just store a separate array for plotting.
-    measured_z = np.array([m[2] for m in all_measurements]).flatten()
-    plt.plot(time_data, measured_z, 'g.', label='Measured Z (Sensor)')
-    plt.plot(estimated_times, estimated_positions[:,2], 'b-', label='Estimated Z (KF)')
-    plt.legend()
-    plt.title("Z Position Over Time")
-    plt.xlabel("Time (s)")
-    plt.ylabel("Z (m)")
-    plt.grid(True)
-    plt.show()
+    data = {
+        "time": time_data,
+        "r_x": r_x,
+        "r_y": r_y,
+        "r_z": r_z,
+        "measured_r_x": [x[0] for x in all_measurements],
+        "measured_r_y": [y[1] for y in all_measurements],
+        "measured_r_z": [z[2] for z in all_measurements],
+        "estimated_r_x": [x[0] for x in estimated_positions],
+        "estimated_r_y": [y[1] for y in estimated_positions],
+        "estimated_r_z": [z[2] for z in estimated_positions],
+        "v_x": v_x,
+        "v_y": v_y,
+        "v_z": v_z,
+        "estimated_v_x": [vx[0] for vx in estimated_velocities],
+        "estimated_v_y": [vy[1] for vy in estimated_velocities],
+        "estimated_v_z": [vz[2] for vz in estimated_velocities],
+        "a_x": a_x,
+        "a_y": a_y,
+        "a_z": a_z,
+    }
+
+    manager = pm.PlotManager(data)
+
+    manager.add_plot("z_position", lambda: pm.plot_z_position(manager))
+    manager.add_plot("xyz_position", lambda: pm.plot_xyz_position(manager))
+    manager.add_plot("z_velocity", lambda: pm.plot_z_velocity(manager))
+
+    # Show all plots
+    manager.show_all()
 
 if __name__ == "__main__":
     main()

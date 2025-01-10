@@ -11,11 +11,12 @@ class MyLinearKalmanFilter(BaseLinearKalmanFilter):
                  initial_state: np.ndarray,
                  initial_covariance: np.ndarray,
                  control_input: np.ndarray,
-                 process_noise=5.0,
-                 measurement_noise=0.5):
+                 measurement_noise: np.ndarray,
+                 process_noise=5.0):
+        
         super().__init__(initial_state, initial_covariance, control_input)
         self.process_noise = process_noise
-        self.measurement_noise = measurement_noise
+        self.R = measurement_noise
 
     def iterate(self, dt, measurement: np.ndarray, control: np.ndarray):
         """
@@ -69,6 +70,3 @@ class MyLinearKalmanFilter(BaseLinearKalmanFilter):
 
         # Q = G * process_noise^2 * G^T
         self.Q = (self.process_noise**2) * (self.G @ self.G.T)
-
-        # R = measurement_noise * I(3x3)
-        self.R = (self.measurement_noise) * np.eye(3)
