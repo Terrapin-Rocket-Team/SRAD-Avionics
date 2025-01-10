@@ -74,8 +74,8 @@ void FreeMem()
 
 const int BUZZER_PIN = 0;
 const int BUILTIN_LED_PIN = LED_BUILTIN;
-int allowedPins[] = {BUILTIN_LED_PIN, BUZZER_PIN, 32};
-BlinkBuzz bb(allowedPins, 3, true);
+int allowedPins[] = {BUILTIN_LED_PIN, BUZZER_PIN};
+BlinkBuzz bb(allowedPins, 2, true);
 
 const int UPDATE_RATE = 10;
 const int UPDATE_INTERVAL = 1000.0 / UPDATE_RATE;
@@ -83,7 +83,6 @@ const int UPDATE_INTERVAL = 1000.0 / UPDATE_RATE;
 void setup()
 {
     Serial.begin(9600);
-    Serial1.begin(115200);
     delay(3000);
     Wire.begin();
     SENSOR_BIAS_CORRECTION_DATA_LENGTH = 2;
@@ -132,16 +131,16 @@ void setup()
         bb.onoff(BUZZER_PIN, 200, 3);
     }
     logger.writeCsvHeader();
-    bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
+    //bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
 
     if (!radio.begin())
     {
-        Serial.println("Error: radio failed to begin");
-        Serial.flush();
-        while (1)
-            ;
+        logger.recordLogData(ERROR_, "Radio failed to initialize");
     }
-    Serial.println("Radio began successfully");
+    else
+    {
+        logger.recordLogData(INFO_, "Radio initialized");
+    }
 }
 double radio_last;
 void loop()
@@ -155,24 +154,24 @@ void loop()
     last = time;
     computer->updateState();
 
-    // printf("%.2f | %.2f = %.2f | %.2f\n", baro1.getASLAltFt(), baro2.getASLAltFt(), baro1.getAGLAltFt(), baro2.getAGLAltFt());
+    char data[100];
+    snprintf(data, 100,  "GPS: %d %f %f %f \n", gps.getFixQual(), gps.getPos().x(), gps.getPos().y(), gps.getPos().z());
+    logger.recordLogData(INFO_, data);
     logger.recordFlightData();
-    if (gps.getFixQual() > 0 && !gpsHasFix)
-    {
-        gpsHasFix = true;
-        bb.clearQueue(32);
-        bb.on(32);
-    }
-    else if (gpsHasFix)
-    {
-        gpsHasFix = false;
-        bb.clearQueue(32);
-        bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
-    }
 
-    Vector<3> orient = bno.getOrientation().toEuler() * 180 / PI;
+    // if (gps.getFixQual() > 0 && !gpsHasFix)
+    // {
+    //     gpsHasFix = true;
+    //     bb.clearQueue(32);
+    //     bb.on(32);
+    // }
+    // else if (gpsHasFix)
+    // {
+    //     gpsHasFix = false;
+    //     bb.clearQueue(32);
+    //     bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
+    // }
 
-    // printf("%.2f | %.2f | %.2f\n", orient.x(), orient.y(), orient.z());
 
     if (time - radio_last < 1000)
         return;
@@ -189,28 +188,7 @@ void loop()
     aprs.orient[2] = bno.getAngularVelocity().z();
     aprs.stateFlags = computer->getStage();
     msg.encode(&aprs);
-    Message m(&aprs);
-    // APRSTelem aprs2(aprsConfig);
-    // m.decode(&aprs2);
-    Serial.write(msg.buf, msg.size);
-    Serial.write('\n');
     radio.send(aprs);
     // Serial1.write(msg.buf, msg.size);
     // Serial1.write('\n');
-    // printf("%0.7f | %0.7f | %d\n", aprs2.lat, aprs.lng, gps.getFixQual());
-
-    Serial.println(gps.getFixQual());
-
-    // time, alt1, alt2, vel, accel, gyro, mag, lat, lon
-    // printf("%.3f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f \n",
-    //        time / 1000.0,
-    //        computer->getPosition().x(),
-    //          computer->getPosition().y(),
-    //             computer->getPosition().z(),
-    //          computer->getVelocity().x(),
-    //             computer->getVelocity().y(),
-    //                computer->getVelocity().z(),
-    //             computer->getAcceleration().x(),
-    //                 computer->getAcceleration().y(),
-    //                     computer->getAcceleration().z());
 }
