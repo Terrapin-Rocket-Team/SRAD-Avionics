@@ -66,7 +66,8 @@ def plot_z_position(manager):
 
 
     plt.figure()
-    plt.plot(time, actual_z, "r-", label="Actual Z Position")
+    if actual_z is not None:
+        plt.plot(time, actual_z, "r-", label="Actual Z Position")
     if measured_z is not None:
         plt.plot(time, measured_z, "g.", label="Measured Z Position")
     if manager.run_kf and estimated_z is not None:
@@ -95,7 +96,8 @@ def plot_xyz_position(manager):
 
     # X Position
     plt.subplot(3, 1, 1)
-    plt.plot(time, actual_x, "r-", label="Actual X")
+    if actual_x is not None:
+        plt.plot(time, actual_x, "r-", label="Actual X")
     if measured_x is not None:
         plt.plot(time, measured_x, "g.", label="Measured X")
     if manager.run_kf and estimated_x is not None:
@@ -107,7 +109,8 @@ def plot_xyz_position(manager):
 
     # Y Position
     plt.subplot(3, 1, 2)
-    plt.plot(time, actual_y, "r-", label="Actual Y")
+    if actual_y is not None:
+        plt.plot(time, actual_y, "r-", label="Actual Y")
     if measured_y is not None:
         plt.plot(time, measured_y, "g.", label="Measured Y")
     if manager.run_kf and estimated_y is not None:
@@ -119,7 +122,8 @@ def plot_xyz_position(manager):
 
     # Z Position
     plt.subplot(3, 1, 3)
-    plt.plot(time, actual_z, "r-", label="Actual Z")
+    if actual_z is not None:
+        plt.plot(time, actual_z, "r-", label="Actual Z")
     if measured_z is not None:
         plt.plot(time, measured_z, "g.", label="Measured Z")
     if manager.run_kf and estimated_z is not None:
@@ -139,7 +143,8 @@ def plot_z_velocity(manager):
     estimated_z_vel = manager._get_data("estimated_v_z")
 
     plt.figure()
-    plt.plot(time, actual_z_vel, "r-", label="Actual Z Velocity")
+    if actual_z_vel is not None:
+        plt.plot(time, actual_z_vel, "r-", label="Actual Z Velocity")
     if manager.run_kf and estimated_z_vel is not None:
         plt.plot(time[:-1], estimated_z_vel, "b-", label="Estimated Z Velocity")
     plt.xlabel("Time (s)")

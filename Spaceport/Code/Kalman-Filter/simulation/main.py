@@ -14,12 +14,15 @@ from noise_generators.gaussian_noise_generator import GaussianNoiseGenerator
 # from noise_generators.pink_noise_generator import PinkNoiseGenerator
 # from noise_generators.drift_noise_generator import DriftNoiseGenerator
 
-from sensors.position_sensor import PositionSensor
+from sensors.sensor import Sensor
 # from sensors.acceleration_sensor import AccelerationSensor
 
 def main():
     # 1. Choose data source: simulated or real
-    use_simulated = True  # set to False to load real CSV
+    use_simulated = False  # set to False to load real CSV
+
+    measured_positions = []
+    measured_accelerations = []
 
     if use_simulated:
         rocket = Rocket(motorAccel=125, burnTime=2.5, dragCoef=0.5, crossSectionalArea=0.07296)
@@ -29,6 +32,18 @@ def main():
             pre_launch_delay=1.0  # 1 second on the pad
         )
         data_dict = generator.generate()
+
+        # save everything as ground truth
+        time_data = data_dict["time"]
+        r_x = data_dict["r_x"]
+        r_y = data_dict["r_y"]
+        r_z = data_dict["r_z"]
+        v_x = data_dict["v_x"]
+        v_y = data_dict["v_y"]
+        v_z = data_dict["v_z"]
+        a_x = data_dict["a_x"]
+        a_y = data_dict["a_y"]
+        a_z = data_dict["a_z"]
     else:
         # Real data from CSV
         loader = RealFlightDataLoader(
@@ -38,29 +53,34 @@ def main():
         )
         data_dict = loader.generate()
 
-    time_data = data_dict["time"]
-    r_x = data_dict["r_x"]
-    r_y = data_dict["r_y"]
-    r_z = data_dict["r_z"]
-    v_x = data_dict["v_x"]
-    v_y = data_dict["v_y"]
-    v_z = data_dict["v_z"]
-    a_x = data_dict["a_x"]
-    a_y = data_dict["a_y"]
-    a_z = data_dict["a_z"]
+        # real data is already noisy and we have no ground truth
+        time_data = data_dict["time"]
+        r_x, r_y, r_z, v_x, v_y, v_z, a_x, a_y, a_z = None
 
-    # 2. Create sensors with noise models
-    gps_noise = 1.0
-    position_sensor = PositionSensor(noise_generator=GaussianNoiseGenerator(sigma=gps_noise))
+        measured_positions = np.array([
+                                       data_dict["r_x"], 
+                                       data_dict["r_y"], 
+                                       data_dict["r_z"]]).T
+        measured_accelerations = np.array([
+                                       data_dict["a_x"], 
+                                       data_dict["a_y"], 
+                                       data_dict["a_z"]]).T
 
-    # Suppose we measure position. Let's create "measurements" from our sensor
-    # True state in 6D is [x, y, z, vx, vy, vz].
-    # For demonstration, just build the 6D from the data:
-    all_measurements = []
-    for i in range(len(time_data)):
-        state_6d = np.array([r_x[i], r_y[i], r_z[i], v_x[i], v_y[i], v_z[i]])
-        z_measured = position_sensor.measure(state_6d)
-        all_measurements.append(z_measured)
+    # 2. if simulated, add noise to the data to get "measured" data
+    if use_simulated:
+
+        gps_noise = 1.0
+        position_sensor = Sensor(noise_generators=[GaussianNoiseGenerator(sigma=1.0)])
+
+        imu_noise = 0.1
+        acceleration_sensor = Sensor(noise_generators=[GaussianNoiseGenerator(sigma=0.1)])
+
+        for i in range(len(time_data)):
+            pos_measured = position_sensor.measure(np.array([r_x[i], r_y[i], r_z[i]]))
+            measured_positions.append(pos_measured)
+
+            a_measured = acceleration_sensor.measure(np.array([a_x[i], a_y[i], a_z[i]]))
+            measured_accelerations.append(a_measured)
 
     # 3. Set up the Kalman filter
     #   A typical initial covariance
@@ -87,7 +107,7 @@ def main():
         dt = time_data[i] - time_data[i-1]
         
         # measurement is 3x1: x, y, z
-        measurement = all_measurements[i]
+        measurement = measured_positions[i]
 
         # Let’s approximate the control from a_x, a_y, a_z (the “true” or “guessed” rocket acceleration)
         # Typically, you'd also apply a noise generator for an "accel sensor".
@@ -106,9 +126,9 @@ def main():
         "r_x": r_x,
         "r_y": r_y,
         "r_z": r_z,
-        "measured_r_x": [x[0] for x in all_measurements],
-        "measured_r_y": [y[1] for y in all_measurements],
-        "measured_r_z": [z[2] for z in all_measurements],
+        "measured_r_x": [x[0] for x in measured_positions],
+        "measured_r_y": [y[1] for y in measured_positions],
+        "measured_r_z": [z[2] for z in measured_positions],
         "estimated_r_x": [x[0] for x in estimated_positions],
         "estimated_r_y": [y[1] for y in estimated_positions],
         "estimated_r_z": [z[2] for z in estimated_positions],
@@ -121,6 +141,9 @@ def main():
         "a_x": a_x,
         "a_y": a_y,
         "a_z": a_z,
+        "measured_a_x": [x[0] for x in measured_accelerations],
+        "measured_a_y": [y[1] for y in measured_accelerations],
+        "measured_a_z": [z[2] for z in measured_accelerations]
     }
 
     manager = pm.PlotManager(data)

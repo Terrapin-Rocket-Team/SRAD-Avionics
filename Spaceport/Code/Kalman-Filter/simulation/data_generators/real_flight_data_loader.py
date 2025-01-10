@@ -14,7 +14,7 @@ class RealFlightDataLoader(BaseDataGenerator):
         """
         :param file_path: path to CSV data
         :param rescale_factor: factor to multiply the positions/velocities/accelerations by
-        :param pre_launch_cut: how many seconds to cut from the start as pre-launch
+        :param pre_launch_cut: percentage of pre-launch data from on the pad to cut out
         """
         self.file_path = file_path
         self.rescale_factor = rescale_factor
@@ -25,21 +25,20 @@ class RealFlightDataLoader(BaseDataGenerator):
 
         # Assume your CSV columns: Time (ms), PosX (m), PosY (m), PosZ (m), etc.
         # Adjust to your actual column names.
-        time_raw = df["Time (ms)"].to_numpy(dtype=float)
-        r_x_raw = df["PosX (m)"].to_numpy(dtype=float)
-        r_y_raw = df["PosY (m)"].to_numpy(dtype=float)
-        r_z_raw = df["PosZ (m)"].to_numpy(dtype=float)
-        v_x_raw = df["VeloX (m/s)"].to_numpy(dtype=float)
-        v_y_raw = df["VeloY (m/s)"].to_numpy(dtype=float)
-        v_z_raw = df["VeloZ (m/s)"].to_numpy(dtype=float)
-        a_x_raw = df["AccelX (m/s^2)"].to_numpy(dtype=float)
-        a_y_raw = df["AccelY (m/s^2)"].to_numpy(dtype=float)
-        a_z_raw = df["AccelZ (m/s^2)"].to_numpy(dtype=float)
-
-        # Convert time from ms to s, if needed
-        time_s = time_raw / 1000.0
+        time_s = df["t"].to_numpy(dtype=float)
+        r_x_raw = df["r_x"].to_numpy(dtype=float)
+        r_y_raw = df["r_y"].to_numpy(dtype=float)
+        r_z_raw = df["r_z"].to_numpy(dtype=float)
+        v_x_raw = df["v_x"].to_numpy(dtype=float)
+        v_y_raw = df["v_y"].to_numpy(dtype=float)
+        v_z_raw = df["v_z"].to_numpy(dtype=float)
+        a_x_raw = df["a_x"].to_numpy(dtype=float)
+        a_y_raw = df["a_y"].to_numpy(dtype=float)
+        a_z_raw = df["a_z"].to_numpy(dtype=float)
 
         # 1. Trim out pre-launch time
+
+
         # find the first index where time_s >= pre_launch_cut
         start_index = 0
         for i, t in enumerate(time_s):
