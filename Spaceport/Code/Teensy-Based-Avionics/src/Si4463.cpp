@@ -49,17 +49,17 @@ bool Si4463::begin()
     uint8_t rIntArgs[8] = {};
     sendCommand(C_GET_INT_STATUS, 3, cIntArgs, 8, rIntArgs);
 
-    Serial.println("INTERRUPTS");
-    for (int i = 0; i < 8; i++)
-    {
-        Serial.println(rIntArgs[i], BIN);
-    }
+    // Serial.println("INTERRUPTS");
+    // for (int i = 0; i < 8; i++)
+    // {
+    //     Serial.println(rIntArgs[i], BIN);
+    // }
 
     uint8_t argst[2] = {};
-    Serial.println("DEVICE_STATE");
+    //Serial.println("DEVICE_STATE");
     sendCommandR(C_REQUEST_DEVICE_STATE, 2, argst);
-    Serial.println(argst[0]);
-    Serial.println(argst[1]);
+    // Serial.println(argst[0]);
+    // Serial.println(argst[1]);
 
     // check part info to make sure proper communication has been established
     uint8_t args[8] = {0};
@@ -119,12 +119,12 @@ bool Si4463::begin()
 
     uint8_t cIntArgs2[3] = {0, 0, 0};
     uint8_t rIntArgs2[8] = {};
-    Serial.println("INTERRUPTS");
+    //Serial.println("INTERRUPTS");
     sendCommand(C_GET_INT_STATUS, 3, cIntArgs2, 8, rIntArgs2);
-    for (int i = 0; i < 8; i++)
-    {
-        Serial.println(rIntArgs2[i], BIN);
-    }
+    // for (int i = 0; i < 8; i++)
+    // {
+    //     Serial.println(rIntArgs2[i], BIN);
+    // }
 
     // enter idle state
     uint8_t cIdleArgs[1] = {0b00000011};
@@ -437,14 +437,14 @@ bool Si4463::send(Data &data)
 
     uint8_t cIntArgs[3] = {0, 0, 0};
     uint8_t rIntArgs[8] = {};
-    Serial.println("INTERRUPTS");
+    //Serial.println("INTERRUPTS");
     sendCommand(C_GET_INT_STATUS, 3, cIntArgs, 8, rIntArgs);
-    for (int i = 0; i < 8; i++)
-    {
-        Serial.println(rIntArgs[i], BIN);
-    }
+    // for (int i = 0; i < 8; i++)
+    // {
+    //     Serial.println(rIntArgs[i], BIN);
+    // }
 
-    Serial.println(this->readFRR(0));
+    //Serial.println(this->readFRR(0));
 
     // send the data
     return this->tx(this->m.buf, this->m.size);
