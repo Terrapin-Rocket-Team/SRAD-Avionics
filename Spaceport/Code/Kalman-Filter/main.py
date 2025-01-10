@@ -27,7 +27,7 @@ MOCK = DataType.Mock.value
 OPENROCKET = DataType.OpenRocket.value
 FLIGHTDATA = DataType.Flight.value
 
-dataType = MOCK
+dataType = FLIGHTDATA
 
 if dataType == MOCK:
 
@@ -84,7 +84,7 @@ if dataType == OPENROCKET:
 
 # Read in Flight Data File
 if dataType == FLIGHTDATA:
-    df = pd.read_csv("TADPOL_April_NY_post_processed2.csv")
+    df = pd.read_csv("flight_data/2024_SAC_Flight_Data.csv")
     data_Time = df["Time (ms)"].to_numpy()
 
     data_r_x = df["PosX (m)"].to_numpy()

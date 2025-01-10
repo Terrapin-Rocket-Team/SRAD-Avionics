@@ -1,5 +1,6 @@
 import rocket_module
 import csv
+import pandas as pd
 
 dataFileName = "mock_data"
 loopFrequency = 50
@@ -67,5 +68,3 @@ def DataGenerator(dataFileName, loopFrequency, rocket):
         for idx in range(len(t)):
             writer.writerow([t[idx], r_x[idx], r_y[idx], r_z[idx], v_x[idx], v_y[idx], v_z[idx], a_x[idx], a_y[idx], a_z[idx]])
 
-
-DataGenerator(dataFileName, loopFrequency, rocket_instance)
