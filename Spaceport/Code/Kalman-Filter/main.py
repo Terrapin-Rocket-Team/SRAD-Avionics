@@ -176,7 +176,6 @@ if run_kf:
 
 
 #       Plot 1: Z Position vs Time
-# !!! [:-1] is so the sizes between data_Tiem and r_output_z match for the time being
 
 plt.figure()
 plt.plot(data_Time[:-1], data_r_z[:-1], "r-", label="Actual Z Position") 
