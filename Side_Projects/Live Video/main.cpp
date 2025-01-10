@@ -2,28 +2,34 @@
 #include <exception>
 #include <wiringPi.h>
 #include <atomic>
-#include <csignal>
+#include <thread>
+
+// libcamera
 #include "core/libcamera_encoder.hpp"
 #include "output/output.hpp"
 #include "lv_output.hpp"
 
 using namespace std::placeholders;
 
-// GPIO configuration
-#define CMD_PIN 14  // GPIO pin for command input
-#define RESP_PIN 15 // GPIO pin for response output
+#define CMD_PIN 14  // GPIO pin for input from the FC
+#define RESP_PIN 15 // GPIO pin for acknowledgment to the FC
 
 std::atomic<bool> recording(false);
 std::atomic<bool> running(true);
-LibcameraEncoder *appPtr = nullptr;
 
 // Function to start recording
 void startRecording(LibcameraEncoder &app) {
     if (!recording.load()) {
         printf("Starting recording...\n");
+
+        // Configure and start the camera
+        app.OpenCamera();
+        app.ConfigureVideo(LibcameraEncoder::FLAG_VIDEO_JPEG_COLOURSPACE);
+        app.StartEncoder();
         app.StartCamera();
+
         recording.store(true);
-        digitalWrite(RESP_PIN, HIGH); // Signal that recording started
+        digitalWrite(RESP_PIN, HIGH); // Acknowledge recording started
     }
 }
 
@@ -31,89 +37,65 @@ void startRecording(LibcameraEncoder &app) {
 void stopRecording(LibcameraEncoder &app) {
     if (recording.load()) {
         printf("Stopping recording...\n");
+
+        // Stop and close the camera
         app.StopCamera();
+        app.StopEncoder();
+        app.CloseCamera();
+
         recording.store(false);
-        digitalWrite(RESP_PIN, LOW); // Signal that recording stopped
+        digitalWrite(RESP_PIN, LOW); // Acknowledge recording stopped
     }
 }
 
-// Signal handler for clean exit
-void signalHandler(int signum) {
-    printf("Exiting...\n");
-    running.store(false);
-    if (appPtr) {
-        stopRecording(*appPtr);
-    }
-    digitalWrite(RESP_PIN, LOW);
-    pinMode(RESP_PIN, INPUT);
-    pinMode(CMD_PIN, INPUT);
-    exit(signum);
-}
-
-static void eventLoop(LibcameraEncoder &app) {
-    appPtr = &app;
-
-    VideoOptions const *options = app.GetOptions();
-    std::unique_ptr<Output> output = std::unique_ptr<Output>((Output *)(new LVOutput(options)));
-    app.SetEncodeOutputReadyCallback(std::bind(&Output::OutputReady, output.get(), _1, _2, _3, _4));
-    app.SetMetadataReadyCallback(std::bind(&Output::MetadataReady, output.get(), _1));
-
-    app.OpenCamera();
-    app.ConfigureVideo(LibcameraEncoder::FLAG_VIDEO_JPEG_COLOURSPACE);
-
-    // GPIO setup
-    if (wiringPiSetupGpio() == -1) {
-        throw std::runtime_error("Failed to initialize WiringPi.");
-    }
-    pinMode(CMD_PIN, INPUT);
-    pinMode(RESP_PIN, OUTPUT);
-    pullUpDnControl(CMD_PIN, PUD_DOWN);
-
-    // Start recording initially
-    startRecording(app);
-
-    // Main loop
+// GPIO monitoring loop
+void gpioLoop(LibcameraEncoder &app) {
     while (running.load()) {
-        if (digitalRead(CMD_PIN) == LOW) {
-            stopRecording(app);
-        } else {
+        if (digitalRead(CMD_PIN) == HIGH) {
             startRecording(app);
+        } else {
+            stopRecording(app);
         }
-
-        // Handle libcamera events
-        LibcameraEncoder::Msg msg = app.Wait();
-        if (msg.type == LibcameraApp::MsgType::Timeout) {
-            printf("Camera timeout... attempting to restart\n");
-            app.StopCamera();
-            app.StartCamera();
-            continue;
-        }
-        if (msg.type == LibcameraApp::MsgType::Quit)
-            return;
-        else if (msg.type != LibcameraApp::MsgType::RequestComplete)
-            throw std::runtime_error("Msg type not recognized!");
-
-        CompletedRequestPtr &completedRequest = std::get<CompletedRequestPtr>(msg.payload);
-        app.EncodeBuffer(completedRequest, app.VideoStream());
-
-        delay(100); // Debounce and CPU usage control
+        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Debounce and CPU usage control
     }
 }
 
 int main(int argc, char *argv[]) {
     try {
-        // Register signal handler
-        signal(SIGINT, signalHandler);
+        // Initialize GPIO
+        if (wiringPiSetupGpio() == -1) {
+            printf("Failed to initialize WiringPi.\n");
+            return -1;
+        }
+
+        pinMode(CMD_PIN, INPUT);
+        pinMode(RESP_PIN, OUTPUT);
+        pullUpDnControl(CMD_PIN, PUD_DOWN);
+        digitalWrite(RESP_PIN, LOW);
 
         LibcameraEncoder app;
         VideoOptions *options = app.GetOptions();
+
         if (options->Parse(argc, argv)) {
+            // Start GPIO monitoring loop in a separate thread
+            std::thread gpioThread(gpioLoop, std::ref(app));
+
+            // Main camera event loop
             eventLoop(app);
+
+            // Cleanup
+            running.store(false);
+            gpioThread.join();
         }
     } catch (std::exception const &e) {
         printf("Error: %s\n", e.what());
         return -1;
     }
+
+    // Ensure GPIO pins are reset
+    digitalWrite(RESP_PIN, LOW);
+    pinMode(RESP_PIN, INPUT);
+    pinMode(CMD_PIN, INPUT);
 
     return 0;
 }
