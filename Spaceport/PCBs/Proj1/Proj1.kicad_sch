@@ -1,0 +1,47 @@
+(kicad_sch
+	(version 20231120)
+	(generator "eeschema")
+	(generator_version "8.0")
+	(uuid "example-uuid")
+	(paper "A4")
+	(lib_symbols
+		(symbol "Device:R"
+			(property "Reference" "R"
+				(at 10 10 0)
+				(effects (font (size 1.27 1.27)))
+			)
+			(property "Value" "10k"
+				(at 10 11 0)
+				(effects (font (size 1.27 1.27)))
+			)
+			(symbol "R_0_1"
+				(rectangle
+					(start -0.635 0.635)
+					(end 0.635 -0.635)
+					(stroke (width 0.15) (type solid))
+					(fill (type none))
+				)
+				(pin passive circle
+					(at -1.27 0 180)
+					(length 0.635)
+					(name "1" (effects (font (size 1.27 1.27))))
+					(number "1" (effects (font (size 1.27 1.27))))
+				)
+				(pin passive circle
+					(at 1.27 0 0)
+					(length 0.635)
+					(name "2" (effects (font (size 1.27 1.27))))
+					(number "2" (effects (font (size 1.27 1.27))))
+				)
+			)
+		)
+	)
+	(wire
+		(start 10.635 10)
+		(end 12 10)
+	)
+	(wire
+		(start 10 9.365)
+		(end 10 8)
+	)
+)
