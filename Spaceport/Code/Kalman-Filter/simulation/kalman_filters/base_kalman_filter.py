@@ -32,3 +32,25 @@ class BaseKalmanFilter(abc.ABC):
         (e.g., process_noise, measurement_noise, or covariance).
         """
         pass
+
+    @abc.abstractmethod
+    def reset_metrics(self):
+        """
+        Resets the metrics of the filter.
+        """
+        pass
+
+    @abc.abstractmethod
+    def get_metrics(self):
+        """
+        Returns the current metrics of the filter as a dictionary.
+        Keys are metric names and values are the corresponding metric values.
+
+        Example:
+        {
+            "innovations": np.array(self.innovations),
+            "S_matrices": np.array(self.S_matrices),
+            "estimation_errors": np.array(self.estimation_errors)
+        }
+        """
+        pass

@@ -27,6 +27,11 @@ class BaseLinearKalmanFilter(BaseKalmanFilter):
         self.Q = None  # Process noise
         self.R = None  # Measurement noise
 
+        # Lists to store metrics
+        self.innovations = []
+        self.S_matrices = []
+        self.estimation_errors = []
+
     def get_state(self):
         return self.x
 
@@ -63,3 +68,17 @@ class BaseLinearKalmanFilter(BaseKalmanFilter):
         S = self.H @ self.P @ self.H.T + self.R
         self.K = self.P @ self.H.T @ np.linalg.inv(S)
         return self.K
+    
+    def reset_metrics(self):
+        """Reset stored metrics."""
+        self.innovations = []
+        self.S_matrices = []
+        self.estimation_errors = []
+
+    def get_metrics(self):
+        """Retrieve stored metrics."""
+        return {
+            "innovations": np.array(self.innovations),
+            "S_matrices": np.array(self.S_matrices),
+            "estimation_errors": np.array(self.estimation_errors)
+        }
