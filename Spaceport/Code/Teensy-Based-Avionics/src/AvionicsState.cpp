@@ -1,7 +1,8 @@
-
 #include "AvionicsState.h"
+#include "MMFS.h"  // Include for MMFS and the mmfs namespace
+#include "SD.h"    // Include for SD card functionality (if you're using it for saving data)
 
-using namespace mmfs;
+using namespace mmfs;  // Using the mmfs namespace
 
 AvionicsState::AvionicsState(Sensor **sensors, int numSensors, LinearKalmanFilter *kfilter) : State(sensors, numSensors, kfilter)
 {
@@ -13,8 +14,9 @@ AvionicsState::AvionicsState(Sensor **sensors, int numSensors, LinearKalmanFilte
 
 void AvionicsState::updateState(double newTime)
 {
-    State::updateState(newTime); // call base version for sensor updates
-    determineStage();            // determine the stage of the flight
+    State::updateState(newTime); // Call base version for sensor updates
+    determineStage();            // Determine the stage of the flight
+    determineIfBallistic();      // Check for ballistic descent
 }
 
 void AvionicsState::determineStage()
@@ -22,21 +24,13 @@ void AvionicsState::determineStage()
     int timeSinceLaunch = currentTime - timeOfLaunch;
     IMU *imu = reinterpret_cast<IMU *>(getSensor(IMU_));
     Barometer *baro = reinterpret_cast<Barometer *>(getSensor(BAROMETER_));
-    // GPS *gps = reinterpret_cast<GPS *>(getSensor(GPS_));
+
     if (stage == 0 &&
         (sensorOK(imu) || sensorOK(baro)) &&
-        //(sensorOK(imu) ? abs(imu->getAccelerationGlobal().z()) > 25 : true) &&
         (sensorOK(baro) ? baro->getAGLAltFt() > 30 : true))
-    // if we are in preflight AND
-    // we have either the IMU OR the barometer AND
-    // imu is ok AND the z acceleration is greater than 29 ft/s^2 OR imu is not ok AND
-    // barometer is ok AND the relative altitude is greater than 30 ft OR baro is not ok
-
-    // essentially, if we have either sensor and they meet launch threshold, launch. Otherwise, it will never detect a launch.
     {
         logger.setRecordMode(FLIGHT);
         bb.aonoff(33, 200);
-        // logger.setRecordMode(FLIGHT);
         stage = 1;
         timeOfLaunch = currentTime;
         timeOfLastStage = currentTime;
@@ -46,13 +40,10 @@ void AvionicsState::determineStage()
         {
             if (sensorOK(sensors[i]))
             {
-                // char logData[200];
-                // snprintf(logData, 200, "%s: %s", sensors[i]->getName(), sensors[i]->getStaticDataString());
-                // logger.recordLogData(INFO_, logData);
                 sensors[i]->setBiasCorrectionMode(false);
             }
         }
-    } // TODO: Add checks for each sensor being ok and decide what to do if they aren't.
+    }
     else if (stage == 1 && abs(acceleration.z()) < 10)
     {
         bb.aonoff(33, 200, 2);
@@ -89,6 +80,69 @@ void AvionicsState::determineStage()
         stage = 6;
         logger.setRecordMode(GROUND);
         logger.recordLogData(INFO_, "Dumped data after landing.");
+    }
+}
+
+void AvionicsState::determineIfBallistic()
+{
+    IMU *imu = reinterpret_cast<IMU *>(getSensor(IMU_));
+    Barometer *baro = reinterpret_cast<Barometer *>(getSensor(BAROMETER_));
+
+    if (!imu || !baro || !sensorOK(imu) || !sensorOK(baro))
+    {
+        logger.recordLogData(WARNING_, "One or more sensors unavailable. Ballistic check skipped.");
+        return;
+    }
+
+    float accelerationZ = imu->getAccelerationGlobal().z();
+    
+    // Attempt to estimate velocity using barometer pressure change
+    float baroAlt = baro->getAGLAltFt();  // Altitude in feet
+    static float prevBaroAlt = 0;
+    static unsigned long prevTime = currentTime;
+
+    float baroVel = (baroAlt - prevBaroAlt) / (currentTime - prevTime);  // Approximate velocity
+
+    prevBaroAlt = baroAlt;
+    prevTime = currentTime;
+
+    if (stage >= 3 && abs(accelerationZ) < 1.0 && baroVel < -50) // Ballistic check: low acceleration and downward velocity
+    {
+        logger.recordLogData(WARNING_, "Ballistic descent detected. Saving data and switching to data dump mode.");
+        
+        // Save current data to PSRAM (simulate saving it)
+        psram->setMode(GROUND);  // Use -> to access the member function of psram (pointer)
+
+        // Save data to SD card (dump current flight data)
+        saveDataToSDCard();  // Implement this function for saving data
+    }
+}
+
+void AvionicsState::saveDataToSDCard()
+{
+    // Function to save the packed data (currently in PSRAM) to the SD card
+    char fileName[] = "/rocket_data.txt"; // Define the file name
+
+    // Open the file for writing
+    SD.begin(10);  // Assuming 10 is the CS pin for SD card
+    File dataFile = SD.open(fileName, FILE_WRITE);
+
+    if (dataFile)
+    {
+        // Write each data point to the SD card (simulating packing of data)
+        for (int i = 0; i < getNumPackedDataPoints(); i++)
+        {
+            dataFile.print(getPackedDataLabels()[i]);
+            dataFile.print(": ");
+            dataFile.println(getPackedData()[i]);  // Assuming getPackedData() returns the packed data
+        }
+
+        dataFile.close();  // Close the file after writing
+        logger.recordLogData(INFO_, "Data saved to SD card.");
+    }
+    else
+    {
+        logger.recordLogData(ERROR_, "Failed to open SD card for writing.");
     }
 }
 
