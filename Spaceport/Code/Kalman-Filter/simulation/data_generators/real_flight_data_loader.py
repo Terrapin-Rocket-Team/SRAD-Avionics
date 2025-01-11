@@ -14,7 +14,7 @@ class RealFlightDataLoader(BaseDataGenerator):
         """
         :param file_path: path to CSV data
         :param rescale_factor: factor to multiply the positions/velocities/accelerations by
-        :param pre_launch_cut: percentage of pre-launch data from on the pad to cut out
+        :param pre_launch_cut: percentage of pre-launch data from on the pad to cut out (0.0 to 1.0)
         """
         self.file_path = file_path
         self.rescale_factor = rescale_factor
@@ -29,30 +29,25 @@ class RealFlightDataLoader(BaseDataGenerator):
         r_x_raw = df["r_x"].to_numpy(dtype=float)
         r_y_raw = df["r_y"].to_numpy(dtype=float)
         r_z_raw = df["r_z"].to_numpy(dtype=float)
-        v_x_raw = df["v_x"].to_numpy(dtype=float)
-        v_y_raw = df["v_y"].to_numpy(dtype=float)
-        v_z_raw = df["v_z"].to_numpy(dtype=float)
         a_x_raw = df["a_x"].to_numpy(dtype=float)
         a_y_raw = df["a_y"].to_numpy(dtype=float)
         a_z_raw = df["a_z"].to_numpy(dtype=float)
 
         # 1. Trim out pre-launch time
 
+        # figure out the index of launch based on when the a_z_raw is above a threshold and r_z_raw is above a threshold
+        acceleration_threshold = 15.0  # Adjust based on your system's expected launch acceleration (e.g., 1 m/s^2)
 
-        # find the first index where time_s >= pre_launch_cut
-        start_index = 0
-        for i, t in enumerate(time_s):
-            if t >= self.pre_launch_cut:
-                start_index = i
-                break
+        # Find the launch index
+        launch_index = np.argmax((abs(a_z_raw) > acceleration_threshold))
+
+        # find out how many indices to cut out based on pre_launch_cut
+        start_index = int(self.pre_launch_cut * launch_index)
 
         time_s = time_s[start_index:] - self.pre_launch_cut
         r_x_raw = r_x_raw[start_index:]
         r_y_raw = r_y_raw[start_index:]
         r_z_raw = r_z_raw[start_index:]
-        v_x_raw = v_x_raw[start_index:]
-        v_y_raw = v_y_raw[start_index:]
-        v_z_raw = v_z_raw[start_index:]
         a_x_raw = a_x_raw[start_index:]
         a_y_raw = a_y_raw[start_index:]
         a_z_raw = a_z_raw[start_index:]
@@ -61,9 +56,6 @@ class RealFlightDataLoader(BaseDataGenerator):
         r_x_scaled = r_x_raw * self.rescale_factor
         r_y_scaled = r_y_raw * self.rescale_factor
         r_z_scaled = r_z_raw * self.rescale_factor
-        v_x_scaled = v_x_raw * self.rescale_factor
-        v_y_scaled = v_y_raw * self.rescale_factor
-        v_z_scaled = v_z_raw * self.rescale_factor
         a_x_scaled = a_x_raw * self.rescale_factor
         a_y_scaled = a_y_raw * self.rescale_factor
         a_z_scaled = a_z_raw * self.rescale_factor
@@ -73,9 +65,6 @@ class RealFlightDataLoader(BaseDataGenerator):
             "r_x": r_x_scaled,
             "r_y": r_y_scaled,
             "r_z": r_z_scaled,
-            "v_x": v_x_scaled,
-            "v_y": v_y_scaled,
-            "v_z": v_z_scaled,
             "a_x": a_x_scaled,
             "a_y": a_y_scaled,
             "a_z": a_z_scaled,

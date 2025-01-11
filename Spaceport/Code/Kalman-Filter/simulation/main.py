@@ -43,28 +43,31 @@ def main():
         v_z = data_dict["v_z"]
         a_x = data_dict["a_x"]
         a_y = data_dict["a_y"]
-        a_z = data_dict["a_z"]
+        a_z = data_dict["a_z"] + 9.81           # add gravity to the acceleration, since IMUs won't measure it
     else:
         # Real data from CSV
         loader = RealFlightDataLoader(
             file_path="flight_data/2024_SAC_Flight_Data.csv",
-            rescale_factor=0.3,
-            pre_launch_cut=2.0
+            rescale_factor=1,     # No rescaling
+            pre_launch_cut=0.95      # Cut out __% of the pre-launch data
         )
         data_dict = loader.generate()
 
         # real data is already noisy and we have no ground truth
         time_data = data_dict["time"]
-        r_x, r_y, r_z, v_x, v_y, v_z, a_x, a_y, a_z = None
+        r_x, r_y, r_z, v_x, v_y, v_z, a_x, a_y, a_z = None, None, None, None, None, None, None, None, None
 
-        measured_positions = np.array([
-                                       data_dict["r_x"], 
-                                       data_dict["r_y"], 
-                                       data_dict["r_z"]]).T
-        measured_accelerations = np.array([
-                                       data_dict["a_x"], 
-                                       data_dict["a_y"], 
-                                       data_dict["a_z"]]).T
+        m_r_x = data_dict["r_x"]
+        m_r_y = data_dict["r_y"]
+        m_r_z = data_dict["r_z"]
+        m_a_x = data_dict["a_x"]
+        m_a_y = data_dict["a_y"]
+        m_a_z = data_dict["a_z"]
+
+        # make measured position and accelerations a list of 3D numpy arrays
+        for i in range(len(time_data)):
+            measured_positions.append(np.array([[m_r_x[i]], [m_r_y[i]], [m_r_z[i]]]).reshape(-1,1))   
+            measured_accelerations.append(np.array([[m_a_x[i]], [m_a_y[i]], [m_a_z[i]]]).reshape(-1,1))
 
     # 2. if simulated, add noise to the data to get "measured" data
     if use_simulated:
@@ -109,10 +112,7 @@ def main():
         # measurement is 3x1: x, y, z
         measurement = measured_positions[i]
 
-        # Let’s approximate the control from a_x, a_y, a_z (the “true” or “guessed” rocket acceleration)
-        # Typically, you'd also apply a noise generator for an "accel sensor".
-        # For now we just use the raw a_x,y,z - gravity is in there, so we might do (a_z[i] - 9.81) etc.
-        ctrl = np.array([[a_x[i]], [a_y[i]], [a_z[i]]])
+        ctrl = np.array(measured_accelerations[i])
 
         # One iteration
         kf.iterate(dt, measurement, ctrl)
