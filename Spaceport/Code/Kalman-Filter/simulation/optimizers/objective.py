@@ -57,6 +57,16 @@ def generate_random_spline(lower_bound, upper_bound):
 
     return (lambda x: np.clip(spline(x), lower_bound, upper_bound))
 
+def generate_random_vector_func(lower_bound, upper_bound):
+    """
+    Generates a function that returns a random vector within the specified bounds, where the bounds are per coordinate.
+    """
+
+    x_func = generate_random_spline(lower_bound[0], upper_bound[0])
+    y_func = generate_random_spline(lower_bound[1], upper_bound[1])
+
+    return (lambda t: np.array([x_func(t), y_func(t)])) 
+
 def objective_function_factory(real_dataset_files, n_real=5, n_generated=5, burn_time_range=(2, 5), mass_range=(30, 60), 
                                launch_angle_range=(0, 45), motor_accel_range=(100, 150), drag_coef_range=(0.4, 0.6), 
                                top_cross_sectional_area_range=(0.05, 0.1), side_cross_sectional_area_range=(0.5, 0.6), 
@@ -143,7 +153,7 @@ def objective_function_factory(real_dataset_files, n_real=5, n_generated=5, burn
             pre_launch_cut = random.uniform(*pre_launch_cut_range)
 
             # use the spline generator to create a random wind affector
-            wind_affector = generate_random_spline(*wind_affector_range)
+            wind_affector = generate_random_vector_func(*wind_affector_range)
 
             # Load the dataset
             loader = RealFlightDataLoader(
@@ -228,7 +238,7 @@ def objective_function_factory(real_dataset_files, n_real=5, n_generated=5, burn
             )
 
             # Create a data generator with wind affector
-            wind_affector = generate_random_spline(*wind_affector_range)
+            wind_affector = generate_random_vector_func(*wind_affector_range)
 
             generator = RocketDataGenerator(
                 rocket=sampled_rocket, 

@@ -28,15 +28,23 @@ from skopt.space import Real
 def main():
     # 1. Define real dataset files
     real_dataset_files = [
-        "flight_data/2024_SAC_Flight_Data1.csv",
-        "flight_data/2024_SAC_Flight_Data2.csv",
+        "flight_data/2024_SAC_Flight_Data.csv",
         # Add more file paths as needed
     ]
     
     # 2. Define generated dataset configurations (parameter ranges)
-    burn_time_range = (2.0, 5.0)          # seconds
-    mass_range = (30.0, 60.0)             # kg
-    launch_angle_range = (0.0, 45.0)      # degrees
+    burn_time_range = (2.0, 5.0)                    # seconds
+    mass_range = (30.0, 60.0)                       # kg
+    launch_angle_range = (0.0, 10.0)                # degrees
+    motor_accel_range = (30, 120)                   # m/s^2
+    drag_coef_range = (0.8, 1.2)                    # unitless
+    top_cross_sectional_area_range = (0.0, 0.15)    # m^2
+    side_cross_sectional_area_range = (0.3, 0.8)    # m^2
+    pos_noise_sigma_range = (0.0, 1.5)              # MAX-M10S has max 1.5 m error
+    accel_noise_sigma_range = (0.0, 0.15)           # BMI088 has 230 µg/√Hz noise density
+    flight_rescale_range=(0.3, 4)                   # Rescale factor for flight data
+    pre_launch_cut_range=(0.8, 0.99)                # Cut out 80-99% of pre-launch data
+    wind_affector_range=(0, 2.5)                    # Up to 2.5 m/s (5.6 mph) wind in each direction
 
     # 3. Define the search space for Bayesian Optimization
     # P: 6x6 lower triangular (21 parameters)
@@ -68,6 +76,15 @@ def main():
         burn_time_range=burn_time_range,
         mass_range=mass_range,
         launch_angle_range=launch_angle_range,
+        motor_accel_range=motor_accel_range,
+        drag_coef_range=drag_coef_range,
+        top_cross_sectional_area_range=top_cross_sectional_area_range,
+        side_cross_sectional_area_range=side_cross_sectional_area_range,
+        pos_noise_sigma_range=pos_noise_sigma_range,
+        accel_noise_sigma_range=accel_noise_sigma_range,
+        flight_rescale_range=flight_rescale_range,
+        pre_launch_cut_range=pre_launch_cut_range,
+        wind_affector_range=wind_affector_range,
         optimizer_seed=42
     )
 
@@ -131,15 +148,24 @@ def main():
     # For demonstration, let's assume using the first real dataset
     if real_dataset_files:
         file_path = real_dataset_files[0]
-        loader = RealFlightDataLoader(
-            file_path=file_path,
-            rescale_factor=1.0,  # Assuming already scaled
-            pre_launch_cut=0.1,  # Example
-            mass=40.8233,        # Use the rocket mass used in main.py
-            wind_affector=None,  # Assuming no wind effect on real datasets
-            drag_coef=1.0,
-            cross_sectional_area=0.55741824
+
+
+        rocket = Rocket(
+            motorAccel=125, 
+            burnTime=2.5, 
+            dragCoef=0.5, 
+            topCrossSectionalArea=0.07296, 
+            sideCrossSectionalArea=0.55741824,          # 6 ft^2
+            mass=40.8233)                               # 90 kg
+        
+        loader = RocketDataGenerator(
+            rocket=rocket, 
+            loop_frequency=50, 
+            pre_launch_delay=10,
+            launch_angle=0,
+            wind_affector=None
         )
+
         data_dict = loader.generate()
 
         time_data = data_dict["time"]
