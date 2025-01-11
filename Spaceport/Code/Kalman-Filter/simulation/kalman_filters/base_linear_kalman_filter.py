@@ -64,10 +64,17 @@ class BaseLinearKalmanFilter(BaseKalmanFilter):
         I = np.eye(self.P.shape[0])
         self.P = (I - self.K @ self.H) @ self.P @ (I - self.K @ self.H).T + self.K @ self.R @ self.K.T
 
+        # add epsilon to help positive definiteness and avoid singular matrices
+        epsilon = 1e-6
+        self.P += epsilon * np.eye(self.P.shape[0])
+
+        # explicitly force symmetry
+        # self.P = (self.P + self.P.T) / 2
+
     def calculate_kalman_gain(self):
         # K = P * H^T * inv(H * P * H^T + R)
         S = self.H @ self.P @ self.H.T + self.R
-        self.K = self.P @ self.H.T @ np.linalg.inv(S)
+        self.K = self.P @ self.H.T @ np.linalg.pinv(S)            # allegedly improves numerical stability
         return self.K
     
     def reset_metrics(self):

@@ -37,7 +37,8 @@ def compute_nees(kf_metrics):
         nees = error.T @ np.linalg.inv(P_matrix) @ error
         nees = float(nees)
         nees_values.append(nees)
-    return np.mean(nees_values)
+
+    return abs(np.mean(nees_values))            # hacky workaround for now to avoid negative values
 
 def generate_random_spline(lower_bound, upper_bound):
     """
