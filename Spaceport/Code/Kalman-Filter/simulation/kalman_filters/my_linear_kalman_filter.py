@@ -13,11 +13,11 @@ class MyLinearKalmanFilter(BaseLinearKalmanFilter):
                  initial_covariance: np.ndarray,
                  control_input: np.ndarray,
                  measurement_noise: np.ndarray,
-                 process_noise=5.0):
+                 process_noise: np.ndarray):
         
         super().__init__(initial_state, initial_covariance, control_input)
         self.R = measurement_noise
-        self.process_noise = process_noise
+        self.Q = process_noise
 
     def iterate(self, dt, measurement: np.ndarray, control: np.ndarray, true_state: Optional[np.ndarray] = None):
         """
@@ -43,6 +43,7 @@ class MyLinearKalmanFilter(BaseLinearKalmanFilter):
         S = self.H @ self.P @ self.H.T + self.R  # Innovation covariance
         self.innovations.append(y.flatten())
         self.S_matrices.append(S)
+        self.P_matrices.append(self.P.copy())
 
         # Update (since we have the new measurement)
         self.calculate_kalman_gain()
@@ -85,5 +86,3 @@ class MyLinearKalmanFilter(BaseLinearKalmanFilter):
             [0, 0, 1, 0, 0, 0]   # Observing z
         ])
 
-        # Q = G * process_noise^2 * G^T
-        self.Q = (self.process_noise**2) * (self.G @ self.G.T)

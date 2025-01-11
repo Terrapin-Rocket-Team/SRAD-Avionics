@@ -29,8 +29,9 @@ class BaseLinearKalmanFilter(BaseKalmanFilter):
 
         # Lists to store metrics
         self.innovations = []
-        self.S_matrices = []
+        self.S_matrices = []            # Innovation covariance
         self.estimation_errors = []
+        self.P_matrices = []            # Covariance matrices
 
     def get_state(self):
         return self.x
@@ -74,11 +75,13 @@ class BaseLinearKalmanFilter(BaseKalmanFilter):
         self.innovations = []
         self.S_matrices = []
         self.estimation_errors = []
+        self.P_matrices = []
 
     def get_metrics(self):
         """Retrieve stored metrics."""
         return {
             "innovations": np.array(self.innovations),
             "S_matrices": np.array(self.S_matrices),
-            "estimation_errors": np.array(self.estimation_errors)
+            "estimation_errors": np.array(self.estimation_errors),
+            "P_matrices": np.array(self.P_matrices)
         }

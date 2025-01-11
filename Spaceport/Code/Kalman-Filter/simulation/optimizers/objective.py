@@ -35,6 +35,7 @@ def compute_nees(kf_metrics):
     nees_values = []
     for error, P_matrix in zip(estimation_errors, P):
         nees = error.T @ np.linalg.inv(P_matrix) @ error
+        nees = float(nees)
         nees_values.append(nees)
     return np.mean(nees_values)
 
@@ -62,8 +63,8 @@ def generate_random_vector_func(lower_bound, upper_bound):
     Generates a function that returns a random vector within the specified bounds, where the bounds are per coordinate.
     """
 
-    x_func = generate_random_spline(lower_bound[0], upper_bound[0])
-    y_func = generate_random_spline(lower_bound[1], upper_bound[1])
+    x_func = generate_random_spline(lower_bound, upper_bound)
+    y_func = generate_random_spline(lower_bound, upper_bound)
 
     return (lambda t: np.array([x_func(t), y_func(t)])) 
 
@@ -72,7 +73,7 @@ def objective_function_factory(real_dataset_files, n_real=5, n_generated=5, burn
                                top_cross_sectional_area_range=(0.05, 0.1), side_cross_sectional_area_range=(0.5, 0.6), 
                                pos_noise_sigma_range=(0.5, 1.5), accel_noise_sigma_range=(0.05, 0.15),
                                flight_rescale_range=(0.3, 4), pre_launch_cut_range=(0.8, 0.99), wind_affector_range=(-1, 1),
-                               optimizer_seed=42):
+                               regularization_lambda=1e-5, optimizer_seed=42):
     """
     Factory to create an objective function with access to dataset configurations.
     :param real_dataset_files: List of file paths for real datasets.
@@ -81,6 +82,16 @@ def objective_function_factory(real_dataset_files, n_real=5, n_generated=5, burn
     :param burn_time_range: Tuple defining the range to sample burn times.
     :param mass_range: Tuple defining the range to sample masses.
     :param launch_angle_range: Tuple defining the range to sample launch angles.
+    :param motor_accel_range: Tuple defining the range to sample motor accelerations.
+    :param drag_coef_range: Tuple defining the range to sample drag coefficients.
+    :param top_cross_sectional_area_range: Tuple defining the range to sample top cross-sectional areas.
+    :param side_cross_sectional_area_range: Tuple defining the range to sample side cross-sectional areas.
+    :param pos_noise_sigma_range: Tuple defining the range to sample position noise sigmas.
+    :param accel_noise_sigma_range: Tuple defining the range to sample acceleration noise sigmas.
+    :param flight_rescale_range: Tuple defining the range to sample flight rescale factors.
+    :param pre_launch_cut_range: Tuple defining the range to sample pre-launch cut factors.
+    :param wind_affector_range: Tuple defining the upper and lower bounds that a wind affector can produce in each direction.
+    :param regularization_lambda: Regularization parameter for the objective function. 0 for no regularization.
     :param optimizer_seed: Seed for reproducibility.
     :return: Objective function.
     """
@@ -137,6 +148,7 @@ def objective_function_factory(real_dataset_files, n_real=5, n_generated=5, burn
 
         # Iterate over real datasets
         selected_real_files = random.sample(real_dataset_files, min(n_real, len(real_dataset_files)))
+
         for file_path in selected_real_files:
 
             # Use real rocket parameters
@@ -158,37 +170,31 @@ def objective_function_factory(real_dataset_files, n_real=5, n_generated=5, burn
             # Load the dataset
             loader = RealFlightDataLoader(
                 file_path=file_path,
+                rocket=rocket,
                 rescale_factor=rescale_factor,
                 pre_launch_cut=pre_launch_cut,
                 wind_affector=wind_affector
             )
             data_dict = loader.generate()
 
+            # real data is already noisy and we have no ground truth
             time_data = data_dict["time"]
-            r_x = data_dict["r_x"]
-            r_y = data_dict["r_y"]
-            r_z = data_dict["r_z"]
-            v_x = data_dict["v_x"]
-            v_y = data_dict["v_y"]
-            v_z = data_dict["v_z"]
-            a_x = data_dict["a_x"]
-            a_y = data_dict["a_y"]
-            a_z = data_dict["a_z"] + 9.81  # Add gravity
+            r_x, r_y, r_z, v_x, v_y, v_z, a_x, a_y, a_z = None, None, None, None, None, None, None, None, None
 
-            # Create measured data with noise (assuming Gaussian noise)
-            pos_noise_sigma = random.uniform(*pos_noise_sigma_range)
-            accel_noise_sigma = random.uniform(*accel_noise_sigma_range)
-            position_sensor = Sensor(noise_generator=GaussianNoiseGenerator(sigma=pos_noise_sigma))
-            acceleration_sensor = Sensor(noise_generator=GaussianNoiseGenerator(sigma=accel_noise_sigma))
+            m_r_x = data_dict["r_x"]
+            m_r_y = data_dict["r_y"]
+            m_r_z = data_dict["r_z"]
+            m_a_x = data_dict["a_x"]
+            m_a_y = data_dict["a_y"]
+            m_a_z = data_dict["a_z"]
 
             measured_positions = []
             measured_accelerations = []
-            for i in range(len(time_data)):
-                pos_measured = position_sensor.measure(np.array([r_x[i], r_y[i], r_z[i]]))
-                measured_positions.append(pos_measured)
 
-                a_measured = acceleration_sensor.measure(np.array([a_x[i], a_y[i], a_z[i]]))
-                measured_accelerations.append(a_measured)
+            # make measured position and accelerations a list of 3D numpy arrays
+            for i in range(len(time_data)):
+                measured_positions.append(np.array([[m_r_x[i]], [m_r_y[i]], [m_r_z[i]]]).reshape(-1,1))   
+                measured_accelerations.append(np.array([[m_a_x[i]], [m_a_y[i]], [m_a_z[i]]]).reshape(-1,1))
 
             # Initialize the Kalman Filter
             kf = MyLinearKalmanFilter(
@@ -208,7 +214,7 @@ def objective_function_factory(real_dataset_files, n_real=5, n_generated=5, burn
                 ctrl = measured_accelerations[i]
 
                 # No true state for real datasets, so pass None
-                kf.iterate(dt, measurement, ctrl, true_state=None)
+                kf.iterate(dt, measurement, ctrl)
 
             # Compute NIS
             metrics = kf.get_metrics()
@@ -266,8 +272,8 @@ def objective_function_factory(real_dataset_files, n_real=5, n_generated=5, burn
             # Create measured data with noise
             pos_noise_sigma = random.uniform(*pos_noise_sigma_range)
             accel_noise_sigma = random.uniform(*accel_noise_sigma_range)
-            position_sensor = Sensor(noise_generator=GaussianNoiseGenerator(sigma=pos_noise_sigma))
-            acceleration_sensor = Sensor(noise_generator=GaussianNoiseGenerator(sigma=accel_noise_sigma))
+            position_sensor = Sensor(noise_generators=[GaussianNoiseGenerator(sigma=pos_noise_sigma)])
+            acceleration_sensor = Sensor(noise_generators=[GaussianNoiseGenerator(sigma=accel_noise_sigma)])
 
             measured_positions = []
             measured_accelerations = []
@@ -317,8 +323,8 @@ def objective_function_factory(real_dataset_files, n_real=5, n_generated=5, burn
         # We can combine them, possibly weighted
         objective_value = avg_nis + avg_nees  # Simple sum; adjust weights as needed
 
-        # Optional: Add regularization (e.g., L2 norm of matrices)
-        regularization = 1e-3 * (np.sum(P_params**2) + np.sum(R_params**2) + np.sum(Q_params**2))
+        # Regularization (e.g., L2 norm of matrices)
+        regularization = regularization_lambda * (np.linalg.norm(P, ord='fro') + np.linalg.norm(Q, ord='fro') + np.linalg.norm(R, ord='fro'))
         objective_value += regularization
 
         print(f"Objective Value: {objective_value}")

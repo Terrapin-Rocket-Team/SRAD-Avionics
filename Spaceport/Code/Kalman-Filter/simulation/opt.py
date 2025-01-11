@@ -56,17 +56,17 @@ def main():
     # Define ranges for P (initial covariance)
     for i in range(6):
         for j in range(i+1):
-            search_space.append(Real(low=1e-3, high=1e3, prior='log-uniform', name=f"P_{i}_{j}"))
+            search_space.append(Real(low=1e-3, high=1e3, prior='uniform', name=f"P_{i}_{j}"))
     
     # Define ranges for R (measurement noise)
     for i in range(3):
         for j in range(i+1):
-            search_space.append(Real(low=1e-3, high=1e3, prior='log-uniform', name=f"R_{i}_{j}"))
+            search_space.append(Real(low=1e-3, high=1e3, prior='uniform', name=f"R_{i}_{j}"))
     
     # Define ranges for Q (process noise)
     for i in range(6):
         for j in range(i+1):
-            search_space.append(Real(low=1e-3, high=1e3, prior='log-uniform', name=f"Q_{i}_{j}"))
+            search_space.append(Real(low=1e-3, high=1e3, prior='uniform', name=f"Q_{i}_{j}"))
 
     # 4. Create an instance of the Bayesian Optimizer
     objective_fn = objective_function_factory(
@@ -88,11 +88,29 @@ def main():
         optimizer_seed=42
     )
 
+    # starting point
+    initial_initial_covariance = 1 * np.eye(6)
+    initial_measurement_noise = 0.5 * np.eye(3)
+    initial_process_noise = 0.1 * np.eye(6)
+
+    # unravel the initial parameters
+    x0 = []
+    for i in range(6):
+        for j in range(i+1):
+            x0.append(initial_initial_covariance[i,j])
+    for i in range(3):
+        for j in range(i+1):
+            x0.append(initial_measurement_noise[i,j])
+    for i in range(6):
+        for j in range(i+1):
+            x0.append(initial_process_noise[i,j])
+
     bayes_opt = BayesianOptimizer(
         search_space=search_space,
         objective_function=objective_fn,
-        n_calls=50,
-        n_initial_points=10,
+        # x0=x0,
+        n_calls=15,
+        n_initial_points=5,
         batch_size=5,
         random_state=42
     )
@@ -160,7 +178,7 @@ def main():
         
         loader = RocketDataGenerator(
             rocket=rocket, 
-            loop_frequency=50, 
+            loop_frequency=10, 
             pre_launch_delay=10,
             launch_angle=0,
             wind_affector=None

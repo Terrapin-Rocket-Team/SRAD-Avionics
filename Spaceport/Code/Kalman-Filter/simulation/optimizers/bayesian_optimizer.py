@@ -15,6 +15,7 @@ class BayesianOptimizer(BaseOptimizer):
     def __init__(self, 
                  search_space, 
                  objective_function, 
+                 x0=None,
                  n_calls=50, 
                  n_initial_points=10, 
                  batch_size=5,
@@ -22,6 +23,7 @@ class BayesianOptimizer(BaseOptimizer):
         """
         :param search_space: List of skopt.space.Dimension objects defining the search space.
         :param objective_function: Function to minimize. Should accept a list of parameters.
+        :param x0: Initial parameter values.
         :param n_calls: Total number of evaluations.
         :param n_initial_points: Number of initial random evaluations.
         :param batch_size: Number of evaluations per batch.
@@ -29,6 +31,7 @@ class BayesianOptimizer(BaseOptimizer):
         """
         self.search_space = search_space
         self.objective_function = objective_function
+        self.x0 = x0
         self.n_calls = n_calls
         self.n_initial_points = n_initial_points
         self.batch_size = batch_size
@@ -46,6 +49,7 @@ class BayesianOptimizer(BaseOptimizer):
             n_calls=self.n_calls,
             n_initial_points=self.n_initial_points,
             random_state=self.random_state,
+            x0=self.x0,                                      # Initial parameter values
             verbose=True,
             callback=None,
             n_jobs=-1  # Parallel evaluations
