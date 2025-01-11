@@ -19,17 +19,26 @@ from sensors.sensor import Sensor
 
 def main():
     # 1. Choose data source: simulated or real
-    use_simulated = False  # set to False to load real CSV
+    use_simulated = True  # set to False to load real CSV
 
     measured_positions = []
     measured_accelerations = []
 
+    rocket = Rocket(
+            motorAccel=125, 
+            burnTime=2.5, 
+            dragCoef=0.5, 
+            topCrossSectionalArea=0.07296, 
+            sideCrossSectionalArea=0.55741824,          # 6 ft^2
+            mass=40.8233)                               # 90 kg
+
     if use_simulated:
-        rocket = Rocket(motorAccel=125, burnTime=2.5, dragCoef=0.5, crossSectionalArea=0.07296)
         generator = RocketDataGenerator(
             rocket=rocket, 
             loop_frequency=50, 
-            pre_launch_delay=1.0  # 1 second on the pad
+            pre_launch_delay=10,
+            launch_angle=20,
+            wind_affector=(lambda t: np.array([0*np.sin(t), 0]))
         )
         data_dict = generator.generate()
 
@@ -43,13 +52,15 @@ def main():
         v_z = data_dict["v_z"]
         a_x = data_dict["a_x"]
         a_y = data_dict["a_y"]
-        a_z = data_dict["a_z"] + 9.81           # add gravity to the acceleration, since IMUs won't measure it
+        a_z = data_dict["a_z"] + 9.81  # Add gravity since IMU doesn't measure it
     else:
         # Real data from CSV
         loader = RealFlightDataLoader(
             file_path="flight_data/2024_SAC_Flight_Data.csv",
-            rescale_factor=1,     # No rescaling
-            pre_launch_cut=0.95      # Cut out __% of the pre-launch data
+            rocket=rocket,
+            rescale_factor=1,           # No rescaling
+            pre_launch_cut=0.95,        # Cut out __% of the pre-launch data
+            wind_affector=(lambda t: np.array([2*np.sin(t), 0]))  
         )
         data_dict = loader.generate()
 
