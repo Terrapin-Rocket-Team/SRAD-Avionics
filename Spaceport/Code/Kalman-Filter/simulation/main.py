@@ -8,7 +8,7 @@ from models.rocket import Rocket
 from data_generators.rocket_data_generator import RocketDataGenerator
 from data_generators.real_flight_data_loader import RealFlightDataLoader
 
-from kalman_filters.my_linear_kalman_filter import MyLinearKalmanFilter
+from kalman_filters.time_dependent_KF import TimeDependentKalmanFilter
 
 from noise_generators.gaussian_noise_generator import GaussianNoiseGenerator
 # from noise_generators.pink_noise_generator import PinkNoiseGenerator
@@ -104,12 +104,12 @@ def main():
     #   A control vector (acceleration)
     control_input = np.zeros((3,1))
 
-    kf = MyLinearKalmanFilter(
+    kf = TimeDependentKalmanFilter(
         initial_state=initial_state,
         initial_covariance=initial_covariance,
         control_input=control_input,
-        measurement_noise=0.5 * np.eye(3),  # Example
-        process_noise=5.0       # Example
+        measurement_noise=0.5,
+        process_noise=5.0       
     )
 
     # 4. Run the filter in a loop

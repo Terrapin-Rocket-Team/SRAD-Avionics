@@ -74,7 +74,7 @@ class BaseLinearKalmanFilter(BaseKalmanFilter):
     def calculate_kalman_gain(self):
         # K = P * H^T * inv(H * P * H^T + R)
         S = self.H @ self.P @ self.H.T + self.R
-        self.K = self.P @ self.H.T @ np.linalg.pinv(S)            # allegedly improves numerical stability
+        self.K = self.P @ self.H.T @ np.linalg.inv(S)            # allegedly improves numerical stability
         return self.K
     
     def reset_metrics(self):

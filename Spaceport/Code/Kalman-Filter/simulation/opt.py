@@ -10,7 +10,7 @@ from models.rocket import Rocket
 from data_generators.rocket_data_generator import RocketDataGenerator
 from data_generators.real_flight_data_loader import RealFlightDataLoader
 
-from kalman_filters.my_linear_kalman_filter import MyLinearKalmanFilter
+from kalman_filters.avionics_kalman_filter import AvionicsKalmanFilter
 
 from noise_generators.gaussian_noise_generator import GaussianNoiseGenerator
 # from noise_generators.pink_noise_generator import PinkNoiseGenerator
@@ -154,7 +154,7 @@ def main():
     initial_state = np.zeros((6,1))
     control_input = np.zeros((3,1))
 
-    kf = MyLinearKalmanFilter(
+    kf = AvionicsKalmanFilter(
         initial_state=initial_state,
         initial_covariance=P,
         control_input=control_input,

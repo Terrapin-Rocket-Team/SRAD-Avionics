@@ -2,7 +2,7 @@ from .base_linear_kalman_filter import BaseLinearKalmanFilter
 import numpy as np
 from typing import Optional
 
-class MyLinearKalmanFilter(BaseLinearKalmanFilter):
+class AvionicsKalmanFilter(BaseLinearKalmanFilter):
     """
     A concrete implementation of a linear Kalman Filter 
     that sets up the F, G, H, Q, R matrices for a 6x6 state, etc.

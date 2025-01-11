@@ -1,7 +1,7 @@
 # optimizers/objective.py
 
 import numpy as np
-from kalman_filters.my_linear_kalman_filter import MyLinearKalmanFilter
+from kalman_filters.avionics_kalman_filter import AvionicsKalmanFilter
 from data_generators.real_flight_data_loader import RealFlightDataLoader
 from data_generators.rocket_data_generator import RocketDataGenerator
 from models.rocket import Rocket
@@ -198,7 +198,7 @@ def objective_function_factory(real_dataset_files, n_real=5, n_generated=5, burn
                 measured_accelerations.append(np.array([[m_a_x[i]], [m_a_y[i]], [m_a_z[i]]]).reshape(-1,1))
 
             # Initialize the Kalman Filter
-            kf = MyLinearKalmanFilter(
+            kf = AvionicsKalmanFilter(
                 initial_state=initial_state,
                 initial_covariance=P.copy(),
                 control_input=control_input.copy(),
@@ -286,7 +286,7 @@ def objective_function_factory(real_dataset_files, n_real=5, n_generated=5, burn
                 measured_accelerations.append(a_measured)
 
             # Initialize the Kalman Filter
-            kf = MyLinearKalmanFilter(
+            kf = AvionicsKalmanFilter(
                 initial_state=initial_state,
                 initial_covariance=P.copy(),
                 control_input=control_input.copy(),
