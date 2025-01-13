@@ -29,8 +29,18 @@ void AvionicsState::determineStage()
         (sensorOK(imu) || sensorOK(baro)) &&
         (sensorOK(baro) ? baro->getAGLAltFt() > 30 : true))
     {
+
+// if we are in preflight AND
+    // we have either the IMU OR the barometer AND
+    // imu is ok AND the z acceleration is greater than 29 ft/s^2 OR imu is not ok AND
+    // barometer is ok AND the relative altitude is greater than 30 ft OR baro is not ok
+
+    // essentially, if we have either sensor and they meet launch threshold, launch. Otherwise, it will never detect a launch.
+
+        
         logger.setRecordMode(FLIGHT);
         bb.aonoff(33, 200);
+        // logger.setRecordMode(FLIGHT);
         stage = 1;
         timeOfLaunch = currentTime;
         timeOfLastStage = currentTime;
@@ -40,10 +50,15 @@ void AvionicsState::determineStage()
         {
             if (sensorOK(sensors[i]))
             {
+                // char logData[200];
+                // snprintf(logData, 200, "%s: %s", sensors[i]->getName(), sensors[i]->getStaticDataString());
+                // logger.recordLogData(INFO_, logData);
                 sensors[i]->setBiasCorrectionMode(false);
-            }
+            }    
         }
-    }
+    }    // TODO: Add checks for each sensor being ok and decide what to do if they aren't.
+
+
     else if (stage == 1 && abs(acceleration.z()) < 10)
     {
         bb.aonoff(33, 200, 2);
