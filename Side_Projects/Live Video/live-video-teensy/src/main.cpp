@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <Arduino.h>
 #include <exception>
 #include <wiringPi.h>
 #include <atomic>
