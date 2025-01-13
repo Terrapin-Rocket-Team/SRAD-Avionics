@@ -2465,231 +2465,6 @@
 				)
 			)
 		)
-		(symbol "Sensor_Pressure:MS5611-01BA"
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "U"
-				(at -6.35 8.89 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" "MS5611-01BA"
-				(at 7.62 8.89 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" "Package_LGA:LGA-8_3x5mm_P1.25mm"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "https://www.te.com/commerce/DocumentDelivery/DDEController?Action=srchrtrv&DocNm=MS5611-01BA03&DocType=Data+Sheet&DocLang=English"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "Barometric pressure sensor, 10cm resolution, 10 to 1200 mbar, I2C and SPI interface up to 20MHz, LGA-8"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_keywords" "pressure SPI I2C"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_fp_filters" "LGA*3x5mm*P1.25mm*"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "MS5611-01BA_0_1"
-				(rectangle
-					(start -7.62 7.62)
-					(end 7.62 -7.62)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type background)
-					)
-				)
-			)
-			(symbol "MS5611-01BA_1_1"
-				(pin power_in line
-					(at 0 10.16 270)
-					(length 2.54)
-					(name "VDD"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin input line
-					(at -10.16 5.08 0)
-					(length 2.54)
-					(name "PS"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin power_in line
-					(at 0 -10.16 90)
-					(length 2.54)
-					(name "GND"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin input line
-					(at -10.16 -5.08 0)
-					(length 2.54)
-					(name "CSB"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "4"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin input line
-					(at -10.16 -5.08 0)
-					(length 2.54) hide
-					(name "CSB"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "5"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin output line
-					(at -10.16 2.54 0)
-					(length 2.54)
-					(name "SDO"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "6"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin bidirectional line
-					(at -10.16 0 0)
-					(length 2.54)
-					(name "SDI/SDA"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "7"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin input line
-					(at -10.16 -2.54 0)
-					(length 2.54)
-					(name "SCLK"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "8"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-		)
 		(symbol "power:+3.3V"
 			(power)
 			(pin_numbers hide)
@@ -3052,12 +2827,6 @@
 		(uuid "f7d52aba-aa16-439f-a641-c756620f4dd9")
 	)
 	(junction
-		(at 91.44 121.92)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "f8eddcc5-6366-465d-b0bf-51f7b12cbb8d")
-	)
-	(junction
 		(at 48.26 119.38)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -3096,10 +2865,6 @@
 	(no_connect
 		(at 33.02 88.9)
 		(uuid "905ffac2-8f4c-4fab-86c3-44f9ceeb5dd9")
-	)
-	(no_connect
-		(at 81.28 132.08)
-		(uuid "95064c21-bf51-4183-847c-e3a22a832ea6")
 	)
 	(no_connect
 		(at 33.02 81.28)
@@ -3150,16 +2915,6 @@
 			(type default)
 		)
 		(uuid "076eff4c-cf10-4a1b-b17c-b22ba77f1ab6")
-	)
-	(wire
-		(pts
-			(xy 81.28 139.7) (xy 81.28 142.24)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "17ab31d6-d1c6-4d17-95bb-7ba8d2d58858")
 	)
 	(wire
 		(pts
@@ -3283,16 +3038,6 @@
 	)
 	(wire
 		(pts
-			(xy 91.44 121.92) (xy 91.44 124.46)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "4c294dac-61f6-4ac5-bca4-8a8d78886efe")
-	)
-	(wire
-		(pts
 			(xy 92.71 76.2) (xy 92.71 69.85)
 		)
 		(stroke
@@ -3383,16 +3128,6 @@
 	)
 	(wire
 		(pts
-			(xy 81.28 121.92) (xy 81.28 129.54)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "87a998aa-e50d-487c-a26f-7f9e824fc8c2")
-	)
-	(wire
-		(pts
 			(xy 212.09 68.58) (xy 209.55 68.58)
 		)
 		(stroke
@@ -3430,16 +3165,6 @@
 			(type default)
 		)
 		(uuid "a21fd18f-456b-4e61-a37d-0bcdae4d59c1")
-	)
-	(wire
-		(pts
-			(xy 81.28 121.92) (xy 91.44 121.92)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a906133c-beab-44f6-ba94-f40c46e58539")
 	)
 	(wire
 		(pts
@@ -3593,13 +3318,23 @@
 	)
 	(wire
 		(pts
-			(xy 227.33 53.34) (xy 238.76 53.34)
+			(xy 227.33 53.34) (xy 236.22 53.34)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "c8263f92-60e6-4a2a-80f3-b14032f16d0d")
+	)
+	(wire
+		(pts
+			(xy 236.22 60.96) (xy 238.76 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c9bfd1bc-15f8-432b-b6ce-027034fbeeb4")
 	)
 	(wire
 		(pts
@@ -3630,16 +3365,6 @@
 			(type default)
 		)
 		(uuid "d9ed44e1-30f8-465a-967a-2ca6055c8093")
-	)
-	(wire
-		(pts
-			(xy 78.74 142.24) (xy 81.28 142.24)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "da6f5a30-1116-46ec-ba18-18b9b1db6323")
 	)
 	(wire
 		(pts
@@ -3768,18 +3493,6 @@
 		(uuid 57043fca-55ca-40c2-9baa-53c55218dbce)
 	)
 	(rectangle
-		(start 71.12 114.3)
-		(end 111.76 154.94)
-		(stroke
-			(width 0.3)
-			(type dash)
-		)
-		(fill
-			(type none)
-		)
-		(uuid 6fcab19d-4325-4a37-bc3d-a7d3205d2a1e)
-	)
-	(rectangle
 		(start 121.92 33.02)
 		(end 187.96 104.14)
 		(stroke
@@ -3874,20 +3587,6 @@
 		)
 		(uuid "3e1c65a5-c085-4440-a785-ac0e2fcf75cf")
 	)
-	(text "Barometer 2"
-		(exclude_from_sim no)
-		(at 71.12 111.76 0)
-		(effects
-			(font
-				(face "Consolas")
-				(size 3 3)
-				(thickness 1)
-				(bold yes)
-			)
-			(justify left)
-		)
-		(uuid "4aa7649a-3977-446c-9dc1-fa5d861409c6")
-	)
 	(text "Magnetometer"
 		(exclude_from_sim no)
 		(at 198.12 30.48 0)
@@ -3925,16 +3624,6 @@
 			)
 		)
 		(uuid "6e14d4a9-78b5-4f7e-9121-f85b2e1842b9")
-	)
-	(text "I2C: 0x76"
-		(exclude_from_sim no)
-		(at 78.74 119.38 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "6f36327c-5ef3-41f4-85be-fb039dca9d76")
 	)
 	(text "See MAX-M10s Integration Sheet p 70."
 		(exclude_from_sim no)
@@ -4095,28 +3784,6 @@
 			)
 		)
 	)
-	(global_label "SCL1"
-		(shape input)
-		(at 81.28 137.16 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "5bc821f6-68af-48ba-873a-957f7190ff10")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 73.5777 137.16 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "SDA1"
 		(shape input)
 		(at 217.17 138.43 270)
@@ -4152,28 +3819,6 @@
 		(uuid "ab9db47a-5000-4d3c-927d-6c28166c96ee")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 22.7172 139.7 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "SDA1"
-		(shape input)
-		(at 81.28 134.62 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "afd404b6-9e68-4269-8297-1e200eec0508")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 73.5172 134.62 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5090,7 +4735,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 39.0652 127 0)
 			(effects
 				(font
@@ -5227,7 +4872,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 206.7052 60.96 0)
 			(effects
 				(font
@@ -5902,7 +5547,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 36.5252 54.61 0)
 			(effects
 				(font
@@ -6015,73 +5660,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:GND")
-		(at 99.06 121.92 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "64267029-06de-434c-9c45-78bec1462fb5")
-		(property "Reference" "#PWR022"
-			(at 99.06 128.27 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 99.06 127 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Footprint" ""
-			(at 99.06 121.92 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 99.06 121.92 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 99.06 121.92 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "f5c4f4af-578d-42c1-94dc-8c69e8f4cb99")
-		)
-		(instances
-			(project "SensorBoardNoMCU"
-				(path "/9ac8186e-c1e5-4a52-99a7-491d99a44aac"
-					(reference "#PWR022")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:C")
 		(at 152.4 50.8 0)
 		(unit 1)
@@ -6109,7 +5687,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 153.3652 54.61 0)
 			(effects
 				(font
@@ -6246,7 +5824,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 218.1352 60.96 0)
 			(effects
 				(font
@@ -6486,73 +6064,6 @@
 			(project "SensorBoardNoMCU"
 				(path "/9ac8186e-c1e5-4a52-99a7-491d99a44aac"
 					(reference "#PWR017")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:C")
-		(at 95.25 121.92 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "7f86c378-e16b-4248-8b32-5c8bc3987681")
-		(property "Reference" "C10"
-			(at 97.79 118.11 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "100n"
-			(at 99.06 120.65 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
-			(at 99.06 120.9548 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 95.25 121.92 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Unpolarized capacitor"
-			(at 95.25 121.92 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "a297fb6b-d5ee-4988-a450-48cfb0f21bbd")
-		)
-		(pin "1"
-			(uuid "7366f67b-2e84-4392-8bef-6d2f7799909e")
-		)
-		(instances
-			(project "SensorBoardNoMCU"
-				(path "/9ac8186e-c1e5-4a52-99a7-491d99a44aac"
-					(reference "C10")
 					(unit 1)
 				)
 			)
@@ -6984,7 +6495,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 141.9352 54.61 0)
 			(effects
 				(font
@@ -7688,160 +7199,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Sensor_Pressure:MS5611-01BA")
-		(at 91.44 134.62 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "dedfc286-5a2f-4d7b-8414-a79252cedc47")
-		(property "Reference" "U4"
-			(at 96.52 125.73 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "MS5611-01BA"
-			(at 92.71 143.51 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Package_LGA:LGA-8_3x5mm_P1.25mm"
-			(at 91.44 134.62 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://www.te.com/commerce/DocumentDelivery/DDEController?Action=srchrtrv&DocNm=MS5611-01BA03&DocType=Data+Sheet&DocLang=English"
-			(at 91.44 134.62 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Barometric pressure sensor, 10cm resolution, 10 to 1200 mbar, I2C and SPI interface up to 20MHz, LGA-8"
-			(at 91.44 134.62 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "957594be-545c-406b-8d13-48624194dfbb")
-		)
-		(pin "2"
-			(uuid "248dfe38-4a93-44cc-ae46-066ce8516d77")
-		)
-		(pin "6"
-			(uuid "b0374eec-f80e-4221-8083-c10b16d4fd28")
-		)
-		(pin "7"
-			(uuid "034a520c-7cf8-46bb-9e76-8482b5bafcd0")
-		)
-		(pin "8"
-			(uuid "7f436e9d-a37f-4eb5-b02f-6876abe6a192")
-		)
-		(pin "3"
-			(uuid "97fbca94-7d13-4d14-b238-c81746fe3b7e")
-		)
-		(pin "5"
-			(uuid "5b0be17d-37a9-4b3d-a9a7-3cea638307eb")
-		)
-		(pin "4"
-			(uuid "a11ae56f-29eb-43e0-928f-e94ff58bad8a")
-		)
-		(instances
-			(project "SensorBoardNoMCU"
-				(path "/9ac8186e-c1e5-4a52-99a7-491d99a44aac"
-					(reference "U4")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 91.44 144.78 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "df216742-f3d9-443d-ae5e-d702f114103d")
-		(property "Reference" "#PWR028"
-			(at 91.44 151.13 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 91.44 149.86 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Footprint" ""
-			(at 91.44 144.78 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 91.44 144.78 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 91.44 144.78 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "81a58c28-3b56-4af5-9e91-6441f789015a")
-		)
-		(instances
-			(project "SensorBoardNoMCU"
-				(path "/9ac8186e-c1e5-4a52-99a7-491d99a44aac"
-					(reference "#PWR028")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:C")
 		(at 25.4 50.8 0)
 		(unit 1)
@@ -7868,7 +7225,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 26.3652 54.61 0)
 			(effects
 				(font
@@ -8005,7 +7362,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 27.6352 127 0)
 			(effects
 				(font
@@ -8048,71 +7405,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:+3.3V")
-		(at 91.44 121.92 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "ea697f54-6038-4258-90eb-0eb32d2bc168")
-		(property "Reference" "#PWR021"
-			(at 91.44 125.73 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+3.3V"
-			(at 87.63 120.65 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 91.44 121.92 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 91.44 121.92 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 91.44 121.92 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "058b845c-d939-4c28-8a05-80f81100ea8c")
-		)
-		(instances
-			(project "SensorBoardNoMCU"
-				(path "/9ac8186e-c1e5-4a52-99a7-491d99a44aac"
-					(reference "#PWR021")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:C")
 		(at 240.03 80.01 0)
 		(unit 1)
@@ -8139,7 +7431,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 240.9952 83.82 0)
 			(effects
 				(font
@@ -8367,7 +7659,7 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 238.76 57.15 0)
+		(at 236.22 57.15 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -8376,7 +7668,7 @@
 		(fields_autoplaced yes)
 		(uuid "f3c28ba8-4d69-45b1-bc5e-fa8e1bbd99e2")
 		(property "Reference" "C7"
-			(at 242.57 55.8799 0)
+			(at 240.03 55.8799 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8385,7 +7677,7 @@
 			)
 		)
 		(property "Value" "1u"
-			(at 242.57 58.4199 0)
+			(at 240.03 58.4199 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8394,7 +7686,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
-			(at 239.7252 60.96 0)
+			(at 237.1852 60.96 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8403,7 +7695,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 238.76 57.15 0)
+			(at 236.22 57.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8412,7 +7704,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
-			(at 238.76 57.15 0)
+			(at 236.22 57.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8430,71 +7722,6 @@
 			(project "SensorBoardNoMCU"
 				(path "/9ac8186e-c1e5-4a52-99a7-491d99a44aac"
 					(reference "C7")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:+3.3V")
-		(at 78.74 142.24 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "fb1dc35c-feae-4c68-afdf-e7bca52ed77b")
-		(property "Reference" "#PWR029"
-			(at 78.74 146.05 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+3.3V"
-			(at 74.93 140.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 78.74 142.24 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 78.74 142.24 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 78.74 142.24 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "fbdce2bd-ca4f-4338-b8e9-4ab5b1c7581a")
-		)
-		(instances
-			(project "SensorBoardNoMCU"
-				(path "/9ac8186e-c1e5-4a52-99a7-491d99a44aac"
-					(reference "#PWR029")
 					(unit 1)
 				)
 			)
