@@ -64,11 +64,11 @@ bool Si4463::begin()
     // check part info to make sure proper communication has been established
     uint8_t args[8] = {0};
     this->sendCommandR(C_PART_INFO, 8, args);
-    Serial.println("PART_INFO");
-    for (int i = 0; i < 8; i++)
-    {
-        Serial.println(args[i], HEX);
-    }
+    //Serial.println("PART_INFO");
+    // for (int i = 0; i < 8; i++)
+    // {
+    //     Serial.println(args[i], HEX);
+    // }
 
     this->sendCommandR(C_PART_INFO, 8, args);
 
@@ -147,7 +147,7 @@ bool Si4463::tx(const uint8_t *message, int len)
     // prefill fifo in idle state
     if (this->state == STATE_IDLE || this->state == STATE_RX || this->state == STATE_RX_COMPLETE)
     {
-        Serial.println("tx");
+        //Serial.println("tx");
         // enter idle state
         uint8_t cIdleArgs[1] = {0b00000011};
         sendCommandC(C_CHANGE_STATE, 1, cIdleArgs);
@@ -180,22 +180,18 @@ bool Si4463::tx(const uint8_t *message, int len)
         }
 
         digitalWrite(this->_cs, HIGH);
-
         // set packet length for variable length packets
         uint8_t cLen[2] = {0, this->length & 0x00ff};
         setProperty(G_PKT, 2, P_PKT_FIELD_2_LENGTH2, cLen);
-
         // start tx
         // enter rx state after tx
         uint8_t txArgs[6] = {0, 0b10000000, 0, 0, 0, 0};
         spi_write(C_START_TX, sizeof(txArgs), txArgs);
 
         this->state = STATE_ENTER_TX;
-
         // set back to max length for rx mode?
         uint8_t cLen2[2] = {0, 0x80};
         setProperty(G_PKT, 2, P_PKT_FIELD_2_LENGTH2, cLen2);
-
         return true;
     }
     return false;
@@ -1011,10 +1007,15 @@ void Si4463::sendCommandC(Si4463Cmd cmd, uint8_t argcCmd, uint8_t *argvCmd)
 void Si4463::waitCTS()
 {
     // blocking while loop (should yield to other functions)
-    while (!checkCTS())
+    uint32_t start = millis();
+    while (!checkCTS() && millis() - start < 100)
     {
         delayMicroseconds(10);
         yield();
+    }
+    if (millis() - start >= 100)
+    {
+        Serial.println("CTS timeout");
     }
 }
 
