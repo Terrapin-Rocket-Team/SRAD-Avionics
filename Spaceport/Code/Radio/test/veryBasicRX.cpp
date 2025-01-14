@@ -71,16 +71,16 @@ void loop()
         uint8_t cIntArgs[3] = {0, 0, 0};
         uint8_t rIntArgs[8] = {};
         radio.sendCommand(C_GET_INT_STATUS, 3, cIntArgs, 8, rIntArgs);
-        Serial.println("INTERRUPTS");
-        for (int i = 0; i < 8; i++)
-        {
-            Serial.println(rIntArgs[i], BIN);
-        }
+        // Serial.println("INTERRUPTS");
+        // for (int i = 0; i < 8; i++)
+        // {
+        //     Serial.println(rIntArgs[i], BIN);
+        // }
         uint8_t startRX[7] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00};
         radio.sendCommandC(C_START_RX, 7, startRX);
         rxMode = true;
         radio.waitCTS();
-        Serial.println("In receive mode");
+        // Serial.println("In receive mode");
     }
 
     uint8_t frrStates[4] = {0};
@@ -89,24 +89,24 @@ void loop()
     {
         timer = millis();
         uint8_t argsp[2] = {0};
-        Serial.println("PH_STATUS");
+        //Serial.println("PH_STATUS");
         radio.sendCommandR(C_GET_PH_STATUS, 2, argsp);
 
-        Serial.println(argsp[0], BIN);
-        Serial.println(argsp[1], BIN);
+        // Serial.println(argsp[0], BIN);
+        // Serial.println(argsp[1], BIN);
 
-        Serial.println("FIFO_INFO");
+        // Serial.println("FIFO_INFO");
         uint8_t args[2] = {};
         uint8_t argst[1] = {0};
         radio.sendCommand(C_FIFO_INFO, 1, argst, 2, args);
-        Serial.println(args[0]);
-        Serial.println(args[1]);
+        // Serial.println(args[0]);
+        // Serial.println(args[1]);
 
-        Serial.println("FRRs");
-        Serial.println(frrStates[0], HEX);
-        Serial.println(frrStates[1]);
-        Serial.println(frrStates[2], BIN);
-        Serial.println(frrStates[3], BIN);
+        // Serial.println("FRRs");
+        // Serial.println(frrStates[0], HEX);
+        // Serial.println(frrStates[1]);
+        // Serial.println(frrStates[2], BIN);
+        // Serial.println(frrStates[3], BIN);
     }
 
     if (frrStates[1] > 0)
