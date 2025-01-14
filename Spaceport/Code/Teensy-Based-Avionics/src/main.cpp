@@ -21,7 +21,9 @@ mmfs::MS5611 baro2;
 mmfs::BMI088andLIS3MDL bno;
 
 APRSConfig aprsConfig = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
-APRSTelem aprs(aprsConfig);
+    uint8_t encoding[] = {7, 4, 4};
+    APRSTelem aprs(aprsConfig);
+
 Message msg;
 
 Si4463HardwareConfig hwcfg = {
@@ -82,6 +84,8 @@ const int UPDATE_INTERVAL = 1000.0 / UPDATE_RATE;
 
 void setup()
 {
+    SPI.begin();
+    SPI.setClockDivider(SPI_CLOCK_DIV2);
     Serial.begin(9600);
     delay(3000);
     Wire.begin();
@@ -131,22 +135,27 @@ void setup()
         bb.onoff(BUZZER_PIN, 200, 3);
     }
     logger.writeCsvHeader();
-    //bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
+    // bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
 
-    if (!radio.begin())
+    if (radio.begin())
     {
-        logger.recordLogData(ERROR_, "Radio failed to initialize");
+        bb.onoff(BUZZER_PIN, 1000);
+        logger.recordLogData(ERROR_, "Radio initialized.");
     }
     else
     {
-        logger.recordLogData(INFO_, "Radio initialized");
+        bb.onoff(BUZZER_PIN, 200, 3);
+        logger.recordLogData(INFO_, "Radio failed to initialize.");
     }
+
+    logger.recordLogData(INFO_, "Initialization Complete");
 }
 double radio_last;
 void loop()
 {
     double time = millis();
     bb.update();
+    radio.update();
     // Update the state of the rocket
     if (time - last < 100)
         return;
@@ -154,9 +163,6 @@ void loop()
     last = time;
     computer->updateState();
 
-    char data[100];
-    snprintf(data, 100,  "GPS: %d %f %f %f \n", gps.getFixQual(), gps.getPos().x(), gps.getPos().y(), gps.getPos().z());
-    logger.recordLogData(INFO_, data);
     logger.recordFlightData();
 
     // if (gps.getFixQual() > 0 && !gpsHasFix)
@@ -172,23 +178,38 @@ void loop()
     //     bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
     // }
 
-
     if (time - radio_last < 1000)
         return;
 
     radio_last = time;
     msg.clear();
+
+    printf("%f\n", baro1.getAGLAltFt());
     aprs.alt = baro1.getAGLAltFt();
+    printf("%f\n", gps.getHeading());
     aprs.hdg = gps.getHeading();
+    printf("%f\n", gps.getPos().x());
     aprs.lat = gps.getPos().x();
+    printf("%f\n", gps.getPos().y());
     aprs.lng = gps.getPos().y();
+    printf("%f\n", computer->getVelocity().z());
     aprs.spd = computer->getVelocity().z();
+    printf("%f\n", bno.getAngularVelocity().x());
     aprs.orient[0] = bno.getAngularVelocity().x();
+    printf("%f\n", bno.getAngularVelocity().y());
     aprs.orient[1] = bno.getAngularVelocity().y();
+    printf("%f\n", bno.getAngularVelocity().z());
     aprs.orient[2] = bno.getAngularVelocity().z();
-    aprs.stateFlags = computer->getStage();
+    aprs.stateFlags.setEncoding(encoding, 3);
+
+    uint8_t arr[] = {(uint8_t) (int) baro1.getTemp(), (uint8_t)computer->getStage(), (uint8_t)gps.getFixQual()};   
+    aprs.stateFlags.pack(arr);
+    // aprs.stateFlags = (uint8_t) computer->getStage();
     msg.encode(&aprs);
     radio.send(aprs);
-    // Serial1.write(msg.buf, msg.size);
-    // Serial1.write('\n');
+    Serial.println("Sent APRS Message");
+    Serial.flush();
+    bb.aonoff(BUZZER_PIN, 50);
+    //  Serial1.write(msg.buf, msg.size);
+    //  Serial1.write('\n');
 }
