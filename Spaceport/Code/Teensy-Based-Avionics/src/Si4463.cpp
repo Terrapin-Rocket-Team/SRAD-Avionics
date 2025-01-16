@@ -49,7 +49,7 @@ bool Si4463::begin()
     uint8_t rIntArgs[8] = {};
     sendCommand(C_GET_INT_STATUS, 3, cIntArgs, 8, rIntArgs);
 
-    //Serial.println("INTERRUPTS");
+    // Serial.println("INTERRUPTS");
     // for (int i = 0; i < 8; i++)
     // {
     //     Serial.println(rIntArgs[i], BIN);
@@ -58,8 +58,8 @@ bool Si4463::begin()
     uint8_t argst[2] = {};
     //Serial.println("DEVICE_STATE");
     sendCommandR(C_REQUEST_DEVICE_STATE, 2, argst);
-    //Serial.println(argst[0]);
-    //Serial.println(argst[1]);
+    // Serial.println(argst[0]);
+    // Serial.println(argst[1]);
 
     // check part info to make sure proper communication has been established
     uint8_t args[8] = {0};
@@ -143,7 +143,7 @@ bool Si4463::tx(const uint8_t *message, int len)
     this->length = len;
     this->xfrd = 0;
     memcpy(this->buf, message, this->length);
-    //Serial.println(this->state);
+    // Serial.println(this->state);
     // prefill fifo in idle state
     if (this->state == STATE_IDLE || this->state == STATE_RX || this->state == STATE_RX_COMPLETE)
     {
@@ -180,22 +180,18 @@ bool Si4463::tx(const uint8_t *message, int len)
         }
 
         digitalWrite(this->_cs, HIGH);
-
         // set packet length for variable length packets
         uint8_t cLen[2] = {0, this->length & 0x00ff};
         setProperty(G_PKT, 2, P_PKT_FIELD_2_LENGTH2, cLen);
-
         // start tx
         // enter rx state after tx
         uint8_t txArgs[6] = {0, 0b10000000, 0, 0, 0, 0};
         spi_write(C_START_TX, sizeof(txArgs), txArgs);
 
         this->state = STATE_ENTER_TX;
-
         // set back to max length for rx mode?
         uint8_t cLen2[2] = {0, 0x80};
         setProperty(G_PKT, 2, P_PKT_FIELD_2_LENGTH2, cLen2);
-
         return true;
     }
     return false;
@@ -571,7 +567,7 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
 
     // set data rate
     uint8_t drArgs[7] = {};
-    to_bytes(dataRate, 0, 1, drArgs);
+    to_bytes((uint64_t)dataRate, 0, 1, drArgs);
     setProperty(G_MODEM, 7, P_MODEM_DATA_RATE3, drArgs);
 
     // set frequency deviation
@@ -665,11 +661,11 @@ void Si4463::setPins(Si4463Pin gpio0Mode, Si4463Pin gpio1Mode, Si4463Pin gpio2Mo
 
     uint8_t resArgs[7] = {};
     sendCommand(C_GPIO_PIN_CFG, 7, gpioArgs, 7, resArgs);
-    //Serial.println("PINS");
-    // for (int i = 0; i < 7; i++)
-    // {
-    //     Serial.println(resArgs[i], HEX);
-    // }
+    Serial.println("PINS");
+    for (int i = 0; i < 7; i++)
+    {
+        Serial.println(resArgs[i], HEX);
+    }
 }
 
 void Si4463::setFRRs(Si4463FRR regAMode, Si4463FRR regBMode, Si4463FRR regCMode, Si4463FRR regDMode)
@@ -1011,10 +1007,15 @@ void Si4463::sendCommandC(Si4463Cmd cmd, uint8_t argcCmd, uint8_t *argvCmd)
 void Si4463::waitCTS()
 {
     // blocking while loop (should yield to other functions)
-    while (!checkCTS())
+    uint32_t start = millis();
+    while (!checkCTS() && millis() - start < 100)
     {
         delayMicroseconds(10);
         yield();
+    }
+    if (millis() - start >= 100)
+    {
+        Serial.println("CTS timeout");
     }
 }
 
