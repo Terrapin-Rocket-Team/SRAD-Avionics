@@ -298,6 +298,9 @@ public:
     SPIClass *spi;
     uint8_t _cs;
 
+    bool sendLongMessage(const uint8_t *message, int len);
+    bool receiveLongMessage(uint8_t *message, int *len);
+
 private:
     // spi interface
     uint8_t _sdn;
@@ -373,6 +376,15 @@ private:
     - MSB : whether the bytes should be written most significant byte first
     */
     static void to_bytes(uint64_t val, uint8_t pos, uint8_t bytePos, uint8_t *arr, bool MSB = true);
+
+    static const int TX_FIFO_SIZE = 64;
+    static const int RX_FIFO_SIZE = 64;
+    
+    // Circular buffer for long messages
+    uint8_t longMsgBuffer[MAX_LONG_MSG_SIZE];
+    int longMsgHead = 0;
+    int longMsgTail = 0;
+    bool longMsgInProgress = false;
 };
 
 #endif

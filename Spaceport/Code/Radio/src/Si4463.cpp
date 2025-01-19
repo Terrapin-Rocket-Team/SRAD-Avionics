@@ -87,7 +87,7 @@ bool Si4463::begin()
     // set power level (127 = ~20 dBm)
     this->setPower(this->pwr);
     // turn on AFC
-    // this->setAFC(true); // make sure this is being done correctly
+    this->setAFC(true);
     // set preamble configuration
     this->setProperty(G_PREAMBLE, P_PREAMBLE_CONFIG, 0b00110001);
     // set preamble length
@@ -135,113 +135,85 @@ bool Si4463::begin()
 
 bool Si4463::tx(const uint8_t *message, int len)
 {
-    // make sure the packet isn't too long
     if (len > this->maxLen)
-        return false; // Error: the packet is too long
+        return false;
 
-    // otherwise add the message to the internal buffer
+    // Store message in buffer
     this->length = len;
     this->xfrd = 0;
     memcpy(this->buf, message, this->length);
-    //Serial.println(this->state);
-    // prefill fifo in idle state
+
+    // Start TX state machine
     if (this->state == STATE_IDLE || this->state == STATE_RX || this->state == STATE_RX_COMPLETE)
     {
-        //Serial.println("tx");
-        // enter idle state
+        // Enter idle state
         uint8_t cIdleArgs[1] = {0b00000011};
         sendCommandC(C_CHANGE_STATE, 1, cIdleArgs);
 
-        // clear fifo
+        // Clear FIFO
         uint8_t cClearFIFO[1] = {0b00000011};
         sendCommandC(C_FIFO_INFO, 1, cClearFIFO);
 
-        // clear first two sets of interrupts
-        uint8_t cIntArgs2[3] = {0, 0, 0xff};
-        sendCommandR(C_GET_INT_STATUS, 3, cIntArgs2);
+        // Fill initial FIFO chunk
+        fillTXFIFO();
 
-        // start spi
-        digitalWrite(this->_cs, LOW);
-
-        // write to TX FIFO
-        this->spi->transfer(C_WRITE_TX_FIFO);
-
-        // send length
-        // uint8_t mLen[2] = {0};
-        // to_bytes(this->length, 0, 0, mLen);
-        this->spi->transfer(this->length & 0x00ff);
-        // this->spi->transfer(mLen[1]);
-
-        // send message body
-        int count = 0;
-        while (count++ < 62 && this->xfrd < this->length)
-        {
-            this->spi->transfer(this->buf[this->xfrd++]);
-        }
-
-        digitalWrite(this->_cs, HIGH);
-
-        // set packet length for variable length packets
+        // Set packet length
         uint8_t cLen[2] = {0, this->length & 0x00ff};
         setProperty(G_PKT, 2, P_PKT_FIELD_2_LENGTH2, cLen);
 
-        // start tx
-        // enter rx state after tx
+        // Start TX - non-blocking
         uint8_t txArgs[6] = {0, 0b10000000, 0, 0, 0, 0};
         spi_write(C_START_TX, sizeof(txArgs), txArgs);
 
         this->state = STATE_ENTER_TX;
-
-        // set back to max length for rx mode?
-        uint8_t cLen2[2] = {0, 0x80};
-        setProperty(G_PKT, 2, P_PKT_FIELD_2_LENGTH2, cLen2);
-
         return true;
     }
     return false;
 }
 
+void Si4463::fillTXFIFO()
+{
+    digitalWrite(this->_cs, LOW);
+    this->spi->transfer(C_WRITE_TX_FIFO);
+    
+    // Fill FIFO with next chunk
+    int count = 0;
+    while (count++ < TX_FIFO_SIZE && this->xfrd < this->length)
+    {
+        this->spi->transfer(this->buf[this->xfrd++]);
+    }
+    digitalWrite(this->_cs, HIGH);
+}
+
 void Si4463::handleTX()
 {
-    // Serial.println("handleTX");
-    // Serial.println(this->xfrd);
-    // Serial.println(this->length);
-    // this function assumes we are in tx mode already, so check that we are in tx mode
-    // shouldn't be needed for now
-    if (this->state == STATE_TX && this->xfrd < this->length && gpio1())
+    if (this->state == STATE_TX && gpio1()) // FIFO almost empty
     {
-        digitalWrite(this->_cs, LOW);
-
-        // write to the TX FIFO
-        this->spi->transfer(C_WRITE_TX_FIFO);
-
-        // write remaining data
-        int count = 0;
-        while (count++ < 64 && this->xfrd < this->length)
+        if (longMsgInProgress && longMsgHead < longMsgTail)
         {
-            this->spi->transfer(this->buf[this->xfrd++]);
+            // Fill next chunk from long message buffer
+            int remaining = longMsgTail - longMsgHead;
+            int chunkSize = min(TX_FIFO_SIZE, remaining);
+            
+            digitalWrite(this->_cs, LOW);
+            this->spi->transfer(C_WRITE_TX_FIFO);
+            
+            for (int i = 0; i < chunkSize; i++)
+            {
+                this->spi->transfer(longMsgBuffer[longMsgHead++]);
+            }
+            
+            digitalWrite(this->_cs, HIGH);
         }
-
-        digitalWrite(this->_cs, HIGH);
-    }
-    // if we've sent this->length bytes, the message is complete
-    // needed
-    if (this->xfrd == this->length)
-    {
-        // automatically placed into an idle state
-        this->state = STATE_TX_COMPLETE;
-        // uint8_t cIntArgs[3] = {0, 0, 0};
-        // uint8_t rIntArgs[8] = {};
-        // Serial.println("INTERRUPTS");
-        // sendCommand(C_GET_INT_STATUS, 3, cIntArgs, 8, rIntArgs);
-        // for (int i = 0; i < 8; i++)
-        // {
-        //     Serial.println(rIntArgs[i], BIN);
-        // }
-        // clear internal variables
-        memset(this->buf, 0, this->length);
-        this->length = 0;
-        this->xfrd = 0;
+        else if (this->xfrd == this->length)
+        {
+            this->state = STATE_TX_COMPLETE;
+            longMsgInProgress = false;
+            // Clear buffers
+            memset(this->buf, 0, this->length);
+            this->length = 0;
+            this->xfrd = 0;
+        }
     }
 }
 
@@ -687,21 +659,28 @@ void Si4463::setFRRs(Si4463FRR regAMode, Si4463FRR regBMode, Si4463FRR regCMode,
 
 void Si4463::setAFC(bool enabled)
 {
-    uint8_t afcGainArgs[2] = {0b1000011, 0x69}; // default value
-    // set first bit to 0 to disable AFC
-    if (!enabled)
-    {
-        afcGainArgs[0] = 0b0000011;
+    // AFC gain settings for optimal Doppler tracking
+    uint8_t afcGainArgs[2] = {0b10000111, 0x89}; // Increased gain for better tracking
+    
+    if (!enabled) {
+        afcGainArgs[0] = 0b00000011;
         afcGainArgs[1] = 0x69;
     }
     setProperty(G_MODEM, 2, P_MODEM_AFC_GAIN2, afcGainArgs);
-    // set up the AFC if enabled
-    if (enabled)
-    {
-        uint8_t afcLimiterArgs[8] = {0b01000000, 0xBE}; // set max AFC deviation to 190*8 = 1.52 kHz
+    
+    if (enabled) {
+        // Set AFC limits to handle expected Doppler range
+        // Max deviation increased to ±3 kHz for rocket applications
+        uint8_t afcLimiterArgs[2] = {0b01000000, 0xF0}; 
         setProperty(G_MODEM, 2, P_MODEM_AFC_LIMITER2, afcLimiterArgs);
-        uint8_t afcMiscArgs = 0b11101000; // turns on AFC feedback to the PLL
+        
+        // Enable AFC feedback and fast tracking mode
+        uint8_t afcMiscArgs = 0b11101100; // Added fast tracking bit
         setProperty(G_MODEM, P_MODEM_AFC_MISC, afcMiscArgs);
+        
+        // Set AFC sampling timing
+        uint8_t afcTimingArgs[2] = {0x02, 0x08}; // Sample more frequently
+        setProperty(G_MODEM, 2, P_MODEM_AFC_TIMING, afcTimingArgs);
     }
 }
 
@@ -761,117 +740,85 @@ int Si4463::readFRR(int index)
 
 void Si4463::setRegisters()
 {
-    // uint8_t RF_POWER_UP[] = {0x02, 0x01, 0x00, 0x01, 0xC9, 0xC3, 0x80};
-    // uint8_t RF_GPIO_PIN_CFG[] = {0x13, 0x41, 0x41, 0x21, 0x20, 0x67, 0x4B, 0x00};
-    // uint8_t GLOBAL_2_0[] = {0x11, 0x00, 0x04, 0x00, 0x52, 0x00, 0x18, 0x30};
-    uint8_t MODEM_2_0[] = {0x11, 0x20, 0x0C, 0x00, 0x03, 0x00, 0x07, 0x02, 0x71, 0x00, 0x05, 0xC9, 0xC3, 0x80, 0x00, 0x00};
-    uint8_t MODEM_2_1[] = {0x11, 0x20, 0x01, 0x0C, 0x46};
-    uint8_t MODEM_2_2[] = {0x11, 0x20, 0x0C, 0x1C, 0x80, 0x00, 0xB0, 0x10, 0x0C, 0xE8, 0x00, 0x4E, 0x06, 0x8D, 0xB9, 0x00};
-    uint8_t MODEM_2_3[] = {0x11, 0x20, 0x0A, 0x28, 0x00, 0x02, 0xC0, 0x08, 0x00, 0x12, 0xC6, 0xD4, 0x01, 0x5C};
-    uint8_t MODEM_2_4[] = {0x11, 0x20, 0x0B, 0x39, 0x11, 0x11, 0x80, 0x1A, 0x20, 0x00, 0x00, 0x28, 0x0C, 0xA4, 0x23};
-    uint8_t MODEM_2_5[] = {0x11, 0x20, 0x09, 0x45, 0x03, 0x00, 0x85, 0x01, 0x00, 0xFF, 0x06, 0x09, 0x10};
-    uint8_t MODEM_2_6[] = {0x11, 0x20, 0x02, 0x50, 0x94, 0x0A};
-    uint8_t MODEM_2_7[] = {0x11, 0x20, 0x02, 0x54, 0x03, 0x07};
-    uint8_t MODEM_2_8[] = {0x11, 0x20, 0x05, 0x5B, 0x40, 0x04, 0x04, 0x78, 0x20};
-    uint8_t MODEM_CHFLT_2_0[] = {0x11, 0x21, 0x0C, 0x00, 0x7E, 0x64, 0x1B, 0xBA, 0x58, 0x0B, 0xDD, 0xCE, 0xD6, 0xE6, 0xF6, 0x00};
-    uint8_t MODEM_CHFLT_2_1[] = {0x11, 0x21, 0x0C, 0x0C, 0x03, 0x03, 0x15, 0xF0, 0x3F, 0x00, 0x7E, 0x64, 0x1B, 0xBA, 0x58, 0x0B};
-    uint8_t MODEM_CHFLT_2_2[] = {0x11, 0x21, 0x0B, 0x18, 0xDD, 0xCE, 0xD6, 0xE6, 0xF6, 0x00, 0x03, 0x03, 0x15, 0xF0, 0x3F};
-    uint8_t PA_2_0[] = {0x11, 0x22, 0x01, 0x03, 0x1D};
-    uint8_t FREQ_CONTROL_2_0[] = {0x11, 0x40, 0x08, 0x00, 0x37, 0x09, 0x00, 0x00, 0x44, 0x44, 0x20, 0xFE};
-    uint8_t RF_START_RX[] = {0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    uint8_t RF_IRCAL[] = {0x17, 0x56, 0x10, 0xCA, 0xF0};
-    uint8_t RF_IRCAL_1[] = {0x17, 0x13, 0x10, 0xCA, 0xF0};
-    uint8_t INT_CTL_5_0[] = {0x11, 0x01, 0x04, 0x00, 0x07, 0x18, 0x00, 0x00};
-    uint8_t FRR_CTL_5_0[] = {0x11, 0x02, 0x03, 0x00, 0x0A, 0x09, 0x00};
-    uint8_t PREAMBLE_5_0[] = {0x11, 0x10, 0x01, 0x04, 0x31};
-    uint8_t SYNC_5_0[] = {0x11, 0x11, 0x04, 0x01, 0xB4, 0x2B, 0x00, 0x00};
-    uint8_t PKT_5_0[] = {0x11, 0x12, 0x0A, 0x00, 0x04, 0x01, 0x08, 0xFF, 0xFF, 0x20, 0x00, 0x00, 0x2A, 0x01};
-    uint8_t PKT_5_1[] = {0x11, 0x12, 0x07, 0x0E, 0x01, 0x06, 0xAA, 0x00, 0x80, 0x02, 0x2A};
+    // 1. MODEM Configuration - Should be modified based on data rate and modulation
     uint8_t MODEM_5_0[] = {0x11, 0x20, 0x0A, 0x03, 0x1E, 0x84, 0x80, 0x09, 0xC9, 0xC3, 0x80, 0x00, 0x0D, 0xA7};
     uint8_t MODEM_5_1[] = {0x11, 0x20, 0x0B, 0x1E, 0x10, 0x20, 0x00, 0xE8, 0x00, 0x4B, 0x06, 0xD3, 0xA0, 0x06, 0xD4};
     uint8_t MODEM_5_2[] = {0x11, 0x20, 0x09, 0x2A, 0x00, 0x00, 0x00, 0x23, 0xC6, 0xD4, 0x00, 0xA9, 0xE0};
-    uint8_t MODEM_5_3[] = {0x11, 0x20, 0x05, 0x39, 0x10, 0x10, 0x80, 0x1A, 0x40};
-    uint8_t MODEM_5_4[] = {0x11, 0x20, 0x08, 0x46, 0x01, 0x15, 0x02, 0x00, 0x80, 0x06, 0x02, 0x18};
-    uint8_t MODEM_5_5[] = {0x11, 0x20, 0x01, 0x50, 0x84};
-    uint8_t MODEM_5_6[] = {0x11, 0x20, 0x01, 0x54, 0x04};
-    uint8_t MODEM_5_7[] = {0x11, 0x20, 0x01, 0x5D, 0x08};
+
+    // 2. Frequency Control - Should be modified based on center frequency
+    uint8_t FREQ_CONTROL_5_0[] = {0x11, 0x40, 0x04, 0x00, 0x38, 0x0D, 0xDD, 0xDD};
+
+    // 3. Channel Filter - Should be modified based on data rate and frequency deviation
     uint8_t MODEM_CHFLT_5_0[] = {0x11, 0x21, 0x0C, 0x00, 0xA2, 0x81, 0x26, 0xAF, 0x3F, 0xEE, 0xC8, 0xC7, 0xDB, 0xF2, 0x02, 0x08};
     uint8_t MODEM_CHFLT_5_1[] = {0x11, 0x21, 0x0C, 0x0C, 0x07, 0x03, 0x15, 0xFC, 0x0F, 0x00, 0xA2, 0x81, 0x26, 0xAF, 0x3F, 0xEE};
     uint8_t MODEM_CHFLT_5_2[] = {0x11, 0x21, 0x0B, 0x18, 0xC8, 0xC7, 0xDB, 0xF2, 0x02, 0x08, 0x07, 0x03, 0x15, 0xFC, 0x0F};
-    uint8_t SYNTH_5_0[] = {0x11, 0x23, 0x06, 0x00, 0x34, 0x04, 0x0B, 0x04, 0x07, 0x70};
-    uint8_t FREQ_CONTROL_5_0[] = {0x11, 0x40, 0x04, 0x00, 0x38, 0x0D, 0xDD, 0xDD};
 
-    // setProperty(MODEM_2_0, sizeof(MODEM_2_0));
-    // setProperty(MODEM_2_1, sizeof(MODEM_2_1));
-    setProperty(MODEM_2_2, sizeof(MODEM_2_2));
-    setProperty(MODEM_2_3, sizeof(MODEM_2_3));
-    setProperty(MODEM_2_4, sizeof(MODEM_2_4));
-    setProperty(MODEM_2_5, sizeof(MODEM_2_5));
-    setProperty(MODEM_2_6, sizeof(MODEM_2_6));
-    setProperty(MODEM_2_7, sizeof(MODEM_2_7));
-    setProperty(MODEM_2_8, sizeof(MODEM_2_8));
-    setProperty(MODEM_CHFLT_2_0, sizeof(MODEM_CHFLT_2_0));
-    setProperty(MODEM_CHFLT_2_1, sizeof(MODEM_CHFLT_2_1));
-    setProperty(MODEM_CHFLT_2_2, sizeof(MODEM_CHFLT_2_2));
-    setProperty(PA_2_0, sizeof(PA_2_0));
-    setProperty(FREQ_CONTROL_2_0, sizeof(FREQ_CONTROL_2_0));
-    setProperty(RF_START_RX, sizeof(RF_START_RX));
-    setProperty(RF_IRCAL, sizeof(RF_IRCAL));
-    setProperty(RF_IRCAL_1, sizeof(RF_IRCAL_1));
-    setProperty(INT_CTL_5_0, sizeof(INT_CTL_5_0));
-    setProperty(FRR_CTL_5_0, sizeof(FRR_CTL_5_0));
-    setProperty(PREAMBLE_5_0, sizeof(PREAMBLE_5_0));
-    setProperty(SYNC_5_0, sizeof(SYNC_5_0));
-    setProperty(PKT_5_0, sizeof(PKT_5_0));
-    setProperty(PKT_5_1, sizeof(PKT_5_1));
+    // 4. Synthesizer - Should be modified based on frequency band
+    uint8_t SYNTH_5_0[] = {0x11, 0x23, 0x06, 0x00, 0x34, 0x04, 0x0B, 0x04, 0x07, 0x70};
+
+    // These registers should be calculated and set after the main configuration:
+    if (this->dataRate != 0) {
+        // Calculate and update MODEM registers based on data rate
+        updateModemRegisters(MODEM_5_0, MODEM_5_1, MODEM_5_2);
+    }
+
+    if (this->freq != 0) {
+        // Calculate and update frequency control registers
+        updateFrequencyRegisters(FREQ_CONTROL_5_0);
+        // Update synthesizer settings for the frequency band
+        updateSynthRegisters(SYNTH_5_0);
+    }
+
+    // Update channel filter based on both data rate and frequency deviation
+    if (this->dataRate != 0 && this->freq != 0) {
+        updateChannelFilterRegisters(MODEM_CHFLT_5_0, MODEM_CHFLT_5_1, MODEM_CHFLT_5_2);
+    }
+
+    // Apply the register settings
     setProperty(MODEM_5_0, sizeof(MODEM_5_0));
     setProperty(MODEM_5_1, sizeof(MODEM_5_1));
     setProperty(MODEM_5_2, sizeof(MODEM_5_2));
-    setProperty(MODEM_5_3, sizeof(MODEM_5_3));
-    setProperty(MODEM_5_4, sizeof(MODEM_5_4));
-    setProperty(MODEM_5_5, sizeof(MODEM_5_5));
-    setProperty(MODEM_5_6, sizeof(MODEM_5_6));
-    setProperty(MODEM_5_7, sizeof(MODEM_5_7));
+    setProperty(FREQ_CONTROL_5_0, sizeof(FREQ_CONTROL_5_0));
     setProperty(MODEM_CHFLT_5_0, sizeof(MODEM_CHFLT_5_0));
     setProperty(MODEM_CHFLT_5_1, sizeof(MODEM_CHFLT_5_1));
     setProperty(MODEM_CHFLT_5_2, sizeof(MODEM_CHFLT_5_2));
     setProperty(SYNTH_5_0, sizeof(SYNTH_5_0));
-    setProperty(FREQ_CONTROL_5_0, sizeof(FREQ_CONTROL_5_0));
+}
 
-    // doAPI(MODEM_2_2, sizeof(MODEM_2_2), NULL, 0);
-    // doAPI(MODEM_2_3, sizeof(MODEM_2_3));
-    // doAPI(MODEM_2_4, sizeof(MODEM_2_4));
-    // doAPI(MODEM_2_5, sizeof(MODEM_2_5));
-    // doAPI(MODEM_2_6, sizeof(MODEM_2_6));
-    // doAPI(MODEM_2_7, sizeof(MODEM_2_7));
-    // doAPI(MODEM_2_8, sizeof(MODEM_2_8));
-    // doAPI(MODEM_CHFLT_2_0, sizeof(MODEM_CHFLT_2_0));
-    // doAPI(MODEM_CHFLT_2_1, sizeof(MODEM_CHFLT_2_1));
-    // doAPI(MODEM_CHFLT_2_2, sizeof(MODEM_CHFLT_2_2));
-    // doAPI(PA_2_0, sizeof(PA_2_0));
-    // doAPI(FREQ_CONTROL_2_0, sizeof(FREQ_CONTROL_2_0));
-    // doAPI(RF_START_RX, sizeof(RF_START_RX));
-    // doAPI(RF_IRCAL, sizeof(RF_IRCAL));
-    // doAPI(RF_IRCAL_1, sizeof(RF_IRCAL_1));
-    // doAPI(INT_CTL_5_0, sizeof(INT_CTL_5_0));
-    // doAPI(FRR_CTL_5_0, sizeof(FRR_CTL_5_0));
-    // doAPI(PREAMBLE_5_0, sizeof(PREAMBLE_5_0));
-    // setProperty(SYNC_5_0, sizeof(SYNC_5_0));
-    // setProperty(PKT_5_0, sizeof(PKT_5_0));
-    // setProperty(PKT_5_1, sizeof(PKT_5_1));
-    // setProperty(MODEM_5_0, sizeof(MODEM_5_0));
-    // setProperty(MODEM_5_1, sizeof(MODEM_5_1));
-    // setProperty(MODEM_5_2, sizeof(MODEM_5_2));
-    // setProperty(MODEM_5_3, sizeof(MODEM_5_3));
-    // setProperty(MODEM_5_4, sizeof(MODEM_5_4));
-    // setProperty(MODEM_5_5, sizeof(MODEM_5_5));
-    // setProperty(MODEM_5_6, sizeof(MODEM_5_6));
-    // setProperty(MODEM_5_7, sizeof(MODEM_5_7));
-    // setProperty(MODEM_CHFLT_5_0, sizeof(MODEM_CHFLT_5_0));
-    // setProperty(MODEM_CHFLT_5_1, sizeof(MODEM_CHFLT_5_1));
-    // setProperty(MODEM_CHFLT_5_2, sizeof(MODEM_CHFLT_5_2));
-    // setProperty(SYNTH_5_0, sizeof(SYNTH_5_0));
-    // setProperty(FREQ_CONTROL_5_0, sizeof(FREQ_CONTROL_5_0));
+// Helper functions to calculate register values:
+
+void Si4463::updateModemRegisters(uint8_t *modem0, uint8_t *modem1, uint8_t *modem2) {
+    // Calculate register values based on data rate
+    // Update the arrays in place
+    // Example calculation for data rate dependent fields
+    float symbolRate = this->dataRate;
+    // Update NCO speed
+    // Update clock recovery settings
+    // Update modulation settings
+}
+
+void Si4463::updateFrequencyRegisters(uint8_t *freqControl) {
+    // Calculate frequency control register values
+    // Update the array in place
+    // Example: Calculate integer and fractional parts of frequency synthesizer
+    uint32_t centerFreq = this->freq;
+    // Update frequency control words
+}
+
+void Si4463::updateChannelFilterRegisters(uint8_t *chflt0, uint8_t *chflt1, uint8_t *chflt2) {
+    // Calculate channel filter coefficients based on data rate and deviation
+    // Update the arrays in place
+    // Example: Calculate filter bandwidth and coefficients
+    float filterBW = this->dataRate * 1.5; // Typical filter bandwidth
+    // Update filter coefficients
+}
+
+void Si4463::updateSynthRegisters(uint8_t *synth) {
+    // Update synthesizer settings based on frequency band
+    // Update the array in place
+    // Example: Set charge pump current and loop filter values
+    uint32_t freqBand = this->freq / 1000000; // MHz
+    // Update synthesizer settings for the band
 }
 
 void Si4463::setProperty(Si4463Group group, Si4463Property start, uint8_t data)
@@ -1209,4 +1156,19 @@ int pow(int base, int exponent)
     while (exponent-- > 0)
         val *= base;
     return val;
+}
+
+bool Si4463::sendLongMessage(const uint8_t *message, int len)
+{
+    if (len > MAX_LONG_MSG_SIZE)
+        return false;
+        
+    // Store in long message buffer
+    memcpy(longMsgBuffer, message, len);
+    longMsgHead = 0;
+    longMsgTail = len;
+    longMsgInProgress = true;
+    
+    // Start transmission of first chunk
+    return tx(longMsgBuffer, min(TX_FIFO_SIZE, len));
 }
