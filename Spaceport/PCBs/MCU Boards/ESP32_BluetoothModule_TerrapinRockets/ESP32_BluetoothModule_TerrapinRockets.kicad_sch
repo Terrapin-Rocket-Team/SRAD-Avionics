@@ -5,6 +5,203 @@
 	(uuid "84b167d8-6c07-4109-9e04-659a49fe09c6")
 	(paper "A4")
 	(lib_symbols
+		(symbol "Connector_Generic:Conn_01x04"
+			(pin_names
+				(offset 1.016) hide)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "J"
+				(at 0 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Conn_01x04"
+				(at 0 -7.62 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "connector"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "Connector*:*_1x??_*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "Conn_01x04_1_1"
+				(rectangle
+					(start -1.27 -4.953)
+					(end 0 -5.207)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 -2.413)
+					(end 0 -2.667)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 0.127)
+					(end 0 -0.127)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 2.667)
+					(end 0 2.413)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 3.81)
+					(end 1.27 -6.35)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(pin passive line
+					(at -5.08 2.54 0)
+					(length 3.81)
+					(name "Pin_1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 0 0)
+					(length 3.81)
+					(name "Pin_2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -2.54 0)
+					(length 3.81)
+					(name "Pin_3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -5.08 0)
+					(length 3.81)
+					(name "Pin_4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+		)
 		(symbol "Connector_Generic:Conn_01x06"
 			(pin_names
 				(offset 1.016) hide)
@@ -1668,10 +1865,6 @@
 		(uuid "7e884fa6-6d81-4ea0-8dd7-8426597357e9")
 	)
 	(no_connect
-		(at 166.37 87.63)
-		(uuid "86084bb2-bc42-4712-867c-b0c061d0d096")
-	)
-	(no_connect
 		(at 166.37 95.25)
 		(uuid "881431fc-53d0-4456-ab97-28cc39d8f117")
 	)
@@ -1690,14 +1883,6 @@
 	(no_connect
 		(at 135.89 97.79)
 		(uuid "bc72fe84-2093-461c-8102-cb58c09556ba")
-	)
-	(no_connect
-		(at 166.37 80.01)
-		(uuid "bca92e1b-fbdb-49f0-8789-800e6f5b95d3")
-	)
-	(no_connect
-		(at 166.37 82.55)
-		(uuid "bf82ef31-49ed-479e-920a-889d46f082dc")
 	)
 	(no_connect
 		(at 135.89 95.25)
@@ -1722,10 +1907,6 @@
 	(no_connect
 		(at 135.89 100.33)
 		(uuid "cb415deb-30db-4aae-b0cb-6430467ab988")
-	)
-	(no_connect
-		(at 166.37 85.09)
-		(uuid "d5e088fd-ebc8-4e29-80b3-78716407ca83")
 	)
 	(no_connect
 		(at 166.37 118.11)
@@ -1831,6 +2012,16 @@
 	)
 	(wire
 		(pts
+			(xy 204.47 50.8) (xy 204.47 46.99)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1754bb7f-2ea9-43d0-bcb1-1f3c91db978f")
+	)
+	(wire
+		(pts
 			(xy 102.87 142.24) (xy 242.57 142.24)
 		)
 		(stroke
@@ -1861,6 +2052,16 @@
 	)
 	(wire
 		(pts
+			(xy 181.61 50.8) (xy 181.61 46.99)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "35a6bc09-f2cc-4f2c-b560-84074ada6786")
+	)
+	(wire
+		(pts
 			(xy 119.38 54.61) (xy 119.38 55.88)
 		)
 		(stroke
@@ -1888,6 +2089,16 @@
 			(type default)
 		)
 		(uuid "391ea220-5d37-4c91-b4b6-b179e3a1e374")
+	)
+	(wire
+		(pts
+			(xy 194.31 46.99) (xy 194.31 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3d32d92e-fed3-41b3-87bd-27744266f8a8")
 	)
 	(wire
 		(pts
@@ -1941,6 +2152,16 @@
 	)
 	(wire
 		(pts
+			(xy 204.47 46.99) (xy 196.85 46.99)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ecd00ce-512e-44fc-aeba-8f7635eab219")
+	)
+	(wire
+		(pts
 			(xy 231.14 121.92) (xy 240.03 121.92)
 		)
 		(stroke
@@ -1948,6 +2169,66 @@
 			(type default)
 		)
 		(uuid "6057f186-4b4a-4bd8-bf4c-7bf0795055b6")
+	)
+	(wire
+		(pts
+			(xy 181.61 85.09) (xy 181.61 58.42)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "667bb2c0-3194-4b58-9469-ccf956b2afb4")
+	)
+	(wire
+		(pts
+			(xy 189.23 80.01) (xy 189.23 58.42)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "68814a48-d231-45d7-b6bc-adcfbf216d60")
+	)
+	(wire
+		(pts
+			(xy 191.77 50.8) (xy 191.77 46.99)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6f16fe02-b480-499c-941c-05d13149be5a")
+	)
+	(wire
+		(pts
+			(xy 166.37 82.55) (xy 196.85 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "710dd620-9010-4149-94a1-bffdfe7f7fbe")
+	)
+	(wire
+		(pts
+			(xy 196.85 50.8) (xy 194.31 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7986a577-ad8e-4cd9-ba51-960cf69c2335")
+	)
+	(wire
+		(pts
+			(xy 166.37 85.09) (xy 181.61 85.09)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7d646e0a-3a21-4b59-9216-8b033b01b0cc")
 	)
 	(wire
 		(pts
@@ -1991,6 +2272,16 @@
 	)
 	(wire
 		(pts
+			(xy 166.37 87.63) (xy 204.47 87.63)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8bdbe4aa-e886-411a-ae49-557ee8c11b26")
+	)
+	(wire
+		(pts
 			(xy 242.57 142.24) (xy 242.57 132.08)
 		)
 		(stroke
@@ -1998,6 +2289,26 @@
 			(type default)
 		)
 		(uuid "8c5ec010-d024-4e0b-aac8-e1139b044f9a")
+	)
+	(wire
+		(pts
+			(xy 181.61 46.99) (xy 189.23 46.99)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ac92e2fc-e669-4ddf-aa8a-003f8742decf")
+	)
+	(wire
+		(pts
+			(xy 204.47 87.63) (xy 204.47 58.42)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b45db87b-73a9-471f-99ff-29e4f6fec723")
 	)
 	(wire
 		(pts
@@ -2018,6 +2329,16 @@
 			(type default)
 		)
 		(uuid "c38f7110-8064-45e0-8ae1-72b1ebffa4ec")
+	)
+	(wire
+		(pts
+			(xy 196.85 82.55) (xy 196.85 58.42)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "defaa17c-f4ef-40f1-9fb6-77a3a6364f86")
 	)
 	(wire
 		(pts
@@ -2061,6 +2382,16 @@
 	)
 	(wire
 		(pts
+			(xy 189.23 50.8) (xy 191.77 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f16598b4-55ae-4b4f-ace8-90390a508f83")
+	)
+	(wire
+		(pts
 			(xy 133.35 64.77) (xy 135.89 64.77)
 		)
 		(stroke
@@ -2078,6 +2409,16 @@
 			(type default)
 		)
 		(uuid "f8c6c38b-8082-4898-a87f-83578d016dbf")
+	)
+	(wire
+		(pts
+			(xy 166.37 80.01) (xy 189.23 80.01)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fc14dab7-786b-467e-b5ae-b598a0c69e71")
 	)
 	(text_box "Use boot control pins with caution:\n0, 2, 5, 12, 15\n\nIO0: Avoid device connections\nIO2: Avoid external pull ups - will cause bootloader to fail\nIO5: Has built pullup at POR\nIO12: Avoid external pullups - will cause bootloader to fail\nIO15: Has builtin pullup at POR\n\nADC2 is not available when usign WiFi"
 		(exclude_from_sim no)
@@ -2137,6 +2478,16 @@
 			(justify left bottom)
 		)
 		(uuid "b0876a66-8340-40d3-8e0b-22befdbd9d0e")
+	)
+	(label "JTAG Connection"
+		(at 171.45 33.02 0)
+		(effects
+			(font
+				(size 3.81 3.81)
+			)
+			(justify left bottom)
+		)
+		(uuid "ba75a68b-f92c-4642-88cb-c1860ef820f4")
 	)
 	(label "EN (GPIO Pin)"
 		(at 107.95 83.82 0)
@@ -2875,6 +3226,80 @@
 		)
 	)
 	(symbol
+		(lib_id "Connector_Generic:Conn_01x04")
+		(at 191.77 41.91 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "87037519-308e-4774-a4c1-d417ad810784")
+		(property "Reference" "J2"
+			(at 193.04 35.56 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "Conn_01x04"
+			(at 193.04 38.1 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Connector_JST:JST_EH_B4B-EH-A_1x04_P2.50mm_Vertical"
+			(at 191.77 41.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 191.77 41.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 191.77 41.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "a898f253-a72d-4a59-9785-30f9452096de")
+		)
+		(pin "4"
+			(uuid "90c7cce8-ac1d-4146-8b8e-23d34ba9f901")
+		)
+		(pin "1"
+			(uuid "53c1aaaa-8e4b-4dc1-beef-adfa3fa3f060")
+		)
+		(pin "3"
+			(uuid "c9dae439-0025-48c4-8ea0-f474ce79a604")
+		)
+		(instances
+			(project ""
+				(path "/84b167d8-6c07-4109-9e04-659a49fe09c6"
+					(reference "J2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 130.81 55.88 0)
 		(unit 1)
@@ -3208,6 +3633,76 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:R")
+		(at 189.23 54.61 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "cb58d567-4460-4e5c-9a05-31cf57e323e8")
+		(property "Reference" "R3"
+			(at 191.77 53.3399 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100"
+			(at 191.77 55.8799 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric_Pad0.72x0.64mm_HandSolder"
+			(at 187.452 54.61 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 189.23 54.61 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 189.23 54.61 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "d6fcbfd6-498e-4bbd-98e6-fd1250419292")
+		)
+		(pin "2"
+			(uuid "ff83ffa2-0c55-457e-a62e-3a9b84a5cd91")
+		)
+		(instances
+			(project "ESP32_BluetoothModule_TerrapinRockets"
+				(path "/84b167d8-6c07-4109-9e04-659a49fe09c6"
+					(reference "R3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 240.03 135.89 0)
 		(unit 1)
@@ -3268,6 +3763,146 @@
 			(project ""
 				(path "/84b167d8-6c07-4109-9e04-659a49fe09c6"
 					(reference "#PWR08")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 181.61 54.61 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "d385b563-be04-4377-84a8-8146d67e8dfc")
+		(property "Reference" "R2"
+			(at 184.15 53.3399 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100"
+			(at 184.15 55.8799 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric_Pad0.72x0.64mm_HandSolder"
+			(at 179.832 54.61 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 181.61 54.61 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 181.61 54.61 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "240a06fc-c023-4001-99f1-e408b5d8fecf")
+		)
+		(pin "2"
+			(uuid "c65e3fc6-778e-4ea2-b43f-a2a5cfde5d6b")
+		)
+		(instances
+			(project ""
+				(path "/84b167d8-6c07-4109-9e04-659a49fe09c6"
+					(reference "R2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 196.85 54.61 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "df51dd14-8371-4393-bf11-226d1066ecc5")
+		(property "Reference" "R4"
+			(at 199.39 53.3399 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100"
+			(at 199.39 55.8799 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric_Pad0.72x0.64mm_HandSolder"
+			(at 195.072 54.61 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 196.85 54.61 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 196.85 54.61 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "92834506-5cc3-4c5f-927a-40df280352d7")
+		)
+		(pin "2"
+			(uuid "397eeb91-f466-4eb3-9035-991570c30dd3")
+		)
+		(instances
+			(project "ESP32_BluetoothModule_TerrapinRockets"
+				(path "/84b167d8-6c07-4109-9e04-659a49fe09c6"
+					(reference "R4")
 					(unit 1)
 				)
 			)
@@ -3338,6 +3973,76 @@
 			(project ""
 				(path "/84b167d8-6c07-4109-9e04-659a49fe09c6"
 					(reference "C1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 204.47 54.61 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "f510724c-fda4-4828-ab5a-6d2e7f9b5763")
+		(property "Reference" "R5"
+			(at 207.01 53.3399 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100"
+			(at 207.01 55.8799 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric_Pad0.72x0.64mm_HandSolder"
+			(at 202.692 54.61 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 204.47 54.61 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 204.47 54.61 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "fe8c12d8-af4c-4557-9983-b99236ef0b16")
+		)
+		(pin "2"
+			(uuid "1da99027-7625-4029-8de0-6e70bd5b86c5")
+		)
+		(instances
+			(project "ESP32_BluetoothModule_TerrapinRockets"
+				(path "/84b167d8-6c07-4109-9e04-659a49fe09c6"
+					(reference "R5")
 					(unit 1)
 				)
 			)
