@@ -76,12 +76,10 @@ MMFSSystem sys(&config);
 
 void setup()
 {
-    Wire1.begin();
+    
+    sys.init();
     SPI.begin();
     SPI.setClockDivider(SPI_CLOCK_DIV2);
-    delay(1000);
-    getLogger().recordLogData(INFO_, TO_USB, "Initializing Avionics System.");
-    sys.init();
     bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
 
     // if (radio.begin())
@@ -101,7 +99,9 @@ double radio_last;
 void loop()
 {
     if(sys.update())
-        FreeMem();
+    {
+        //FreeMem();
+    }
     //radio.update();
 
     double time = millis();
