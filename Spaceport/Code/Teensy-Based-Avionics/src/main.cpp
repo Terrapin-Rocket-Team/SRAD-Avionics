@@ -13,10 +13,10 @@
 
 using namespace mmfs;
 
-MAX_M10S gps;
-mmfs::DPS310 baro1;
-mmfs::MS5611 baro2;
-mmfs::BMI088andLIS3MDL bno;
+MAX_M10S gps(0x42, &Wire1);
+mmfs::DPS310 baro1("DPS310", &Wire1);
+mmfs::MS5611 baro2("MS5611", &Wire1);
+mmfs::BMI088andLIS3MDL bno("BMI/LIS", &Wire1);
 
 APRSConfig aprsConfig = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
 uint8_t encoding[] = {7, 4, 4};
@@ -49,7 +49,7 @@ Si4463 radio(hwcfg, pincfg);
 Sensor *sensors[4] = {&gps, &bno, &baro1, &baro2};
 AvionicsKF kfilter;
 
-AvionicsState computer(sensors, sizeof(sensors), &kfilter); // = useKalmanFilter = true
+AvionicsState computer(sensors, 4, &kfilter); // = useKalmanFilter = true
 uint32_t radioTimer = millis();
 Pi rpi(RPI_PWR, RPI_VIDEO);
 
@@ -78,27 +78,24 @@ MMFSSystem sys(&config);
 
 void setup()
 {
+    Wire1.begin();
     SPI.begin();
     SPI.setClockDivider(SPI_CLOCK_DIV2);
-    Serial.begin(9600);
-    delay(3000);
-    Wire.begin();
-
-    getLogger().recordLogData(INFO_, "Initializing Avionics System.", TO_USB);
-
+    delay(1000);
+    getLogger().recordLogData(INFO_, TO_USB, "Initializing Avionics System.");
     sys.init();
     bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
 
-    if (radio.begin())
-    {
-        bb.onoff(BUZZER, 1000);
-        getLogger().recordLogData(ERROR_, "Radio initialized.");
-    }
-    else
-    {
-        bb.onoff(BUZZER, 200, 3);
-        getLogger().recordLogData(INFO_, "Radio failed to initialize.");
-    }
+    // if (radio.begin())
+    // {
+    //     bb.onoff(BUZZER, 1000);
+    //     getLogger().recordLogData(ERROR_, "Radio initialized.");
+    // }
+    // else
+    // {
+    //     bb.onoff(BUZZER, 200, 3);
+    //     getLogger().recordLogData(INFO_, "Radio failed to initialize.");
+    // }
 
     getLogger().recordLogData(INFO_, "Initialization Complete");
 }
@@ -106,7 +103,7 @@ double radio_last;
 void loop()
 {
     sys.update();
-    radio.update();
+    //radio.update();
 
     double time = millis();
     if (time - radio_last < 1000)
@@ -115,21 +112,21 @@ void loop()
     radio_last = time;
     msg.clear();
 
-    printf("%f\n", baro1.getAGLAltFt());
+    ///printf("%f\n", baro1.getAGLAltFt());
     aprs.alt = baro1.getAGLAltFt();
-    printf("%f\n", gps.getHeading());
+    //printf("%f\n", gps.getHeading());
     aprs.hdg = gps.getHeading();
-    printf("%f\n", gps.getPos().x());
+    //printf("%f\n", gps.getPos().x());
     aprs.lat = gps.getPos().x();
-    printf("%f\n", gps.getPos().y());
+    //printf("%f\n", gps.getPos().y());
     aprs.lng = gps.getPos().y();
-    printf("%f\n", computer.getVelocity().z());
+    //printf("%f\n", computer.getVelocity().z());
     aprs.spd = computer.getVelocity().z();
-    printf("%f\n", bno.getAngularVelocity().x());
+    //printf("%f\n", bno.getAngularVelocity().x());
     aprs.orient[0] = bno.getAngularVelocity().x();
-    printf("%f\n", bno.getAngularVelocity().y());
+    //printf("%f\n", bno.getAngularVelocity().y());
     aprs.orient[1] = bno.getAngularVelocity().y();
-    printf("%f\n", bno.getAngularVelocity().z());
+    //printf("%f\n", bno.getAngularVelocity().z());
     aprs.orient[2] = bno.getAngularVelocity().z();
     aprs.stateFlags.setEncoding(encoding, 3);
 
@@ -137,10 +134,10 @@ void loop()
     aprs.stateFlags.pack(arr);
     // aprs.stateFlags = (uint8_t) computer->getStage();
     msg.encode(&aprs);
-    radio.send(aprs);
-    Serial.println("Sent APRS Message");
-    Serial.flush();
-    bb.aonoff(BUZZER, 50);
+    //radio.send(aprs);
+    //Serial.println("Sent APRS Message");
+    //Serial.flush();
+    //bb.aonoff(BUZZER, 50);
     //  Serial1.write(msg.buf, msg.size);
     //  Serial1.write('\n');
 }
