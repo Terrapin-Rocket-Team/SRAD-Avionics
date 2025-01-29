@@ -13,10 +13,13 @@
 
 using namespace mmfs;
 
-MAX_M10S gps(0x42, &Wire1);
-mmfs::DPS310 baro1("DPS310", &Wire1);
-mmfs::MS5611 baro2("MS5611", &Wire1);
-mmfs::BMI088andLIS3MDL bno("BMI/LIS", &Wire1);
+MAX_M10S gps;
+mmfs::DPS310 baro1;
+mmfs::MS5611 baro2;
+mmfs::BMI088andLIS3MDL bno;
+Sensor *sensors[4] = {&gps, &bno, &baro1, &baro2};
+AvionicsKF kfilter;
+AvionicsState computer(sensors, 4, &kfilter);
 
 APRSConfig aprsConfig = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
 uint8_t encoding[] = {7, 4, 4};
@@ -45,11 +48,6 @@ Si4463PinConfig pincfg = {
 };
 
 Si4463 radio(hwcfg, pincfg);
-
-Sensor *sensors[4] = {&gps, &bno, &baro1, &baro2};
-AvionicsKF kfilter;
-
-AvionicsState computer(sensors, 4, &kfilter); // = useKalmanFilter = true
 uint32_t radioTimer = millis();
 Pi rpi(RPI_PWR, RPI_VIDEO);
 
@@ -102,7 +100,8 @@ void setup()
 double radio_last;
 void loop()
 {
-    sys.update();
+    if(sys.update())
+        FreeMem();
     //radio.update();
 
     double time = millis();
