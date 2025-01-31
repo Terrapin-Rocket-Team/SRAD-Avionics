@@ -70,7 +70,9 @@ MMFSConfig config = MMFSConfig()
                         .withBBPin(32)
                         .withBuzzerPin(33)
                         .withState(&computer)
-                        .withUsingSensorBiasCorrection(true);
+                        .withUsingSensorBiasCorrection(true)
+                        .withUpdateRate(20)
+                        .withBBAsync(true, 50);
 
 MMFSSystem sys(&config);
 
@@ -109,34 +111,33 @@ void loop()
         return;
 
     radio_last = time;
-    msg.clear();
+    // msg.clear();
 
-    ///printf("%f\n", baro1.getAGLAltFt());
-    aprs.alt = baro1.getAGLAltFt();
-    //printf("%f\n", gps.getHeading());
-    aprs.hdg = gps.getHeading();
-    //printf("%f\n", gps.getPos().x());
-    aprs.lat = gps.getPos().x();
-    //printf("%f\n", gps.getPos().y());
-    aprs.lng = gps.getPos().y();
-    //printf("%f\n", computer.getVelocity().z());
-    aprs.spd = computer.getVelocity().z();
-    //printf("%f\n", bno.getAngularVelocity().x());
-    aprs.orient[0] = bno.getAngularVelocity().x();
-    //printf("%f\n", bno.getAngularVelocity().y());
-    aprs.orient[1] = bno.getAngularVelocity().y();
-    //printf("%f\n", bno.getAngularVelocity().z());
-    aprs.orient[2] = bno.getAngularVelocity().z();
-    aprs.stateFlags.setEncoding(encoding, 3);
+    // ///printf("%f\n", baro1.getAGLAltFt());
+    // aprs.alt = baro1.getAGLAltFt();
+    // //printf("%f\n", gps.getHeading());
+    // aprs.hdg = gps.getHeading();
+    // //printf("%f\n", gps.getPos().x());
+    // aprs.lat = gps.getPos().x();
+    // //printf("%f\n", gps.getPos().y());
+    // aprs.lng = gps.getPos().y();
+    // //printf("%f\n", computer.getVelocity().z());
+    // aprs.spd = computer.getVelocity().z();
+    // //printf("%f\n", bno.getAngularVelocity().x());
+    // aprs.orient[0] = bno.getAngularVelocity().x();
+    // //printf("%f\n", bno.getAngularVelocity().y());
+    // aprs.orient[1] = bno.getAngularVelocity().y();
+    // //printf("%f\n", bno.getAngularVelocity().z());
+    // aprs.orient[2] = bno.getAngularVelocity().z();
+    // //aprs.stateFlags.setEncoding(encoding, 3);
 
-    uint8_t arr[] = {(uint8_t)(int)baro1.getTemp(), (uint8_t)computer.getStage(), (uint8_t)gps.getFixQual()};
-    aprs.stateFlags.pack(arr);
-    // aprs.stateFlags = (uint8_t) computer->getStage();
-    msg.encode(&aprs);
-    //radio.send(aprs);
-    //Serial.println("Sent APRS Message");
-    //Serial.flush();
-    //bb.aonoff(BUZZER, 50);
-    //  Serial1.write(msg.buf, msg.size);
-    //  Serial1.write('\n');
+   // uint8_t arr[] = {(uint8_t)(int)baro1.getTemp(), (uint8_t)computer.getStage(), (uint8_t)gps.getFixQual()};
+    //aprs.stateFlags.pack(arr);
+    //aprs.stateFlags = (uint8_t) computer.getStage();
+    //msg.encode(&aprs);
+    // radio.send(aprs);
+    Serial.printf("Sent APRS Message; %f\n", baro1.getAGLAltFt());
+    bb.aonoff(BUZZER, 50);
+    //Serial1.write(msg.buf, msg.size);
+    //Serial1.write('\n');
 }
