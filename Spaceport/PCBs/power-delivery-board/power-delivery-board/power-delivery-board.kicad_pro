@@ -51,7 +51,13 @@
           "min_clearance": 0.5
         }
       },
-      "diff_pair_dimensions": [],
+      "diff_pair_dimensions": [
+        {
+          "gap": 0.0,
+          "via_gap": 0.0,
+          "width": 0.0
+        }
+      ],
       "drc_exclusions": [],
       "meta": {
         "version": 2
@@ -171,7 +177,9 @@
           "td_width_to_size_filter_ratio": 0.9
         }
       ],
-      "track_widths": [],
+      "track_widths": [
+        0.0
+      ],
       "tuning_pattern_settings": {
         "diff_pair_defaults": {
           "corner_radius_percentage": 80,
@@ -198,7 +206,12 @@
           "spacing": 0.6
         }
       },
-      "via_dimensions": [],
+      "via_dimensions": [
+        {
+          "diameter": 0.0,
+          "drill": 0.0
+        }
+      ],
       "zones_allow_external_fillets": false
     },
     "ipc2581": {
@@ -452,6 +465,40 @@
         "via_diameter": 0.6,
         "via_drill": 0.3,
         "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "High Power",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.635,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "Power",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.508,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "wire_width": 6
       }
     ],
     "meta": {
@@ -459,13 +506,33 @@
     },
     "net_colors": null,
     "netclass_assignments": {
-      "FB": "High Amp",
-      "GND": "High Amp",
-      "Net-(U6-BST)": "High Amp",
-      "Net-(U6-INTVCC)": "High Amp",
-      "Net-(U6-SW)": "High Amp",
-      "VIN": "High Amp",
-      "VOUT8": "High Amp"
+      "D+": "Default",
+      "D-": "Default",
+      "FB": "High Power",
+      "GND": "Power",
+      "Net-(P1-D+)": "Default",
+      "Net-(P1-D-)": "Default",
+      "Net-(U1-VFB)": "Power",
+      "Net-(U2-VFB)": "Power",
+      "Net-(U3-VFB)": "Power",
+      "Net-(U6-BST)": "High Power",
+      "Net-(U6-INTVCC)": "High Power",
+      "Net-(U6-RT)": "High Power",
+      "Net-(U7-SW)": "Power",
+      "Net-(U7-VIN)": "Power",
+      "Net-(U8-SW)": "Power",
+      "Net-(U8-VIN)": "Power",
+      "VBUS": "High Power",
+      "VIN": "Power",
+      "VOU1": "Power",
+      "VOUT1": "Power",
+      "VOUT2": "Power",
+      "VOUT3": "Power",
+      "VOUT4": "Power",
+      "VOUT5": "Power",
+      "VOUT6": "Power",
+      "VOUT7": "Power",
+      "VOUT8": "Power"
     },
     "netclass_patterns": []
   },
