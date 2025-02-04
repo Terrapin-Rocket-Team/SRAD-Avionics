@@ -178,7 +178,10 @@
         }
       ],
       "track_widths": [
-        0.0
+        0.0,
+        0.15,
+        0.2,
+        0.25
       ],
       "tuning_pattern_settings": {
         "diff_pair_defaults": {
@@ -492,6 +495,23 @@
         "line_style": 0,
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
+        "name": "MPower",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.35,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
         "name": "Power",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "schematic_color": "rgba(0, 0, 0, 0.000)",
@@ -509,7 +529,7 @@
       "D+": "Default",
       "D-": "Default",
       "FB": "High Power",
-      "GND": "Power",
+      "GND": "High Power",
       "Net-(P1-D+)": "Default",
       "Net-(P1-D-)": "Default",
       "Net-(U1-VFB)": "Power",
@@ -517,22 +537,21 @@
       "Net-(U3-VFB)": "Power",
       "Net-(U6-BST)": "High Power",
       "Net-(U6-INTVCC)": "High Power",
-      "Net-(U6-RT)": "High Power",
-      "Net-(U7-SW)": "Power",
-      "Net-(U7-VIN)": "Power",
-      "Net-(U8-SW)": "Power",
-      "Net-(U8-VIN)": "Power",
+      "Net-(U6-RT)": "Default",
+      "Net-(U7-SW)": "MPower",
+      "Net-(U7-VIN)": "Default",
+      "Net-(U8-SW)": "MPower",
+      "Net-(U8-VIN)": "Default",
       "VBUS": "High Power",
-      "VIN": "Power",
-      "VOU1": "Power",
+      "VIN": "MPower",
       "VOUT1": "Power",
       "VOUT2": "Power",
       "VOUT3": "Power",
-      "VOUT4": "Power",
-      "VOUT5": "Power",
+      "VOUT4": "Default",
+      "VOUT5": "MPower",
       "VOUT6": "Power",
       "VOUT7": "Power",
-      "VOUT8": "Power"
+      "VOUT8": "High Power"
     },
     "netclass_patterns": []
   },
