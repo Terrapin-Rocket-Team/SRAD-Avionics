@@ -6,6 +6,7 @@
 #include "AvionicsKF.h"
 #include "RadioMessage.h"
 #include "Si4463.h"
+#include "AviEventListener.h"
 #include <MMFS.h>
 
 #define RPI_PWR 0
@@ -38,13 +39,13 @@ Si4463HardwareConfig hwcfg = {
 
 Si4463PinConfig pincfg = {
     &SPI, // spi bus to use
-    8,    // cs
-    6,    // sdn
-    7,    // irq
-    9,    // gpio0
-    10,   // gpio1
-    4,    // random pin - gpio2 is not connected
-    5,    // random pin - gpio3 is not connected
+    10,    // cs
+    7,    // sdn
+    24,    // irq
+    26,    // gpio0
+    25,   // gpio1
+    8,    // random pin - gpio2 is not connected
+    9,    // random pin - gpio3 is not connected
 };
 
 Si4463 radio(hwcfg, pincfg);
@@ -67,8 +68,8 @@ void FreeMem()
 
 MMFSConfig config = MMFSConfig()
                         .withBBPin(LED_BUILTIN)
-                        .withBBPin(32)
-                        .withBuzzerPin(33)
+                        .withBBPin(17)
+                        .withBuzzerPin(32)
                         .withState(&computer)
                         .withUsingSensorBiasCorrection(true)
                         .withUpdateRate(20)
@@ -76,24 +77,26 @@ MMFSConfig config = MMFSConfig()
 
 MMFSSystem sys(&config);
 
+AviEventLister listener;
+
 void setup()
 {
-    Serial1.begin(115200);
+    // Serial1.begin(115200);
     sys.init();
-    // SPI.begin();
-    // SPI.setClockDivider(SPI_CLOCK_DIV2);
-    bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
+    SPI.begin();
+    SPI.setClockDivider(SPI_CLOCK_DIV2);
+    bb.aonoff(17, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
 
-    // if (radio.begin())
-    // {
-    //     bb.onoff(BUZZER, 1000);
-    //     getLogger().recordLogData(ERROR_, "Radio initialized.");
-    // }
-    // else
-    // {
-    //     bb.onoff(BUZZER, 200, 3);
-    //     getLogger().recordLogData(INFO_, "Radio failed to initialize.");
-    // }
+    if (radio.begin())
+    {
+        bb.onoff(BUZZER, 1000);
+        getLogger().recordLogData(ERROR_, "Radio initialized.");
+    }
+    else
+    {
+        bb.onoff(BUZZER, 200, 3);
+        getLogger().recordLogData(INFO_, "Radio failed to initialize.");
+    }
 
     getLogger().recordLogData(INFO_, "Initialization Complete");
 }
@@ -104,7 +107,7 @@ void loop()
     {
         // FreeMem();
     }
-    // radio.update();
+    radio.update();
 
     double time = millis();
     if (time - radio_last < 1000)
@@ -129,15 +132,15 @@ void loop()
     aprs.orient[1] = bno.getAngularVelocity().y();
     // printf("%f\n", bno.getAngularVelocity().z());
     aprs.orient[2] = bno.getAngularVelocity().z();
-    // aprs.stateFlags.setEncoding(encoding, 3);
+    aprs.stateFlags.setEncoding(encoding, 3);
 
     uint8_t arr[] = {(uint8_t)(int)baro1.getTemp(), (uint8_t)computer.getStage(), (uint8_t)gps.getFixQual()};
     aprs.stateFlags.pack(arr);
     // aprs.stateFlags = (uint8_t) computer.getStage();
     msg.encode(&aprs);
-    // radio.send(aprs);
-    Serial.printf("Sent APRS Message; %f\n", baro1.getAGLAltFt());
+    radio.send(aprs);
+    Serial.printf("%0.3f - Sent APRS Message; %f   |   %d\n", time / 1000.0, baro1.getAGLAltFt(), gps.getFixQual());
     bb.aonoff(BUZZER, 50);
-    Serial1.write(msg.buf, msg.size);
-    Serial1.write('\n');
+    // Serial1.write(msg.buf, msg.size);
+    // Serial1.write('\n');
 }
