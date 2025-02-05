@@ -15,6 +15,8 @@ Pi::Pi(int pinCmd, int pinResp)
 }
 
 void Pi::startRec(){
+    if(recReqst)
+        return;
     recReqst = true;
     recAkn = false;
     digitalWrite(this->pinCmd, HIGH);
@@ -22,6 +24,8 @@ void Pi::startRec(){
 }
 
 void Pi::stopRec(){
+    if(!recReqst)
+        return;
     recReqst = false;
     recAkn = false;
     digitalWrite(this->pinCmd, LOW);
@@ -42,7 +46,7 @@ void Pi::check()
     }
     else if(!recAkn && !recReqst && !isRecording())
     {
-        recAkn = false;
+        recAkn = true;
         logger.recordLogData(mmfs::INFO_, "Recording stop acknowledged.");
     }
 }

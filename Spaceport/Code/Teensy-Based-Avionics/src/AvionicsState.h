@@ -12,6 +12,7 @@ public:
     AvionicsState(Sensor **sensors, int numSensors, LinearKalmanFilter *kfilter);
     void updateState(double newTime = -1) override;
     uint32_t getStage() { return stage; }
+    int getTimeSinceLastStage() { return currentTime - timeOfLastStage; }
 
     virtual const PackedType *getPackedOrder() const override;
     virtual const int getNumPackedDataPoints() const override;
