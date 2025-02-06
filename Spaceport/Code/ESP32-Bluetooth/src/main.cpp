@@ -20,14 +20,14 @@ class ReceiveCallback : public BLECharacteristicCallbacks {
 void setup() {
     Serial.begin(9600);
     BLEDevice::init("ESP32 Bluetooth Module");
-    BLEServer *pServer = BLEDevice::createServer();
+    BLEServer *pServer = BLEDevice::createServer(); // the bluetooth server
+
     BLEService *pService = pServer->createService(SERVICE_UUID);
     BLECharacteristic *firstCharacteristic = pService->createCharacteristic(
         CHARACTERISTIC_UUID,
         BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE
     );
 
-    // firstCharacteristic->setCallbacks()
     firstCharacteristic->setValue("Hello from ESP32");
     firstCharacteristic->setCallbacks(new ReceiveCallback());
 
