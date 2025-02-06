@@ -11,7 +11,7 @@ RotCam::RotCam() : stepper(AccelStepper::FULL4WIRE, STEPPER_PIN_1, STEPPER_PIN_3
     stepper.move(1);
     stepper.setAcceleration(ACCELERATION);
     stepper.setSpeed(SPEED);
-    stepsPerRevolution = 1625;
+    stepsPerRevolution = findStepsPerRevolution();
 }
 
 void RotCam::moveToAngle(float angle, bool positive)
@@ -65,4 +65,9 @@ int RotCam::findStepsPerRevolution()
 void RotCam::run()
 {
     stepper.run();
+}
+
+int RotCam::getStepsPerRevolution()
+{
+    return stepsPerRevolution;
 }

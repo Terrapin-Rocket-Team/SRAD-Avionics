@@ -1,3 +1,4 @@
+#include <SPI.h>
 #include <Arduino.h>
 #include "BMI088.h"
 
@@ -49,7 +50,7 @@ void FreeMem()
 }
 // Free memory debug function
 
-const int BUZZER_PIN = 33;
+const int BUZZER_PIN = LED_BUILTIN;
 const int BUILTIN_LED_PIN = LED_BUILTIN;
 int allowedPins[] = {BUILTIN_LED_PIN, BUZZER_PIN, 32};
 BlinkBuzz bb(allowedPins, 3, true);
@@ -66,10 +67,12 @@ void setup()
     Serial.begin(9600);
     Serial1.begin(460800);
     delay(3000);
+
+    printf("beginning setup\n");    
     Wire.begin();
     SENSOR_BIAS_CORRECTION_DATA_LENGTH = 2;
     SENSOR_BIAS_CORRECTION_DATA_IGNORE = 1;
-    computer = new AvionicsState(sensors, 4, &kfilter);
+    computer = new AvionicsState(sensors, 4, nullptr);
 
     psram = new PSRAM();
 
@@ -102,7 +105,6 @@ void setup()
     else
         logger.recordLogData(ERROR_, "PSRAM Failed to Initialize");
 
-    if (computer->init())
     if (computer->init(true))
     {
         logger.recordLogData(INFO_, "All Sensors Initialized");
@@ -114,8 +116,12 @@ void setup()
         bb.onoff(BUZZER_PIN, 200, 3);
     }
     logger.writeCsvHeader();
-    bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
+    //bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
     cam.home();
+    char logData[100];
+    snprintf(logData, 100, "Steps per revolution: %d", cam.getStepsPerRevolution());
+    logger.recordLogData(INFO_, logData);
+    rpi.startRec();
 }
 double radio_last;
 void loop()
@@ -132,7 +138,6 @@ void loop()
 
     last = time;
     computer->updateState();
-    printf("Alt: %f\n", baro1.getAGLAltFt());
     checkRotCam(computer->getStage(), computer->getVelocity().z());
     logger.recordFlightData();
     if (gps.getHasFirstFix())
@@ -189,36 +194,29 @@ void checkRotCam(int stage, int vertVel)
     if (lastStage == stage)
         return;
 
-    if (stage == 2)
+    if(stage == 2 && computer->getTimeSinceLastStage() > 3 && vertVel <= 50) // about to hit apogee, look at parachute
+    {
+        cam.moveToAngle(0);
+    }
+    else if (stage == 2) // start coasting, look to horizon
     {
         cam.moveToAngle(90);
     }
-    if (stage == 3)
+    else if (stage == 3 && computer->getTimeSinceLastStage() > 3) // start drogue, look at ground (upside down)
     {
         cam.moveToAngle(180);
     }
-    if (stage == 4)
-    {
-        cam.moveToAngle(360);
-    }
-}
-
-int lastStage = 0;
-void checkRotCam(int stage, int vertVel)
-{
-    if (lastStage == stage)
-        return;
-
-    if (stage == 2)
-    {
-        cam.moveToAngle(90);
-    }
-    if (stage == 3)
+    else if (stage == 4 && computer->getTimeSinceLastStage() > 3) // 5 sec after main, look at ground
     {
         cam.moveToAngle(180);
     }
-    if (stage == 4)
+    else if (stage == 4) // start main, look at chute
     {
         cam.moveToAngle(360);
+        
+    }
+    else if(stage == 6)
+    {
+        rpi.stopRec();
     }
 }

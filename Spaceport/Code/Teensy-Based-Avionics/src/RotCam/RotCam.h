@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include <AccelStepper.h>
-#define HOME_SENS_PIN 22
+#define HOME_SENS_PIN 23
 #define STEPPER_PIN_1 38
 #define STEPPER_PIN_2 39
 #define STEPPER_PIN_3 40
@@ -25,6 +25,7 @@ public:
     void home();
     int findStepsPerRevolution();
     void run();
+    int getStepsPerRevolution();
 
 
 };
