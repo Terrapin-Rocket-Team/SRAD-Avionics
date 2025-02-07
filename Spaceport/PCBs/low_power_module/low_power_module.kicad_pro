@@ -37,9 +37,9 @@
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 0.762,
-          "height": 1.524,
-          "width": 1.524
+          "drill": 0.3,
+          "height": 0.6,
+          "width": 0.6
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -51,7 +51,13 @@
           "min_clearance": 0.5
         }
       },
-      "diff_pair_dimensions": [],
+      "diff_pair_dimensions": [
+        {
+          "gap": 0.0,
+          "via_gap": 0.0,
+          "width": 0.0
+        }
+      ],
       "drc_exclusions": [],
       "meta": {
         "version": 2
@@ -171,7 +177,12 @@
           "td_width_to_size_filter_ratio": 0.9
         }
       ],
-      "track_widths": [],
+      "track_widths": [
+        0.0,
+        0.1524,
+        0.508,
+        1.2019
+      ],
       "tuning_pattern_settings": {
         "diff_pair_defaults": {
           "corner_radius_percentage": 80,
@@ -198,7 +209,12 @@
           "spacing": 0.6
         }
       },
-      "via_dimensions": [],
+      "via_dimensions": [
+        {
+          "diameter": 0.0,
+          "drill": 0.0
+        }
+      ],
       "zones_allow_external_fillets": false
     },
     "ipc2581": {
@@ -452,13 +468,105 @@
         "via_diameter": 0.6,
         "via_drill": 0.3,
         "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "50Ohm micro",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 1.2019,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.1524,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "Power",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.508,
+        "via_diameter": 0.635,
+        "via_drill": 0.3302,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.1524,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "Signal",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.1524,
+        "via_diameter": 0.635,
+        "via_drill": 0.3302,
+        "wire_width": 6
       }
     ],
     "meta": {
       "version": 3
     },
     "net_colors": null,
-    "netclass_assignments": null,
+    "netclass_assignments": {
+      "+3.3V": "Power",
+      "+3.3V1": "Power",
+      "CS": "Signal",
+      "GND": "Power",
+      "GPIO0": "Signal",
+      "GPIO1": "Signal",
+      "GPIO2": "Signal",
+      "GPIO3": "Signal",
+      "IRQ": "Signal",
+      "MISO": "Signal",
+      "MOSI": "Signal",
+      "Net-(C0-Pad2)": "50Ohm micro",
+      "Net-(CB3-Pad2)": "50Ohm micro",
+      "Net-(CM1-Pad1)": "50Ohm micro",
+      "Net-(CS1-A)": "Signal",
+      "Net-(D1-A)": "Signal",
+      "Net-(D2-A)": "Signal",
+      "Net-(D3-A)": "Signal",
+      "Net-(D4-A)": "Power",
+      "Net-(GPIO0-A)": "Signal",
+      "Net-(GPIO1-A)": "Signal",
+      "Net-(GPIO2-A)": "Signal",
+      "Net-(GPIO3-A)": "Signal",
+      "Net-(IRQ1-A)": "Signal",
+      "Net-(J1-In)": "50Ohm micro",
+      "Net-(J2-Pin_3)": "Power",
+      "Net-(RFS1-RF1)": "50Ohm micro",
+      "Net-(RFS1-RF2)": "50Ohm micro",
+      "Net-(RFS1-RFC)": "50Ohm micro",
+      "Net-(SDN1-A)": "Signal",
+      "Net-(TCXO2-OUTPUT)": "Signal",
+      "Net-(VCC1-A)": "Power",
+      "RF1": "50Ohm micro",
+      "RF2": "50Ohm micro",
+      "RXn": "50Ohm micro",
+      "RXp": "50Ohm micro",
+      "SCLK": "Signal",
+      "SDN": "Signal",
+      "TX": "50Ohm micro",
+      "XO_IN": "Signal"
+    },
     "netclass_patterns": []
   },
   "pcbnew": {
@@ -466,7 +574,7 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "plot": "",
+      "plot": "lower_power_module_v1/",
       "pos_files": "",
       "specctra_dsn": "",
       "step": "",
