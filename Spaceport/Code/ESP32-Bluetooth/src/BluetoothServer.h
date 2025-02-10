@@ -13,6 +13,9 @@ private:
   const std::string &name;
   BLEServer *pServer = nullptr;
   BLEService *pService = nullptr;
+  // Max size that a characteristic can hold is 512 bytes
+  // might have to develop a system of splitting data
+  // over multiple characteristics if necessary.
   BLECharacteristic *pCharacteristic = nullptr;
   BLEAdvertising *pAdvertising = nullptr;
 public:
