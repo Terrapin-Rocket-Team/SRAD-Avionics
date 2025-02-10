@@ -134,7 +134,7 @@ public:
     const char *getData();
     void setData(const char data[80]);
 
-    virtual bool decode(char *message);
+    virtual bool decode(const char *message);
     virtual const char *encode();
     virtual void toString(char *str);
 
@@ -164,7 +164,7 @@ public:
     const char *getRawBody();
     APRSBody *getBody();
 
-    virtual bool decode(char *message);
+    virtual bool decode(const char *message);
     virtual void encode(char *message);
     virtual void toString(char *str);
 
