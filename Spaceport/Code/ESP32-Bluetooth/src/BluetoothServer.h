@@ -16,7 +16,8 @@ private:
   // Max size that a characteristic can hold is 512 bytes
   // might have to develop a system of splitting data
   // over multiple characteristics if necessary.
-  BLECharacteristic *pCharacteristic = nullptr;
+  BLECharacteristic *pRxCharacteristic = nullptr;
+  BLECharacteristic *pTxCharacteristic = nullptr;
   BLEAdvertising *pAdvertising = nullptr;
 public:
   explicit BluetoothServer(const std::string &name);

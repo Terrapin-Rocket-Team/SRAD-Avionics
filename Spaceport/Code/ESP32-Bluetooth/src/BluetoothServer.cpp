@@ -10,11 +10,16 @@ BluetoothServer::BluetoothServer(const std::string &name) : name(name) {
     pServer = BLEDevice::createServer();
     //TODO: There should probably be a better way to do these UUIDs
     pService = pServer->createService(name + "-service");
-    pCharacteristic = pService->createCharacteristic(
+    pRxCharacteristic = pService->createCharacteristic(
         name + "-characteristic0",
-        BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE
+        BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY
     );
-    pCharacteristic->setCallbacks(this);
+    pTxCharacteristic = pService->createCharacteristic(
+        name + "-characteristic1",
+        BLECharacteristic::PROPERTY_WRITE
+    );
+    pRxCharacteristic->setCallbacks(this);
+    pTxCharacteristic->setCallbacks(this);
 }
 
 BluetoothServer::~BluetoothServer() {
