@@ -11,7 +11,7 @@ BluetoothServer::BluetoothServer(const std::string &name) : name(name) {
     //TODO: There should probably be a better way to do these UUIDs
     pService = pServer->createService(name + "-service");
     pCharacteristic = pService->createCharacteristic(
-        name + "-characterisitc0",
+        name + "-characteristic0",
         BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE
     );
     pCharacteristic->setCallbacks(this);
