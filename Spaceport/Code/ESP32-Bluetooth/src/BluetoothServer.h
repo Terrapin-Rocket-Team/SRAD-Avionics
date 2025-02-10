@@ -5,10 +5,26 @@
 #ifndef BLUETOOTHSERVER_H
 #define BLUETOOTHSERVER_H
 
+#include <string>
+#include <BLEDevice.h>
 
+class BluetoothServer : public BLECharacteristicCallbacks {
+private:
+  const std::string &name;
+  BLEServer *pServer;
+  BLEService *pService;
+  BLECharacteristic *pCharacteristic;
+  BLEAdvertising *pAdvertising;
+public:
+  explicit BluetoothServer(const std::string &name);
+  ~BluetoothServer() override;
 
-class BluetoothServer {
+  bool start();
 
+  void onRead(BLECharacteristic *pCharacteristic, esp_ble_gatts_cb_param_t *param) override;
+  void onWrite(BLECharacteristic *pCharacteristic, esp_ble_gatts_cb_param_t *param) override;
+  void onNotify(BLECharacteristic *pCharacteristic) override;
+  void onStatus(BLECharacteristic *pCharacteristic, Status s, uint32_t code) override;
 };
 
 
