@@ -11,10 +11,10 @@
 class BluetoothServer : public BLECharacteristicCallbacks {
 private:
   const std::string &name;
-  BLEServer *pServer;
-  BLEService *pService;
-  BLECharacteristic *pCharacteristic;
-  BLEAdvertising *pAdvertising;
+  BLEServer *pServer = nullptr;
+  BLEService *pService = nullptr;
+  BLECharacteristic *pCharacteristic = nullptr;
+  BLEAdvertising *pAdvertising = nullptr;
 public:
   explicit BluetoothServer(const std::string &name);
   ~BluetoothServer() override;
