@@ -3993,16 +3993,16 @@
 		(uuid "bae53b5c-93fc-4245-ac98-4d32571fdbc3")
 	)
 	(junction
-		(at 250.19 76.2)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "be4044c3-f4cd-4785-8620-6fbe6e1cb68e")
-	)
-	(junction
 		(at 175.26 121.92)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "c0290d19-e198-47f5-8396-60d268a102d4")
+	)
+	(junction
+		(at 250.19 76.2)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "c24ea93b-2f20-4e4e-9fbf-8c4638934dbe")
 	)
 	(junction
 		(at 38.1 21.59)
@@ -4063,6 +4063,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "e09e9dff-f045-41c7-8eb6-ed3329b87c38")
+	)
+	(junction
+		(at 250.19 60.96)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "e3301721-a24e-4928-9200-fb595e0ee015")
 	)
 	(junction
 		(at 210.82 161.29)
@@ -8711,16 +8717,15 @@
 	)
 	(symbol
 		(lib_id "power:+5V")
-		(at 250.19 76.2 180)
+		(at 250.19 60.96 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "04027aaf-448b-407a-b093-8f6b12a98296")
 		(property "Reference" "#PWR032"
-			(at 250.19 72.39 0)
+			(at 250.19 64.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8729,15 +8734,16 @@
 			)
 		)
 		(property "Value" "+5V"
-			(at 250.19 81.28 0)
+			(at 247.904 57.404 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify left)
 			)
 		)
 		(property "Footprint" ""
-			(at 250.19 76.2 0)
+			(at 250.19 60.96 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8746,7 +8752,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 250.19 76.2 0)
+			(at 250.19 60.96 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8755,7 +8761,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 250.19 76.2 0)
+			(at 250.19 60.96 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12591,6 +12597,73 @@
 			(project "high-power-module"
 				(path "/fd00db32-824a-4d36-8ae2-c391ba092059"
 					(reference "GPIO3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 250.19 80.01 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "73bf8e9e-482f-4c4a-ab7d-587cab33076e")
+		(property "Reference" "CB5"
+			(at 246.38 79.248 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "0.1uF"
+			(at 246.38 81.788 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
+			(at 251.1552 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 250.19 80.01 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 250.19 80.01 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "4fbdd691-dd9c-460f-889a-72bf0824f4a4")
+		)
+		(pin "1"
+			(uuid "2d571c8f-6c63-4f52-aabb-b4d0dd24bdeb")
+		)
+		(instances
+			(project "high-power-module"
+				(path "/fd00db32-824a-4d36-8ae2-c391ba092059"
+					(reference "CB5")
 					(unit 1)
 				)
 			)
@@ -16740,6 +16813,72 @@
 			(project "high-power-module"
 				(path "/fd00db32-824a-4d36-8ae2-c391ba092059"
 					(reference "H1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 250.19 83.82 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "eb64b90c-6bfa-49c8-af3a-91bb22420876")
+		(property "Reference" "#PWR044"
+			(at 250.19 90.17 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 250.19 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 250.19 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 250.19 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 250.19 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "85ae1e00-9c7a-45a6-b0cf-ae015938acfa")
+		)
+		(instances
+			(project "high-power-module"
+				(path "/fd00db32-824a-4d36-8ae2-c391ba092059"
+					(reference "#PWR044")
 					(unit 1)
 				)
 			)
