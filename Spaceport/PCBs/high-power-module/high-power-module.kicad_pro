@@ -180,7 +180,7 @@
       "track_widths": [
         0.0,
         0.254,
-        0.508
+        0.3048
       ],
       "tuning_pattern_settings": {
         "diff_pair_defaults": {
@@ -446,14 +446,14 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "pa-test-board.kicad_pro",
+    "filename": "high-power-module.kicad_pro",
     "version": 1
   },
   "net_settings": {
     "classes": [
       {
         "bus_width": 12,
-        "clearance": 0.2,
+        "clearance": 0.15,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
@@ -470,7 +470,7 @@
       },
       {
         "bus_width": 12,
-        "clearance": 0.2,
+        "clearance": 0.15,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
@@ -480,14 +480,14 @@
         "name": "50Ohm micro",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 1.2019,
+        "track_width": 0.156464,
         "via_diameter": 0.6,
         "via_drill": 0.3,
         "wire_width": 6
       },
       {
         "bus_width": 12,
-        "clearance": 0.1524,
+        "clearance": 0.15,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
@@ -504,7 +504,7 @@
       },
       {
         "bus_width": 12,
-        "clearance": 0.1524,
+        "clearance": 0.15,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
@@ -525,22 +525,69 @@
     },
     "net_colors": null,
     "netclass_assignments": {
+      "+3.3V": "Power",
       "+5V": "Power",
+      "CS": "Signal",
       "GND": "Power",
+      "GPIO0": "Signal",
+      "GPIO1": "Signal",
+      "GPIO2": "Signal",
+      "GPIO3": "Signal",
+      "IRQ": "Signal",
+      "MISO": "Signal",
+      "MOSI": "Signal",
+      "Net-(3V3-K)": "Power",
+      "Net-(5V1-K)": "Power",
+      "Net-(C0-Pad2)": "50Ohm micro",
       "Net-(C1-Pad1)": "50Ohm micro",
       "Net-(C1-Pad2)": "50Ohm micro",
-      "Net-(C11-Pad2)": "50Ohm micro",
+      "Net-(C10-Pad2)": "50Ohm micro",
+      "Net-(C2-Pad2)": "50Ohm micro",
+      "Net-(C4-Pad2)": "Signal",
+      "Net-(C6-Pad2)": "50Ohm micro",
+      "Net-(CB4-Pad2)": "50Ohm micro",
+      "Net-(CM3-Pad1)": "50Ohm micro",
+      "Net-(CM3-Pad2)": "50Ohm micro",
+      "Net-(CM6-Pad1)": "50Ohm micro",
+      "Net-(CS1-A)": "Signal",
+      "Net-(CS1-K)": "Signal",
+      "Net-(GPIO0-A)": "Signal",
+      "Net-(GPIO0-K)": "Signal",
+      "Net-(GPIO1-A)": "Signal",
+      "Net-(GPIO1-K)": "Signal",
+      "Net-(GPIO2-A)": "Signal",
+      "Net-(GPIO2-K)": "Signal",
+      "Net-(GPIO3-A)": "Signal",
+      "Net-(GPIO3-K)": "Signal",
+      "Net-(IRQ1-A)": "Signal",
+      "Net-(IRQ1-K)": "Signal",
       "Net-(J2-In)": "50Ohm micro",
-      "Net-(J3-In)": "50Ohm micro",
-      "Net-(J4-Pin_1)": "Signal",
-      "Net-(J4-Pin_2)": "Signal",
-      "Net-(J4-Pin_3)": "Signal",
-      "Net-(J5-Pin_1)": "Signal",
+      "Net-(J4-Pin_2)": "Power",
+      "Net-(L2-Pad2)": "50Ohm micro",
       "Net-(PA1-Iref)": "Signal",
       "Net-(PA1-Vbias)": "Signal",
-      "Net-(R2-Pad2)": "Signal",
-      "RFin": "50Ohm micro",
-      "RFout": "50Ohm micro"
+      "Net-(R13-Pad2)": "Signal",
+      "Net-(RFS1-RF1)": "50Ohm micro",
+      "Net-(RFS1-RF2)": "50Ohm micro",
+      "Net-(RFS1-RFC)": "50Ohm micro",
+      "Net-(SDN1-A)": "Signal",
+      "Net-(SDN1-K)": "Signal",
+      "Net-(TCXO1-OUTPUT)": "Signal",
+      "Net-(U3-VOS)": "Power",
+      "Net-(VCC1-A)": "Power",
+      "Net-(VCC1-K)": "Power",
+      "Net-(VCC2-A)": "Power",
+      "Net-(VCC2-K)": "Power",
+      "PAin": "50Ohm micro",
+      "PAout": "50Ohm micro",
+      "RF1": "50Ohm micro",
+      "RF2": "50Ohm micro",
+      "RXn": "50Ohm micro",
+      "RXp": "50Ohm micro",
+      "SCLK": "Signal",
+      "SDN": "Signal",
+      "TX": "50Ohm micro",
+      "XO_IN": "Signal"
     },
     "netclass_patterns": []
   },
@@ -659,7 +706,7 @@
   },
   "sheets": [
     [
-      "0fa74a14-05c7-4c8e-a561-d248a69b216b",
+      "fd00db32-824a-4d36-8ae2-c391ba092059",
       "Root"
     ]
   ],
