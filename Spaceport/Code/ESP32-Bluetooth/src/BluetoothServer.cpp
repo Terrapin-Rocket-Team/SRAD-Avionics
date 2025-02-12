@@ -4,7 +4,7 @@
 
 #include "BluetoothServer.h"
 
-BluetoothServer::BluetoothServer(const std::string &name) : name(name) {
+BluetoothServer::BluetoothServer(const std::string &name, Stream &outSerial) : name(name), outSerial(outSerial) {
     BLEDevice::init(name);
 
     pServer = BLEDevice::createServer();
@@ -37,52 +37,54 @@ bool BluetoothServer::start() {
     return false;
 }
 
-bool BluetoothServer::send(Message &message) {
-    uint8_t buf[message.size];
-    message.get(buf);
-    send(buf, message.size);
+void BluetoothServer::update(Stream &inputSerial) {
+    if (!inputSerial.available()) return;
+
+    uint16_t size = 0;
+    inputSerial.readBytes(reinterpret_cast<char *>(&size), sizeof(uint16_t));
+
+    if (size != 0 && size <= MAX_MESSAGE_SIZE-sizeof(uint16_t)) {
+        uint8_t buffer[size];
+        inputSerial.readBytes(buffer, size);
+        send(buffer, size);
+    }
 }
 
-int BluetoothServer::read(Message &message) {
-    uint8_t buf[MAX_MESSAGE_SIZE];
-    *buf = *pRxCharacteristic->getData();
-    message.fill(buf, MAX_MESSAGE_SIZE);
-}
 
-bool BluetoothServer::send(uint8_t* data, size_t length) {
-    if (length <= MAX_MESSAGE_SIZE) {
-        pTxCharacteristic->setValue(data, length);
+
+bool BluetoothServer::send(uint8_t* data, uint16_t size) {
+    if (size <= MAX_MESSAGE_SIZE-sizeof(uint16_t)) {
+        //Encode size as uint_16t, then data
+        uint8_t buf[size+sizeof(uint16_t)];
+        buf[0] = size;
+        memcpy(&buf[sizeof(uint16_t)], data, size);
+
+        pTxCharacteristic->setValue(data, size+sizeof(uint16_t));
         return true;
     }
-    return false; //placeholder
+    return false;
 }
 
-int BluetoothServer::read(uint8_t *data, size_t length) {
-    *data = *pRxCharacteristic->getData();
-    return 1; //placeholder
+uint16_t BluetoothServer::read(uint8_t *data) {
+    uint16_t size = *reinterpret_cast<uint16_t *>(data);
+    *data = *(pRxCharacteristic->getData() + sizeof(uint16_t));
+    return size;
 }
 
 
-void BluetoothServer::onRead(BLECharacteristic *pCharacteristic, esp_ble_gatts_cb_param_t *param) {
-    //TODO: implement
-}
+void BluetoothServer::onRead(BLECharacteristic *pCharacteristic, esp_ble_gatts_cb_param_t *param) {}
 
 void BluetoothServer::onWrite(BLECharacteristic *pCharacteristic, esp_ble_gatts_cb_param_t *param) {
-    //received some data in RX
     if (pCharacteristic == pRxCharacteristic) {
-        Message message;
-        read(message);
-        uint8_t buf[message.size];
-        message.get(buf);
-
-        Serial.write(buf, message.size);
+        const uint16_t size = *reinterpret_cast<uint16_t *>(pRxCharacteristic->getData());
+        if (size <= MAX_MESSAGE_SIZE-sizeof(uint16_t)) {
+            outSerial.write(pRxCharacteristic->getData(), size);
+        } else {
+            //this is bad
+        }
     }
 }
 
-void BluetoothServer::onNotify(BLECharacteristic *pCharacteristic) {
-    //TODO: implement
-}
+void BluetoothServer::onNotify(BLECharacteristic *pCharacteristic) {}
 
-void BluetoothServer::onStatus(BLECharacteristic *pCharacteristic, Status s, uint32_t code) {
-    //TODO: implement
-}
+void BluetoothServer::onStatus(BLECharacteristic *pCharacteristic, Status s, uint32_t code) {}
