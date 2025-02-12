@@ -22,17 +22,17 @@ private:
   BLECharacteristic *pRxCharacteristic = nullptr;
   BLECharacteristic *pTxCharacteristic = nullptr;
   BLEAdvertising *pAdvertising = nullptr;
+  Stream &outSerial;
 public:
-  explicit BluetoothServer(const std::string &name);
+  explicit BluetoothServer(const std::string &namem, Stream &outSerial);
   ~BluetoothServer() override;
 
   bool start();
+  void update(Stream& inputSerial);
 
-  bool send(Message& message);
-  int read(Message &message);
+  bool send(uint8_t *data, uint16_t length);
+  uint16_t read(uint8_t *data);
 
-  bool send(uint8_t *data, size_t length);
-  int read(uint8_t *data, size_t length);
 
   void onRead(BLECharacteristic *pCharacteristic, esp_ble_gatts_cb_param_t *param) override;
   void onWrite(BLECharacteristic *pCharacteristic, esp_ble_gatts_cb_param_t *param) override;
