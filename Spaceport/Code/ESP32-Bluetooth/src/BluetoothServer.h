@@ -7,7 +7,7 @@
 
 #include <string>
 #include <BLEDevice.h>
-#include <Message.h>
+#include <Stream.h>
 
 #define MAX_MESSAGE_SIZE 512
 
