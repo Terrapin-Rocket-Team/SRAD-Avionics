@@ -12,6 +12,11 @@
 static BLEUUID bmeServiceUUID()
 */
 
+
+#include <BLERemoteCharacteristic.h>
+#include <BLERemoteService.h>
+
+
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
