@@ -24,9 +24,9 @@ def start_recording():
             "--width", "1080",
             "--height", "720",
             "--hdr", "auto",
-            "--framerate", "15"
+            "--framerate", "15",
             "--listen",
-            "-o", "tcp://10.0.3.205:5000"
+            "-o", "tcp://0.0.0.0:5000"
         ])
         recording = True
         GPIO.output(RESP_PIN, GPIO.HIGH)
@@ -46,7 +46,7 @@ try:
     start_recording()
 
     while True:
-        if GPIO.input(CMD_PIN) == GPIO.LOW:
+        if GPIO.input(CMD_PIN) == GPIO.HIGH:
             stop_recording()
         else:
             start_recording()
