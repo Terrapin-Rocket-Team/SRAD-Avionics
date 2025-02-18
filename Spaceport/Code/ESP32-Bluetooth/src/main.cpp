@@ -6,12 +6,46 @@
 #include<BLEDevice.h>
 #include <BluetoothServer.h>
 
+#define SERVER true
 
-BluetoothServer server("ESP32 BLE Server", Serial);
+#ifdef SERVER
+BluetoothServer server(Serial);
+#else
+//TODO: Implement
+#endif
+
 void setup() {
-    server.start();
+}
+
+void serverLoop() {
+    if (Serial.available()) {
+        uint8_t messageID = Serial.read();
+
+        switch (messageID) {
+            case INIT_MESSAGE:
+                std::string name = Serial.readString().c_str();
+                server.start(name);
+                break;
+            case DATA_MESSAGE:
+                if (server.isInitialized()) {
+                    server.update(Serial);
+                }
+                break;
+            default:
+                //unknown message
+                break;
+        }
+    }
+}
+
+void clientLoop() {
+   //TODO: Implement
 }
 
 void loop() {
-    server.update(Serial);
+#ifdef SERVER
+    serverLoop();
+#else
+    clientLoop();
+#endif
 }
