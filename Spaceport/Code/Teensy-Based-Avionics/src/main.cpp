@@ -4,33 +4,52 @@
 #include "AvionicsState.h"
 #include "Pi.h"
 #include "AvionicsKF.h"
-#include "DPS310.h"
-#include "MS5611F.h"
-#include "BMI088andLIS3MDL.h"
+#include "RadioMessage.h"
+#include "Si4463.h"
+#include <MMFS.h>
 
-#define BMP_ADDR_PIN 36
 #define RPI_PWR 0
 #define RPI_VIDEO 1
 
 using namespace mmfs;
 
-Logger logger(30, 30, false, SD_);
-
 MAX_M10S gps;
-DPS310 baro1;
+mmfs::DPS310 baro1;
 mmfs::MS5611 baro2;
-BMI088andLIS3MDL bno;
-
+mmfs::BMI088andLIS3MDL bno;
 Sensor *sensors[4] = {&gps, &bno, &baro1, &baro2};
 AvionicsKF kfilter;
+AvionicsState computer(sensors, 4, &kfilter);
 
-AvionicsState *computer; // = useKalmanFilter = true
+APRSConfig aprsConfig = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
+uint8_t encoding[] = {7, 4, 4};
+APRSTelem aprs(aprsConfig);
+
+Message msg;
+
+Si4463HardwareConfig hwcfg = {
+    MOD_2GFSK, // modulation
+    DR_500b,   // data rate
+    433e6,     // frequency (Hz)
+    127,       // tx power (127 = ~20dBm)
+    48,        // preamble length
+    16,        // required received valid preamble
+};
+
+Si4463PinConfig pincfg = {
+    &SPI, // spi bus to use
+    8,    // cs
+    6,    // sdn
+    7,    // irq
+    9,    // gpio0
+    10,   // gpio1
+    4,    // random pin - gpio2 is not connected
+    5,    // random pin - gpio3 is not connected
+};
+
+Si4463 radio(hwcfg, pincfg);
 uint32_t radioTimer = millis();
 Pi rpi(RPI_PWR, RPI_VIDEO);
-PSRAM *psram;
-ErrorHandler errorHandler;
-
-static double last = 0; // for better timing than "delay(100)"
 
 // Free memory debug function
 extern unsigned long _heap_start;
@@ -41,112 +60,84 @@ void FreeMem()
 {
     void *heapTop = malloc(500);
     Serial.print((long)heapTop);
-    Serial.print(" ");
+    Serial.print("\n");
     free(heapTop);
 }
 // Free memory debug function
 
-const int BUZZER_PIN = 33;
-const int BUILTIN_LED_PIN = LED_BUILTIN;
-int allowedPins[] = {BUILTIN_LED_PIN, BUZZER_PIN, 32};
-BlinkBuzz bb(allowedPins, 3, true);
+MMFSConfig config = MMFSConfig()
+                        .withBBPin(LED_BUILTIN)
+                        .withBBPin(32)
+                        .withBuzzerPin(33)
+                        .withState(&computer)
+                        .withUsingSensorBiasCorrection(true)
+                        .withUpdateRate(20)
+                        .withBBAsync(true, 50);
 
-const int UPDATE_RATE = 10;
-const int UPDATE_INTERVAL = 1000.0 / UPDATE_RATE;
+MMFSSystem sys(&config);
 
 void setup()
 {
-    Serial.begin(9600);
-    delay(3000);
-    Wire.begin();
-    SENSOR_BIAS_CORRECTION_DATA_LENGTH = 2;
-    SENSOR_BIAS_CORRECTION_DATA_IGNORE = 1;
-    computer = new AvionicsState(sensors, 4, nullptr);
+    Serial1.begin(115200);
+    sys.init();
+    // SPI.begin();
+    // SPI.setClockDivider(SPI_CLOCK_DIV2);
+    bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
 
-    psram = new PSRAM();
+    // if (radio.begin())
+    // {
+    //     bb.onoff(BUZZER, 1000);
+    //     getLogger().recordLogData(ERROR_, "Radio initialized.");
+    // }
+    // else
+    // {
+    //     bb.onoff(BUZZER, 200, 3);
+    //     getLogger().recordLogData(INFO_, "Radio failed to initialize.");
+    // }
 
-    // delay(5000);
-    logger.init(computer);
-
-    pinMode(BMP_ADDR_PIN, OUTPUT);
-    digitalWrite(BMP_ADDR_PIN, HIGH);
-
-    logger.recordLogData(INFO_, "Initializing Avionics System. 5 second delay to prevent unnecessary file generation.", TO_USB);
-
-    if (CrashReport)
-    {
-        Serial.println(CrashReport);
-    }
-    // The SD card MUST be initialized first to allow proper data logging.
-    if (logger.isSdCardReady())
-    {
-
-        logger.recordLogData(INFO_, "SD Card Initialized");
-        bb.onoff(BUZZER_PIN, 1000);
-    }
-    else
-    {
-        logger.recordLogData(ERROR_, "SD Card Failed to Initialize");
-
-        bb.onoff(BUZZER_PIN, 200, 3);
-    }
-
-    // The PSRAM must be initialized before the sensors to allow for proper data logging.
-
-    if (logger.isPsramReady())
-        logger.recordLogData(INFO_, "PSRAM Initialized");
-    else
-        logger.recordLogData(ERROR_, "PSRAM Failed to Initialize");
-
-    if (computer->init(false))
-    {
-        logger.recordLogData(INFO_, "All Sensors Initialized");
-        bb.onoff(BUZZER_PIN, 1000);
-    }
-    else
-    {
-        logger.recordLogData(ERROR_, "Some Sensors Failed to Initialize. Disabling those sensors.");
-        bb.onoff(BUZZER_PIN, 200, 3);
-    }
-    logger.writeCsvHeader();
-    bb.aonoff(32, *(new BBPattern(200, 1)), true);
+    getLogger().recordLogData(INFO_, "Initialization Complete");
 }
-
+double radio_last;
 void loop()
 {
+    if (sys.update())
+    {
+        // FreeMem();
+    }
+    // radio.update();
+
     double time = millis();
-    bb.update();
-    // Update the state of the rocket
-    if (time - last < 100)
+    if (time - radio_last < 1000)
         return;
 
-    last = time;
-    computer->updateState();
-    // time, alt1, alt2, vel, accel, gyro, mag, lat, lon
-    printf("%.2f | %.2f | %.2f, %.2f # %.2f, %.2f | %.2f, %.2f, %.2f | %.2f, %.2f, %.2f = %.2f, %.2f, %.2f | %.2f, %.2f, %.2f | %.7f, %.7f\n",
-           time / 1000.0,
-           computer->getPosition().z(),
-           baro1.getASLAltM(),
-           baro1.getPressure(),
-           baro2.getASLAltM(),
-           baro2.getPressure(),
-           computer->getVelocity().x(),
-           computer->getVelocity().y(),
-           computer->getVelocity().z(),
-           bno.getAccReading().x(),
-           bno.getAccReading().y(),
-           bno.getAccReading().z(),
-           bno.getGyroReading().x(),
-           bno.getGyroReading().y(),
-           bno.getGyroReading().z(),
-           bno.getMagnetometerReading().x(),
-           bno.getMagnetometerReading().y(),
-           bno.getMagnetometerReading().z(),
-           gps.getPos().x(),
-           gps.getPos().y());
-    logger.recordFlightData();
-    if(gps.getHasFirstFix()){
-        bb.clearQueue(32);
-        bb.on(32);
-    }
+    radio_last = time;
+    msg.clear();
+
+    /// printf("%f\n", baro1.getAGLAltFt());
+    aprs.alt = baro1.getAGLAltFt();
+    // printf("%f\n", gps.getHeading());
+    aprs.hdg = gps.getHeading();
+    // printf("%f\n", gps.getPos().x());
+    aprs.lat = gps.getPos().x();
+    // printf("%f\n", gps.getPos().y());
+    aprs.lng = gps.getPos().y();
+    // printf("%f\n", computer.getVelocity().z());
+    aprs.spd = computer.getVelocity().z();
+    // printf("%f\n", bno.getAngularVelocity().x());
+    aprs.orient[0] = bno.getAngularVelocity().x();
+    // printf("%f\n", bno.getAngularVelocity().y());
+    aprs.orient[1] = bno.getAngularVelocity().y();
+    // printf("%f\n", bno.getAngularVelocity().z());
+    aprs.orient[2] = bno.getAngularVelocity().z();
+    // aprs.stateFlags.setEncoding(encoding, 3);
+
+    uint8_t arr[] = {(uint8_t)(int)baro1.getTemp(), (uint8_t)computer.getStage(), (uint8_t)gps.getFixQual()};
+    aprs.stateFlags.pack(arr);
+    // aprs.stateFlags = (uint8_t) computer.getStage();
+    msg.encode(&aprs);
+    // radio.send(aprs);
+    Serial.printf("Sent APRS Message; %f\n", baro1.getAGLAltFt());
+    bb.aonoff(BUZZER, 50);
+    Serial1.write(msg.buf, msg.size);
+    Serial1.write('\n');
 }

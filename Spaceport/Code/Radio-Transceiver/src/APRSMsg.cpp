@@ -104,7 +104,7 @@ APRSBody *APRSMsg::getBody()
     return &_body;
 }
 
-bool APRSMsg::decode(char *message)
+bool APRSMsg::decode(const char *message)
 {
     int len = strlen(message);
     int posSrc = -1, posDest = -1, posPath = -1;
@@ -197,7 +197,7 @@ void APRSBody::setData(const char data[80])
     strcpy(_data, data);
 }
 
-bool APRSBody::decode(char *message)
+bool APRSBody::decode(const char *message)
 {
     strcpy(_data, message);
     return true;
