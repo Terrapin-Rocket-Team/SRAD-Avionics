@@ -10,10 +10,12 @@
 #include <Stream.h>
 
 #define MAX_MESSAGE_SIZE 512
+#define INIT_MESSAGE 0x01
+#define DATA_MESSAGE 0x02
 
 class BluetoothServer : public BLECharacteristicCallbacks {
 private:
-  const std::string &name;
+  std::string name;
   BLEServer *pServer = nullptr;
   BLEService *pService = nullptr;
   // Max size that a characteristic can hold is 512 bytes
@@ -23,16 +25,18 @@ private:
   BLECharacteristic *pTxCharacteristic = nullptr;
   BLEAdvertising *pAdvertising = nullptr;
   Stream &outSerial;
+  bool initialized = false;
 public:
-  explicit BluetoothServer(const std::string &namem, Stream &outSerial);
+  explicit BluetoothServer(Stream &outSerial);
   ~BluetoothServer() override;
 
-  bool start();
+  bool start(const std::string& name);
   void update(Stream& inputSerial);
 
   bool send(uint8_t *data, uint16_t length);
   uint16_t read(uint8_t *data);
 
+  bool isInitialized();
 
   void onRead(BLECharacteristic *pCharacteristic, esp_ble_gatts_cb_param_t *param) override;
   void onWrite(BLECharacteristic *pCharacteristic, esp_ble_gatts_cb_param_t *param) override;

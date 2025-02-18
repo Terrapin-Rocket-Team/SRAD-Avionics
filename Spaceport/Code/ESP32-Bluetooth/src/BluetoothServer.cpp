@@ -4,7 +4,16 @@
 
 #include "BluetoothServer.h"
 
-BluetoothServer::BluetoothServer(const std::string &name, Stream &outSerial) : name(name), outSerial(outSerial) {
+BluetoothServer::BluetoothServer(Stream &outSerial) : outSerial(outSerial) {}
+
+BluetoothServer::~BluetoothServer() {
+    BLEDevice::deinit(true);
+    initialized = false;
+}
+
+bool BluetoothServer::start(const std::string &name) {
+    this->name = name;
+
     BLEDevice::init(name);
 
     pServer = BLEDevice::createServer();
@@ -20,20 +29,17 @@ BluetoothServer::BluetoothServer(const std::string &name, Stream &outSerial) : n
     );
     pRxCharacteristic->setCallbacks(this);
     pTxCharacteristic->setCallbacks(this);
-}
 
-BluetoothServer::~BluetoothServer() {
-    BLEDevice::deinit(true);
-}
-
-bool BluetoothServer::start() {
     if (pService != nullptr) {
         pService->start();
         pAdvertising = pServer->getAdvertising();
         pAdvertising->start();
+
+        initialized = true;
         return true;
     }
 
+    initialized = false;
     return false;
 }
 
@@ -69,6 +75,10 @@ uint16_t BluetoothServer::read(uint8_t *data) {
     uint16_t size = *reinterpret_cast<uint16_t *>(data);
     *data = *(pRxCharacteristic->getData() + sizeof(uint16_t));
     return size;
+}
+
+bool BluetoothServer::isInitialized() {
+    return initialized;
 }
 
 
