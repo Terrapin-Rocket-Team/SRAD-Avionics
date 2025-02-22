@@ -7,11 +7,8 @@
 
 #include <string>
 #include <BLEDevice.h>
-#include <Message.h>
-
-#define MAX_MESSAGE_SIZE 512
-#define INIT_MESSAGE 0x01
-#define DATA_MESSAGE 0x02
+#include <Stream.h>
+#include "MessageCodes.h"
 
 class BluetoothServer : public BLECharacteristicCallbacks {
 private:
@@ -36,7 +33,7 @@ public:
   bool send(uint8_t *data, uint16_t length);
   uint16_t read(uint8_t *data);
 
-  bool isInitialized();
+  bool isInitialized() const;
 
   void onRead(BLECharacteristic *pCharacteristic, esp_ble_gatts_cb_param_t *param) override;
   void onWrite(BLECharacteristic *pCharacteristic, esp_ble_gatts_cb_param_t *param) override;
