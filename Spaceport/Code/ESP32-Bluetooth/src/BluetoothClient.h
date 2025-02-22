@@ -8,7 +8,7 @@
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
-#include <HardwareSerial.h>  // For serial communication with the MCU (Arduino)
+#include <Stream.h>
 #include "MessageCodes.h"
 
 class BluetoothClient {
