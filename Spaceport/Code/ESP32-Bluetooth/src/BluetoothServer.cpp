@@ -25,7 +25,7 @@ bool BluetoothServer::start(const std::string &name) {
     );
     pTxCharacteristic = pService->createCharacteristic(
         name + "-charTX",
-        BLECharacteristic::PROPERTY_WRITE
+        BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_NOTIFY
     );
     pRxCharacteristic->setCallbacks(this);
     pTxCharacteristic->setCallbacks(this);
@@ -66,6 +66,7 @@ bool BluetoothServer::send(uint8_t* data, uint16_t size) {
         memcpy(&buf[sizeof(uint16_t)], data, size);
 
         pTxCharacteristic->setValue(data, size+sizeof(uint16_t));
+        pTxCharacteristic->notify();
         return true;
     }
     return false;
@@ -77,7 +78,7 @@ uint16_t BluetoothServer::read(uint8_t *data) {
     return size;
 }
 
-bool BluetoothServer::isInitialized() {
+bool BluetoothServer::isInitialized() const {
     return initialized;
 }
 
@@ -88,7 +89,7 @@ void BluetoothServer::onWrite(BLECharacteristic *pCharacteristic, esp_ble_gatts_
     if (pCharacteristic == pRxCharacteristic) {
         const uint16_t size = *reinterpret_cast<uint16_t *>(pRxCharacteristic->getData());
         if (size <= MAX_MESSAGE_SIZE-sizeof(uint16_t)) {
-            outSerial.write(pRxCharacteristic->getData(), size);
+            outSerial.write(pRxCharacteristic->getData() + sizeof(uint16_t), size);
         } else {
             //this is bad
         }
