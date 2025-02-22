@@ -43,9 +43,6 @@ private:
 
     // Serial communication object for connecting to the Arduino
     Stream& outSerial;  // Reference to serial output stream (Arduino)
-
-    // Serial buffer for reading data from Arduino
-    uint8_t serialBuffer[256] = {0};
 };
 
 
