@@ -2,7 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import plot_manager as pm
+import plot_managers.plot_manager as pm
 import os
 
 # Import your classes

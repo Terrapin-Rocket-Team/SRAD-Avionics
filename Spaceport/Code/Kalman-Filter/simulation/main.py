@@ -1,12 +1,13 @@
 
-import numpy as np
+import numpy as np 
 import matplotlib.pyplot as plt
-import plot_manager as pm
+import plot_managers.plot_manager as pm
 
 # Import your classes
-from models.rocket import Rocket
+from models.new_rocket import NewRocket
 from data_generators.rocket_data_generator import RocketDataGenerator
 from data_generators.real_flight_data_loader import RealFlightDataLoader
+from data_generators.extended_rocket_data_generator import EnhancedRocketDataGenerator
 
 from kalman_filters.time_dependent_KF import TimeDependentKalmanFilter
 
@@ -24,21 +25,24 @@ def main():
     measured_positions = []
     measured_accelerations = []
 
-    rocket = Rocket(
-            motorAccel=125, 
-            burnTime=2.5, 
-            dragCoef=0.5, 
-            topCrossSectionalArea=0.07296, 
-            sideCrossSectionalArea=0.55741824,          # 6 ft^2
-            mass=40.8233)                               # 90 kg
+    rocket = NewRocket(
+        motorAccel=125, 
+        burnTime=4.0, 
+        dragCoef=0.5, 
+        length=3.3528,
+        diameter=.1524,
+        mass_empty=39.4625,
+        mass_full=56.2455,
+        surface_roughness=50e-6,
+    )                           
 
     if use_simulated:
-        generator = RocketDataGenerator(
+        generator = EnhancedRocketDataGenerator(
             rocket=rocket, 
             loop_frequency=50, 
             pre_launch_delay=10,
-            launch_angle=20,
-            wind_affector=(lambda t: np.array([0*np.sin(t), 0]))
+            launch_angle=1,
+            wind_affector=(lambda t: np.array([0*np.sin(t), 0*np.cos(t), 0]))
         )
         data_dict = generator.generate()
 
@@ -162,6 +166,7 @@ def main():
     manager.add_plot("z_position", lambda: pm.plot_z_position(manager))
     manager.add_plot("xyz_position", lambda: pm.plot_xyz_position(manager))
     manager.add_plot("z_velocity", lambda: pm.plot_z_velocity(manager))
+    manager.add_plot("mach_number", lambda: pm.plot_mach_number(manager))
 
     # Show all plots
     manager.show_all()

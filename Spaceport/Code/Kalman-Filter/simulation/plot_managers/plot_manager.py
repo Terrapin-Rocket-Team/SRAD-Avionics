@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+import numpy as np
+from atmospheric_model.atmosphere import AtmosphereModel
 
 class PlotManager:
     """
@@ -10,10 +12,12 @@ class PlotManager:
         :param data_dict: A dictionary containing time, position, velocity, and related data.
                           Keys should match the variable names used in the simulation.
         :param run_kf: A flag indicating if Kalman Filter outputs should be included in plots.
+        :param atmosphere: atmospheric model
         """
         self.data = data_dict
         self.run_kf = run_kf
         self.plots = {}
+        self.atmosphere = AtmosphereModel()
 
     def add_plot(self, plot_id, plot_function):
         """
@@ -153,3 +157,36 @@ def plot_z_velocity(manager):
     plt.legend()
     plt.grid(True)
     plt.show()
+
+def plot_mach_number(manager):
+    """Plot Mach number vs Time based on velocity magnitude and atmospheric model."""
+    time = manager._get_data("time")
+    v_x = manager._get_data("v_x")
+    v_y = manager._get_data("v_y")
+    v_z = manager._get_data("v_z")
+    r_z = manager._get_data("r_z") 
+
+    if v_x is not None and v_y is not None and v_z is not None and r_z is not None:
+        # Calculate velocity magnitude
+        velocity_magnitude = np.sqrt(v_x**2 + v_y**2 + v_z**2)
+
+        # Get speed of sound at each altitude
+        speed_of_sound = np.array([manager.atmosphere.get_conditions(alt)["speed_of_sound"] for alt in r_z])
+
+        # Ensure speed_of_sound has the correct shape
+        if speed_of_sound.shape != velocity_magnitude.shape:
+            print("Warning: Speed of sound shape does not match velocity magnitude. Check altitude inputs.")
+
+        # Calculate Mach number
+        mach_number = velocity_magnitude / speed_of_sound
+
+        plt.figure()
+        plt.plot(time, mach_number, "b-", label="Mach Number")
+        plt.xlabel("Time (s)")
+        plt.ylabel("Mach Number")
+        plt.title("Mach Number vs Time")
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+    else:
+        print("Error: Missing velocity or altitude data.")
