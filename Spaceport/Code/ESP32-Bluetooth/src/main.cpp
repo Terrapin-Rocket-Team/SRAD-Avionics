@@ -7,7 +7,7 @@
 #include <BluetoothClient.h>
 #include <BluetoothServer.h>
 
-#define SERVER true
+// #define SERVER true
 
 #ifdef SERVER
 // BluetoothServer server(Serial);
