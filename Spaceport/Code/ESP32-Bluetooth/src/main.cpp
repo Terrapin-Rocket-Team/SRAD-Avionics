@@ -7,10 +7,10 @@
 #include <BluetoothClient.h>
 #include <BluetoothServer.h>
 
-// #define SERVER true
+#define SERVER true
 
 #ifdef SERVER
-BluetoothServer server(Serial);
+// BluetoothServer server(Serial);
 #else
 //TODO: Implement
 BluetoothClient client(Serial);
