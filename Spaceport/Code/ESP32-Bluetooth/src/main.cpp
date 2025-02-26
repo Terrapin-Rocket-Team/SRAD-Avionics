@@ -4,21 +4,25 @@
 
 #include<Arduino.h>
 #include<BLEDevice.h>
+#include <BluetoothClient.h>
 #include <BluetoothServer.h>
 
-#define SERVER true
+// #define SERVER true
 
 #ifdef SERVER
 BluetoothServer server(Serial);
 #else
 //TODO: Implement
+BluetoothClient client(Serial);
 #endif
 
 void setup() {
     Serial.begin(9600);
-    server.start("ESP32 BLE Server");
+    // server.start("ESP32 BLE Server");
+    client.start("ESP32 BLE Server");
 }
 
+#ifdef SERVER
 void serverLoop() {
     if (Serial.available()) {
         uint8_t messageID = Serial.read();
@@ -41,10 +45,17 @@ void serverLoop() {
         }
     }
 }
+#endif
 
+#ifndef SERVER
 void clientLoop() {
-   //TODO: Implement
+    if (client.isConnected()) {
+        char buf[] = "Hello From Client!\0";
+        client.send(reinterpret_cast<uint8_t *>(buf), strlen(buf) * sizeof(uint8_t));
+    }
+    delay(1000);
 }
+#endif
 
 void loop() {
 #ifdef SERVER
