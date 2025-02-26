@@ -4,6 +4,8 @@
 
 #include "BluetoothServer.h"
 
+#include <HardwareSerial.h>
+
 BluetoothServer::BluetoothServer(Stream &outSerial) : outSerial(outSerial) {}
 
 BluetoothServer::~BluetoothServer() {
@@ -16,25 +18,30 @@ bool BluetoothServer::start(const std::string &name) {
 
     BLEDevice::init(name);
 
+    Serial.println("Bluetooth server started");
+
     pServer = BLEDevice::createServer();
     //TODO: There should probably be a better way to do these UUIDs
     pService = pServer->createService(name + "-service");
     pRxCharacteristic = pService->createCharacteristic(
-        name + "-charRX",
+        "9c15bf50-4a60-40",
         BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY
     );
     pTxCharacteristic = pService->createCharacteristic(
-        name + "-charTX",
+        "5159c5ac-b886-42",
         BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_NOTIFY
     );
     pRxCharacteristic->setCallbacks(this);
     pTxCharacteristic->setCallbacks(this);
+
+    Serial.println("Characteristics setup!");
 
     if (pService != nullptr) {
         pService->start();
         pAdvertising = pServer->getAdvertising();
         pAdvertising->start();
 
+        Serial.println("Advertising and service started!");
         initialized = true;
         return true;
     }
@@ -89,6 +96,7 @@ void BluetoothServer::onWrite(BLECharacteristic *pCharacteristic, esp_ble_gatts_
     if (pCharacteristic == pRxCharacteristic) {
         const uint16_t size = *reinterpret_cast<uint16_t *>(pRxCharacteristic->getData());
         if (size <= MAX_MESSAGE_SIZE-sizeof(uint16_t)) {
+            Serial.println("Received message!");
             outSerial.write(pRxCharacteristic->getData() + sizeof(uint16_t), size);
         } else {
             //this is bad

@@ -19,6 +19,7 @@ bool BluetoothClient::start(const std::string &serverName) {
     pBLEScan->setActiveScan(true);
     pBLEScan->setInterval(60); // scan for 60sec
     initialized = true;
+    return initialized;
 }
 
 void BluetoothClient::update(Stream& inputSerial) {
@@ -49,7 +50,7 @@ uint16_t BluetoothClient::read(uint8_t *data) {
         uint8_t* raw = remoteRx->readRawData();
 
         uint16_t size = *reinterpret_cast<uint16_t*>(raw);
-        *data = reinterpret_cast<uint8_t>(raw + sizeof(uint16_t));
+        *data = *(raw + sizeof(uint16_t));
         return size;
     }
 
