@@ -15,6 +15,8 @@ BluetoothServer server(Serial);
 #endif
 
 void setup() {
+    Serial.begin(9600);
+    server.start("ESP32 BLE Server");
 }
 
 void serverLoop() {
@@ -22,18 +24,20 @@ void serverLoop() {
         uint8_t messageID = Serial.read();
 
         switch (messageID) {
-            case INIT_MESSAGE:
+            case INIT_MESSAGE: {
                 std::string name = Serial.readString().c_str();
                 server.start(name);
                 break;
-            case DATA_MESSAGE:
+            }
+            case DATA_MESSAGE: {
                 if (server.isInitialized()) {
                     server.update(Serial);
                 }
                 break;
-            default:
-                //unknown message
+            }
+            default: {
                 break;
+            };
         }
     }
 }
