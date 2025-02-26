@@ -22,15 +22,19 @@ bool BluetoothServer::start(const std::string &name) {
 
     pServer = BLEDevice::createServer();
     //TODO: There should probably be a better way to do these UUIDs
-    pService = pServer->createService(name + "-service");
+    pService = pServer->createService("cba1d466-344c-4be3-ab3f-189f80dd7518");
     pRxCharacteristic = pService->createCharacteristic(
         "9c15bf50-4a60-40",
-        BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY
+        BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY
     );
     pTxCharacteristic = pService->createCharacteristic(
         "5159c5ac-b886-42",
-        BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_NOTIFY
+        BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY
     );
+
+    pTxCharacteristic->setValue("TX");
+    pRxCharacteristic->setValue("RX");
+
     pRxCharacteristic->setCallbacks(this);
     pTxCharacteristic->setCallbacks(this);
 
@@ -90,10 +94,14 @@ bool BluetoothServer::isInitialized() const {
 }
 
 
-void BluetoothServer::onRead(BLECharacteristic *pCharacteristic, esp_ble_gatts_cb_param_t *param) {}
+void BluetoothServer::onRead(BLECharacteristic *pCharacteristic, esp_ble_gatts_cb_param_t *param) {
+    Serial.println("BluetoothServer::onRead");
+}
 
 void BluetoothServer::onWrite(BLECharacteristic *pCharacteristic, esp_ble_gatts_cb_param_t *param) {
+    Serial.println("BluetoothServer::onWrite");
     if (pCharacteristic == pRxCharacteristic) {
+        Serial.println(reinterpret_cast<char *>(pRxCharacteristic->getData()));
         const uint16_t size = *reinterpret_cast<uint16_t *>(pRxCharacteristic->getData());
         if (size <= MAX_MESSAGE_SIZE-sizeof(uint16_t)) {
             Serial.println("Received message!");
