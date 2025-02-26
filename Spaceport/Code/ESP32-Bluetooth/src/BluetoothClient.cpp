@@ -24,7 +24,9 @@ bool BluetoothClient::start(const std::string &serverName) {
     pBLEScan->setActiveScan(true);
     pBLEScan->setInterval(30);
     pBLEScan->setInterval(29);
+
     Serial.println("STARTED SCANNING...");
+    pBLEScan->start(100);
     initialized = true;
     return initialized;
 }
