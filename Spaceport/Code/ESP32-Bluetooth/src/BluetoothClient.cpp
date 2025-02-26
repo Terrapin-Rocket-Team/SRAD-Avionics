@@ -18,8 +18,8 @@ bool BluetoothClient::start(const std::string &serverName) {
     Serial.println("BluetoothClient::start");
 
     BLEScan *pBLEScan = BLEDevice::getScan();
-    AdvertisingScanHandler handler = AdvertisingScanHandler(*this);
-    pBLEScan->setAdvertisedDeviceCallbacks(&handler);
+    pScanHandler = new AdvertisingScanHandler(*this);
+    pBLEScan->setAdvertisedDeviceCallbacks(pScanHandler);
     pBLEScan->setActiveScan(true);
     pBLEScan->setInterval(60); // scan for 60sec
     Serial.println("STARTED SCANNING...");

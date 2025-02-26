@@ -10,6 +10,7 @@
 #include <BLEServer.h>
 #include <Stream.h>
 #include "MessageCodes.h"
+class AdvertisingScanHandler;
 
 class BluetoothClient {
 public:
@@ -32,6 +33,7 @@ private:
     BLEClient* pClient = nullptr;
     BLEAddress* pServerAddress = nullptr;
     BLERemoteService* pRemoteService = nullptr;
+    AdvertisingScanHandler* pScanHandler = nullptr;
 
     std::string serverName;
 
