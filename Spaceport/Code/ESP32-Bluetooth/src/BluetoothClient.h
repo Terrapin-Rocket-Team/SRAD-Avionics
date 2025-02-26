@@ -50,9 +50,9 @@ private:
 
 class AdvertisingScanHandler : public BLEAdvertisedDeviceCallbacks {
 private:
-    BluetoothClient& bluetoothClient;
+    BluetoothClient* bluetoothClient = nullptr;
 public:
-    explicit AdvertisingScanHandler(BluetoothClient& client);
+    explicit AdvertisingScanHandler(BluetoothClient* client);
     void onResult(BLEAdvertisedDevice advertisedDevice) override;
 };
 

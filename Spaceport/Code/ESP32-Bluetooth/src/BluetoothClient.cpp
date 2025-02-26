@@ -16,12 +16,14 @@ bool BluetoothClient::start(const std::string &serverName) {
     BLEDevice::init(serverName + "-client");
 
     Serial.println("BluetoothClient::start");
+    pClient = BLEDevice::createClient();
 
     BLEScan *pBLEScan = BLEDevice::getScan();
-    pScanHandler = new AdvertisingScanHandler(*this);
+    pScanHandler = new AdvertisingScanHandler(this);
     pBLEScan->setAdvertisedDeviceCallbacks(pScanHandler);
     pBLEScan->setActiveScan(true);
-    pBLEScan->setInterval(60); // scan for 60sec
+    pBLEScan->setInterval(30);
+    pBLEScan->setInterval(29);
     Serial.println("STARTED SCANNING...");
     initialized = true;
     return initialized;
@@ -79,7 +81,6 @@ void BluetoothClient::handleDeviceCallback(BLEAdvertisedDevice advertisedDevice)
         advertisedDevice.getScan()->stop();
         pServerAddress = new BLEAddress(advertisedDevice.getAddress());
 
-        pClient = BLEDevice::createClient();
         pClient->connect(*pServerAddress);
 
         pRemoteService = pClient->getService("cba1d466-344c-4be3-ab3f-189f80dd7518");
@@ -126,8 +127,12 @@ void BluetoothClient::handleTxCallback(BLERemoteCharacteristic *pBLERemoteCharac
     }
 }
 
-AdvertisingScanHandler::AdvertisingScanHandler(BluetoothClient &client) : bluetoothClient(client) {}
+AdvertisingScanHandler::AdvertisingScanHandler(BluetoothClient *client) {
+    Serial.println("SCAN HANDLER CREATED!");
+    bluetoothClient = client;
+}
 
 void AdvertisingScanHandler::onResult(BLEAdvertisedDevice advertisedDevice) {
-    bluetoothClient.handleDeviceCallback(advertisedDevice);
+    Serial.println("Advertised Device Found");
+    bluetoothClient->handleDeviceCallback(advertisedDevice);
 }
