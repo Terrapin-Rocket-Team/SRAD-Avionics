@@ -10,7 +10,7 @@
 // #define SERVER true
 
 #ifdef SERVER
-// BluetoothServer server(Serial);
+BluetoothServer server(Serial);
 #else
 //TODO: Implement
 BluetoothClient client(Serial);
@@ -49,9 +49,11 @@ void serverLoop() {
 
 #ifndef SERVER
 void clientLoop() {
+    client.update(Serial);
     if (client.isConnected()) {
         char buf[] = "Hello From Client!\0";
         client.send(reinterpret_cast<uint8_t *>(buf), strlen(buf) * sizeof(uint8_t));
+        Serial.println("Sent data");
     }
     delay(1000);
 }
