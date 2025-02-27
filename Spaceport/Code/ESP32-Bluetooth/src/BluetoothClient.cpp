@@ -13,6 +13,7 @@ BluetoothClient::~BluetoothClient() {
 }
 
 bool BluetoothClient::start(const std::string &serverName) {
+    this->serverName = serverName;
     BLEDevice::init(serverName + "-client");
 
     Serial.println("BluetoothClient::start");
