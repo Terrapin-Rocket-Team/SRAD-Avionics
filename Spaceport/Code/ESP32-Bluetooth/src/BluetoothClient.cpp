@@ -14,7 +14,7 @@ BluetoothClient::~BluetoothClient() {
 
 bool BluetoothClient::start(const std::string &serverName) {
     this->serverName = serverName;
-    BLEDevice::init(serverName + "-client");
+    BLEDevice::init("");
 
     Serial.println("BluetoothClient::start");
     pClient = BLEDevice::createClient();
@@ -33,6 +33,37 @@ bool BluetoothClient::start(const std::string &serverName) {
 }
 
 void BluetoothClient::update(Stream& inputSerial) {
+    if (!connected && pServerAddress != nullptr) {
+        pClient->connect(*pServerAddress);
+
+        Serial.println("Connected to server!");
+
+        pRemoteService = pClient->getService("cba1d466-344c-4be3-ab3f-189f80dd7518");
+        if (pRemoteService == nullptr) {
+            //fail
+            Serial.println("FAILED TO GET SERVICE");
+            connected = false;
+            return;
+        }
+
+        remoteRx = pRemoteService->getCharacteristic("9c15bf50-4a60-40"); //server's rx
+        remoteTx = pRemoteService->getCharacteristic("5159c5ac-b886-42"); //server's tx
+
+        if (remoteRx == nullptr || remoteTx == nullptr) {
+            Serial.println("FAILED TO GET CHARACTERISTICS");
+            connected = false;
+            return;
+        }
+
+        remoteTx->registerForNotify([this] (BLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify) {
+            handleTxCallback(pBLERemoteCharacteristic, pData, length, isNotify);
+        });
+
+        Serial.println("SUCCESSFUL CONNECT");
+
+        connected = true;
+    }
+
     if (initialized && connected) {
         if (!inputSerial.available()) return;
 
@@ -77,39 +108,13 @@ bool BluetoothClient::isConnected() {
 
 void BluetoothClient::handleDeviceCallback(BLEAdvertisedDevice advertisedDevice) {
     Serial.println("SCAN RECEIVED DEVICE: ");
-    Serial.println(advertisedDevice.getName().c_str());
+    Serial.println(advertisedDevice.toString().c_str());
 
     if (advertisedDevice.getName() == serverName) { // found the server
         Serial.println("NAME MATCH");
         advertisedDevice.getScan()->stop();
+        Serial.println("HERE");
         pServerAddress = new BLEAddress(advertisedDevice.getAddress());
-
-        pClient->connect(*pServerAddress);
-
-        pRemoteService = pClient->getService("cba1d466-344c-4be3-ab3f-189f80dd7518");
-        if (pRemoteService == nullptr) {
-            //fail
-            Serial.println("FAILED TO GET SERVICE");
-            connected = false;
-            return;
-        }
-
-        remoteRx = pRemoteService->getCharacteristic("9c15bf50-4a60-40"); //server's rx
-        remoteTx = pRemoteService->getCharacteristic("5159c5ac-b886-42"); //server's tx
-
-        if (remoteRx == nullptr || remoteTx == nullptr) {
-            Serial.println("FAILED TO GET CHARACTERISTICS");
-            connected = false;
-            return;
-        }
-
-        remoteTx->registerForNotify([this] (BLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify) {
-            handleTxCallback(pBLERemoteCharacteristic, pData, length, isNotify);
-        });
-
-        Serial.println("SUCCESSFUL CONNECT");
-
-        connected = true;
     }
 }
 
