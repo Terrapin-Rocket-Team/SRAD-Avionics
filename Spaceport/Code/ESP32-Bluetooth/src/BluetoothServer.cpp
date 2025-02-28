@@ -18,8 +18,6 @@ bool BluetoothServer::start(const std::string &name) {
 
     BLEDevice::init(name);
 
-    Serial.println("Bluetooth server started");
-
     pServer = BLEDevice::createServer();
     //TODO: There should probably be a better way to do these UUIDs
     pService = pServer->createService("cba1d466-344c-4be3-ab3f-189f80dd7518");
@@ -38,14 +36,11 @@ bool BluetoothServer::start(const std::string &name) {
     pRxCharacteristic->setCallbacks(this);
     pTxCharacteristic->setCallbacks(this);
 
-    Serial.println("Characteristics setup!");
-
     if (pService != nullptr) {
         pService->start();
         pAdvertising = pServer->getAdvertising();
         pAdvertising->start();
 
-        Serial.println("Advertising and service started!");
         initialized = true;
         return true;
     }
@@ -95,16 +90,12 @@ bool BluetoothServer::isInitialized() const {
 
 
 void BluetoothServer::onRead(BLECharacteristic *pCharacteristic, esp_ble_gatts_cb_param_t *param) {
-    Serial.println("BluetoothServer::onRead");
 }
 
 void BluetoothServer::onWrite(BLECharacteristic *pCharacteristic, esp_ble_gatts_cb_param_t *param) {
-    Serial.println("BluetoothServer::onWrite");
     if (pCharacteristic == pRxCharacteristic) {
-        Serial.println(reinterpret_cast<char *>(pRxCharacteristic->getData()));
         const uint16_t size = *reinterpret_cast<uint16_t *>(pRxCharacteristic->getData());
         if (size <= MAX_MESSAGE_SIZE-sizeof(uint16_t)) {
-            Serial.println("Received message!");
             outSerial.write(pRxCharacteristic->getData() + sizeof(uint16_t), size);
         } else {
             //this is bad

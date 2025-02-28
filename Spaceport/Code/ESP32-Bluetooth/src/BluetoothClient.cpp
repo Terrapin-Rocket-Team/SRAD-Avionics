@@ -16,7 +16,6 @@ bool BluetoothClient::start(const std::string &serverName) {
     this->serverName = serverName;
     BLEDevice::init("");
 
-    Serial.println("BluetoothClient::start");
     pClient = BLEDevice::createClient();
 
     BLEScan *pBLEScan = BLEDevice::getScan();
@@ -26,7 +25,6 @@ bool BluetoothClient::start(const std::string &serverName) {
     pBLEScan->setInterval(30);
     pBLEScan->setInterval(29);
 
-    Serial.println("STARTED SCANNING...");
     pBLEScan->start(100);
     initialized = true;
     return initialized;
@@ -36,12 +34,9 @@ void BluetoothClient::update(Stream& inputSerial) {
     if (!connected && pServerAddress != nullptr) {
         pClient->connect(*pServerAddress);
 
-        Serial.println("Connected to server!");
-
         pRemoteService = pClient->getService("cba1d466-344c-4be3-ab3f-189f80dd7518");
         if (pRemoteService == nullptr) {
             //fail
-            Serial.println("FAILED TO GET SERVICE");
             connected = false;
             return;
         }
@@ -50,7 +45,6 @@ void BluetoothClient::update(Stream& inputSerial) {
         remoteTx = pRemoteService->getCharacteristic("5159c5ac-b886-42"); //server's tx
 
         if (remoteRx == nullptr || remoteTx == nullptr) {
-            Serial.println("FAILED TO GET CHARACTERISTICS");
             connected = false;
             return;
         }
@@ -58,8 +52,6 @@ void BluetoothClient::update(Stream& inputSerial) {
         remoteTx->registerForNotify([this] (BLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify) {
             handleTxCallback(pBLERemoteCharacteristic, pData, length, isNotify);
         });
-
-        Serial.println("SUCCESSFUL CONNECT");
 
         connected = true;
     }
@@ -107,40 +99,28 @@ bool BluetoothClient::isConnected() {
 }
 
 void BluetoothClient::handleDeviceCallback(BLEAdvertisedDevice advertisedDevice) {
-    Serial.println("SCAN RECEIVED DEVICE: ");
-    Serial.println(advertisedDevice.toString().c_str());
-
     if (advertisedDevice.getName() == serverName) { // found the server
-        Serial.println("NAME MATCH");
         advertisedDevice.getScan()->stop();
-        Serial.println("HERE");
         pServerAddress = new BLEAddress(advertisedDevice.getAddress());
     }
 }
 
 void BluetoothClient::handleTxCallback(BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length,
     bool isNotify) {
-    Serial.println("RECEIVED data: ");
     if (pBLERemoteCharacteristic == remoteTx) {
-        Serial.println("RECEIVED TX: ");
-        Serial.println(reinterpret_cast<char*>(pData));
-
         const uint16_t size = *reinterpret_cast<uint16_t *>(pData);
         if (size <= MAX_MESSAGE_SIZE-sizeof(uint16_t)) {
             outSerial.write(pData + sizeof(uint16_t), size);
         } else {
-            Serial.println("Invalid message size!");
             //this is bad
         }
     }
 }
 
 AdvertisingScanHandler::AdvertisingScanHandler(BluetoothClient *client) {
-    Serial.println("SCAN HANDLER CREATED!");
     bluetoothClient = client;
 }
 
 void AdvertisingScanHandler::onResult(BLEAdvertisedDevice advertisedDevice) {
-    Serial.println("Advertised Device Found");
     bluetoothClient->handleDeviceCallback(advertisedDevice);
 }
