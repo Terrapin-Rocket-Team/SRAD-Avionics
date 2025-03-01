@@ -102,6 +102,8 @@ void BluetoothServer::onRead(BLECharacteristic *pCharacteristic, esp_ble_gatts_c
 
 void BluetoothServer::onWrite(BLECharacteristic *pCharacteristic, esp_ble_gatts_cb_param_t *param) {
     if (pCharacteristic == pRxCharacteristic) {
+        // Serial.print("Server received data on RX: ");
+        // Serial.println(reinterpret_cast<char *>(pRxCharacteristic->getData()));
         const uint16_t size = *reinterpret_cast<uint16_t *>(pRxCharacteristic->getData());
         if (size <= MAX_MESSAGE_SIZE-sizeof(uint16_t)) {
             outSerial.write(pRxCharacteristic->getData() + sizeof(uint16_t), size);
@@ -120,12 +122,12 @@ ClientConnectionHandler::ClientConnectionHandler(BluetoothServer *pServer) {
 }
 
 void ClientConnectionHandler::onConnect(BLEServer *pServer) {
-    Serial.println("onConnect, restarting advertising");
-    pServer->startAdvertising(); //restart advertising when a device connects
+    // Serial.println("onConnect, restarting advertising");
+    // pServer->startAdvertising(); //restart advertising when a device connects
 }
 
 void ClientConnectionHandler::onDisconnect(BLEServer *pServer) {
-    Serial.println("onDisconnect, restarting advertising");
+    // Serial.println("onDisconnect, restarting advertising");
     pServer->startAdvertising(); //restart advertising when device connectes
 }
 
