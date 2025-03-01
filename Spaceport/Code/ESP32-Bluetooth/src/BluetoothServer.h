@@ -10,10 +10,13 @@
 #include <Stream.h>
 #include "MessageCodes.h"
 
+class ClientConnectionHandler;
+
 class BluetoothServer : public BLECharacteristicCallbacks {
 private:
   std::string name;
   BLEServer *pServer = nullptr;
+  ClientConnectionHandler *clientConnectionHandler = nullptr;
   BLEService *pService = nullptr;
   // Max size that a characteristic can hold is 512 bytes
   // might have to develop a system of splitting data
@@ -29,6 +32,7 @@ public:
 
   bool start(const std::string& name);
   void update(Stream& inputSerial);
+  void startAdvertising();
 
   bool send(uint8_t *data, uint16_t length);
   uint16_t read(uint8_t *data);
@@ -41,6 +45,13 @@ public:
   void onStatus(BLECharacteristic *pCharacteristic, Status s, uint32_t code) override;
 };
 
-
+class ClientConnectionHandler : public BLEServerCallbacks {
+private:
+  BluetoothServer *pServer = nullptr;
+public:
+  ClientConnectionHandler(BluetoothServer *pServer);
+  void onConnect(BLEServer *pServer) override;
+  void onDisconnect(BLEServer *pServer) override;
+};
 
 #endif //BLUETOOTHSERVER_H

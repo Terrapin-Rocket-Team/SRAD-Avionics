@@ -23,7 +23,7 @@ bool BluetoothClient::start(const std::string &serverName) {
     pBLEScan->setAdvertisedDeviceCallbacks(pScanHandler);
     pBLEScan->setActiveScan(true);
     pBLEScan->setInterval(30);
-    pBLEScan->setInterval(29);
+    pBLEScan->setWindow(29);
 
     pBLEScan->start(100);
     initialized = true;

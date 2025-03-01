@@ -4,9 +4,12 @@
 
 #include "BluetoothServer.h"
 
+#include <Client.h>
 #include <HardwareSerial.h>
 
-BluetoothServer::BluetoothServer(Stream &outSerial) : outSerial(outSerial) {}
+BluetoothServer::BluetoothServer(Stream &outSerial) : outSerial(outSerial) {
+    clientConnectionHandler = new ClientConnectionHandler(this);
+}
 
 BluetoothServer::~BluetoothServer() {
     BLEDevice::deinit(true);
@@ -62,7 +65,11 @@ void BluetoothServer::update(Stream &inputSerial) {
     }
 }
 
-
+void BluetoothServer::startAdvertising() {
+    if (pService != nullptr) {
+        pServer->startAdvertising();
+    }
+}
 
 bool BluetoothServer::send(uint8_t* data, uint16_t size) {
     if (size <= MAX_MESSAGE_SIZE-sizeof(uint16_t)) {
@@ -106,3 +113,17 @@ void BluetoothServer::onWrite(BLECharacteristic *pCharacteristic, esp_ble_gatts_
 void BluetoothServer::onNotify(BLECharacteristic *pCharacteristic) {}
 
 void BluetoothServer::onStatus(BLECharacteristic *pCharacteristic, Status s, uint32_t code) {}
+
+ClientConnectionHandler::ClientConnectionHandler(BluetoothServer *pServer) {
+    this->pServer = pServer;
+}
+
+void ClientConnectionHandler::onConnect(BLEServer *pServer) {
+    pServer->startAdvertising(); //restart advertising when a device connects
+}
+
+void ClientConnectionHandler::onDisconnect(BLEServer *pServer) {
+    pServer->startAdvertising(); //restart advertising when device connectes
+}
+
+
