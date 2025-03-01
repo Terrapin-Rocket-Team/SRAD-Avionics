@@ -4,7 +4,7 @@
 
 #include "BluetoothClient.h"
 
-#include <HardwareSerial.h>
+// #include <HardwareSerial.h>
 
 BluetoothClient::BluetoothClient(Stream &outSerial) : outSerial(outSerial) {}
 
@@ -22,10 +22,11 @@ bool BluetoothClient::start(const std::string &serverName) {
     pScanHandler = new AdvertisingScanHandler(this);
     pBLEScan->setAdvertisedDeviceCallbacks(pScanHandler);
     pBLEScan->setActiveScan(true);
-    pBLEScan->setInterval(30);
-    pBLEScan->setWindow(29);
+    // pBLEScan->setInterval(30);
+    // pBLEScan->setWindow(29);
 
-    pBLEScan->start(100);
+    pBLEScan->start(120);
+    // Serial.println("BLE scan done!");
     initialized = true;
     return initialized;
 }
@@ -99,6 +100,8 @@ bool BluetoothClient::isConnected() {
 }
 
 void BluetoothClient::handleDeviceCallback(BLEAdvertisedDevice advertisedDevice) {
+    // Serial.print("Device Detected: ");
+    // Serial.println(advertisedDevice.toString().c_str());
     if (advertisedDevice.getName() == serverName) { // found the server
         advertisedDevice.getScan()->stop();
         pServerAddress = new BLEAddress(advertisedDevice.getAddress());
@@ -108,6 +111,8 @@ void BluetoothClient::handleDeviceCallback(BLEAdvertisedDevice advertisedDevice)
 void BluetoothClient::handleTxCallback(BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length,
     bool isNotify) {
     if (pBLERemoteCharacteristic == remoteTx) {
+        // Serial.print("Client received data on server TX: ");
+        // Serial.println(reinterpret_cast<char *>(pData));
         const uint16_t size = *reinterpret_cast<uint16_t *>(pData);
         if (size <= MAX_MESSAGE_SIZE-sizeof(uint16_t)) {
             outSerial.write(pData + sizeof(uint16_t), size);
