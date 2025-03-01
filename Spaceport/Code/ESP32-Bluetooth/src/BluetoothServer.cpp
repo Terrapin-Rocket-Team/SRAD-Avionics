@@ -38,6 +38,7 @@ bool BluetoothServer::start(const std::string &name) {
 
     pRxCharacteristic->setCallbacks(this);
     pTxCharacteristic->setCallbacks(this);
+    pServer->setCallbacks(clientConnectionHandler);
 
     if (pService != nullptr) {
         pService->start();
@@ -119,10 +120,12 @@ ClientConnectionHandler::ClientConnectionHandler(BluetoothServer *pServer) {
 }
 
 void ClientConnectionHandler::onConnect(BLEServer *pServer) {
+    Serial.println("onConnect, restarting advertising");
     pServer->startAdvertising(); //restart advertising when a device connects
 }
 
 void ClientConnectionHandler::onDisconnect(BLEServer *pServer) {
+    Serial.println("onDisconnect, restarting advertising");
     pServer->startAdvertising(); //restart advertising when device connectes
 }
 
