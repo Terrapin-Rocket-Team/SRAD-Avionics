@@ -29,93 +29,16 @@ long stepsPerRevolution = 0; // Measured via findStepsPerRevolution()
 float targetAngle = 0.0;
 
 /******************************************************
- * Setup
+ * detect()
+ * - Returns true if Hall sensor is triggered (active low)
  ******************************************************/
-void setup()
+bool detect()
 {
-    // Initialize serial (pins PA9=TX, PA10=
-    Serial.begin(115200);
-    while (!Serial)
-    { /* Wait for serial if needed */
-    }
-
-    // Set up Hall sensor pin
-    pinMode(HOME_SENS_PIN, INPUT_PULLUP);
-    // If your sensor is open-drain or you need an external pullup,
-    // you might change this to INPUT or use external resistor.
-
-    // Configure stepper
-    stepper.setMaxSpeed(SPEED);
-    stepper.setAcceleration(ACCELERATION);
-
-    Serial.println("RotCam STM32F103C8 Example Starting...");
-
-    home();
-
-    // Optional: Find how many steps in one revolution
-    // (Uncomment if you want to measure steps/rev automatically)
-    stepsPerRevolution = findStepsPerRevolution();
-    Serial.print("Detected steps per revolution: ");
-    Serial.println(stepsPerRevolution);
-
-    // If you already know your steps per revolution, just set it:
-    // stepsPerRevolution = 2048; // example for 28BYJ-48 or 200 for typical NEMA17, etc.
-    // stepper.setCurrentPosition(0);
+    // Active low means digitalRead(...) == LOW => triggered
+    return (digitalRead(HOME_SENS_PIN) == LOW);
 }
 
-/******************************************************
- * Loop
- ******************************************************/
-void loop()
-{
-    // 1) Check for incoming serial commands
-    parseSerialCommands();
 
-    // 2) Continuously run the stepper (must be called frequently)
-    stepper.run();
-}
-
-/******************************************************
- * parseSerialCommands()
- * - Expects either a numeric angle (float) or "HOME"
- *   e.g. you can send:  45.0   or   180   or   HOME
- ******************************************************/
-void parseSerialCommands()
-{
-    static String inputString = "";
-
-    // If there is data available, read it
-    while (Serial.available())
-    {
-        char inChar = (char)Serial.read();
-
-        // If we get newline, we parse the input
-        if (inChar == '\n' || inChar == '\r')
-        {
-            if (inputString.length() > 0)
-            {
-                // Check if command is "HOME" (case-insensitive)
-                if (inputString.equalsIgnoreCase("HOME"))
-                {
-                    Serial.println("Homing stepper...");
-                    home();
-                }
-                else
-                {
-                    // Try to parse a float angle
-                    float angle = inputString.toFloat();
-                    moveToAngle(angle);
-                }
-            }
-            inputString = ""; // clear buffer
-        }
-        else
-        {
-            // Accumulate characters into the string
-            inputString += inChar;
-        }
-    }
-}
 
 /******************************************************
  * moveToAngle(angle)
@@ -182,6 +105,49 @@ void home()
 }
 
 /******************************************************
+ * parseSerialCommands()
+ * - Expects either a numeric angle (float) or "HOME"
+ *   e.g. you can send:  45.0   or   180   or   HOME
+ ******************************************************/
+void parseSerialCommands()
+{
+    static String inputString = "";
+
+    // If there is data available, read it
+    while (Serial.available())
+    {
+        char inChar = (char)Serial.read();
+
+        // If we get newline, we parse the input
+        if (inChar == '\n' || inChar == '\r')
+        {
+            if (inputString.length() > 0)
+            {
+                // Check if command is "HOME" (case-insensitive)
+                if (inputString.equalsIgnoreCase("HOME"))
+                {
+                    Serial.println("Homing stepper...");
+                    home();
+                }
+                else
+                {
+                    // Try to parse a float angle
+                    float angle = inputString.toFloat();
+                    moveToAngle(angle);
+                }
+            }
+            inputString = ""; // clear buffer
+        }
+        else
+        {
+            // Accumulate characters into the string
+            inputString += inChar;
+            Serial.println(inputString);
+        }
+    }
+}
+
+/******************************************************
  * findStepsPerRevolution()
  * - Example routine to measure the total steps in 360 deg
  *   by detecting the Hall sensor transitions in one full rotation
@@ -224,12 +190,50 @@ long findStepsPerRevolution()
     return numSteps;
 }
 
+
 /******************************************************
- * detect()
- * - Returns true if Hall sensor is triggered (active low)
+ * Setup
  ******************************************************/
-bool detect()
+void setup()
 {
-    // Active low means digitalRead(...) == LOW => triggered
-    return (digitalRead(HOME_SENS_PIN) == LOW);
+    // Initialize serial (pins PA9=TX, PA10=
+    Serial.begin(115200);
+    while (!Serial)
+    { /* Wait for serial if needed */
+    }
+
+    // Set up Hall sensor pin
+    pinMode(HOME_SENS_PIN, INPUT_PULLUP);
+    // If your sensor is open-drain or you need an external pullup,
+    // you might change this to INPUT or use external resistor.
+
+    // Configure stepper
+    stepper.setMaxSpeed(SPEED);
+    stepper.setAcceleration(ACCELERATION);
+
+    Serial.println("RotCam STM32F103C8 Example Starting...");
+
+    home();
+
+    // Optional: Find how many steps in one revolution
+    // (Uncomment if you want to measure steps/rev automatically)
+    stepsPerRevolution = findStepsPerRevolution();
+    Serial.print("Detected steps per revolution: ");
+    Serial.println(stepsPerRevolution);
+
+    // If you already know your steps per revolution, just set it:
+    // stepsPerRevolution = 2048; // example for 28BYJ-48 or 200 for typical NEMA17, etc.
+    // stepper.setCurrentPosition(0);
+}
+
+/******************************************************
+ * Loop
+ ******************************************************/
+void loop()
+{
+    // 1) Check for incoming serial commands
+    parseSerialCommands();
+
+    // 2) Continuously run the stepper (must be called frequently)
+    stepper.run();
 }
