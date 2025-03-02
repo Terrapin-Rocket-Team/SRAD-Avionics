@@ -6,12 +6,12 @@ void AviEventLister::onEvent(const Event *e)
     {
         GPSFix *gfe = (GPSFix *)e;
         if(gfe->hasFix){
-            bb.clearQueue(17);
-            bb.on(17);
+            bb.clearQueue(32);
+            bb.on(32);
         }
         else{
-            bb.clearQueue(17);
-            bb.aonoff(17, patt, true);
+            bb.clearQueue(32);
+            bb.aonoff(32, patt, true);
         }
 
     }
