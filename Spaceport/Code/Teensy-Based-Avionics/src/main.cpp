@@ -99,6 +99,13 @@ void setup()
 
     Serial8.begin(115200);
     getLogger().recordLogData(INFO_, "RotCam Serial initialized.");
+
+    delay(1000);
+    if (Serial8.availableForWrite() > 0)
+    {
+        Serial8.println("90");
+        getLogger().recordLogData(INFO_, "RotCam rotated to 90 degrees.");
+    }
 }
 double radio_last;
 void loop()
