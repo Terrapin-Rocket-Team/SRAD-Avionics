@@ -28,6 +28,8 @@ static const long STEP_MOVE_INC = 25;      // how many steps to move in each inc
 long stepsPerRevolution = 2050; // Measured via findStepsPerRevolution()
 float targetAngle = 0.0;
 
+int seconds_since_last_move = 0;
+
 /******************************************************
  * detect()
  * - Returns true if Hall sensor is triggered (active low)
@@ -116,37 +118,45 @@ void parseSerialCommands()
 {
     static String inputString = "";
 
-    // If there is data available, read it
-    while (Serial1.available())
-    {
-        char inChar = (char)Serial1.read();
+    // // If there is data available, read it
+    // while (Serial1.available())
+    // {
+    //     char inChar = (char)Serial1.read();
 
-        // If we get newline, we parse the input
-        if (inChar == '\n' || inChar == '\r')
-        {
-            if (inputString.length() > 0)
-            {
-                // Check if command is "HOME" (case-insensitive)
-                if (inputString.equalsIgnoreCase("HOME"))
-                {
-                    Serial1.println("Homing stepper...");
-                    home();
-                }
-                else
-                {
-                    // Try to parse a float angle
-                    float angle = inputString.toFloat();
-                    moveToAngle(angle);
-                }
-            }
-            inputString = ""; // clear buffer
-        }
-        else
-        {
-            // Accumulate characters into the string
-            inputString += inChar;
-            Serial1.println(inputString);
-        }
+    //     // If we get newline, we parse the input
+    //     if (inChar == '\n' || inChar == '\r')
+    //     {
+    //         if (inputString.length() > 0)
+    //         {
+    //             // Check if command is "HOME" (case-insensitive)
+    //             if (inputString.equalsIgnoreCase("HOME"))
+    //             {
+    //                 Serial1.println("Homing stepper...");
+    //                 home();
+    //             }
+    //             else
+    //             {
+    //                 // Try to parse a float angle
+    //                 float angle = inputString.toFloat();
+    //                 moveToAngle(angle);
+    //             }
+    //         }
+    //         inputString = ""; // clear buffer
+    //     }
+    //     else
+    //     {
+    //         // Accumulate characters into the string
+    //         inputString += inChar;
+    //         Serial1.println(inputString);
+    //     }
+    // }
+
+    // every 5 seconds, move to a random angle
+    if (millis() - seconds_since_last_move > 5000)
+    {
+        seconds_since_last_move = millis();
+        float angle = random(0, 359);
+        moveToAngle(angle);
     }
 }
 
