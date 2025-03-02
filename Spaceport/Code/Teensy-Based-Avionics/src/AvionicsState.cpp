@@ -9,11 +9,21 @@ AvionicsState::AvionicsState(Sensor **sensors, int numSensors, LinearKalmanFilte
     timeOfLaunch = 0;
     timeOfLastStage = 0;
     insertColumn(1, INT, &stage, "Stage");
+    consecutiveNegativeBaroVelocity = 0;
 }
 
 void AvionicsState::determineStage()
 {
     int timeSinceLaunch = currentTime - timeOfLaunch;
+  
+    if (baroVelocity < 0)
+    {
+        consecutiveNegativeBaroVelocity++;
+    }
+    else
+    {
+        consecutiveNegativeBaroVelocity = 0;
+    }
     IMU *imu = reinterpret_cast<IMU *>(getSensor(IMU_));
     Barometer *baro = reinterpret_cast<Barometer *>(getSensor(BAROMETER_));
     // GPS *gps = reinterpret_cast<GPS *>(getSensor(GPS_));
@@ -58,7 +68,7 @@ void AvionicsState::determineStage()
             getLogger().recordLogData(INFO_, "RotCam rotated 90 degrees.");
         }
     }
-    else if (stage == 2 && baroVelocity <= 0 && timeSinceLaunch > 5)
+    else if (stage == 2 && consecutiveNegativeBaroVelocity > 2 && timeSinceLaunch > 5)
     {
         bb.aonoff(BUZZER, 200, 3);
         char logData[100];
