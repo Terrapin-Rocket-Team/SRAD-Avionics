@@ -4,9 +4,12 @@
 
 #include "BluetoothServer.h"
 
+#include <Client.h>
 #include <HardwareSerial.h>
 
-BluetoothServer::BluetoothServer(Stream &outSerial) : outSerial(outSerial) {}
+BluetoothServer::BluetoothServer(Stream &outSerial) : outSerial(outSerial) {
+    clientConnectionHandler = new ClientConnectionHandler(this);
+}
 
 BluetoothServer::~BluetoothServer() {
     BLEDevice::deinit(true);
@@ -35,6 +38,7 @@ bool BluetoothServer::start(const std::string &name) {
 
     pRxCharacteristic->setCallbacks(this);
     pTxCharacteristic->setCallbacks(this);
+    pServer->setCallbacks(clientConnectionHandler);
 
     if (pService != nullptr) {
         pService->start();
@@ -62,7 +66,11 @@ void BluetoothServer::update(Stream &inputSerial) {
     }
 }
 
-
+void BluetoothServer::startAdvertising() {
+    if (pService != nullptr) {
+        pServer->startAdvertising();
+    }
+}
 
 bool BluetoothServer::send(uint8_t* data, uint16_t size) {
     if (size <= MAX_MESSAGE_SIZE-sizeof(uint16_t)) {
@@ -94,6 +102,8 @@ void BluetoothServer::onRead(BLECharacteristic *pCharacteristic, esp_ble_gatts_c
 
 void BluetoothServer::onWrite(BLECharacteristic *pCharacteristic, esp_ble_gatts_cb_param_t *param) {
     if (pCharacteristic == pRxCharacteristic) {
+        // Serial.print("Server received data on RX: ");
+        // Serial.println(reinterpret_cast<char *>(pRxCharacteristic->getData()));
         const uint16_t size = *reinterpret_cast<uint16_t *>(pRxCharacteristic->getData());
         if (size <= MAX_MESSAGE_SIZE-sizeof(uint16_t)) {
             outSerial.write(pRxCharacteristic->getData() + sizeof(uint16_t), size);
@@ -106,3 +116,19 @@ void BluetoothServer::onWrite(BLECharacteristic *pCharacteristic, esp_ble_gatts_
 void BluetoothServer::onNotify(BLECharacteristic *pCharacteristic) {}
 
 void BluetoothServer::onStatus(BLECharacteristic *pCharacteristic, Status s, uint32_t code) {}
+
+ClientConnectionHandler::ClientConnectionHandler(BluetoothServer *pServer) {
+    this->pServer = pServer;
+}
+
+void ClientConnectionHandler::onConnect(BLEServer *pServer) {
+    // Serial.println("onConnect, restarting advertising");
+    // pServer->startAdvertising(); //restart advertising when a device connects
+}
+
+void ClientConnectionHandler::onDisconnect(BLEServer *pServer) {
+    // Serial.println("onDisconnect, restarting advertising");
+    pServer->startAdvertising(); //restart advertising when device connectes
+}
+
+
