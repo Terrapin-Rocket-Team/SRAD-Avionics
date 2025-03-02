@@ -18,14 +18,14 @@ AccelStepper stepper(AccelStepper::FULL4WIRE,
                      STEPPER_PIN_2, STEPPER_PIN_4);
 
 // Tweak these as needed
-static const float SPEED = 500.0;         // steps/s
+static const float SPEED = 600.0;         // steps/s
 static const float ACCELERATION = 5000.0; // steps/s^2
-static const long STEP_MOVE_INC = 5;      // how many steps to move in each incremental move
+static const long STEP_MOVE_INC = 25;      // how many steps to move in each incremental move
 
 /******************************************************
  * Globals
  ******************************************************/
-long stepsPerRevolution = 0; // Measured via findStepsPerRevolution()
+long stepsPerRevolution = 2050; // Measured via findStepsPerRevolution()
 float targetAngle = 0.0;
 
 /******************************************************
@@ -48,7 +48,7 @@ void moveToAngle(float angle)
 {
     if (stepsPerRevolution <= 0)
     {
-        Serial.println("ERROR: stepsPerRevolution not set. Please home or manually set it!");
+        Serial1.println("ERROR: stepsPerRevolution not set. Please home or manually set it!");
         return;
     }
     if (angle == targetAngle)
@@ -61,11 +61,11 @@ void moveToAngle(float angle)
     long steps = (long)((angle / 360.0) * (float)stepsPerRevolution);
     stepper.moveTo(steps);
 
-    Serial.print("Moving to ");
-    Serial.print(angle);
-    Serial.println(" degrees...");
-    Serial.print("Target steps: ");
-    Serial.println(steps);
+    Serial1.print("Moving to ");
+    Serial1.print(angle);
+    Serial1.println(" degrees...");
+    Serial1.print("Target steps: ");
+    Serial1.println(steps);
 }
 
 /******************************************************
@@ -76,18 +76,20 @@ void moveToAngle(float angle)
  ******************************************************/
 void home()
 {
-    Serial.println("Starting homing routine...");
+    Serial1.println("Starting homing routine...");
 
     // 1) If sensor is already triggered, back off until untriggered
     while (detect())
     {
         stepper.runToNewPosition(stepper.currentPosition() - STEP_MOVE_INC);
+        Serial1.println("while1");
     }
 
     // 2) Move forward until triggered
     while (!detect())
     {
         stepper.runToNewPosition(stepper.currentPosition() + STEP_MOVE_INC);
+        Serial1.println("while2");
     }
 
     // Optionally refine approach or back off slightly:
@@ -96,12 +98,13 @@ void home()
     while (detect())
     {
         stepper.runToNewPosition(stepper.currentPosition() - STEP_MOVE_INC);
+        Serial1.println("while3");
     }
 
     // Now set zero
     stepper.setCurrentPosition(0);
 
-    Serial.println("Homing complete. Current position = 0");
+    Serial1.println("Homing complete. Current position = 0");
 }
 
 /******************************************************
@@ -114,9 +117,9 @@ void parseSerialCommands()
     static String inputString = "";
 
     // If there is data available, read it
-    while (Serial.available())
+    while (Serial1.available())
     {
-        char inChar = (char)Serial.read();
+        char inChar = (char)Serial1.read();
 
         // If we get newline, we parse the input
         if (inChar == '\n' || inChar == '\r')
@@ -126,7 +129,7 @@ void parseSerialCommands()
                 // Check if command is "HOME" (case-insensitive)
                 if (inputString.equalsIgnoreCase("HOME"))
                 {
-                    Serial.println("Homing stepper...");
+                    Serial1.println("Homing stepper...");
                     home();
                 }
                 else
@@ -142,7 +145,7 @@ void parseSerialCommands()
         {
             // Accumulate characters into the string
             inputString += inChar;
-            Serial.println(inputString);
+            Serial1.println(inputString);
         }
     }
 }
@@ -156,7 +159,7 @@ long findStepsPerRevolution()
 {
     long numSteps = 0;
 
-    Serial.println("Finding steps per revolution. Rotating until sensor triggered twice...");
+    Serial1.println("Finding steps per revolution. Rotating until sensor triggered twice...");
 
     // 1) If sensor is triggered, move away so we start from untriggered
     while (detect())
@@ -184,8 +187,8 @@ long findStepsPerRevolution()
     // If your sensor triggers multiple times per rev, you might need to
     // repeat until a second trigger to get the full 360.
 
-    Serial.print("Approx steps measured so far: ");
-    Serial.println(numSteps);
+    Serial1.print("Approx steps measured so far: ");
+    Serial1.println(numSteps);
 
     return numSteps;
 }
@@ -197,7 +200,7 @@ long findStepsPerRevolution()
 void setup()
 {
     // Initialize serial (pins PA9=TX, PA10=
-    Serial.begin(115200);
+    Serial1.begin(115200);
     while (!Serial)
     { /* Wait for serial if needed */
     }
@@ -211,15 +214,16 @@ void setup()
     stepper.setMaxSpeed(SPEED);
     stepper.setAcceleration(ACCELERATION);
 
-    Serial.println("RotCam STM32F103C8 Example Starting...");
+    Serial1.println("RotCam STM32F103C8 Example Starting...");
 
     home();
+    delay(5000);
 
     // Optional: Find how many steps in one revolution
     // (Uncomment if you want to measure steps/rev automatically)
-    stepsPerRevolution = findStepsPerRevolution();
-    Serial.print("Detected steps per revolution: ");
-    Serial.println(stepsPerRevolution);
+    // stepsPerRevolution = findStepsPerRevolution();
+    // Serial1.print("Detected steps per revolution: ");
+    // Serial1.println(stepsPerRevolution);
 
     // If you already know your steps per revolution, just set it:
     // stepsPerRevolution = 2048; // example for 28BYJ-48 or 200 for typical NEMA17, etc.
