@@ -64,8 +64,8 @@ void AvionicsState::determineStage()
         getLogger().recordLogData(INFO_, "Coasting detected.");
 
         if (Serial8.availableForWrite() > 0) {
-            Serial8.println("90");
-            getLogger().recordLogData(INFO_, "RotCam rotated 90 degrees.");
+            Serial8.println("0");
+            getLogger().recordLogData(INFO_, "RotCam rotated to 0 degrees.");
         }
     }
     else if (stage == 2 && consecutiveNegativeBaroVelocity > 2 && timeSinceLaunch > 5)
@@ -87,8 +87,8 @@ void AvionicsState::determineStage()
         getLogger().recordLogData(INFO_, "Main parachute conditions detected.");
 
         if (Serial8.availableForWrite() > 0) {
-            Serial8.println("270");
-            getLogger().recordLogData(INFO_, "RotCam rotated 270 degrees.");
+            Serial8.println("180");
+            getLogger().recordLogData(INFO_, "RotCam rotated 180 degrees.");
         }
     }
     else if (stage == 4 && baroVelocity > -1 && baro->getAGLAltFt() < 66 && timeSinceLaunch > 15)
