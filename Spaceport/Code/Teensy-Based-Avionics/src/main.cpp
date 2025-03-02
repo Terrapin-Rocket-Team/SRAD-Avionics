@@ -84,18 +84,21 @@ void setup()
     sys.init();
     bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
 
-    // if (radio.begin())
-    // {
-    //     bb.onoff(BUZZER, 1000);
-    //     getLogger().recordLogData(ERROR_, "Radio initialized.");
-    // }
-    // else
-    // {
-    //     bb.onoff(BUZZER, 200, 3);
-    //     getLogger().recordLogData(INFO_, "Radio failed to initialize.");
-    // }
+    if (radio.begin())
+    {
+        bb.onoff(BUZZER, 1000);
+        getLogger().recordLogData(ERROR_, "Radio initialized.");
+    }
+    else
+    {
+        bb.onoff(BUZZER, 200, 3);
+        getLogger().recordLogData(INFO_, "Radio failed to initialize.");
+    }
 
     getLogger().recordLogData(INFO_, "Initialization Complete");
+
+    Serial8.begin(115200);
+    getLogger().recordLogData(INFO_, "RotCam Serial initialized.");
 }
 double radio_last;
 void loop()
@@ -104,7 +107,7 @@ void loop()
     {
         FreeMem();
     }
-    // radio.update();
+    radio.update();
 
     double time = millis();
     if (time - radio_last < 1000)
@@ -133,9 +136,9 @@ void loop()
 
     uint8_t arr[] = {(uint8_t)(int)baro1.getTemp(), (uint8_t)computer.getStage(), (uint8_t)gps.getFixQual()};
     aprs.stateFlags.pack(arr);
-    // aprs.stateFlags = (uint8_t) computer.getStage();
+    aprs.stateFlags = (uint8_t) computer.getStage();
     msg.encode(&aprs);
-    // radio.send(aprs);
+    radio.send(aprs);
     Serial.printf("%0.3f - Sent APRS Message; %f   |   %d\n", time / 1000.0, baro1.getAGLAltFt(), gps.getFixQual());
     bb.aonoff(BUZZER, 50);
     // Serial1.write(msg.buf, msg.size);
