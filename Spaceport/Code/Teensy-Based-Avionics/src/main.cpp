@@ -97,22 +97,22 @@ void setup()
 
     getLogger().recordLogData(INFO_, "Initialization Complete");
 
-    Serial8.begin(115200);
-    getLogger().recordLogData(INFO_, "RotCam Serial initialized.");
+    // Serial8.begin(115200);
+    // getLogger().recordLogData(INFO_, "RotCam Serial initialized.");
 
-    delay(1000);
-    if (Serial8.availableForWrite() > 0)
-    {
-        Serial8.println("90");
-        getLogger().recordLogData(INFO_, "RotCam rotated to 90 degrees.");
-    }
+    // delay(1000);
+    // if (Serial8.availableForWrite() > 0)
+    // {
+    //     Serial8.println("90");
+    //     getLogger().recordLogData(INFO_, "RotCam rotated to 90 degrees.");
+    // }
 }
 double radio_last;
 void loop()
 {
     if (sys.update())
     {
-        FreeMem();
+        // FreeMem();
     }
     radio.update();
 
@@ -143,7 +143,7 @@ void loop()
 
     uint8_t arr[] = {(uint8_t)(int)baro1.getTemp(), (uint8_t)computer.getStage(), (uint8_t)gps.getFixQual()};
     aprs.stateFlags.pack(arr);
-    aprs.stateFlags = (uint8_t) computer.getStage();
+    // aprs.stateFlags = (uint8_t) computer.getStage();
     msg.encode(&aprs);
     radio.send(aprs);
     Serial.printf("%0.3f - Sent APRS Message; %f   |   %d\n", time / 1000.0, baro1.getAGLAltFt(), gps.getFixQual());
