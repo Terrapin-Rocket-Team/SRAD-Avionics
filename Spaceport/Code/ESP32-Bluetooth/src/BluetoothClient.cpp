@@ -76,7 +76,8 @@ void BluetoothClient::update(Stream& inputSerial) {
 }
 
 bool BluetoothClient::send(uint8_t *data, uint16_t length) {
-    if (remoteRx->canWrite()) {
+    
+    if (remoteRx->canWrite()) { //via bluetooth, need to add serial component, txd0 rxd0 
         remoteRx->writeValue(data, length);
         return true;
     }
@@ -84,7 +85,7 @@ bool BluetoothClient::send(uint8_t *data, uint16_t length) {
 }
 
 uint16_t BluetoothClient::read(uint8_t *data) {
-    if (remoteRx->canRead()) {
+    if (remoteRx->canRead()) { //via bluetooth, need to add serial component
         uint8_t* raw = remoteRx->readRawData();
 
         uint16_t size = *reinterpret_cast<uint16_t*>(raw);
