@@ -16,7 +16,7 @@ public:
     Matrix getG(double dt) override;
     Matrix getH() override;
     Matrix getR() override;
-    Matrix getQ() override;
+    Matrix getQ(double dt) override;
 };
 
 } // namespace mmfs
