@@ -7,6 +7,9 @@
 
 #define PART_NO 0x4463
 #define MAX_NUM_PROPS 12
+#define CTS_TIMEOUT 100
+
+// hardware config definitions
 
 /*
 Si4463 Hardware Configuration
@@ -159,6 +162,7 @@ public:
     - pwr : the power level of the radio (0-127)
     */
     void setPower(uint8_t pwr);
+    void setPacketConfig(); // TODO
     /*
     Sets the behavior of configurable radio pins
     - gpio0Mode : sets the behavior of GPIO 0
@@ -177,6 +181,8 @@ public:
     - regDMode : sets the value stored in FRR D, does not modify the register if not passed
     */
     void setFRRs(Si4463FRR regAMode, Si4463FRR regBMode = FRR_NO_CHANGE, Si4463FRR regCMode = FRR_NO_CHANGE, Si4463FRR regDMode = FRR_NO_CHANGE);
+    void setTXThreshold(uint8_t size);
+    void setRXThreshold(uint8_t size);
     /*
     Used to enable or disable the radio's Automatic Frequency Control (AFC)
     - enabled : whether the AFC should be enabled
@@ -271,6 +277,7 @@ public:
     Returns: whether the CTS byte was sent
     */
     bool checkCTS();
+    bool CTS();
     /*
     Send a command to the radio, used when the command has arguments and a response besides CTS
     - cmd : the command to send
@@ -308,6 +315,9 @@ private:
     uint8_t _gp1;
     uint8_t _gp2;
     uint8_t _gp3;
+
+    // other pins (these will be set to one of the above gpio pins)
+    uint8_t _cts;
 
     // abstractions of low level SPI operations
     /*

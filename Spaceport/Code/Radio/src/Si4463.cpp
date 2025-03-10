@@ -55,39 +55,48 @@ bool Si4463::begin()
     //      Serial.println(rIntArgs[i], BIN);
     //  }
 
-    uint8_t argst[2] = {};
+    // uint8_t argst[2] = {};
     // Serial.println("DEVICE_STATE");
-    sendCommandR(C_REQUEST_DEVICE_STATE, 2, argst);
+    // sendCommandR(C_REQUEST_DEVICE_STATE, 2, argst);
     // Serial.println(argst[0]);
     // Serial.println(argst[1]);
 
     // check part info to make sure proper communication has been established
     uint8_t args[8] = {0};
     this->sendCommandR(C_PART_INFO, 8, args);
-    Serial.println("PART_INFO");
-    for (int i = 0; i < 8; i++)
-    {
-        Serial.println(args[i], HEX);
-    }
+    // Serial.println("PART_INFO");
+    // for (int i = 0; i < 8; i++)
+    // {
+    //     Serial.println(args[i], HEX);
+    // }
 
     this->sendCommandR(C_PART_INFO, 8, args);
 
     uint16_t partNo = 0;
     from_bytes(partNo, 1, 0, args);
     if (partNo != PART_NO)
-        return false; // Error: did not receive the correct part number
+        return false; // ERROR: did not receive the correct part number
 
     // set the global config, this is the defaults, but apparently a reserved field needs to be set manually
-    this->setProperty(G_GLOBAL, P_GLOBAL_CONFIG, 0b01110000);
+    this->setProperty(G_GLOBAL, P_GLOBAL_CONFIG, 0b01000000);
 
-    this->setProperty(G_GLOBAL, P_GLOBAL_XO_TUNE, 0x62); // from rf4463f30 datasheet
+    // set clock config
+    this->setProperty(G_GLOBAL, P_GLOBAL_XO_TUNE, 0x00);
+    this->setProperty(G_GLOBAL, P_GLOBAL_CLK_CFG, 0x00);
+
+    // disable interrupts
+    this->setProperty(G_INT_CTL, P_INT_CTL_ENABLE, 0x00);
+
+    // set TX and RX thresholds
+    this->setTXThreshold(20);
+    this->setRXThreshold(50);
 
     // set modem (frequency related) config
     this->setModemConfig(this->mod, this->dataRate, this->freq);
     // set power level (127 = ~20 dBm)
     this->setPower(this->pwr);
     // turn on AFC
-    // this->setAFC(true); // make sure this is being done correctly
+    this->setAFC(true);
     // set preamble configuration
     this->setProperty(G_PREAMBLE, P_PREAMBLE_CONFIG, 0b00110001);
     // set preamble length
@@ -96,10 +105,10 @@ bool Si4463::begin()
     this->setProperty(G_PREAMBLE, P_PREAMBLE_CONFIG_STD_1, this->preambleThresh & 0b01111111); // first bit must be 0
     // leaving sync word params at defaults
 
-    // // set defaults for gpio pins
-    this->setPins(PIN_RX_STATE, PIN_TX_STATE, PIN_RX_STATE, PIN_TX_STATE, PIN_VALID_PREAMBLE, false);
+    // set defaults for gpio pins
+    this->setPins(PIN_RX_FIFO_FULL, PIN_TX_FIFO_EMPTY, PIN_RX_STATE, PIN_TX_STATE, PIN_CTS, false);
 
-    // // set defaults for FRRs
+    // set defaults for FRRs
     this->setFRRs(FRR_CURRENT_STATE, FRR_LATCHED_RSSI, FRR_INT_MODEM_PEND, FRR_INT_PH_STATUS);
 
     // // packet handling setup, doubly make sure this is being done correctly
@@ -484,7 +493,31 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
     setProperty(G_MODEM, P_MODEM_MOD_TYPE, mod);
     setProperty(G_MODEM, P_MODEM_MAP_CONTROL, 0x00);
 
-    // set modulation dependant properties
+    // set PA deramp delay
+    uint8_t rampDelay = 0x01; // default
+    switch (mod)
+    {
+    case MOD_OOK:
+        rampDelay = 0x00;
+        break;
+    case MOD_2FSK:
+        rampDelay = 0x01;
+        break;
+    case MOD_2GFSK:
+        rampDelay = 0x01;
+        break;
+    case MOD_4FSK:
+        rampDelay = 0x04;
+        break;
+    case MOD_4GFSK:
+        rampDelay = 0x05;
+        break;
+    default:
+        break;
+    }
+    setProperty(G_MODEM, P_MODEM_TX_RAMP_DELAY, rampDelay);
+
+    // set modulation dependent packet properties
     uint8_t pktConfArgs = 0b00000000;
     uint8_t pktFieldConfArgs = 0b00000000;
     // need to enable 4 FSK at packet handler and field level
@@ -567,7 +600,7 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
     }
     else
     {
-        Serial.println("Error: could not find frequency");
+        Serial.println("ERROR: could not find frequency");
         return; // Error: could not find frequency
     }
 
@@ -576,11 +609,15 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
     to_bytes(dataRate, 0, 1, drArgs);
     setProperty(G_MODEM, 7, P_MODEM_DATA_RATE3, drArgs);
 
-    // set frequency deviation
+    // set frequency deviation, modulation index = 0.5
     // see datasheet for math, this includes everything but a bitrate dependent factor and 4-FSK correction
-    float fDev = (double)pow(2, 19) * (double)bandDivs[band] / (float)(2 * 30e6);
+    float fDev = (double)pow(2, 19) * (double)bandDivs[band] / (2.0 * 30e6);
     if (mod == MOD_4FSK || mod == MOD_4GFSK)
-        fDev /= 3.0; // we want the inner deviation when we are using 4-FSK
+        // we want the inner deviation when we are using 4-FSK but still need to multiply by 3 for some reason
+        // quote from API docs: "For 4(G)FSK mode (if supported), the specified value is the inner deviation"
+        // could be referring to the specified inner deviation (see below), with the need to multiply by 3 implied
+        // The calculations here line up with what WDS says, so theoretically they are correct
+        fDev *= 3.0 / 4.0;
     switch (dataRate)
     {
     case DR_500b:
@@ -601,10 +638,14 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
     case DR_120k:
         fDev *= (120e3 / 2.0);
         break;
+    case DR_250k:
+        fDev *= (250e3 / 2.0);
+        break;
     case DR_500k:
         fDev *= (500e3 / 2.0);
         break;
     default:
+        Serial.println("ERROR: could not find data rate");
         return; // Error: data rate is not part of the Si4463DataRate enum (should never happen)
     }
 
@@ -614,13 +655,94 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
     to_bytes((uint32_t)fDev & 0x0001FFFF, 0, 1, fDevArgs);
     setProperty(G_MODEM, 3, P_MODEM_FREQ_DEV3, fDevArgs);
 
+    // set IF frequency
+    // always use fixed IF mode
+    uint32_t IFFreq = (double)pow(2, 19) * (double)bandDivs[band] * (30e6 / (64.0 * 1.0)) / (2.0 * 30e6);
+    uint8_t IFFreqArgs[3] = {};
+    to_bytes(IFFreq & 0x0003FFFF, 0, 1, IFFreqArgs);
+    setProperty(G_MODEM, 3, P_MODEM_IF_FREQ3, IFFreqArgs);
+
+    // based on reading straight from WDS
+    // MODEM_DECIMATION_CFG_X fields
+    // MODEM_BCR_OSR fields
+    uint32_t decimation = 0x00;
+    uint16_t bcrOSR = 0x00;
+    switch (dataRate)
+    {
+    case DR_500b:
+        decimation = 0x301014;
+        bcrOSR = 0x09c4;
+        break;
+    case DR_4_8k:
+        decimation = 0x30100C;
+        bcrOSR = 0x0104;
+        break;
+    case DR_9_6k:
+        decimation = 0x302000;
+        bcrOSR = 0x00c3;
+        break;
+    case DR_40k:
+        decimation = 0x202000;
+        bcrOSR = 0x005e;
+        break;
+    case DR_100k:
+        decimation = 0x102000;
+        bcrOSR = 0x004b;
+        break;
+    case DR_120k:
+        decimation = 0x001000;
+        bcrOSR = 0x0053;
+        break;
+    case DR_250k:
+        decimation = 0x003000;
+        bcrOSR = 0x0078;
+        break;
+    case DR_500k:
+        decimation = 0x003000;
+        bcrOSR = 0x003c;
+        break;
+    default:
+        Serial.println("ERROR: could not find data rate");
+        return; // Error: data rate is not part of the Si4463DataRate enum (should never happen)
+    }
+    uint8_t decimationArgs[3];
+    to_bytes(decimation, 0, 1, decimationArgs);
+    setProperty(G_MODEM, 3, P_MODEM_DECIMATION_CFG_1, decimationArgs);
+    uint8_t bcrOSRArgs[2];
+    to_bytes(bcrOSR, 0, 1, bcrOSRArgs);
+    setProperty(G_MODEM, 2, P_MODEM_BCR_OSR2, bcrOSRArgs);
+
+    // Not even sure what this is, but it's always set to this value
+    setProperty(G_MODEM, P_MODEM_IFPKD_THRESHOLDS, 0xE8);
+
+    // set bit clock recovery (BCR) offset
+    uint8_t bcrNCOOffset[3] = {0x00, 0x00, 0x00}; // TODO: values
+    setProperty(G_MODEM, 3, P_MODEM_BCR_NCO_OFFSET3, bcrNCOOffset);
+
+    // set bit clock recovery (BCR) control gain
+    uint8_t bcrGain[2] = {0x00, 0x00}; // TODO: values
+    setProperty(G_MODEM, 2, P_MODEM_BCR_GAIN2, bcrGain);
+
+    // for some reason the default is not normal operation
+    setProperty(G_MODEM, P_MODEM_BCR_MISC_1, 0x00);
+
+    // set AFC wait
+    setProperty(G_MODEM, P_MODEM_AFC_WAIT, 0x00); // TODO: value
+
+    // set AFC control gain
+    uint8_t afcGainArgs[2] = {0x00, 0x00}; // TODO: values
+    setProperty(G_MODEM, 2, P_MODEM_AFC_GAIN2, afcGainArgs);
+
+    // Set max AFC deviation
+    uint8_t afcLimiterArgs[8] = {0b01000000, 0xBE}; // TODO: values
+    setProperty(G_MODEM, 2, P_MODEM_AFC_LIMITER2, afcLimiterArgs);
+
+    // sets AFC to provide feedback to the PLL (does not turn on AFC)
+    setProperty(G_MODEM, P_MODEM_AFC_MISC, 0b11101000);
+
+    setProperty(G_MODEM, P_MODEM_AGC_CONTROL, 0xE0); // seems to be set to 0xE2 above 250kbps
+
     // set additional config
-    // uint8_t MODEM_TX_RAMP_DELAY[12] = {0x01, 0x00, 0x08, 0x03, 0x80, 0x00, 0xB0, 0x10, 0x0C, 0xE8, 0x00, 0x4E};
-    // setProperty(G_MODEM, 12, P_MODEM_TX_RAMP_DELAY, MODEM_TX_RAMP_DELAY);
-    // uint8_t MODEM_BCR_NCO_OFFSET_2[12] = {0x06, 0x8D, 0xB9, 0x00, 0x00, 0x02, 0xC0, 0x08, 0x00, 0x12, 0x00, 0x23};
-    // setProperty(G_MODEM, 12, P_MODEM_BCR_NCO_OFFSET3, MODEM_BCR_NCO_OFFSET_2);
-    // uint8_t MODEM_AFC_LIMITER[3] = {0x01, 0x5C, 0xA0};
-    // setProperty(G_MODEM, 3, P_MODEM_AFC_LIMITER2, MODEM_AFC_LIMITER);
     // uint8_t MODEM_AGC_CONTROL = 0xE0;
     // setProperty(G_MODEM, P_MODEM_AGC_CONTROL, MODEM_AGC_CONTROL);
     // uint8_t MODEM_AGC_WINDOW_SIZE[12] = {0x11, 0x11, 0x11, 0x80, 0x1A, 0x20, 0x00, 0x00, 0x28, 0x0C, 0xA4, 0x23};
@@ -640,9 +762,9 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
 
 void Si4463::setPower(uint8_t pwr)
 {
-    // const uint8_t PA_MODE = 0b000001000; // this is the default
-    // setProperty(G_PA, P_PA_MODE, PA_MODE);
+    // setProperty(G_PA, P_PA_MODE, 0b000001000); // this is the default
     setProperty(G_PA, P_PA_PWR_LVL, pwr & 0b01111111); // first bit should be 0
+    setProperty(G_PA, P_PA_TC, 0x1D);                  // TODO: seems to be set to 0x5D in high bitrate cases
 }
 
 void Si4463::setPins(Si4463Pin gpio0Mode, Si4463Pin gpio1Mode, Si4463Pin gpio2Mode, Si4463Pin gpio3Mode, Si4463Pin irqMode, bool pullup)
@@ -656,7 +778,7 @@ void Si4463::setPins(Si4463Pin gpio0Mode, Si4463Pin gpio1Mode, Si4463Pin gpio2Mo
     // put all the mode arguments into an array, except irq which is set to DO_NOTHING
     uint8_t gpioArgs[7] = {(uint8_t)(gpio0Mode | pullupMask), (uint8_t)(gpio1Mode | pullupMask),
                            (uint8_t)(gpio2Mode | pullupMask), (uint8_t)(gpio3Mode | pullupMask),
-                           (uint8_t)(PIN_DO_NOTHING | pullupMask), (uint8_t)(PIN_SDO | pullupMask), 0x03};
+                           (uint8_t)(PIN_DO_NOTHING | pullupMask), (uint8_t)(PIN_DO_NOTHING | pullupMask), 0x00};
 
     // irq can only be set to specific values, if we were given a valid value, update irq in the array here
     if (irqMode < 0x04 || irqMode == 0x07 || irqMode == 0x08 || irqMode == 0x0B || irqMode == 0x0C ||
@@ -687,24 +809,31 @@ void Si4463::setFRRs(Si4463FRR regAMode, Si4463FRR regBMode, Si4463FRR regCMode,
         setProperty(G_FRR_CTL, P_FRR_CTL_D_MODE, regDMode);
 }
 
+void Si4463::setTXThreshold(uint8_t size)
+{
+    // limit size to 63 bytes
+    this->setProperty(G_PKT, P_PKT_TX_THRESHOLD, size & 0b0111111);
+}
+
+void Si4463::setRXThreshold(uint8_t size)
+{
+    // limit size to 63 bytes
+    this->setProperty(G_PKT, P_PKT_RX_THRESHOLD, size & 0b0111111);
+}
+
 void Si4463::setAFC(bool enabled)
 {
-    uint8_t afcGainArgs[2] = {0b1000011, 0x69}; // default value
-    // set first bit to 0 to disable AFC
-    if (!enabled)
-    {
-        afcGainArgs[0] = 0b0000011;
-        afcGainArgs[1] = 0x69;
-    }
-    setProperty(G_MODEM, 2, P_MODEM_AFC_GAIN2, afcGainArgs);
-    // set up the AFC if enabled
+    // get existing config
+    uint8_t afcGainArgs[2] = {};
+    getProperty(G_MODEM, 2, P_MODEM_AFC_GAIN2, afcGainArgs);
+    // modify to enable or disable AFC
+    // set or unset first bit
     if (enabled)
-    {
-        uint8_t afcLimiterArgs[8] = {0b01000000, 0xBE}; // set max AFC deviation to 190*8 = 1.52 kHz
-        setProperty(G_MODEM, 2, P_MODEM_AFC_LIMITER2, afcLimiterArgs);
-        uint8_t afcMiscArgs = 0b11101000; // turns on AFC feedback to the PLL
-        setProperty(G_MODEM, P_MODEM_AFC_MISC, afcMiscArgs);
-    }
+        afcGainArgs[0] | 0b10000000;
+    if (!enabled)
+        afcGainArgs[0] & 0b01111111;
+    // apply new config
+    setProperty(G_MODEM, 2, P_MODEM_AFC_GAIN2, afcGainArgs);
 }
 
 bool Si4463::gpio0()
@@ -741,14 +870,26 @@ void Si4463::shutdown(bool shutdown)
     else
     {
         digitalWrite(this->_sdn, LOW);
-        while (!gpio1())
+        uint32_t start = millis();
+        while (!gpio1() && millis() - start < 10)
         {
             yield();
         }
+        if (millis() - start < 10)
+        {
+            Serial.print("ERROR: chip failed to wake up, GPIO1 state is ");
+            Serial.println(gpio1());
+        }
         spi_write(C_NOP, 0, {});
-        while (!gpio1())
+        start = millis();
+        while (!gpio1() && millis() - start < 100)
         {
             yield();
+        }
+        if (millis() - start < 100)
+        {
+            Serial.print("ERROR: chip did not respond to SPI, GPIO1 state is ");
+            Serial.println(gpio1());
         }
     }
 }
@@ -766,8 +907,9 @@ void Si4463::setRegisters()
     // uint8_t RF_POWER_UP[] = {0x02, 0x01, 0x00, 0x01, 0xC9, 0xC3, 0x80};
     // uint8_t RF_GPIO_PIN_CFG[] = {0x13, 0x41, 0x41, 0x21, 0x20, 0x67, 0x4B, 0x00};
     // uint8_t GLOBAL_2_0[] = {0x11, 0x00, 0x04, 0x00, 0x52, 0x00, 0x18, 0x30};
-    uint8_t MODEM_2_0[] = {0x11, 0x20, 0x0C, 0x00, 0x03, 0x00, 0x07, 0x02, 0x71, 0x00, 0x05, 0xC9, 0xC3, 0x80, 0x00, 0x00};
-    uint8_t MODEM_2_1[] = {0x11, 0x20, 0x01, 0x0C, 0x46};
+    // uint8_t MODEM_2_0[] = {0x11, 0x20, 0x0C, 0x00, 0x03, 0x00, 0x07, 0x02, 0x71, 0x00, 0x05, 0xC9, 0xC3, 0x80, 0x00, 0x00};
+    // uint8_t MODEM_2_1[] = {0x11, 0x20, 0x01, 0x0C, 0x46};
+    // SET_PROPERTY, MODEM, 0x0c bytes, 0x1c start, MODEM_IF_FREQ 0x8000, MODEM_DECIMATION_CFG1 0xB0, MODEM_DECIMATION_CFG0 0x10, MODEM_DECIMATION_CFG2 0x0c, MODEM_IFPKD_THRESHOLDS 0xe8, MODEM_BCR_OSR 0x004e, MODEM_BCR_NCO_OFFSET 0x068d, MODEM_BCR_GAIN 0xb900
     uint8_t MODEM_2_2[] = {0x11, 0x20, 0x0C, 0x1C, 0x80, 0x00, 0xB0, 0x10, 0x0C, 0xE8, 0x00, 0x4E, 0x06, 0x8D, 0xB9, 0x00};
     uint8_t MODEM_2_3[] = {0x11, 0x20, 0x0A, 0x28, 0x00, 0x02, 0xC0, 0x08, 0x00, 0x12, 0xC6, 0xD4, 0x01, 0x5C};
     uint8_t MODEM_2_4[] = {0x11, 0x20, 0x0B, 0x39, 0x11, 0x11, 0x80, 0x1A, 0x20, 0x00, 0x00, 0x28, 0x0C, 0xA4, 0x23};
@@ -778,15 +920,15 @@ void Si4463::setRegisters()
     uint8_t MODEM_CHFLT_2_0[] = {0x11, 0x21, 0x0C, 0x00, 0x7E, 0x64, 0x1B, 0xBA, 0x58, 0x0B, 0xDD, 0xCE, 0xD6, 0xE6, 0xF6, 0x00};
     uint8_t MODEM_CHFLT_2_1[] = {0x11, 0x21, 0x0C, 0x0C, 0x03, 0x03, 0x15, 0xF0, 0x3F, 0x00, 0x7E, 0x64, 0x1B, 0xBA, 0x58, 0x0B};
     uint8_t MODEM_CHFLT_2_2[] = {0x11, 0x21, 0x0B, 0x18, 0xDD, 0xCE, 0xD6, 0xE6, 0xF6, 0x00, 0x03, 0x03, 0x15, 0xF0, 0x3F};
-    uint8_t PA_2_0[] = {0x11, 0x22, 0x01, 0x03, 0x1D};
+    // uint8_t PA_2_0[] = {0x11, 0x22, 0x01, 0x03, 0x1D};
     uint8_t FREQ_CONTROL_2_0[] = {0x11, 0x40, 0x08, 0x00, 0x37, 0x09, 0x00, 0x00, 0x44, 0x44, 0x20, 0xFE};
-    uint8_t RF_START_RX[] = {0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    // uint8_t RF_START_RX[] = {0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
     uint8_t RF_IRCAL[] = {0x17, 0x56, 0x10, 0xCA, 0xF0};
     uint8_t RF_IRCAL_1[] = {0x17, 0x13, 0x10, 0xCA, 0xF0};
-    uint8_t INT_CTL_5_0[] = {0x11, 0x01, 0x04, 0x00, 0x07, 0x18, 0x00, 0x00};
-    uint8_t FRR_CTL_5_0[] = {0x11, 0x02, 0x03, 0x00, 0x0A, 0x09, 0x00};
+    // uint8_t INT_CTL_5_0[] = {0x11, 0x01, 0x04, 0x00, 0x07, 0x18, 0x00, 0x00};
+    // uint8_t FRR_CTL_5_0[] = {0x11, 0x02, 0x03, 0x00, 0x0A, 0x09, 0x00};
     uint8_t PREAMBLE_5_0[] = {0x11, 0x10, 0x01, 0x04, 0x31};
-    uint8_t SYNC_5_0[] = {0x11, 0x11, 0x04, 0x01, 0xB4, 0x2B, 0x00, 0x00};
+    // uint8_t SYNC_5_0[] = {0x11, 0x11, 0x04, 0x01, 0xB4, 0x2B, 0x00, 0x00};
     uint8_t PKT_5_0[] = {0x11, 0x12, 0x0A, 0x00, 0x04, 0x01, 0x08, 0xFF, 0xFF, 0x20, 0x00, 0x00, 0x2A, 0x01};
     uint8_t PKT_5_1[] = {0x11, 0x12, 0x07, 0x0E, 0x01, 0x06, 0xAA, 0x00, 0x80, 0x02, 0x2A};
     uint8_t MODEM_5_0[] = {0x11, 0x20, 0x0A, 0x03, 0x1E, 0x84, 0x80, 0x09, 0xC9, 0xC3, 0x80, 0x00, 0x0D, 0xA7};
@@ -801,7 +943,7 @@ void Si4463::setRegisters()
     uint8_t MODEM_CHFLT_5_1[] = {0x11, 0x21, 0x0C, 0x0C, 0x07, 0x03, 0x15, 0xFC, 0x0F, 0x00, 0xA2, 0x81, 0x26, 0xAF, 0x3F, 0xEE};
     uint8_t MODEM_CHFLT_5_2[] = {0x11, 0x21, 0x0B, 0x18, 0xC8, 0xC7, 0xDB, 0xF2, 0x02, 0x08, 0x07, 0x03, 0x15, 0xFC, 0x0F};
     uint8_t SYNTH_5_0[] = {0x11, 0x23, 0x06, 0x00, 0x34, 0x04, 0x0B, 0x04, 0x07, 0x70};
-    uint8_t FREQ_CONTROL_5_0[] = {0x11, 0x40, 0x04, 0x00, 0x38, 0x0D, 0xDD, 0xDD};
+    // uint8_t FREQ_CONTROL_5_0[] = {0x11, 0x40, 0x04, 0x00, 0x38, 0x0D, 0xDD, 0xDD};
 
     // setProperty(MODEM_2_0, sizeof(MODEM_2_0));
     // setProperty(MODEM_2_1, sizeof(MODEM_2_1));
@@ -815,15 +957,15 @@ void Si4463::setRegisters()
     setProperty(MODEM_CHFLT_2_0, sizeof(MODEM_CHFLT_2_0));
     setProperty(MODEM_CHFLT_2_1, sizeof(MODEM_CHFLT_2_1));
     setProperty(MODEM_CHFLT_2_2, sizeof(MODEM_CHFLT_2_2));
-    setProperty(PA_2_0, sizeof(PA_2_0));
+    // setProperty(PA_2_0, sizeof(PA_2_0));
     setProperty(FREQ_CONTROL_2_0, sizeof(FREQ_CONTROL_2_0));
-    setProperty(RF_START_RX, sizeof(RF_START_RX));
+    // setProperty(RF_START_RX, sizeof(RF_START_RX));
     setProperty(RF_IRCAL, sizeof(RF_IRCAL));
     setProperty(RF_IRCAL_1, sizeof(RF_IRCAL_1));
-    setProperty(INT_CTL_5_0, sizeof(INT_CTL_5_0));
-    setProperty(FRR_CTL_5_0, sizeof(FRR_CTL_5_0));
+    // setProperty(INT_CTL_5_0, sizeof(INT_CTL_5_0));
+    // setProperty(FRR_CTL_5_0, sizeof(FRR_CTL_5_0));
     setProperty(PREAMBLE_5_0, sizeof(PREAMBLE_5_0));
-    setProperty(SYNC_5_0, sizeof(SYNC_5_0));
+    // setProperty(SYNC_5_0, sizeof(SYNC_5_0));
     setProperty(PKT_5_0, sizeof(PKT_5_0));
     setProperty(PKT_5_1, sizeof(PKT_5_1));
     setProperty(MODEM_5_0, sizeof(MODEM_5_0));
@@ -838,7 +980,7 @@ void Si4463::setRegisters()
     setProperty(MODEM_CHFLT_5_1, sizeof(MODEM_CHFLT_5_1));
     setProperty(MODEM_CHFLT_5_2, sizeof(MODEM_CHFLT_5_2));
     setProperty(SYNTH_5_0, sizeof(SYNTH_5_0));
-    setProperty(FREQ_CONTROL_5_0, sizeof(FREQ_CONTROL_5_0));
+    // setProperty(FREQ_CONTROL_5_0, sizeof(FREQ_CONTROL_5_0));
 
     // doAPI(MODEM_2_2, sizeof(MODEM_2_2), NULL, 0);
     // doAPI(MODEM_2_3, sizeof(MODEM_2_3));
@@ -906,7 +1048,7 @@ void Si4463::setProperty(Si4463Group group, const uint8_t num, Si4463Property st
 
 void Si4463::getProperty(Si4463Group group, const uint8_t num, Si4463Property start, uint8_t *data)
 {
-    // make sure we're not exceed the max number of properties we can get at a time
+    // make sure we're not exceeding the max number of properties we can get at a time
     if (num > MAX_NUM_PROPS)
         return;
     // three args, reading num bytes of data
@@ -958,16 +1100,11 @@ void Si4463::readFRRs(uint8_t data[4], uint8_t start)
 
 void Si4463::powerOn()
 {
-    Serial.println("Starting power up");
-    Serial.flush();
     // must wait for CTS before sending power up command
     waitCTS();
 
-    Serial.println("CTS high, chip active");
-    Serial.flush();
-
     uint8_t BOOT_OPTIONS = 0b00000001;
-    uint8_t XTAL_OPTIONS = 0b00000000; // assume external crystal (need to change if we have no external crystal)
+    uint8_t XTAL_OPTIONS = 0b00000001; // assume external crystal (need to change if we have no external crystal)
     uint32_t XO_FREQ = 0x01C9C380;     // 30000000 (30 MHz)
 
     // assmble power up options
@@ -978,12 +1115,6 @@ void Si4463::powerOn()
     to_bytes(XO_FREQ, 2, 0, options);
 
     sendCommandC(C_POWER_UP, 6, options);
-
-    while (!gpio1())
-    {
-        // Serial.println(gpio1());
-        delay(1);
-    }
 }
 
 void Si4463::sendCommand(Si4463Cmd cmd, uint8_t argcCmd, uint8_t *argvCmd, uint8_t argcRes, uint8_t *argvRes)
@@ -1014,10 +1145,16 @@ void Si4463::waitCTS()
 {
     // blocking while loop (should yield to other functions)
     bool cts = 0;
-    while (!(cts = checkCTS()))
+    uint32_t start = millis();
+    while (!(cts = checkCTS()) && millis() - start < CTS_TIMEOUT)
     {
         delayMicroseconds(10);
         yield();
+    }
+    if (millis() - start < CTS_TIMEOUT)
+    {
+        Serial.print("ERROR: CTS timeout, last value was: ");
+        Serial.println(cts);
     }
 }
 
@@ -1025,6 +1162,8 @@ bool Si4463::checkCTS()
 {
     // use READ_CMD_BUFF command to check the value of CTS
     // CS low through entire SPI command
+
+    // SPI version
     digitalWrite(this->_cs, LOW);
 
     // send the command
@@ -1032,12 +1171,16 @@ bool Si4463::checkCTS()
     uint8_t cts = this->spi->transfer(0x00);
 
     digitalWrite(this->_cs, HIGH);
-    // Serial.println(cts);
     return cts == 0xff;
 }
 
-// private methods
+bool Si4463::CTS()
+{
+    // GPIO version
+    return digitalRead(this->_cts);
+}
 
+// private methods
 void Si4463::spi_write(uint8_t cmd, uint8_t argc, uint8_t *argv)
 {
     // CS low through entire SPI command
