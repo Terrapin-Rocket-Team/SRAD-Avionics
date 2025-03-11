@@ -46,6 +46,9 @@ bool BluetoothServer::start(const std::string &name) {
         pAdvertising->start();
 
         initialized = true;
+        outSerial.write(STATUS_MESSAGE);
+        outSerial.write(1);
+        outSerial.flush();
         return true;
     }
 
@@ -106,6 +109,8 @@ void BluetoothServer::onWrite(BLECharacteristic *pCharacteristic, esp_ble_gatts_
         // Serial.println(reinterpret_cast<char *>(pRxCharacteristic->getData()));
         const uint16_t size = *reinterpret_cast<uint16_t *>(pRxCharacteristic->getData());
         if (size <= MAX_MESSAGE_SIZE-sizeof(uint16_t)) {
+            outSerial.write(DATA_MESSAGE);
+            outSerial.write(size);
             outSerial.write(pRxCharacteristic->getData() + sizeof(uint16_t), size);
         } else {
             //this is bad

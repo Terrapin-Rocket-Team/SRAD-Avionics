@@ -55,6 +55,9 @@ void BluetoothClient::update(Stream& inputSerial) {
         });
 
         connected = true;
+        outSerial.write(STATUS_MESSAGE);
+        outSerial.write(1);
+        outSerial.flush();
     }
 
     if (initialized && connected) {
@@ -115,6 +118,8 @@ void BluetoothClient::handleTxCallback(BLERemoteCharacteristic *pBLERemoteCharac
         // Serial.println(reinterpret_cast<char *>(pData));
         const uint16_t size = *reinterpret_cast<uint16_t *>(pData);
         if (size <= MAX_MESSAGE_SIZE-sizeof(uint16_t)) {
+            outSerial.write(DATA_MESSAGE);
+            outSerial.write(size);
             outSerial.write(pData + sizeof(uint16_t), size);
         } else {
             //this is bad
