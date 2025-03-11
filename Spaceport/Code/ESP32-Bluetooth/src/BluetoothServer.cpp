@@ -75,7 +75,7 @@ void BluetoothServer::startAdvertising() {
     }
 }
 
-bool BluetoothServer::send(uint8_t* data, uint16_t size) {
+bool BluetoothServer::send(uint8_t* data, uint16_t size) { //how do we send via serial? need pins tx0 rx0
     if (size <= MAX_MESSAGE_SIZE-sizeof(uint16_t)) {
         //Encode size as uint_16t, then data
         uint8_t buf[size+sizeof(uint16_t)];
