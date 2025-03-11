@@ -12,7 +12,9 @@ BluetoothClient::~BluetoothClient() {
     BLEDevice::deinit();
 }
 
-bool BluetoothClient::start(const std::string &serverName) {
+bool BluetoothClient::start(const std::string &serverName) { //is this the start for bluetooth or serial communication??
+
+    //add serial communication code because currently it's all bluetooth
     this->serverName = serverName;
     BLEDevice::init("");
 
@@ -31,7 +33,10 @@ bool BluetoothClient::start(const std::string &serverName) {
     return initialized;
 }
 
-void BluetoothClient::update(Stream& inputSerial) {
+void BluetoothClient::update(Stream& inputSerial) { 
+    //add serial code to this update function
+
+
     if (!connected && pServerAddress != nullptr) {
         pClient->connect(*pServerAddress);
 
@@ -49,7 +54,6 @@ void BluetoothClient::update(Stream& inputSerial) {
             connected = false;
             return;
         }
-
         remoteTx->registerForNotify([this] (BLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify) {
             handleTxCallback(pBLERemoteCharacteristic, pData, length, isNotify);
         });
@@ -75,7 +79,8 @@ void BluetoothClient::update(Stream& inputSerial) {
 }
 
 bool BluetoothClient::send(uint8_t *data, uint16_t length) {
-    if (remoteRx->canWrite()) {
+    
+    if (remoteRx->canWrite()) { //via bluetooth, need to add serial component, txd0 rxd0 
         remoteRx->writeValue(data, length);
         return true;
     }
@@ -83,7 +88,7 @@ bool BluetoothClient::send(uint8_t *data, uint16_t length) {
 }
 
 uint16_t BluetoothClient::read(uint8_t *data) {
-    if (remoteRx->canRead()) {
+    if (remoteRx->canRead()) { //via bluetooth, need to add serial component
         uint8_t* raw = remoteRx->readRawData();
 
         uint16_t size = *reinterpret_cast<uint16_t*>(raw);
