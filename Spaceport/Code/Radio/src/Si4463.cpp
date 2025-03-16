@@ -665,99 +665,83 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
     // based on reading straight from WDS
     // MODEM_DECIMATION_CFG_X fields
     // MODEM_BCR_OSR fields
-    uint32_t decimation = 0x00;
-    uint16_t bcrOSR = 0x00;
-    switch (dataRate)
-    {
-    case DR_500b:
-        decimation = 0x301014;
-        bcrOSR = 0x09c4;
-        break;
-    case DR_4_8k:
-        decimation = 0x30100C;
-        bcrOSR = 0x0104;
-        break;
-    case DR_9_6k:
-        decimation = 0x302000;
-        bcrOSR = 0x00c3;
-        break;
-    case DR_40k:
-        decimation = 0x202000;
-        bcrOSR = 0x005e;
-        break;
-    case DR_100k:
-        decimation = 0x102000;
-        bcrOSR = 0x004b;
-        break;
-    case DR_120k:
-        decimation = 0x001000;
-        bcrOSR = 0x0053;
-        break;
-    case DR_250k:
-        decimation = 0x003000;
-        bcrOSR = 0x0078;
-        break;
-    case DR_500k:
-        decimation = 0x003000;
-        bcrOSR = 0x003c;
-        break;
-    default:
-        Serial.println("ERROR: could not find data rate");
-        return; // Error: data rate is not part of the Si4463DataRate enum (should never happen)
-    }
-    uint8_t decimationArgs[3];
-    to_bytes(decimation, 0, 1, decimationArgs);
-    setProperty(G_MODEM, 3, P_MODEM_DECIMATION_CFG_1, decimationArgs);
-    uint8_t bcrOSRArgs[2];
-    to_bytes(bcrOSR, 0, 1, bcrOSRArgs);
-    setProperty(G_MODEM, 2, P_MODEM_BCR_OSR2, bcrOSRArgs);
+    // MODEM_BCR_NCO_OFFSET
+    // uint32_t decimation = 0x00;
+    // uint16_t bcrOSR = 0x00;
+    // switch (dataRate)
+    // {
+    // case DR_500b:
+    //     decimation = 0x301014;
+    //     bcrOSR = 0x09c4;
+    //     break;
+    // case DR_4_8k:
+    //     decimation = 0x30100C;
+    //     bcrOSR = 0x0104;
+    //     break;
+    // case DR_9_6k:
+    //     decimation = 0x302000;
+    //     bcrOSR = 0x00c3;
+    //     break;
+    // case DR_40k:
+    //     decimation = 0x202000;
+    //     bcrOSR = 0x005e;
+    //     break;
+    // case DR_100k:
+    //     decimation = 0x102000;
+    //     bcrOSR = 0x004b;
+    //     break;
+    // case DR_120k:
+    //     decimation = 0x001000;
+    //     bcrOSR = 0x0053;
+    //     break;
+    // case DR_250k:
+    //     decimation = 0x003000;
+    //     bcrOSR = 0x0078;
+    //     break;
+    // case DR_500k:
+    //     decimation = 0x003000;
+    //     bcrOSR = 0x003c;
+    //     break;
+    // default:
+    //     Serial.println("ERROR: could not find data rate");
+    //     return; // Error: data rate is not part of the Si4463DataRate enum (should never happen)
+    // }
+    // uint8_t decimationArgs[3];
+    // to_bytes(decimation, 0, 1, decimationArgs);
+    // setProperty(G_MODEM, 3, P_MODEM_DECIMATION_CFG_1, decimationArgs);
+    // uint8_t bcrOSRArgs[2];
+    // to_bytes(bcrOSR, 0, 1, bcrOSRArgs);
+    // setProperty(G_MODEM, 2, P_MODEM_BCR_OSR2, bcrOSRArgs);
 
     // Not even sure what this is, but it's always set to this value
     setProperty(G_MODEM, P_MODEM_IFPKD_THRESHOLDS, 0xE8);
 
     // set bit clock recovery (BCR) offset
-    uint8_t bcrNCOOffset[3] = {0x00, 0x00, 0x00}; // TODO: values
-    setProperty(G_MODEM, 3, P_MODEM_BCR_NCO_OFFSET3, bcrNCOOffset);
+    // uint8_t bcrNCOOffset[3] = {0x00, 0x00, 0x00}; // TODO: values
+    // setProperty(G_MODEM, 3, P_MODEM_BCR_NCO_OFFSET3, bcrNCOOffset);
 
     // set bit clock recovery (BCR) control gain
-    uint8_t bcrGain[2] = {0x00, 0x00}; // TODO: values
-    setProperty(G_MODEM, 2, P_MODEM_BCR_GAIN2, bcrGain);
+    // uint8_t bcrGain[2] = {0x00, 0x00}; // TODO: values
+    // setProperty(G_MODEM, 2, P_MODEM_BCR_GAIN2, bcrGain);
 
     // for some reason the default is not normal operation
-    setProperty(G_MODEM, P_MODEM_BCR_MISC_1, 0x00);
+    // setProperty(G_MODEM, P_MODEM_BCR_MISC_1, 0x00); // changes at BR > 100k
 
     // set AFC wait
-    setProperty(G_MODEM, P_MODEM_AFC_WAIT, 0x00); // TODO: value
+    // setProperty(G_MODEM, P_MODEM_AFC_WAIT, 0x00); // TODO: value
 
     // set AFC control gain
-    uint8_t afcGainArgs[2] = {0x00, 0x00}; // TODO: values
-    setProperty(G_MODEM, 2, P_MODEM_AFC_GAIN2, afcGainArgs);
+    // uint8_t afcGainArgs[2] = {0x00, 0x00}; // TODO: values
+    // setProperty(G_MODEM, 2, P_MODEM_AFC_GAIN2, afcGainArgs);
 
     // Set max AFC deviation
-    uint8_t afcLimiterArgs[8] = {0b01000000, 0xBE}; // TODO: values
-    setProperty(G_MODEM, 2, P_MODEM_AFC_LIMITER2, afcLimiterArgs);
+    // uint8_t afcLimiterArgs[8] = {0b01000000, 0xBE}; // TODO: values
+    // setProperty(G_MODEM, 2, P_MODEM_AFC_LIMITER2, afcLimiterArgs);
 
     // sets AFC to provide feedback to the PLL (does not turn on AFC)
     setProperty(G_MODEM, P_MODEM_AFC_MISC, 0b11101000);
 
-    setProperty(G_MODEM, P_MODEM_AGC_CONTROL, 0xE0); // seems to be set to 0xE2 above 250kbps
-
-    // set additional config
-    // uint8_t MODEM_AGC_CONTROL = 0xE0;
-    // setProperty(G_MODEM, P_MODEM_AGC_CONTROL, MODEM_AGC_CONTROL);
-    // uint8_t MODEM_AGC_WINDOW_SIZE[12] = {0x11, 0x11, 0x11, 0x80, 0x1A, 0x20, 0x00, 0x00, 0x28, 0x0C, 0xA4, 0x23};
-    // setProperty(G_MODEM, 12, P_MODEM_AGC_WINDOW_SIZE, MODEM_AGC_WINDOW_SIZE);
-    // uint8_t MODEM_RAW_CONTROL[5] = {0x03, 0x00, 0x85, 0x01, 0x00};
-    // setProperty(G_MODEM, 5, P_MODEM_RAW_CONTROL, MODEM_RAW_CONTROL);
-    // uint8_t MODEM_RSSI_JUMP_THRESH[4] = {0x06, 0x09, 0x10, 0x40};
-    // setProperty(G_MODEM, 4, P_MODEM_RSSI_JUMP_THRESH, MODEM_RSSI_JUMP_THRESH);
-    // uint8_t MODEM_RAW_SEARCH2[2] = {0x94, 0x0A};
-    // setProperty(G_MODEM, 2, P_MODEM_RAW_SEARCH2, MODEM_RAW_SEARCH2);
-    // uint8_t MODEM_SPIKE_DET[2] = {0x03, 0x07};
-    // setProperty(G_MODEM, 2, P_MODEM_SPIKE_DET, MODEM_SPIKE_DET);
-    // skip MODEM_RSSI_MUTE
-    // uint8_t MODEM_DSA_CTRL1[5] = {0x40, 0x04, 0x04, 0x78, 0x20};
-    // setProperty(G_MODEM, 5, P_MODEM_DSA_CTRL_1, MODEM_DSA_CTRL1);
+    // setProperty(G_MODEM, P_MODEM_AGC_CONTROL, 0xE0); // seems to be set to 0xE2 above 250kbps
 }
 
 void Si4463::setPower(uint8_t pwr)
@@ -927,7 +911,7 @@ void Si4463::setRegisters()
     uint8_t RF_IRCAL_1[] = {0x17, 0x13, 0x10, 0xCA, 0xF0};
     // uint8_t INT_CTL_5_0[] = {0x11, 0x01, 0x04, 0x00, 0x07, 0x18, 0x00, 0x00};
     // uint8_t FRR_CTL_5_0[] = {0x11, 0x02, 0x03, 0x00, 0x0A, 0x09, 0x00};
-    uint8_t PREAMBLE_5_0[] = {0x11, 0x10, 0x01, 0x04, 0x31};
+    // uint8_t PREAMBLE_5_0[] = {0x11, 0x10, 0x01, 0x04, 0x31};
     // uint8_t SYNC_5_0[] = {0x11, 0x11, 0x04, 0x01, 0xB4, 0x2B, 0x00, 0x00};
     uint8_t PKT_5_0[] = {0x11, 0x12, 0x0A, 0x00, 0x04, 0x01, 0x08, 0xFF, 0xFF, 0x20, 0x00, 0x00, 0x2A, 0x01};
     uint8_t PKT_5_1[] = {0x11, 0x12, 0x07, 0x0E, 0x01, 0x06, 0xAA, 0x00, 0x80, 0x02, 0x2A};
@@ -964,7 +948,7 @@ void Si4463::setRegisters()
     setProperty(RF_IRCAL_1, sizeof(RF_IRCAL_1));
     // setProperty(INT_CTL_5_0, sizeof(INT_CTL_5_0));
     // setProperty(FRR_CTL_5_0, sizeof(FRR_CTL_5_0));
-    setProperty(PREAMBLE_5_0, sizeof(PREAMBLE_5_0));
+    // setProperty(PREAMBLE_5_0, sizeof(PREAMBLE_5_0));
     // setProperty(SYNC_5_0, sizeof(SYNC_5_0));
     setProperty(PKT_5_0, sizeof(PKT_5_0));
     setProperty(PKT_5_1, sizeof(PKT_5_1));
@@ -980,41 +964,6 @@ void Si4463::setRegisters()
     setProperty(MODEM_CHFLT_5_1, sizeof(MODEM_CHFLT_5_1));
     setProperty(MODEM_CHFLT_5_2, sizeof(MODEM_CHFLT_5_2));
     setProperty(SYNTH_5_0, sizeof(SYNTH_5_0));
-    // setProperty(FREQ_CONTROL_5_0, sizeof(FREQ_CONTROL_5_0));
-
-    // doAPI(MODEM_2_2, sizeof(MODEM_2_2), NULL, 0);
-    // doAPI(MODEM_2_3, sizeof(MODEM_2_3));
-    // doAPI(MODEM_2_4, sizeof(MODEM_2_4));
-    // doAPI(MODEM_2_5, sizeof(MODEM_2_5));
-    // doAPI(MODEM_2_6, sizeof(MODEM_2_6));
-    // doAPI(MODEM_2_7, sizeof(MODEM_2_7));
-    // doAPI(MODEM_2_8, sizeof(MODEM_2_8));
-    // doAPI(MODEM_CHFLT_2_0, sizeof(MODEM_CHFLT_2_0));
-    // doAPI(MODEM_CHFLT_2_1, sizeof(MODEM_CHFLT_2_1));
-    // doAPI(MODEM_CHFLT_2_2, sizeof(MODEM_CHFLT_2_2));
-    // doAPI(PA_2_0, sizeof(PA_2_0));
-    // doAPI(FREQ_CONTROL_2_0, sizeof(FREQ_CONTROL_2_0));
-    // doAPI(RF_START_RX, sizeof(RF_START_RX));
-    // doAPI(RF_IRCAL, sizeof(RF_IRCAL));
-    // doAPI(RF_IRCAL_1, sizeof(RF_IRCAL_1));
-    // doAPI(INT_CTL_5_0, sizeof(INT_CTL_5_0));
-    // doAPI(FRR_CTL_5_0, sizeof(FRR_CTL_5_0));
-    // doAPI(PREAMBLE_5_0, sizeof(PREAMBLE_5_0));
-    // setProperty(SYNC_5_0, sizeof(SYNC_5_0));
-    // setProperty(PKT_5_0, sizeof(PKT_5_0));
-    // setProperty(PKT_5_1, sizeof(PKT_5_1));
-    // setProperty(MODEM_5_0, sizeof(MODEM_5_0));
-    // setProperty(MODEM_5_1, sizeof(MODEM_5_1));
-    // setProperty(MODEM_5_2, sizeof(MODEM_5_2));
-    // setProperty(MODEM_5_3, sizeof(MODEM_5_3));
-    // setProperty(MODEM_5_4, sizeof(MODEM_5_4));
-    // setProperty(MODEM_5_5, sizeof(MODEM_5_5));
-    // setProperty(MODEM_5_6, sizeof(MODEM_5_6));
-    // setProperty(MODEM_5_7, sizeof(MODEM_5_7));
-    // setProperty(MODEM_CHFLT_5_0, sizeof(MODEM_CHFLT_5_0));
-    // setProperty(MODEM_CHFLT_5_1, sizeof(MODEM_CHFLT_5_1));
-    // setProperty(MODEM_CHFLT_5_2, sizeof(MODEM_CHFLT_5_2));
-    // setProperty(SYNTH_5_0, sizeof(SYNTH_5_0));
     // setProperty(FREQ_CONTROL_5_0, sizeof(FREQ_CONTROL_5_0));
 }
 
