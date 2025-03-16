@@ -855,22 +855,22 @@ void Si4463::shutdown(bool shutdown)
     {
         digitalWrite(this->_sdn, LOW);
         uint32_t start = millis();
-        while (!gpio1() && millis() - start < 10)
+        while (!gpio1() && millis() - start > 10)
         {
             yield();
         }
-        if (millis() - start < 10)
+        if (millis() - start > 10)
         {
             Serial.print("ERROR: chip failed to wake up, GPIO1 state is ");
             Serial.println(gpio1());
         }
         spi_write(C_NOP, 0, {});
         start = millis();
-        while (!gpio1() && millis() - start < 100)
+        while (!gpio1() && millis() - start > 100)
         {
             yield();
         }
-        if (millis() - start < 100)
+        if (millis() - start > 100)
         {
             Serial.print("ERROR: chip did not respond to SPI, GPIO1 state is ");
             Serial.println(gpio1());
@@ -1095,12 +1095,12 @@ void Si4463::waitCTS()
     // blocking while loop (should yield to other functions)
     bool cts = 0;
     uint32_t start = millis();
-    while (!(cts = checkCTS()) && millis() - start < CTS_TIMEOUT)
+    while (!(cts = checkCTS()) && millis() - start > CTS_TIMEOUT)
     {
         delayMicroseconds(10);
         yield();
     }
-    if (millis() - start < CTS_TIMEOUT)
+    if (millis() - start > CTS_TIMEOUT)
     {
         Serial.print("ERROR: CTS timeout, last value was: ");
         Serial.println(cts);
