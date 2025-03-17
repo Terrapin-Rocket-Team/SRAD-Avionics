@@ -37,9 +37,11 @@ bool Si4463::begin()
 
     this->spi->begin();
 
-    this->shutdown(true);
+    if (!this->shutdown(true))
+        return false;
     delayMicroseconds(10);
-    this->shutdown(false);
+    if (!this->shutdown(false))
+        return false;
 
     // complete power on sequence
     this->powerOn();
@@ -54,12 +56,6 @@ bool Si4463::begin()
     //  {
     //      Serial.println(rIntArgs[i], BIN);
     //  }
-
-    // uint8_t argst[2] = {};
-    // Serial.println("DEVICE_STATE");
-    // sendCommandR(C_REQUEST_DEVICE_STATE, 2, argst);
-    // Serial.println(argst[0]);
-    // Serial.println(argst[1]);
 
     // check part info to make sure proper communication has been established
     uint8_t args[8] = {0};
@@ -77,15 +73,21 @@ bool Si4463::begin()
     if (partNo != PART_NO)
         return false; // ERROR: did not receive the correct part number
 
+#ifndef RF4463F30
     // set the global config, this is the defaults, but apparently a reserved field needs to be set manually
     this->setProperty(G_GLOBAL, P_GLOBAL_CONFIG, 0b01000000);
 
     // set clock config
     this->setProperty(G_GLOBAL, P_GLOBAL_XO_TUNE, 0x00);
     this->setProperty(G_GLOBAL, P_GLOBAL_CLK_CFG, 0x00);
+#else
+    // rf4463 settings
+    this->setProperty(G_GLOBAL, P_GLOBAL_CONFIG, 0b01110000);
+    this->setProperty(G_GLOBAL, P_GLOBAL_XO_TUNE, 0x62); // from rf4463f30 datasheet
+#endif
 
     // disable interrupts
-    this->setProperty(G_INT_CTL, P_INT_CTL_ENABLE, 0x00);
+    // this->setProperty(G_INT_CTL, P_INT_CTL_ENABLE, 0x00);
 
     // set TX and RX thresholds
     this->setTXThreshold(20);
@@ -126,6 +128,8 @@ bool Si4463::begin()
 
     this->setRegisters();
 
+    this->performIRCAL();
+
     uint8_t cIntArgs2[3] = {0, 0, 0};
     uint8_t rIntArgs2[8] = {};
     // Serial.println("INTERRUPTS");
@@ -156,7 +160,7 @@ bool Si4463::tx(const uint8_t *message, int len)
     //  prefill fifo in idle state
     if (this->state == STATE_IDLE || this->state == STATE_RX || this->state == STATE_RX_COMPLETE)
     {
-        // Serial.println("tx");
+        Serial.println("tx");
         //  enter idle state
         uint8_t cIdleArgs[1] = {0b00000011};
         sendCommandC(C_CHANGE_STATE, 1, cIdleArgs);
@@ -657,10 +661,10 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
 
     // set IF frequency
     // always use fixed IF mode
-    uint32_t IFFreq = (double)pow(2, 19) * (double)bandDivs[band] * (30e6 / (64.0 * 1.0)) / (2.0 * 30e6);
-    uint8_t IFFreqArgs[3] = {};
-    to_bytes(IFFreq & 0x0003FFFF, 0, 1, IFFreqArgs);
-    setProperty(G_MODEM, 3, P_MODEM_IF_FREQ3, IFFreqArgs);
+    // uint32_t IFFreq = (double)pow(2, 19) * (double)bandDivs[band] * (30e6 / (64.0 * 1.0)) / (2.0 * 30e6);
+    // uint8_t IFFreqArgs[3] = {};
+    // to_bytes(IFFreq & 0x0003FFFF, 0, 1, IFFreqArgs);
+    // setProperty(G_MODEM, 3, P_MODEM_IF_FREQ3, IFFreqArgs);
 
     // based on reading straight from WDS
     // MODEM_DECIMATION_CFG_X fields
@@ -845,7 +849,7 @@ bool Si4463::irq()
     return digitalRead(this->_irq);
 }
 
-void Si4463::shutdown(bool shutdown)
+bool Si4463::shutdown(bool shutdown)
 {
     if (shutdown)
     {
@@ -855,27 +859,30 @@ void Si4463::shutdown(bool shutdown)
     {
         digitalWrite(this->_sdn, LOW);
         uint32_t start = millis();
-        while (!gpio1() && millis() - start > 10)
+        while (!gpio1() && millis() - start < 10)
         {
             yield();
         }
-        if (millis() - start > 10)
+        if (millis() - start >= 10)
         {
             Serial.print("ERROR: chip failed to wake up, GPIO1 state is ");
             Serial.println(gpio1());
+            return false;
         }
         spi_write(C_NOP, 0, {});
         start = millis();
-        while (!gpio1() && millis() - start > 100)
+        while (!gpio1() && millis() - start < 100)
         {
             yield();
         }
-        if (millis() - start > 100)
+        if (millis() - start >= 100)
         {
             Serial.print("ERROR: chip did not respond to SPI, GPIO1 state is ");
             Serial.println(gpio1());
+            return false;
         }
     }
+    return true;
 }
 
 int Si4463::readFRR(int index)
@@ -904,15 +911,15 @@ void Si4463::setRegisters()
     uint8_t MODEM_CHFLT_2_0[] = {0x11, 0x21, 0x0C, 0x00, 0x7E, 0x64, 0x1B, 0xBA, 0x58, 0x0B, 0xDD, 0xCE, 0xD6, 0xE6, 0xF6, 0x00};
     uint8_t MODEM_CHFLT_2_1[] = {0x11, 0x21, 0x0C, 0x0C, 0x03, 0x03, 0x15, 0xF0, 0x3F, 0x00, 0x7E, 0x64, 0x1B, 0xBA, 0x58, 0x0B};
     uint8_t MODEM_CHFLT_2_2[] = {0x11, 0x21, 0x0B, 0x18, 0xDD, 0xCE, 0xD6, 0xE6, 0xF6, 0x00, 0x03, 0x03, 0x15, 0xF0, 0x3F};
-    // uint8_t PA_2_0[] = {0x11, 0x22, 0x01, 0x03, 0x1D};
+    uint8_t PA_2_0[] = {0x11, 0x22, 0x01, 0x03, 0x1D};
     uint8_t FREQ_CONTROL_2_0[] = {0x11, 0x40, 0x08, 0x00, 0x37, 0x09, 0x00, 0x00, 0x44, 0x44, 0x20, 0xFE};
-    // uint8_t RF_START_RX[] = {0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    uint8_t RF_START_RX[] = {0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
     uint8_t RF_IRCAL[] = {0x17, 0x56, 0x10, 0xCA, 0xF0};
     uint8_t RF_IRCAL_1[] = {0x17, 0x13, 0x10, 0xCA, 0xF0};
-    // uint8_t INT_CTL_5_0[] = {0x11, 0x01, 0x04, 0x00, 0x07, 0x18, 0x00, 0x00};
-    // uint8_t FRR_CTL_5_0[] = {0x11, 0x02, 0x03, 0x00, 0x0A, 0x09, 0x00};
-    // uint8_t PREAMBLE_5_0[] = {0x11, 0x10, 0x01, 0x04, 0x31};
-    // uint8_t SYNC_5_0[] = {0x11, 0x11, 0x04, 0x01, 0xB4, 0x2B, 0x00, 0x00};
+    uint8_t INT_CTL_5_0[] = {0x11, 0x01, 0x04, 0x00, 0x07, 0x18, 0x00, 0x00};
+    uint8_t FRR_CTL_5_0[] = {0x11, 0x02, 0x03, 0x00, 0x0A, 0x09, 0x00};
+    uint8_t PREAMBLE_5_0[] = {0x11, 0x10, 0x01, 0x04, 0x31};
+    uint8_t SYNC_5_0[] = {0x11, 0x11, 0x04, 0x01, 0xB4, 0x2B, 0x00, 0x00};
     uint8_t PKT_5_0[] = {0x11, 0x12, 0x0A, 0x00, 0x04, 0x01, 0x08, 0xFF, 0xFF, 0x20, 0x00, 0x00, 0x2A, 0x01};
     uint8_t PKT_5_1[] = {0x11, 0x12, 0x07, 0x0E, 0x01, 0x06, 0xAA, 0x00, 0x80, 0x02, 0x2A};
     uint8_t MODEM_5_0[] = {0x11, 0x20, 0x0A, 0x03, 0x1E, 0x84, 0x80, 0x09, 0xC9, 0xC3, 0x80, 0x00, 0x0D, 0xA7};
@@ -927,7 +934,7 @@ void Si4463::setRegisters()
     uint8_t MODEM_CHFLT_5_1[] = {0x11, 0x21, 0x0C, 0x0C, 0x07, 0x03, 0x15, 0xFC, 0x0F, 0x00, 0xA2, 0x81, 0x26, 0xAF, 0x3F, 0xEE};
     uint8_t MODEM_CHFLT_5_2[] = {0x11, 0x21, 0x0B, 0x18, 0xC8, 0xC7, 0xDB, 0xF2, 0x02, 0x08, 0x07, 0x03, 0x15, 0xFC, 0x0F};
     uint8_t SYNTH_5_0[] = {0x11, 0x23, 0x06, 0x00, 0x34, 0x04, 0x0B, 0x04, 0x07, 0x70};
-    // uint8_t FREQ_CONTROL_5_0[] = {0x11, 0x40, 0x04, 0x00, 0x38, 0x0D, 0xDD, 0xDD};
+    uint8_t FREQ_CONTROL_5_0[] = {0x11, 0x40, 0x04, 0x00, 0x38, 0x0D, 0xDD, 0xDD};
 
     // setProperty(MODEM_2_0, sizeof(MODEM_2_0));
     // setProperty(MODEM_2_1, sizeof(MODEM_2_1));
@@ -942,14 +949,15 @@ void Si4463::setRegisters()
     setProperty(MODEM_CHFLT_2_1, sizeof(MODEM_CHFLT_2_1));
     setProperty(MODEM_CHFLT_2_2, sizeof(MODEM_CHFLT_2_2));
     // setProperty(PA_2_0, sizeof(PA_2_0));
-    setProperty(FREQ_CONTROL_2_0, sizeof(FREQ_CONTROL_2_0));
+    // setProperty(FREQ_CONTROL_2_0, sizeof(FREQ_CONTROL_2_0));
     // setProperty(RF_START_RX, sizeof(RF_START_RX));
-    setProperty(RF_IRCAL, sizeof(RF_IRCAL));
-    setProperty(RF_IRCAL_1, sizeof(RF_IRCAL_1));
-    // setProperty(INT_CTL_5_0, sizeof(INT_CTL_5_0));
-    // setProperty(FRR_CTL_5_0, sizeof(FRR_CTL_5_0));
-    // setProperty(PREAMBLE_5_0, sizeof(PREAMBLE_5_0));
-    // setProperty(SYNC_5_0, sizeof(SYNC_5_0));
+    // setProperty(RF_IRCAL, sizeof(RF_IRCAL));
+    // setProperty(RF_IRCAL_1, sizeof(RF_IRCAL_1));
+    setProperty(INT_CTL_5_0, sizeof(INT_CTL_5_0));
+    setProperty(FRR_CTL_5_0, sizeof(FRR_CTL_5_0));
+    setProperty(PREAMBLE_5_0, sizeof(PREAMBLE_5_0));
+    setProperty(SYNC_5_0, sizeof(SYNC_5_0));
+
     setProperty(PKT_5_0, sizeof(PKT_5_0));
     setProperty(PKT_5_1, sizeof(PKT_5_1));
     setProperty(MODEM_5_0, sizeof(MODEM_5_0));
@@ -1053,8 +1061,12 @@ void Si4463::powerOn()
     waitCTS();
 
     uint8_t BOOT_OPTIONS = 0b00000001;
+#ifndef RF4463F30
     uint8_t XTAL_OPTIONS = 0b00000001; // assume external crystal (need to change if we have no external crystal)
-    uint32_t XO_FREQ = 0x01C9C380;     // 30000000 (30 MHz)
+#else
+    uint8_t XTAL_OPTIONS = 0b00000000; // rf4463 doesn't have external crystal
+#endif
+    uint32_t XO_FREQ = 0x01C9C380; // 30000000 (30 MHz)
 
     // assmble power up options
     uint8_t options[6] = {
@@ -1064,6 +1076,29 @@ void Si4463::powerOn()
     to_bytes(XO_FREQ, 2, 0, options);
 
     sendCommandC(C_POWER_UP, 6, options);
+}
+
+void Si4463::performIRCAL()
+{
+
+    // enter RX mode
+    uint8_t rxArgs[7] = {0, 0, 0, 0, 0, 0b00000011, 0b00000001};
+    spi_write(C_START_RX, sizeof(rxArgs), rxArgs);
+
+    waitCTS();
+
+    // first calibration
+    uint8_t ircal0[] = {0x17, 0x56, 0x10, 0xCA, 0xF0};
+    spi_write(C_IRCAL, sizeof(ircal0), ircal0);
+
+    // ircal can take up to 250 ms
+    waitCTS(300);
+
+    // second calibration
+    uint8_t ircal1[] = {0x17, 0x13, 0x10, 0xCA, 0xF0};
+    spi_write(C_IRCAL, sizeof(ircal1), ircal1);
+
+    waitCTS(300);
 }
 
 void Si4463::sendCommand(Si4463Cmd cmd, uint8_t argcCmd, uint8_t *argvCmd, uint8_t argcRes, uint8_t *argvRes)
@@ -1090,17 +1125,17 @@ void Si4463::sendCommandC(Si4463Cmd cmd, uint8_t argcCmd, uint8_t *argvCmd)
     waitCTS();
 }
 
-void Si4463::waitCTS()
+void Si4463::waitCTS(uint32_t timeout)
 {
     // blocking while loop (should yield to other functions)
     bool cts = 0;
     uint32_t start = millis();
-    while (!(cts = checkCTS()) && millis() - start > CTS_TIMEOUT)
+    while (!(cts = checkCTS()) && millis() - start < timeout)
     {
         delayMicroseconds(10);
         yield();
     }
-    if (millis() - start > CTS_TIMEOUT)
+    if (millis() - start >= timeout)
     {
         Serial.print("ERROR: CTS timeout, last value was: ");
         Serial.println(cts);
@@ -1152,6 +1187,7 @@ void Si4463::spi_read(uint8_t argc, uint8_t *argv)
     uint8_t pos = 0;
 
     uint8_t cts = 0x00;
+    uint32_t start = millis();
     while (cts != 0xFF)
     {
         digitalWrite(this->_cs, LOW);
@@ -1161,6 +1197,11 @@ void Si4463::spi_read(uint8_t argc, uint8_t *argv)
         {
             digitalWrite(this->_cs, HIGH);
             delayMicroseconds(1);
+        }
+        if (millis() - start > CTS_TIMEOUT)
+        {
+            Serial.println("ERROR: spi read took too long");
+            return;
         }
     }
 

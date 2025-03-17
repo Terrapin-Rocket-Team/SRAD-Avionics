@@ -214,7 +214,7 @@ public:
     */
     bool irq();
 
-    void shutdown(bool shutdown);
+    bool shutdown(bool shutdown);
     /*
     Used to read the state of only one FRR
     - index : the FRR to read from
@@ -267,11 +267,13 @@ public:
     Completes the power on sequence for the radio, must be called to use the radio after exiting from a shutdown state
     */
     void powerOn();
+    void performIRCAL();
+
     // lower level functions to directly send radio commands
     /*
     Blocks until the Clear to Send (CTS) byte is received
     */
-    void waitCTS();
+    void waitCTS(uint32_t timeout = CTS_TIMEOUT);
     /*
     Checks for the Clear to Send (CTS) byte
     Returns: whether the CTS byte was sent
