@@ -130,7 +130,8 @@ bool Si4463::begin()
 
     this->setRegisters();
 
-    this->performIRCAL();
+    // TODO: needs update
+    // this->performIRCAL();
 
     uint8_t cIntArgs2[3] = {0, 0, 0};
     uint8_t rIntArgs2[8] = {};
@@ -553,17 +554,17 @@ void Si4463::setModemConfig(Si4463Mod mod, Si4463DataRate dataRate, uint32_t fre
 
             // now we know what band we're in, but we need to tune to the band base frequency and then use channels
             // to get the frequency we want
-            // double baseFreq = bandBases[band];
+            double baseFreq = bandBases[band];
             // find the channel (100kHz channel step size)
-            // this->channel = (uint8_t)(((double)freq / 1e6 - baseFreq) / 0.1);
+            this->channel = (uint8_t)(((double)freq / 1e6 - baseFreq) / 0.1);
             // set the internal frequency to the actual frequency tuned to (may not be the set frequency since step size is 0.1MHz)
-            // this->freq = baseFreq + (double)this->channel * 0.1;
+            this->freq = (baseFreq + (double)this->channel * 0.1) * 1e6;
 
             // see API reference FREQ_CONTROL_INTE for math
-            int combinedIntFrac = freq / (2 * (int)30e6 / (int)bandDivs[band]);               // we want to truncate to find the integer part
-            fInt = combinedIntFrac - 1;                                                       // subtract one since fraction part is between 1-2
-            float intFracFraction = freq / (2 * 30e6 / bandDivs[band]) - combinedIntFrac + 1; // don't want to truncate to get fractional part
-            fFrac = intFracFraction * pow(2, 19);                                             // from datasheet math, may truncate, but this is as close as we can get
+            int combinedIntFrac = baseFreq * 1e6 / (2 * (int)30e6 / (int)bandDivs[band]);               // we want to truncate to find the integer part
+            fInt = combinedIntFrac - 1;                                                                 // subtract one since fraction part is between 1-2
+            float intFracFraction = baseFreq * 1e6 / (2 * 30e6 / bandDivs[band]) - combinedIntFrac + 1; // don't want to truncate to get fractional part
+            fFrac = intFracFraction * pow(2, 19);                                                       // from datasheet math, may truncate, but this is as close as we can get
             break;
         }
     }
@@ -670,7 +671,7 @@ void Si4463::setPower(uint8_t pwr)
 {
     // setProperty(G_PA, P_PA_MODE, 0b000001000); // this is the default
     setProperty(G_PA, P_PA_PWR_LVL, pwr & 0b01111111); // first bit should be 0
-    setProperty(G_PA, P_PA_TC, 0x1D);                  // TODO: seems to be set to 0x5D in high bitrate cases
+    // setProperty(G_PA, P_PA_TC, 0x1D);                  // TODO: seems to be set to 0x5D in high bitrate cases
 }
 
 void Si4463::setPacketConfig()
@@ -761,9 +762,9 @@ void Si4463::setAFC(bool enabled)
     // modify to enable or disable AFC
     // set or unset first bit
     if (enabled)
-        afcGainArgs[0] | 0b10000000;
+        afcGainArgs[0] = afcGainArgs[0] | 0b10000000;
     if (!enabled)
-        afcGainArgs[0] & 0b01111111;
+        afcGainArgs[0] = afcGainArgs[0] & 0b01111111;
     // apply new config
     setProperty(G_MODEM, 2, P_MODEM_AFC_GAIN2, afcGainArgs);
 }
@@ -898,14 +899,14 @@ void Si4463::setRegisters()
     // setProperty(RF_START_RX, sizeof(RF_START_RX));
     // setProperty(RF_IRCAL, sizeof(RF_IRCAL));
     // setProperty(RF_IRCAL_1, sizeof(RF_IRCAL_1));
-    // setProperty(INT_CTL_5_0, sizeof(INT_CTL_5_0));
+    setProperty(INT_CTL_5_0, sizeof(INT_CTL_5_0));
     // setProperty(FRR_CTL_5_0, sizeof(FRR_CTL_5_0));
     setProperty(PREAMBLE_5_0, sizeof(PREAMBLE_5_0));
     setProperty(SYNC_5_0, sizeof(SYNC_5_0));
 
     setProperty(PKT_5_0, sizeof(PKT_5_0));
     setProperty(PKT_5_1, sizeof(PKT_5_1));
-    setProperty(MODEM_5_0, sizeof(MODEM_5_0));
+    // setProperty(MODEM_5_0, sizeof(MODEM_5_0));
     // setProperty(MODEM_5_1, sizeof(MODEM_5_1));
     // setProperty(MODEM_5_2, sizeof(MODEM_5_2));
     // setProperty(MODEM_5_3, sizeof(MODEM_5_3));
@@ -918,7 +919,7 @@ void Si4463::setRegisters()
     // setProperty(MODEM_CHFLT_5_2, sizeof(MODEM_CHFLT_5_2));
     // setProperty(SYNTH_5_0, sizeof(SYNTH_5_0));
     // setProperty(FREQ_CONTROL_5_0, sizeof(FREQ_CONTROL_5_0));
-    this->channel = 0;
+    // this->channel = 0;
 }
 
 void Si4463::setProperty(Si4463Group group, Si4463Property start, uint8_t data)
@@ -1026,6 +1027,8 @@ void Si4463::powerOn()
 
 void Si4463::performIRCAL()
 {
+    // TODO: need to apply special config from WDS before running this
+    // Note: may need to perform again with signficant change in temp
 
     // enter RX mode
     uint8_t rxArgs[7] = {this->channel, 0, 0, 0, 0, 0b00000011, 0b00000001};
@@ -1034,8 +1037,15 @@ void Si4463::performIRCAL()
     waitCTS();
 
     // first calibration
-    uint8_t ircal0[] = {0x17, 0x56, 0x10, 0xCA, 0xF0}; // 01010110
+    uint8_t ircal0[] = {0x56, 0x10, 0xCA, 0xF0};
     spi_write(C_IRCAL, sizeof(ircal0), ircal0);
+
+    // ircal can take up to 250 ms
+    waitCTS(300);
+
+    // second calibration
+    uint8_t ircal1[] = {0x13, 0x10, 0xCA, 0xF0};
+    spi_write(C_IRCAL, sizeof(ircal1), ircal1);
 
     // ircal can take up to 250 ms
     waitCTS(300);

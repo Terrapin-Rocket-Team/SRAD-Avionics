@@ -4,7 +4,7 @@
 
 Si4463HardwareConfig hwcfg = {
     MOD_2GFSK, // modulation
-    DR_40k,    // data rate
+    DR_100k,   // data rate
     433e6,     // frequency (Hz)
     127,       // tx power (127 = ~20dBm)
     48,        // preamble length
