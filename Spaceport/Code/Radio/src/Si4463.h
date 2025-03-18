@@ -4,6 +4,7 @@
 #include "Radio.h"
 #include "Si4463_defs.h"
 #include "SPI.h"
+#include "433M_2GFSK_000500.h"
 
 #define PART_NO 0x4463
 #define MAX_NUM_PROPS 12
@@ -78,6 +79,8 @@ public:
     Si4463DataRate dataRate;
     // the current transmit/receive frequency
     uint32_t freq;
+    // the current channel used to set the transmit/receive frequency
+    uint8_t channel = 0;
     // the current transmit power (0-127), see datasheet
     uint8_t pwr;
     // the current preamble length in symbols
@@ -304,10 +307,9 @@ public:
     */
     void sendCommandC(Si4463Cmd cmd, uint8_t argcCmd, uint8_t *argvCmd);
 
+private:
     SPIClass *spi;
     uint8_t _cs;
-
-private:
     // spi interface
     uint8_t _sdn;
     uint8_t _irq;
@@ -385,6 +387,9 @@ private:
     - MSB : whether the bytes should be written most significant byte first
     */
     static void to_bytes(uint64_t val, uint8_t pos, uint8_t bytePos, uint8_t *arr, bool MSB = true);
+
+    void setRadioConfig(Si4463Mod mod, Si4463DataRate dataRate, Si4463Band band);
+    void applyWDSConfig();
 };
 
 #endif
