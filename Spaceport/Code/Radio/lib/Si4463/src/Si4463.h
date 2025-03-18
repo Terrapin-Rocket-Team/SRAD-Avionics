@@ -4,7 +4,9 @@
 #include "Radio.h"
 #include "Si4463_defs.h"
 #include "SPI.h"
-#include "433M_2GFSK_000500.h"
+#include "422Mc110_2GFSK_100000U.h"
+
+#define RF4463F30
 
 #define PART_NO 0x4463
 #define MAX_NUM_PROPS 12
