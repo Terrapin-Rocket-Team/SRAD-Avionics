@@ -38,6 +38,10 @@ void logStats();
 void setup()
 {
     Serial.begin(9600);
+
+    if (CrashReport)
+        Serial.println(CrashReport);
+
     if (!radio.begin())
     {
         Serial.println("Error: radio failed to begin");

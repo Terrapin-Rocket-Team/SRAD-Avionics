@@ -29,7 +29,7 @@ uint32_t timer = millis();
 
 APRSConfig aprscfg = {"KC3UTM", "ALL", "WIDE1-1", TextMessage, '\\', 'M'};
 
-APRSText testMessage(aprscfg, "RSSI test, longer test message", "");
+APRSText testMessage(aprscfg, "test with payload longer than FIFO length, test with payload longer than FIFO length, test with payload longer than FIFO length", "");
 
 void beep(int d)
 {
