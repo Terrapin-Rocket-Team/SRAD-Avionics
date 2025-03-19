@@ -2,6 +2,9 @@
 #include "RadioMessage.h"
 #include "Si4463.h"
 
+// radio config header
+#include "422Mc110_2GFSK_100000U.h"
+
 Si4463HardwareConfig hwcfg = {
     MOD_2GFSK, // modulation
     DR_100k,   // data rate
@@ -42,7 +45,7 @@ void setup()
     if (CrashReport)
         Serial.println(CrashReport);
 
-    if (!radio.begin())
+    if (!radio.begin(CONFIG_422Mc110_2GFSK_100000U, sizeof(CONFIG_422Mc110_2GFSK_100000U)))
     {
         Serial.println("Error: radio failed to begin");
         Serial.flush();
