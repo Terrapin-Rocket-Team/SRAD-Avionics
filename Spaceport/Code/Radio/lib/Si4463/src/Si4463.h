@@ -11,6 +11,9 @@
 #define PART_NO 0x4463
 #define MAX_NUM_PROPS 12
 #define CTS_TIMEOUT 100
+#define FIFO_LENGTH 129
+#define RX_THRESH 63
+#define TX_THRESH 63
 
 // hardware config definitions
 
@@ -91,6 +94,9 @@ public:
     uint8_t preambleThresh;
 
     bool available = false;
+    // bool hasPacket = false;
+    uint32_t byteDelay = 0;
+    uint32_t timer = millis();
 
     /*
     Si4463 constructor
@@ -227,7 +233,7 @@ public:
     */
     int readFRR(int index);
 
-    void setRegisters();
+    // void setRegisters();
 
     // high level functions to use various radio commands
     /*
