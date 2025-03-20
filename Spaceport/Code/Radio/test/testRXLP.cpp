@@ -3,15 +3,15 @@
 #include "Si4463.h"
 
 // radio config header
-#include "422Mc110_2GFSK_100000U.h"
+#include "422Mc110_2GFSK_500000U.h"
 
 Si4463HardwareConfig hwcfg = {
-    MOD_2GFSK, // modulation
-    DR_100k,   // data rate
-    433e6,     // frequency (Hz)
-    127,       // tx power (127 = ~20dBm)
-    48,        // preamble length
-    16,        // required received valid preamble
+    MOD_2GFSK,       // modulation
+    DR_500k,         // data rate
+    (uint32_t)433e6, // frequency (Hz)
+    127,             // tx power (127 = ~20dBm)
+    48,              // preamble length
+    16,              // required received valid preamble
 };
 
 Si4463PinConfig pincfg = {
@@ -45,7 +45,7 @@ void setup()
     if (CrashReport)
         Serial.println(CrashReport);
 
-    if (!radio.begin(CONFIG_422Mc110_2GFSK_100000U, sizeof(CONFIG_422Mc110_2GFSK_100000U)))
+    if (!radio.begin(CONFIG_422Mc110_2GFSK_500000U, sizeof(CONFIG_422Mc110_2GFSK_500000U)))
     {
         Serial.println("Error: radio failed to begin");
         Serial.flush();
