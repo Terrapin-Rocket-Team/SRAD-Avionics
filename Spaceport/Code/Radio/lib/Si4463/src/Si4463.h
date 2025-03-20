@@ -83,7 +83,8 @@ public:
     uint16_t length = 0;
     // the number of message bytes transferred
     uint16_t xfrd = 0;
-    // uint32_t userWRLen = 0;
+    // pointer to the end of data in ```buf``` (TX), or the start of unread data (RX)
+    uint32_t availLen = 0;
     // the received signal strength
     int rssi = 100;
     // the modulation scheme the radio is using
@@ -178,9 +179,29 @@ public:
     - length : the length of the configuration array
     */
     bool begin(const uint8_t *config, uint32_t length);
-    // TODO:
-    // void writeTXBuf(const uint8_t *data, int length);
-    // void readRXBuf(const uint8_t *data, int length);
+    /*
+    Similar to tx(), but starts transmitting without all the bytes available yet
+    Remaining bytes need to be made available via writeTXBuf()
+    - data : the data to start transmitting with
+    - len : the length of the data
+    - totalLen : the total length of data to be transmitted (including bytes yet to be made available)
+    Returns: whether a transmission was successfully started
+    */
+    bool startTX(const uint8_t *data, uint16_t len, uint16_t totalLen);
+    /*
+    Used in conjunction with startTX() to make remaining bytes in the transmission available
+    - data : the data to add to the transmission
+    - len : the length of the data
+    Returns: the length of data successfully added
+    */
+    uint16_t writeTXBuf(const uint8_t *data, uint16_t len);
+    /*
+    Similar to writeTXBuf(), can be used to read from the RX buffer before the full message has been received
+    - data : the array to read data into
+    - len : the length of data to read
+    Returns: the length of data successfully added
+    */
+    uint16_t readRXBuf(uint8_t *data, uint16_t len);
 
     // tx/rx helper functions
     /*
