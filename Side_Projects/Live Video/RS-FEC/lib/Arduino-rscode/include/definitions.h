@@ -1,3 +1,5 @@
+#ifndef RSCODE_DEFS_H
+#define RSCODE_DEFS_H
 /****************************************************************
 
   Below is NPAR, the only compile-time parameter you should have to
@@ -26,3 +28,5 @@ typedef unsigned short BIT16;
 
 /* Maximum degree of various polynomials. */
 #define MAXDEG (NPAR * 2)
+
+#endif

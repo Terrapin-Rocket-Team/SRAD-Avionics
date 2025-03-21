@@ -1,13 +1,17 @@
 #include <Arduino.h>
 
+#include "rs.h"
+
 #include "Si4463.h"
 #include "SDFatBoilerplate.h"
 
 // radio config header
 #include "422Mc110_2GFSK_500000U.h"
 
-#define MSG_SIZE 8191
-#define MSG_THRESH 100
+#define MSG_SIZE MSG_CHUNK_SIZE * 32 // 8160
+#define MSG_THRESH 4000
+#define MSG_CHUNK_SIZE 255
+#define MSG_CHUNK_DATA_SIZE MSG_CHUNK_SIZE - NPAR // 251
 
 bool sdInit(SdFs &sd, FsFile &f, bool read);
 void sdWrite(FsFile &f, const uint8_t *data, int length);
@@ -15,6 +19,7 @@ void sdClose(FsFile &f);
 
 // Serial communication with Pi
 uint8_t buf[MSG_SIZE * 3];
+uint8_t codeword[255];
 
 // radio variables
 bool hasTransmission = false;
@@ -30,6 +35,8 @@ uint32_t txTimeout = millis();
 // testing
 uint32_t debugTimer = millis();
 // end testing
+
+RS rs;
 
 // radio
 APRSConfig aprscfg = {"KC3UTM", "ALL", "WIDE1-1", TextMessage, '\\', 'M'};
@@ -92,7 +99,7 @@ void loop()
 {
 
   // reading from Raspi
-  while (Serial5.available() > 0 && top + 1 < MSG_SIZE * 3)
+  while (Serial5.available() > 0 && top + 5 < MSG_SIZE * 3)
   {
     txTimeout = millis();
     buf[top] = Serial5.read();
@@ -101,6 +108,27 @@ void loop()
     if (bytesThisMessage + toSend < MSG_SIZE && hasTransmission)
     {
       toSend++;
+    }
+
+    // add RS once we have MSG_CHUNK_SIZE bytes
+    if (top != 0 && top % MSG_CHUNK_DATA_SIZE == 0)
+    {
+      // Serial.println("RS");
+      rs.encode_data(buf + (top - MSG_CHUNK_DATA_SIZE), MSG_CHUNK_DATA_SIZE, codeword);
+      // for (int i = 0; i < MSG_CHUNK_SIZE; i++)
+      // {
+      //   Serial.print((buf + (top - MSG_CHUNK_SIZE))[i], HEX);
+      //   Serial.print(" ");
+      // }
+      // Serial.println();
+      // for (int i = 0; i < sizeof(codeword); i++)
+      // {
+      //   Serial.print(codeword[i], HEX);
+      //   Serial.print(" ");
+      // }
+      // Serial.println();
+      memcpy(buf + (top - MSG_CHUNK_DATA_SIZE), codeword, sizeof(codeword));
+      top += 4;
     }
   }
 
@@ -118,14 +146,14 @@ void loop()
   // Refill fifo here
   if (hasTransmission && toSend > 0)
   {
-    // radio.writeTXBuf(buf, toSend);
-    // sdWrite(out, buf, toSend);
-    Serial.write(buf, toSend);
+    // wrong
+    // radio.writeTXBuf(buf + bytesThisMessage, toSend);
+    // sdWrite(out, buf + bytesThisMessage, toSend);
+    // correct
+    Serial.write(buf + bytesThisMessage, toSend);
     sent = toSend;
     bytesThisMessage += toSend;
     toSend = 0;
-    memcpy(buf, buf + sent, top - sent);
-    top -= sent;
   }
 
   // Start a new transmission
@@ -135,17 +163,14 @@ void loop()
     hasTransmission = true;
     toSend = (top > MSG_SIZE) ? MSG_SIZE : top;
 
-    Serial.write(buf, toSend);
+    Serial.write(buf + bytesThisMessage, toSend);
+    // radio.startTX(buf + bytesThisMessage, toSend, MSG_SIZE);
+    // sdWrite(out, buf + bytesThisMessage, toSend);
 
-    // radio.startTX(buf, toSend, MSG_SIZE);
-    // sdWrite(out, buf, toSend);
     // set all status vars
     sent = toSend;
     bytesThisMessage += toSend;
     toSend = 0;
-    // remove used buffer
-    memcpy(buf, buf + sent, top - sent);
-    top -= sent;
   }
 
   // if (millis() - txTimeout > 100 && top > 0)
@@ -156,6 +181,9 @@ void loop()
 
   if ((bytesThisMessage == MSG_SIZE || (millis() - txTimeout > 100 && toSend == 0 && hasTransmission)))
   {
+    // remove sent bytes
+    top -= bytesThisMessage;
+    memcpy(buf, buf + bytesThisMessage, top);
     bytesThisMessage = 0;
     if (millis() - txTimeout > 100 && toSend == 0 && hasTransmission)
     {
