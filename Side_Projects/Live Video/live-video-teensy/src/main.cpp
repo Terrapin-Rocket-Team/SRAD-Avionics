@@ -1,23 +1,24 @@
 #include <Arduino.h>
 
-#include "RFM69HCW.h"
+#include "Si4463.h"
+#include "SDFatBoilerplate.h"
 
-#define MSG_SIZE 25000
-#define MSG_THRESH 25000
-#define TX_ADDR 0x02
-#define RX_ADDR 0x01
-#define SYNC1 0x00
-#define SYNC2 0xff
+// radio config header
+#include "422Mc110_2GFSK_500000U.h"
 
-void radioIdle();
-void radioTx();
+#define MSG_SIZE 8191
+#define MSG_THRESH 100
+
+bool sdInit(SdFs &sd, FsFile &f, bool read);
+void sdWrite(FsFile &f, const uint8_t *data, int length);
+void sdClose(FsFile &f);
 
 // Serial communication with Pi
-char buf[MSG_SIZE * 3];
+uint8_t buf[MSG_SIZE * 3];
 
 // radio variables
 bool hasTransmission = false;
-bool modeReady = true;
+bool firstTX = true;
 
 int top = 0;
 int toSend = 0;
@@ -31,17 +32,47 @@ uint32_t debugTimer = millis();
 // end testing
 
 // radio
-APRSConfig config = {"KC3UTM", "APRS", "WIDE1-1", '[', '/'};
-RadioSettings settings = {433.0, true, true, &hardware_spi, 10, 15, 14, 8, 4, 9};
-RFM69HCW transmit = {&settings, &config};
+APRSConfig aprscfg = {"KC3UTM", "ALL", "WIDE1-1", TextMessage, '\\', 'M'};
+
+Si4463HardwareConfig hwcfg = {
+    MOD_2GFSK,       // modulation
+    DR_500k,         // data rate
+    (uint32_t)433e6, // frequency (Hz)
+    127,             // tx power (127 = ~20dBm)
+    48,              // preamble length
+    16,              // required received valid preamble
+};
+
+Si4463PinConfig pincfg = {
+    &SPI, // spi bus to use
+    10,   // cs
+    7,    // sdn
+    24,   // irq
+    26,   // gpio0
+    25,   // gpio1
+    8,    // random pin - gpio2 is not connected
+    9,    // random pin - gpio3 is not connected
+};
+
+Si4463 radio(hwcfg, pincfg);
+SdFs s;
+FsFile out;
 
 void setup()
 {
-  Serial.begin(9600);
-  Serial1.begin(460800); // 460800 baud
+  Serial.begin(500000);
+  Serial5.begin(500000); // 1M baud
 
-  if (!transmit.begin())
-    Serial.println("Transmitter failed to begin");
+  if (CrashReport)
+    Serial.println(CrashReport);
+
+  // if (!radio.begin(CONFIG_422Mc110_2GFSK_500000U, sizeof(CONFIG_422Mc110_2GFSK_500000U)))
+  // {
+  //   Serial.println("Transmitter failed to begin");
+  //   Serial.flush();
+  //   while (1)
+  //     ;
+  // }
 
   if (MSG_THRESH > MSG_SIZE)
   {
@@ -51,17 +82,20 @@ void setup()
       ;
   }
 
-  // Serial.println("RFM69t began");
+  // sdInit(s, out, false);
+  // sdWrite(s, out, (const uint8_t *)"hello", sizeof("hello"));
+
+  // Serial.println("Setup complete");
 }
 
 void loop()
 {
 
   // reading from Raspi
-  while (top + 1 < MSG_SIZE * 3)
+  while (Serial5.available() > 0 && top + 1 < MSG_SIZE * 3)
   {
     txTimeout = millis();
-    buf[top] = '1';
+    buf[top] = Serial5.read();
     top++;
 
     if (bytesThisMessage + toSend < MSG_SIZE && hasTransmission)
@@ -82,133 +116,117 @@ void loop()
   }
 
   // Refill fifo here
-  if (hasTransmission && toSend > 0 && !transmit.FifoFull())
+  if (hasTransmission && toSend > 0)
   {
-    // Start spi transaction
-    settings.spi->beginTransaction();
-    // Select radio
-    digitalWrite(settings.cs, LOW);
-
-    settings.spi->transfer(RH_RF69_REG_00_FIFO | RH_RF69_SPI_WRITE_MASK);
-
-    // Send the next section of the payload
-    sent = 0;
-    while (toSend > 0 && !transmit.FifoFull())
-    {
-      settings.spi->transfer(buf[sent]);
-      sent++;
-      bytesThisMessage++;
-      toSend--;
-    }
+    // radio.writeTXBuf(buf, toSend);
+    // sdWrite(out, buf, toSend);
+    Serial.write(buf, toSend);
+    sent = toSend;
+    bytesThisMessage += toSend;
+    toSend = 0;
     memcpy(buf, buf + sent, top - sent);
     top -= sent;
-
-    // Deselect radio
-    digitalWrite(settings.cs, HIGH);
-    // End spi transaction
-    settings.spi->endTransaction();
-  }
-  else if (hasTransmission && toSend <= 0 && bytesThisMessage < MSG_SIZE)
-  {
-    Serial.print("Ran out of bits!\tbytesThisMessage ");
-    Serial.print(bytesThisMessage);
-    Serial.print("\ttop ");
-    Serial.println(top);
   }
 
   // Start a new transmission
-  if ((top >= MSG_THRESH || (millis() - txTimeout > 100 && top > 0)) && !hasTransmission && modeReady)
+  if ((top >= MSG_THRESH || (millis() - txTimeout > 100 && top > 0 && !firstTX)) && !hasTransmission)
   {
+    firstTX = false;
     hasTransmission = true;
     toSend = (top > MSG_SIZE) ? MSG_SIZE : top;
 
-    // Start spi transaction
-    settings.spi->beginTransaction();
-    // Select radio
-    digitalWrite(settings.cs, LOW);
+    Serial.write(buf, toSend);
 
-    // Select the fifo for writing
-    settings.spi->transfer(RH_RF69_REG_00_FIFO | RH_RF69_SPI_WRITE_MASK);
-    // Send message length
-    settings.spi->transfer(SYNC1);
-    // Send address for receving radio
-    settings.spi->transfer(SYNC2);
-
-    // Send the payload
-    sent = 0;
-    while (toSend > 0 && !transmit.FifoFull())
-    {
-      settings.spi->transfer(buf[sent]);
-      sent++;
-      bytesThisMessage++;
-      toSend--;
-    }
+    // radio.startTX(buf, toSend, MSG_SIZE);
+    // sdWrite(out, buf, toSend);
+    // set all status vars
+    sent = toSend;
+    bytesThisMessage += toSend;
+    toSend = 0;
+    // remove used buffer
     memcpy(buf, buf + sent, top - sent);
     top -= sent;
-
-    // Deselect radio
-    digitalWrite(settings.cs, HIGH);
-    // End spi transaction
-    settings.spi->endTransaction();
-
-    radioTx();
   }
 
-  if (millis() - txTimeout > 100 && top > 0)
-  {
-    top = 0;
-    sent = 0;
-  }
+  // if (millis() - txTimeout > 100 && top > 0)
+  // {
+  //   top = 0;
+  //   sent = 0;
+  // }
 
-  if ((bytesThisMessage == MSG_SIZE || (millis() - txTimeout > 100 && toSend == 0)) && digitalRead(settings.irq))
+  if ((bytesThisMessage == MSG_SIZE || (millis() - txTimeout > 100 && toSend == 0 && hasTransmission)))
   {
     bytesThisMessage = 0;
+    if (millis() - txTimeout > 100 && toSend == 0 && hasTransmission)
+    {
+      // sdClose(out);
+      // Serial.println("finished");
+    }
     hasTransmission = false;
-    radioIdle();
-    // Serial.println("finished");
   }
 
-  if (transmit.radio.spiRead(RH_RF69_REG_27_IRQFLAGS1) & RH_RF69_IRQFLAGS1_MODEREADY)
-  {
-    modeReady = true;
-  }
+  // if (millis() - debugTimer > 100)
+  // {
+  //   debugTimer = millis();
+  //   Serial.print("\r                                                                                                   ");
+  //   Serial.print("\rBuffer state: ");
+  //   Serial.print("\ttop ");
+  //   Serial.print(top);
+  //   Serial.print("\tsent ");
+  //   Serial.print(sent);
+  //   Serial.print("\ttoSend ");
+  //   Serial.print(toSend);
+  //   Serial.print("\tbytesThisMessage ");
+  //   Serial.print(bytesThisMessage);
+  // }
 
-  if (millis() - debugTimer > 100)
+  radio.update();
+
+  if (radio.state == STATE_TX && radio.availLen > 0 && radio.availLen == radio.xfrd && radio.xfrd < MSG_SIZE && radio.gpio0())
   {
-    debugTimer = millis();
-    Serial.print("\r                                                                                                   ");
-    Serial.print("\rBuffer state: ");
+    Serial.print("\nRan out of bits!\tbytesThisMessage ");
+    Serial.print(bytesThisMessage);
     Serial.print("\ttop ");
     Serial.print(top);
-    Serial.print("\tsent ");
-    Serial.print(sent);
-    Serial.print("\ttoSend ");
-    Serial.print(toSend);
-    Serial.print("\tbytesThisMessage ");
-    Serial.print(bytesThisMessage);
+    Serial.print("\tavailLen ");
+    Serial.print(radio.availLen);
+    Serial.print("\txfrd ");
+    Serial.print(radio.xfrd);
+    Serial.print("\tstate ");
+    Serial.println(radio.state);
+    while (1)
+      ;
   }
 }
 
-// adapted from radioHead functions
-void radioIdle()
+bool sdInit(SdFs &sd, FsFile &f, bool read)
 {
-  modeReady = false;
-  transmit.radio.spiWrite(RH_RF69_REG_5A_TESTPA1, RH_RF69_TESTPA1_NORMAL);
-  transmit.radio.spiWrite(RH_RF69_REG_5C_TESTPA2, RH_RF69_TESTPA2_NORMAL);
-  uint8_t opmode = transmit.radio.spiRead(RH_RF69_REG_01_OPMODE);
-  opmode &= ~RH_RF69_OPMODE_MODE;
-  opmode |= (RH_RF69_OPMODE_MODE_STDBY & RH_RF69_OPMODE_MODE);
-  transmit.radio.spiWrite(RH_RF69_REG_01_OPMODE, opmode);
+  if (sd.begin(SD_CONFIG) || sd.restart())
+  {
+    if (read)
+    {
+      f = sd.open("out.av1", FILE_READ);
+    }
+    else
+    {
+      if (sd.exists("out.av1"))
+        sd.remove("out.av1");
+      f = sd.open("out.av1", FILE_WRITE);
+    }
+    return true;
+  }
+  return false;
 }
 
-void radioTx()
+void sdWrite(FsFile &f, const uint8_t *data, int length)
 {
-  modeReady = false;
-  transmit.radio.spiWrite(RH_RF69_REG_5A_TESTPA1, RH_RF69_TESTPA1_BOOST);
-  transmit.radio.spiWrite(RH_RF69_REG_5C_TESTPA2, RH_RF69_TESTPA2_BOOST);
-  transmit.radio.spiWrite(RH_RF69_REG_25_DIOMAPPING1, RH_RF69_DIOMAPPING1_DIO0MAPPING_00); // Set interrupt line 0 PacketSent
-  uint8_t opmode = transmit.radio.spiRead(RH_RF69_REG_01_OPMODE);
-  opmode &= ~RH_RF69_OPMODE_MODE;
-  opmode |= (RH_RF69_OPMODE_MODE_TX & RH_RF69_OPMODE_MODE);
-  transmit.radio.spiWrite(RH_RF69_REG_01_OPMODE, opmode);
+  if (length > 0)
+  {
+    f.write(data, length);
+  }
+}
+
+void sdClose(FsFile &f)
+{
+  f.close();
 }
