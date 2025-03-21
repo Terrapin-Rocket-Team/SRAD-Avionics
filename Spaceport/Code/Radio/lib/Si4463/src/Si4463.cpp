@@ -209,7 +209,7 @@ bool Si4463::tx(const uint8_t *message, int len)
 
         // start tx
         // enter rx state after tx
-        uint8_t txArgs[6] = {this->channel, 0b10000000, 0, 0, 0, 0};
+        uint8_t txArgs[6] = {this->channel, 0b00110000, 0, 0, 0, 0};
         this->spi_write(C_START_TX, sizeof(txArgs), txArgs);
 
         this->state = STATE_TX;
@@ -270,19 +270,19 @@ bool Si4463::rx()
         this->availLen = 0;
 
         // enter idle state
-        uint8_t cIdleArgs[1] = {0b00000011};
-        this->sendCommandC(C_CHANGE_STATE, 1, cIdleArgs);
+        // uint8_t cIdleArgs[1] = {0b00000011};
+        // this->sendCommandC(C_CHANGE_STATE, 1, cIdleArgs);
 
         // clear fifo
         uint8_t cClearFIFO[1] = {0b00000011};
         this->sendCommandC(C_FIFO_INFO, 1, cClearFIFO);
 
         // set back to max length for rx mode?
-        uint8_t cLen2[2] = {0x1f, 0xff};
-        this->setProperty(G_PKT, 2, P_PKT_FIELD_2_LENGTH2, cLen2);
+        // uint8_t cLen2[2] = {0x1f, 0xff};
+        // this->setProperty(G_PKT, 2, P_PKT_FIELD_2_LENGTH2, cLen2);
 
         // enter RX mode
-        uint8_t rxArgs[7] = {this->channel, 0, 0, 0, 0, 0b00000011, 0b00000001};
+        uint8_t rxArgs[7] = {this->channel, 0b00110000, 0, 0, 0, 0b00000011, 0b00000001};
         this->spi_write(C_START_RX, 7, rxArgs);
         this->state = STATE_RX;
         return true;
@@ -349,6 +349,7 @@ void Si4463::handleRX()
         // if we've transferred length bytes, we've received the whole message
         if (this->xfrd == this->length && this->length > 0)
         {
+            // Serial.println("Complete");
             // automatically placed into an idle state
             this->state = STATE_RX_COMPLETE;
             this->available = true;
@@ -395,6 +396,7 @@ void Si4463::handleRX()
         // if we've transferred length bytes, we've received the whole message
         if (this->xfrd == this->length)
         {
+            // Serial.println("Complete2");
             // automatically placed into an idle state
             this->state = STATE_RX_COMPLETE;
             this->available = true;
@@ -434,8 +436,8 @@ bool Si4463::startTX(const uint8_t *data, uint16_t len, uint16_t totalLen)
         memcpy(this->buf, data, this->availLen);
         // Serial.println("tx");
         //  enter idle state
-        uint8_t cIdleArgs[1] = {0b00000011};
-        this->sendCommandC(C_CHANGE_STATE, 1, cIdleArgs);
+        // uint8_t cIdleArgs[1] = {0b00000011};
+        // this->sendCommandC(C_CHANGE_STATE, 1, cIdleArgs);
 
         // clear fifo
         uint8_t cClearFIFO[1] = {0b00000011};
@@ -465,11 +467,11 @@ bool Si4463::startTX(const uint8_t *data, uint16_t len, uint16_t totalLen)
         digitalWrite(this->_cs, HIGH);
 
         // set packet length for variable length packets
-        this->setProperty(G_PKT, 2, P_PKT_FIELD_2_LENGTH2, mLen);
+        // this->setProperty(G_PKT, 2, P_PKT_FIELD_2_LENGTH2, mLen);
 
         // start tx
         // enter rx state after tx
-        uint8_t txArgs[6] = {this->channel, 0b10000000, 0, 0, 0, 0};
+        uint8_t txArgs[6] = {this->channel, 0b00110000, 0, 0, 0, 0};
         this->spi_write(C_START_TX, sizeof(txArgs), txArgs);
 
         this->state = STATE_TX;
