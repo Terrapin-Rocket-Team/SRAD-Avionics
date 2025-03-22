@@ -140,6 +140,7 @@ void RS::build_codeword(unsigned char msg[], int nbytes, unsigned char dst[])
 /* debugging routines */
 void RS::print_parity(void)
 {
+#ifdef ARDUINO
   int i;
   Serial.print("Parity Bytes: ");
   for (i = 0; i < NPAR; i++)
@@ -150,10 +151,18 @@ void RS::print_parity(void)
     Serial.print(pBytes[i], HEX);
   }
   Serial.println();
+#else
+  int i;
+  printf("Parity Bytes: ");
+  for (i = 0; i < NPAR; i++)
+    printf("[%d]:%x, ", i, pBytes[i]);
+  printf("\n");
+#endif
 }
 
 void RS::print_syndrome(void)
 {
+#ifdef ARDUINO
   int i;
   Serial.print("Syndrome Bytes: ");
   for (i = 0; i < NPAR; i++)
@@ -164,10 +173,18 @@ void RS::print_syndrome(void)
     Serial.print(synBytes[i], HEX);
   }
   Serial.println();
+#else
+  int i;
+  printf("Syndrome Bytes: ");
+  for (i = 0; i < NPAR; i++)
+    printf("[%d]:%x, ", i, synBytes[i]);
+  printf("\n");
+#endif
 }
 
 void RS::debug_check_syndrome(void)
 {
+#ifdef ARDUINO
   int i;
 
   for (i = 0; i < 3; i++)
@@ -179,6 +196,15 @@ void RS::debug_check_syndrome(void)
     Serial.print("] = ");
     Serial.println(GF::glog[GF::gmult(synBytes[i], GF::ginv(synBytes[i + 1]))]);
   }
+#else
+  int i;
+
+  for (i = 0; i < 3; i++)
+  {
+    printf(" inv log S[%d]/S[%d] = %d\n", i, i + 1,
+           glog[gmult(synBytes[i], ginv(synBytes[i + 1]))]);
+  }
+#endif
 }
 
 // void zero_fill_from(unsigned char buf[], int from, int to)

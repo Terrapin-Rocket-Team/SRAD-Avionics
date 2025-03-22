@@ -1,17 +1,19 @@
 #include <Arduino.h>
+#include "Wire.h"
 
 #include "rs.h"
 
 #include "Si4463.h"
+#include "RadioMessage.h"
 #include "SDFatBoilerplate.h"
 
 // radio config header
 #include "422Mc110_2GFSK_500000U.h"
 
-#define MSG_SIZE MSG_CHUNK_SIZE * 32 // 8160
 #define MSG_THRESH 4000
 #define MSG_CHUNK_SIZE 255
-#define MSG_CHUNK_DATA_SIZE MSG_CHUNK_SIZE - NPAR // 251
+#define MSG_SIZE (MSG_CHUNK_SIZE * 16)              // 8160 (should be * 32)
+#define MSG_CHUNK_DATA_SIZE (MSG_CHUNK_SIZE - NPAR) // 251
 
 bool sdInit(SdFs &sd, FsFile &f, bool read);
 void sdWrite(FsFile &f, const uint8_t *data, int length);
@@ -37,6 +39,9 @@ uint32_t debugTimer = millis();
 // end testing
 
 RS rs;
+
+GSData vHeader(VideoData::type, 3, 1);
+uint8_t vHeaderBuf[GSData::headerLen] = {};
 
 // radio
 APRSConfig aprscfg = {"KC3UTM", "ALL", "WIDE1-1", TextMessage, '\\', 'M'};
@@ -65,10 +70,16 @@ Si4463 radio(hwcfg, pincfg);
 SdFs s;
 FsFile out;
 
+char GSMHeader[GSData::gsmHeaderSize] = {};
+
 void setup()
 {
   Serial.begin(500000);
-  Serial5.begin(500000); // 1M baud
+
+  // serial
+  Serial5.begin(500000);
+  // i2c
+  // Wire.begin(0x01);
 
   if (CrashReport)
     Serial.println(CrashReport);
@@ -89,6 +100,18 @@ void setup()
       ;
   }
 
+  // using buf because just need a valid arr
+  // only need to extract the header
+  vHeader.fill(buf, MSG_SIZE);
+  vHeader.encode(buf, MSG_SIZE);
+  // this header should be valid for every packet
+  memcpy(vHeaderBuf, buf, GSData::headerLen);
+  // reset buf for good measure
+  memset(buf, 0, MSG_SIZE);
+
+  // write GSM header
+  GSData::encodeGSMHeader(GSMHeader, GSData::gsmHeaderSize, 400000);
+
   // sdInit(s, out, false);
   // sdWrite(s, out, (const uint8_t *)"hello", sizeof("hello"));
 
@@ -100,9 +123,11 @@ void loop()
 
   // reading from Raspi
   while (Serial5.available() > 0 && top + 5 < MSG_SIZE * 3)
+  // while (Wire.available() > 0 && top + 5 < MSG_SIZE * 3)
   {
     txTimeout = millis();
     buf[top] = Serial5.read();
+    // buf[top] = Wire.read();
     top++;
 
     if (bytesThisMessage + toSend < MSG_SIZE && hasTransmission)
@@ -111,13 +136,22 @@ void loop()
     }
 
     // add RS once we have MSG_CHUNK_SIZE bytes
-    if (top != 0 && top % MSG_CHUNK_DATA_SIZE == 0)
+    if (top != 0 && ((top - (MSG_CHUNK_SIZE * (top / MSG_CHUNK_SIZE))) % MSG_CHUNK_DATA_SIZE) == 0)
     {
+      // (top - (MSG_CHUNK_SIZE * (top / MSG_CHUNK_SIZE))) the number of bytes not part of an already coded message
       // Serial.println("RS");
+      // Serial.print("top ");
+      // Serial.print(top);
+      // Serial.print("\t");
+      // Serial.print(MSG_CHUNK_DATA_SIZE);
+      // Serial.print("\ttoSend ");
+      // Serial.print(toSend);
+      // Serial.print("\thasTX ");
+      // Serial.println(hasTransmission);
       rs.encode_data(buf + (top - MSG_CHUNK_DATA_SIZE), MSG_CHUNK_DATA_SIZE, codeword);
-      // for (int i = 0; i < MSG_CHUNK_SIZE; i++)
+      // for (int i = 0; i < MSG_CHUNK_DATA_SIZE; i++)
       // {
-      //   Serial.print((buf + (top - MSG_CHUNK_SIZE))[i], HEX);
+      //   Serial.print((buf + (top - MSG_CHUNK_DATA_SIZE))[i], HEX);
       //   Serial.print(" ");
       // }
       // Serial.println();
@@ -129,6 +163,10 @@ void loop()
       // Serial.println();
       memcpy(buf + (top - MSG_CHUNK_DATA_SIZE), codeword, sizeof(codeword));
       top += 4;
+      if (bytesThisMessage + toSend + 4 <= MSG_SIZE && hasTransmission)
+      {
+        toSend += 4;
+      }
     }
   }
 
@@ -159,10 +197,16 @@ void loop()
   // Start a new transmission
   if ((top >= MSG_THRESH || (millis() - txTimeout > 100 && top > 0 && !firstTX)) && !hasTransmission)
   {
+    // TODO: remove temp
+    if (firstTX)
+      Serial.write(GSMHeader, GSData::gsmHeaderSize);
+
     firstTX = false;
     hasTransmission = true;
     toSend = (top > MSG_SIZE) ? MSG_SIZE : top;
-
+    // TEMP: write GSData header for testing with ground station
+    Serial.write(vHeaderBuf, GSData::headerLen);
+    // write data
     Serial.write(buf + bytesThisMessage, toSend);
     // radio.startTX(buf + bytesThisMessage, toSend, MSG_SIZE);
     // sdWrite(out, buf + bytesThisMessage, toSend);

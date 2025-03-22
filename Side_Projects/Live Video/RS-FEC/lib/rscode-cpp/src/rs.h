@@ -1,7 +1,11 @@
 #ifndef RS_H
 #define RS_H
 
+#ifdef ARDUINO
 #include <Arduino.h>
+#else
+#include <stdio.h>
+#endif
 
 #include "definitions.h"
 #include "galois.h"
