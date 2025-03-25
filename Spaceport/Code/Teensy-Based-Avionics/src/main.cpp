@@ -67,6 +67,7 @@ MMFSConfig a = MMFSConfig()
                    .withBBAsync(true, 50)
                    .withBBPin(LED_BUILTIN)
                    .withBBPin(32)
+                   .withBuzzerPin(33)
                    .withUsingSensorBiasCorrection(true)
                    .withUpdateRate(10)
                    .withState(&t);
@@ -78,6 +79,7 @@ void setup()
 {
     sys.init();
     bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
+    radio.begin();
     getLogger().recordLogData(INFO_, "Initialization Complete");
 }
 double radio_last;
@@ -93,6 +95,7 @@ void loop()
 
     radio_last = time;
     msg.clear();
+    radio.update();
 
     /// printf("%f\n", baro1.getAGLAltFt());
     aprs.alt = d.getAGLAltFt();
@@ -116,7 +119,7 @@ void loop()
     aprs.stateFlags.pack(arr);
     // aprs.stateFlags = (uint8_t) computer.getStage();
     msg.encode(&aprs);
-    // radio.send(aprs);
+    radio.send(aprs);
     Serial.printf("%0.3f - Sent APRS Message; %f   |   %d\n", time / 1000.0, d.getAGLAltFt(), m.getFixQual());
     bb.aonoff(BUZZER, 50);
     // Serial1.write(msg.buf, msg.size);
