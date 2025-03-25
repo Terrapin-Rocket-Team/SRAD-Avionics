@@ -19,12 +19,12 @@ Si4463HardwareConfig hwcfg = {
 Si4463PinConfig pincfg = {
     &SPI, // spi bus to use
     10,   // cs
-    7,    // sdn
-    24,   // irq
-    26,   // gpio0
-    25,   // gpio1
-    8,    // random pin - gpio2 is not connected
-    9,    // random pin - gpio3 is not connected
+    38,   // sdn
+    33,   // irq
+    34,   // gpio0
+    35,   // gpio1
+    36,   // random pin - gpio2 is not connected
+    37,   // random pin - gpio3 is not connected
 };
 
 Si4463 radio(hwcfg, pincfg);
@@ -37,9 +37,9 @@ uint32_t timeouts = 0;
 
 APRSConfig aprscfg = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
 
-// APRSText testMessage(aprscfg);
+APRSText testMessage(aprscfg);
 
-// void logStats();
+void logStats();
 
 void setup()
 {

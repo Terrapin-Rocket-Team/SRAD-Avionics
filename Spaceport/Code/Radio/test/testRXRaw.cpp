@@ -61,7 +61,12 @@ void loop()
         Serial.println("here");
         uint16_t receivedLength = radio.readRXBuf(buf, radio.length);
         if (receivedLength != MSG_LENGTH)
-            Serial.println("Error: recevied length does not match expected length");
+        {
+            Serial.print("Error: recevied length does not match expected length. Got: ");
+            Serial.print(receivedLength);
+            Serial.print(", Expected: ");
+            Serial.println(MSG_LENGTH);
+        }
         Serial.write(buf, receivedLength);
         radio.available = false;
 

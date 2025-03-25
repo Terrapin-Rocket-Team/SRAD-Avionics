@@ -229,9 +229,15 @@ void Si4463::handleTX()
     if (this->gpio0() && this->xfrd < this->availLen)
     {
 
-        // Serial.println("handleTX");
-        // Serial.println(this->xfrd);
-        // Serial.println(this->availLen);
+        Serial.println("handleTX");
+        Serial.println(this->xfrd);
+        Serial.println(this->availLen);
+        uint8_t cClearFIFO[1] = {0b00000000};
+        uint8_t rClearFIFO[2] = {0x00, 0x00};
+        sendCommand(C_FIFO_INFO, 1, cClearFIFO, 2, rClearFIFO);
+        Serial.println("FIFO STATUS");
+        for (int i = 0; i < sizeof(rClearFIFO); i++)
+            Serial.println(rClearFIFO[i]);
         digitalWrite(this->_cs, LOW);
 
         // write to the TX FIFO
@@ -434,7 +440,10 @@ bool Si4463::startTX(const uint8_t *data, uint16_t len, uint16_t totalLen)
         this->availLen = len;
         this->xfrd = 0;
         memcpy(this->buf, data, this->availLen);
-        // Serial.println("tx");
+        Serial.println("tx");
+        Serial.println(this->availLen);
+        Serial.println(this->length);
+
         //  enter idle state
         // uint8_t cIdleArgs[1] = {0b00000011};
         // this->sendCommandC(C_CHANGE_STATE, 1, cIdleArgs);
@@ -811,7 +820,7 @@ void Si4463::setPacketConfig(Si4463Mod mod, uint8_t preambleLength, uint8_t prea
     this->setProperty(G_PKT, P_PKT_FIELD_2_CONFIG, 0x02 | pktConfArgs);
 
     // enable variable length packets
-    this->setProperty(G_PKT, P_PKT_LEN, 0b00001010);
+    this->setProperty(G_PKT, P_PKT_LEN, 0b00001110);
     this->setProperty(G_PKT, P_PKT_LEN_FIELD_SOURCE, 0x01);
     // turn off crc
     this->setProperty(G_PKT, P_PKT_CRC_CONFIG, 0x00);
@@ -819,7 +828,7 @@ void Si4463::setPacketConfig(Si4463Mod mod, uint8_t preambleLength, uint8_t prea
     uint8_t lengthFieldLen1[2] = {0x00, 0x02};
     this->setProperty(G_PKT, 2, P_PKT_FIELD_1_LENGTH2, lengthFieldLen1);
     // set the length of field 2 to be 0 bytes, ensures we stop transmitting after field 1
-    uint8_t lengthFieldLen2[2] = {0x1f, 0xff};
+    uint8_t lengthFieldLen2[2] = {0x1F, 0xFF};
     this->setProperty(G_PKT, 2, P_PKT_FIELD_2_LENGTH2, lengthFieldLen2);
     // set the length of field 3 to be 0 bytes, ensures we stop transmitting after field 2
     uint8_t lengthFieldLen3[2] = {0x00, 0x00};
