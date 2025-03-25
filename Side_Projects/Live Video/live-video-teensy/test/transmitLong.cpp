@@ -2,7 +2,7 @@
 #include "RadioMessage.h"
 #include "Si4463.h"
 
-// #define BUZZER 0
+#define MSG_SIZE 8160
 
 // radio config header
 #include "422Mc110_2GFSK_500000U.h"
@@ -32,7 +32,7 @@ uint32_t timer = millis();
 
 APRSConfig aprscfg = {"KC3UTM", "ALL", "WIDE1-1", TextMessage, '\\', 'M'};
 
-APRSText testMessage(aprscfg, "RSSI test, longer test message", "");
+uint8_t buf[MSG_SIZE];
 
 // void beep(int d)
 // {
@@ -48,7 +48,7 @@ void setup()
     // pinMode(BUZZER, OUTPUT);
     // digitalWrite(BUZZER, LOW);
 
-    if (!radio.begin())
+    if (!radio.begin(CONFIG_422Mc110_2GFSK_500000U, sizeof(CONFIG_422Mc110_2GFSK_500000U)))
     {
         Serial.println("Error: radio failed to begin");
         Serial.flush();
@@ -60,6 +60,10 @@ void setup()
     Serial.println("Radio began successfully");
 
     // beep(100);
+    for (int i = 0; i < MSG_SIZE; i++)
+    {
+        buf[i] = '1';
+    }
 }
 
 void loop()
@@ -68,8 +72,8 @@ void loop()
     {
         timer = millis();
         Serial.println("Sending message");
-        Serial.println(testMessage.msg);
-        radio.send(testMessage);
+        // Serial.println(testMessage.msg);
+        radio.startTX(buf, MSG_SIZE, MSG_SIZE);
     }
     // need to call as fast as possible every loop
     radio.update();
