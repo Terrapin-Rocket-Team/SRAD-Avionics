@@ -29,6 +29,21 @@ Si4463PinConfig pincfg = {
 
 Si4463 radio(hwcfg, pincfg);
 uint32_t timer = millis();
+uint32_t throttleTimer = millis();
+
+Message m;
+
+uint16_t buf1Size = 50;
+uint16_t buf2Size = 50;
+uint16_t buf3Size = 50;
+uint16_t buf4Size = 50;
+
+uint8_t buf1[50] = {0};
+uint8_t buf2[50] = {0};
+uint8_t buf3[50] = {0};
+uint8_t buf4[50] = {0};
+
+int counter = 3;
 
 APRSConfig aprscfg = {"KC3UTM", "ALL", "WIDE1-1", TextMessage, '\\', 'M'};
 
@@ -59,17 +74,47 @@ void setup()
     }
     Serial.println("Radio began successfully");
 
+    m.encode(&testMessage);
+
+    m.shift(buf1, buf1Size);
+    m.shift(buf2, buf2Size);
+    m.shift(buf3, buf3Size);
+    m.shift(buf4, buf4Size);
+
     beep(100);
 }
 
 void loop()
 {
+    if (counter < 3 && millis() - throttleTimer > 2)
+    {
+        throttleTimer = millis();
+        if (counter == 0)
+        {
+            uint16_t bufSize = buf2Size;
+            radio.writeTXBuf(buf2, bufSize);
+        }
+        if (counter == 1)
+        {
+            uint16_t bufSize = buf3Size;
+            radio.writeTXBuf(buf3, bufSize);
+        }
+        if (counter == 2)
+        {
+            uint16_t bufSize = buf4Size;
+            radio.writeTXBuf(buf4, bufSize);
+        }
+        counter++;
+    }
     if (millis() - timer > 2000)
     {
         timer = millis();
+        counter = 0;
         Serial.println("Sending message");
         Serial.println(testMessage.msg);
-        radio.send(testMessage);
+        // radio.send(testMessage);
+        Serial.println(buf1Size + buf2Size + buf3Size + buf4Size);
+        radio.startTX(buf1, buf1Size, buf1Size + buf2Size + buf3Size + buf4Size);
     }
     // need to call as fast as possible every loop
     radio.update();

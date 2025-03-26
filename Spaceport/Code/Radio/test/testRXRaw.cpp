@@ -5,9 +5,11 @@
 // radio config header
 #include "422Mc110_2GFSK_500000U.h"
 
+#define MSG_LENGTH 8191
+
 Si4463HardwareConfig hwcfg = {
     MOD_2GFSK,       // modulation
-    DR_100k,         // data rate
+    DR_500k,         // data rate
     (uint32_t)433e6, // frequency (Hz)
     127,             // tx power (127 = ~20dBm)
     48,              // preamble length
@@ -28,20 +30,21 @@ Si4463PinConfig pincfg = {
 Si4463 radio(hwcfg, pincfg);
 uint32_t timer = millis();
 uint32_t timeout = 2100;
+uint8_t buf[MSG_LENGTH];
 
 uint32_t received = 0;
 uint32_t timeouts = 0;
 
 APRSConfig aprscfg = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
 
-APRSText testMessage(aprscfg);
+// APRSText testMessage(aprscfg);
 
-void logStats();
+// void logStats();
 
 void setup()
 {
-    Serial.begin(9600);
-    if (!radio.begin())
+    Serial.begin(1000000);
+    if (!radio.begin(CONFIG_422Mc110_2GFSK_500000U, sizeof(CONFIG_422Mc110_2GFSK_500000U)))
     {
         Serial.println("Error: radio failed to begin");
         Serial.flush();
@@ -55,32 +58,37 @@ void loop()
 {
     if (radio.avail())
     {
-        radio.receive(testMessage);
-        Serial.print("\nReceived message: ");
-        Serial.println(testMessage.msg);
-        Serial.print("RSSI: ");
-        Serial.print(radio.RSSI());
-        Serial.println(" dBm");
+        Serial.println("here");
+        uint16_t receivedLength = radio.readRXBuf(buf, radio.length);
+        if (receivedLength != MSG_LENGTH)
+        {
+            Serial.print("Error: recevied length does not match expected length. Got: ");
+            Serial.print(receivedLength);
+            Serial.print(", Expected: ");
+            Serial.println(MSG_LENGTH);
+        }
+        Serial.write(buf, receivedLength);
+        radio.available = false;
 
         // reset timeout
         timer = millis();
         received++;
-        logStats();
+        // logStats();
     }
     if (millis() - timer > timeout)
     {
         timer = millis();
         timeouts++;
-        logStats();
+        // logStats();
     }
     // need to call as fast as possible every loop
     radio.update();
 }
 
-void logStats()
-{
-    Serial.print("Received: ");
-    Serial.print(received);
-    Serial.print(" | Timeouts: ");
-    Serial.println(timeouts);
-}
+// void logStats()
+// {
+//     Serial.print("Received: ");
+//     Serial.print(received);
+//     Serial.print(" | Timeouts: ");
+//     Serial.println(timeouts);
+// }

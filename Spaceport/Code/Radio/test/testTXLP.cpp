@@ -2,14 +2,14 @@
 #include "RadioMessage.h"
 #include "Si4463.h"
 
+#define BUZZER 0
+
 // radio config header
 #include "422Mc110_2GFSK_500000U.h"
 
-#define BUZZER 0
-
 Si4463HardwareConfig hwcfg = {
     MOD_2GFSK,       // modulation
-    DR_500k,         // data rate
+    DR_100k,         // data rate
     (uint32_t)433e6, // frequency (Hz)
     127,             // tx power (127 = ~20dBm)
     48,              // preamble length
@@ -18,13 +18,13 @@ Si4463HardwareConfig hwcfg = {
 
 Si4463PinConfig pincfg = {
     &SPI, // spi bus to use
-    8,    // cs
-    6,    // sdn
-    7,    // irq
-    9,    // gpio0
-    10,   // gpio1
-    4,    // random pin - gpio2 is not connected
-    5,    // random pin - gpio3 is not connected
+    10,   // cs
+    7,    // sdn
+    24,   // irq
+    26,   // gpio0
+    25,   // gpio1
+    8,    // random pin - gpio2 is not connected
+    9,    // random pin - gpio3 is not connected
 };
 
 Si4463 radio(hwcfg, pincfg);
@@ -32,7 +32,7 @@ uint32_t timer = millis();
 
 APRSConfig aprscfg = {"KC3UTM", "ALL", "WIDE1-1", TextMessage, '\\', 'M'};
 
-APRSText testMessage(aprscfg, "test with payload longer than FIFO length, test with payload longer than FIFO length, test with payload longer than FIFO length", "");
+APRSText testMessage(aprscfg, "RSSI test, longer test message", "");
 
 void beep(int d)
 {
@@ -48,7 +48,7 @@ void setup()
     pinMode(BUZZER, OUTPUT);
     digitalWrite(BUZZER, LOW);
 
-    if (!radio.begin(CONFIG_422Mc110_2GFSK_500000U, sizeof(CONFIG_422Mc110_2GFSK_500000U)))
+    if (!radio.begin())
     {
         Serial.println("Error: radio failed to begin");
         Serial.flush();
