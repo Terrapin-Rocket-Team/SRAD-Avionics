@@ -124,6 +124,7 @@ void loop()
 
     uint8_t arr[] = {(uint8_t)(int)d.getTemp(), (uint8_t)t.getStage(), (uint8_t)m.getFixQual()};
     aprs.stateFlags.pack(arr);
+    Serial.printf("%d %ld\n", d.getTemp(), aprs.stateFlags.get());
     // aprs.stateFlags = (uint8_t) computer.getStage();
     msg.encode(&aprs);
     radio.send(aprs);
