@@ -8,51 +8,52 @@
 #include <BluetoothServer.h>
 
 #define SERVER
-// #define DEBUG
+#define DEBUG
 
 #ifdef SERVER
-BluetoothServer server(Serial);
+BluetoothServer server(Serial1);
 #else
 BluetoothClient client(Serial);
 #endif
 
 void setup() {
     Serial.begin(9600);
-    while (!Serial) {}
+    Serial1.begin(9600, SERIAL_8N1, 16, 17);
+    Serial.println("Hello from ESP32!");
 #ifdef DEBUG
 #ifdef SERVER
-    Serial.println("Server Starting!");
-    server.start("ESP32 BLE Server");
+    Serial.println("Server booted!");
+    Serial.flush();
+    // server.start("ESP32 BLE Server");
 #else
-    Serial.println("Client Starting!");
-    Serial.flush();
-    client.start("ESP32 BLE Server");
-    Serial.println("Client Done Starting!");
-    Serial.flush();
+    Serial.println("Client booted!");
+    Seria.flush();
+    // client.start("ESP32 BLE Server");
 #endif
 #endif
 }
 
 #ifdef SERVER
 void serverLoop() {
-
-#ifdef DEBUG
-    char buf[] = "Hello World!";
-    server.send(reinterpret_cast<uint8_t *>(buf), sizeof(buf));
-    delay(500);
-#endif
-    if (Serial.available()) {
-        uint8_t messageID = Serial.read();
+    if (Serial1.available()) {
+        uint8_t messageID = Serial1.read();
+        Serial.println("Received message: " + String(messageID));
 
         switch (messageID) {
             case INIT_MESSAGE: {
-                std::string name = Serial.readString().c_str();
-                server.start(name);
+                // std::string name = Serial1.readString().c_str();
+                char buf[128] = {'\0'};
+                Serial1.readBytesUntil('\0', buf, sizeof(buf));
+                Serial.print("Received init message with server name: ");
+                Serial.println(buf);
+
+                server.start(buf);
                 break;
             }
             case DATA_MESSAGE: {
+                Serial.println("Received data message");
                 if (server.isInitialized()) {
-                    server.update(Serial);
+                    server.update(Serial1);
                 }
                 break;
             }
@@ -67,27 +68,22 @@ void serverLoop() {
 #ifndef SERVER
 void clientLoop() {
     if (!client.isConnected()) {
-        // Serial.println("Client is not connected");
-        client.update(Serial);
+        Serial.println("Client is not connected");
+        client.update(Serial1);
     } else {
-        // Serial.println("Client is connected");
-#ifdef DEBUG
-        char buf[] = "Hello World!";
-        client.send(reinterpret_cast<uint8_t *>(buf), sizeof(buf));
-        delay(500);
-#endif
-        if (Serial.available()) {
-            uint8_t messageID = Serial.read();
+        Serial.println("Client is connected");
+        if (Serial1.available()) {
+            uint8_t messageID = Serial1.read();
 
             switch (messageID) {
                 case INIT_MESSAGE: {
-                    std::string name = Serial.readString().c_str();
+                    std::string name = Serial1.readString().c_str();
                     client.start(name);
                     break;
                 }
                 case DATA_MESSAGE: {
                     if (client.isInitialized()) {
-                        client.update(Serial);
+                        client.update(Serial1);
                     }
                     break;
                 }
