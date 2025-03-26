@@ -12,6 +12,11 @@ AvionicsState::AvionicsState(Sensor **sensors, int numSensors, LinearKalmanFilte
     consecutiveNegativeBaroVelocity = 0;
 }
 
+void AvionicsState::updateState(double time) {
+    State::updateState(time);
+    imuVelocity += acceleration.magnitude() * UPDATE_INTERVAL;
+}
+
 void AvionicsState::determineStage()
 {
     int timeSinceLaunch = currentTime - timeOfLaunch;
@@ -68,7 +73,7 @@ void AvionicsState::determineStage()
             getLogger().recordLogData(INFO_, "RotCam rotated to 0 degrees.");
         }
     }
-    else if (stage == 2 && consecutiveNegativeBaroVelocity > 2 && timeSinceLaunch > 5)
+    else if (stage == 2 && consecutiveNegativeBaroVelocity > 2 && currentTime - timeOfLastStage > 5 && imuVelocity > 102)
     {
         bb.aonoff(BUZZER, 200, 3);
         char logData[100];

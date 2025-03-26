@@ -79,9 +79,16 @@ void setup()
 {
     sys.init();
     bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
-    radio.begin();
+    if (radio.begin()) { 
+        bb.aonoff(BUZZER, 1000); // 1 x 1 sec beep for sucessful initialization
+        getLogger().recordLogData(INFO_, "Initialize Radio");
+        
+    } else {
+        bb.aonoff(BUZZER, 2000, 3); // 3 x 2 sec beep for uncessful initialization
+        getLogger().recordLogData(ERROR_, "Initialize Radio Failed");
+    }
     getLogger().recordLogData(INFO_, "Initialization Complete");
-}
+}  
 double radio_last;
 
 void loop()

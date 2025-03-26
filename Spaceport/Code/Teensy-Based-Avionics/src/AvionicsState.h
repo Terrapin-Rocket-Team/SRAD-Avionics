@@ -9,12 +9,14 @@ class AvionicsState : public State
 {
 public:
     AvionicsState(Sensor **sensors, int numSensors, LinearKalmanFilter *kfilter);
+    void updateState(double time = -1) override;
 
 private:
     char stages[7][20] = {"Pre-Flight", "Boosting", "Coasting", "Drogue Descent", "Main Descent", "Post-Flight", "Dumped"};
     void determineStage() override;
     double timeOfLaunch;
     double timeOfLastStage;
+    double imuVelocity;
     int consecutiveNegativeBaroVelocity;
 };
 #endif
