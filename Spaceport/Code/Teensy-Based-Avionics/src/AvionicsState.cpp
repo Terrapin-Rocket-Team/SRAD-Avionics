@@ -12,8 +12,8 @@ AvionicsState::AvionicsState(Sensor **sensors, int numSensors, LinearKalmanFilte
     consecutiveNegativeBaroVelocity = 0;
 }
 
-void AvionicsState::updateState(double time) {
-    State::updateState(time);
+void AvionicsState::updateVariables() {
+    State::updateVariables();
     imuVelocity += acceleration.magnitude() * UPDATE_INTERVAL;
 }
 
@@ -48,7 +48,7 @@ void AvionicsState::determineStage()
         stage = 1;
         timeOfLaunch = currentTime;
         timeOfLastStage = currentTime;
-        getLogger().recordLogData(INFO_, "Launch detected.");
+        getLogger().recordLogData(INFO_, 100, "Launch detected at %.2f seconds.", timeSinceLaunch);
         //getLogger().recordLogData(INFO_, "Printing static data.");
         for (int i = 0; i < maxNumSensors; i++)
         {
@@ -66,22 +66,20 @@ void AvionicsState::determineStage()
         bb.aonoff(BUZZER, 200, 2);
         timeOfLastStage = currentTime;
         stage = 2;
-        getLogger().recordLogData(INFO_, "Coasting detected.");
+        getLogger().recordLogData(INFO_, 100, "Coasting detected at %.2f seconds.", timeSinceLaunch);
 
         if (Serial8.availableForWrite() > 0) {
             Serial8.println("0");
-            getLogger().recordLogData(INFO_, "RotCam rotated to 0 degrees.");
+            getLogger().recordLogData(INFO_, 100, "RotCam rotated to 0 degrees at %.2f seconds.", timeSinceLaunch);
         }
     }
     else if (stage == 2 && consecutiveNegativeBaroVelocity > 2 && currentTime - timeOfLastStage > 5 && imuVelocity > 102)
     {
         bb.aonoff(BUZZER, 200, 3);
-        char logData[100];
-        snprintf(logData, 100, "Apogee detected at %.2f m.", position.z());
-        getLogger().recordLogData(INFO_, logData);
+        getLogger().recordLogData(INFO_, 100, "Apogee detected at %.2f m.", position.z());
         timeOfLastStage = currentTime;
         stage = 3;
-        getLogger().recordLogData(INFO_, "Drogue conditions detected.");
+        getLogger().recordLogData(INFO_, 100, "Drogue conditions detected %.2f seconds.", timeSinceLaunch);
 
     }
     else if (stage == 3 && baro->getAGLAltFt() < 1000 && timeSinceLaunch > 10)
@@ -89,7 +87,7 @@ void AvionicsState::determineStage()
         bb.aonoff(BUZZER, 200, 4);
         stage = 4;
         timeOfLastStage = currentTime;
-        getLogger().recordLogData(INFO_, "Main parachute conditions detected.");
+        getLogger().recordLogData(INFO_, 100, "Main parachute conditions detected at %.2f seconds.", timeSinceLaunch);
 
         if (Serial8.availableForWrite() > 0) {
             Serial8.println("180");
@@ -101,17 +99,17 @@ void AvionicsState::determineStage()
         bb.aonoff(BUZZER, 200, 5);
         timeOfLastStage = currentTime;
         stage = 5;
-        getLogger().recordLogData(INFO_, "Landing detected. Waiting for 5 seconds to dump data.");
+        getLogger().recordLogData(INFO_, 100, "Landing detected at %.2f seconds. Waiting for 5 seconds to dump data.", timeSinceLaunch);
 
         if (Serial8.availableForWrite() > 0) {
             Serial8.println("0");
-            getLogger().recordLogData(INFO_, "RotCam rotated 0 degrees.");
+            getLogger().recordLogData(INFO_, "RotCam rotated 0 degrees at %.2f seconds.", timeSinceLaunch);
         }
     }
     else if ((stage == 5 && currentTime - timeOfLastStage > 5) || (stage >= 1 && stage != 6 && timeSinceLaunch > 5 * 60))
     {
         stage = 6;
         getLogger().setRecordMode(GROUND);
-        getLogger().recordLogData(INFO_, "Dumped data after landing.");
+        getLogger().recordLogData(INFO_, 100, "Dumped data after landing at %.2f second.", timeSinceLaunch);
     }
 }
