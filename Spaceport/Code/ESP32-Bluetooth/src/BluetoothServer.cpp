@@ -21,6 +21,9 @@ bool BluetoothServer::start(const std::string &name) {
 
     BLEDevice::init(name);
 
+    Serial.print("Server Device initialized with name: ");
+    Serial.println(name.c_str());
+
     pServer = BLEDevice::createServer();
     //TODO: There should probably be a better way to do these UUIDs
     pService = pServer->createService("cba1d466-344c-4be3-ab3f-189f80dd7518");
@@ -45,6 +48,8 @@ bool BluetoothServer::start(const std::string &name) {
         pAdvertising = pServer->getAdvertising();
         pAdvertising->start();
 
+        Serial.println("Server Advertising started!");
+
         initialized = true;
         outSerial.write(STATUS_MESSAGE);
         outSerial.write(1);
@@ -62,10 +67,21 @@ void BluetoothServer::update(Stream &inputSerial) {
     uint16_t size = 0;
     inputSerial.readBytes(reinterpret_cast<char *>(&size), sizeof(uint16_t));
 
+    Serial.println("Received message to send with size: " + String(size));
+
     if (size != 0 && size <= MAX_MESSAGE_SIZE-sizeof(uint16_t)) {
         uint8_t buffer[size];
         inputSerial.readBytes(buffer, size);
+        Serial.println("Read message!");
+
+        Serial.println("Message Content: ");
+        for (int i = 0; i < size; i++) {
+            Serial.print(buffer[i]);
+        }
+        Serial.println("");
+
         send(buffer, size);
+        Serial.println("Sent message!");
     }
 }
 
@@ -76,6 +92,7 @@ void BluetoothServer::startAdvertising() {
 }
 
 bool BluetoothServer::send(uint8_t* data, uint16_t size) { //how do we send via serial? need pins tx0 rx0
+    Serial.println("Sending message of size: " + String(size));
     if (size <= MAX_MESSAGE_SIZE-sizeof(uint16_t)) {
         //Encode size as uint_16t, then data
         uint8_t buf[size+sizeof(uint16_t)];
@@ -84,6 +101,7 @@ bool BluetoothServer::send(uint8_t* data, uint16_t size) { //how do we send via 
 
         pTxCharacteristic->setValue(data, size+sizeof(uint16_t));
         pTxCharacteristic->notify();
+        Serial.println("Sent message and notified clients!");
         return true;
     }
     return false;
@@ -105,15 +123,22 @@ void BluetoothServer::onRead(BLECharacteristic *pCharacteristic, esp_ble_gatts_c
 
 void BluetoothServer::onWrite(BLECharacteristic *pCharacteristic, esp_ble_gatts_cb_param_t *param) {
     if (pCharacteristic == pRxCharacteristic) {
-        // Serial.print("Server received data on RX: ");
-        // Serial.println(reinterpret_cast<char *>(pRxCharacteristic->getData()));
+        Serial.println("Server received data on RX: ");
+
         const uint16_t size = *reinterpret_cast<uint16_t *>(pRxCharacteristic->getData());
+        Serial.println("Message size: " + String(size));
         if (size <= MAX_MESSAGE_SIZE-sizeof(uint16_t)) {
+            const uint8_t *data = pRxCharacteristic->getData() + sizeof(uint16_t);
+            Serial.println("Message content");
+            for (int i = 0; i < size; i++) {
+                Serial.print(data[i]);
+            }
+            Serial.println("");
             outSerial.write(DATA_MESSAGE);
             outSerial.write(size);
-            outSerial.write(pRxCharacteristic->getData() + sizeof(uint16_t), size);
+            outSerial.write(data, size);
         } else {
-            //this is bad
+            Serial.println("ERROR: Invalid message size!");
         }
     }
 }
@@ -127,11 +152,13 @@ ClientConnectionHandler::ClientConnectionHandler(BluetoothServer *pServer) {
 }
 
 void ClientConnectionHandler::onConnect(BLEServer *pServer) {
+    Serial.println("Client connection established!");
     // Serial.println("onConnect, restarting advertising");
     // pServer->startAdvertising(); //restart advertising when a device connects
 }
 
 void ClientConnectionHandler::onDisconnect(BLEServer *pServer) {
+    Serial.println("Client disconnected!");
     // Serial.println("onDisconnect, restarting advertising");
     pServer->startAdvertising(); //restart advertising when device connectes
 }
