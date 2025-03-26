@@ -62,7 +62,7 @@ bool BluetoothServer::start(const std::string &name) {
 }
 
 void BluetoothServer::update(Stream &inputSerial) {
-    if (!inputSerial.available()) return;
+    while (!inputSerial.available()) {}
 
     uint16_t size = 0;
     inputSerial.readBytes(reinterpret_cast<char *>(&size), sizeof(uint16_t));
@@ -76,7 +76,7 @@ void BluetoothServer::update(Stream &inputSerial) {
 
         Serial.println("Message Content: ");
         for (int i = 0; i < size; i++) {
-            Serial.print(buffer[i]);
+            Serial.printf("%c", buffer[i]);
         }
         Serial.println("");
 
@@ -96,10 +96,18 @@ bool BluetoothServer::send(uint8_t* data, uint16_t size) { //how do we send via 
     if (size <= MAX_MESSAGE_SIZE-sizeof(uint16_t)) {
         //Encode size as uint_16t, then data
         uint8_t buf[size+sizeof(uint16_t)];
-        buf[0] = size;
-        memcpy(&buf[sizeof(uint16_t)], data, size);
 
-        pTxCharacteristic->setValue(data, size+sizeof(uint16_t));
+        memcpy(buf, &size, sizeof(uint16_t));
+        memcpy(buf + sizeof(uint16_t), data, size);
+
+
+        Serial.print("\t> Send Buffer HEX: ");
+        for (int i = 0; i < size + sizeof(uint16_t); i++) {
+            Serial.printf("%X", buf[i]);
+        }
+        Serial.println("");
+
+        pTxCharacteristic->setValue(buf, size+sizeof(uint16_t));
         pTxCharacteristic->notify();
         Serial.println("Sent message and notified clients!");
         return true;
@@ -135,8 +143,7 @@ void BluetoothServer::onWrite(BLECharacteristic *pCharacteristic, esp_ble_gatts_
             }
             Serial.println("");
             outSerial.write(DATA_MESSAGE);
-            outSerial.write(size);
-            outSerial.write(data, size);
+            outSerial.write(pRxCharacteristic->getData(), size + sizeof(uint16_t));
         } else {
             Serial.println("ERROR: Invalid message size!");
         }
