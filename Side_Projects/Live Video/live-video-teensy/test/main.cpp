@@ -35,7 +35,9 @@ int bytesThisMessage = 0;
 uint32_t txTimeout = millis();
 
 // testing
-uint32_t debugTimer = millis();
+uint32_t debugTimer = micros();
+int debugCounter = 0;
+uint32_t debugLoopTime = 0;
 // end testing
 
 RS rs;
@@ -118,14 +120,20 @@ void setup()
 
     Serial.print("Reed solomon is: ");
     Serial.println(disableRS ? "DISABLED" : "ENABLED");
+    Serial.print("Message size is: ");
+    Serial.print(MSG_SIZE);
+    Serial.println(" bytes");
+    Serial.print("Threshold is: ");
+    Serial.print(MSG_THRESH);
+    Serial.println(" bytes");
     Serial.println("Setup complete");
 }
 
 void loop()
 {
-
+    debugTimer = micros();
     // reading from Raspi
-    while (Serial5.available() > 0 && top + 5 < MSG_SIZE * 3)
+    if (Serial5.available() > 0 && top + 5 < MSG_SIZE * 3)
     // while (Wire.available() > 0 && top + 5 < MSG_SIZE * 3)
     {
         txTimeout = millis();
@@ -137,6 +145,9 @@ void loop()
         {
             toSend++;
         }
+
+        // if (hasTransmission)
+        //   radio.update();
 
         // add RS once we have MSG_CHUNK_SIZE bytes
         if (top != 0 && ((top - (MSG_CHUNK_SIZE * (top / MSG_CHUNK_SIZE))) % MSG_CHUNK_DATA_SIZE) == 0 && !disableRS)
@@ -224,7 +235,7 @@ void loop()
     //   sent = 0;
     // }
 
-    if ((bytesThisMessage == MSG_SIZE || (millis() - txTimeout > 100 && toSend == 0)) && hasTransmission && radio.state != 2)
+    if ((bytesThisMessage == MSG_SIZE || (millis() - txTimeout > 100 && toSend == 0)) && hasTransmission && radio.state == STATE_IDLE)
     {
         // remove sent bytes
         top -= bytesThisMessage;
@@ -235,27 +246,36 @@ void loop()
             // sdClose(out);
         }
         hasTransmission = false;
-        Serial.println("finished");
-        while (1)
-            ;
-    }
-
-    if (millis() - debugTimer > 100)
-    {
-        debugTimer = millis();
-        Serial.print("\r                                                                                                   ");
-        Serial.print("\rBuffer state: ");
-        Serial.print("\ttop ");
+        Serial.println();
+        Serial.print("top ");
         Serial.print(top);
-        Serial.print("\tsent ");
-        Serial.print(sent);
-        Serial.print("\ttoSend ");
-        Serial.print(toSend);
-        Serial.print("\tbytesThisMessage ");
-        Serial.print(bytesThisMessage);
+        Serial.println(" finished");
     }
 
     radio.update();
+
+    // if (millis() - debugTimer > 100)
+    // {
+    //   debugTimer = millis();
+    //   Serial.print("\r                                                                                                   ");
+    //   Serial.print("\rBuffer state: ");
+    //   Serial.print("\ttop ");
+    //   Serial.print(top);
+    //   Serial.print("\tsent ");
+    //   Serial.print(sent);
+    //   Serial.print("\ttoSend ");
+    //   Serial.print(toSend);
+    //   Serial.print("\tbytesThisMessage ");
+    //   Serial.print(bytesThisMessage);
+    //   Serial.print("\tavailLen ");
+    //   Serial.print(radio.availLen);
+    //   Serial.print("\txfrd ");
+    //   Serial.print(radio.xfrd);
+    //   Serial.print("\tTX_MODE ");
+    //   Serial.print(radio.gpio3());
+    //   Serial.print("\tTX_FIFO_EMPTY ");
+    //   Serial.print(radio.gpio0());
+    // }
 
     if (radio.state == STATE_TX && radio.availLen > 0 && radio.availLen == radio.xfrd && radio.xfrd < MSG_SIZE && radio.gpio0())
     {
