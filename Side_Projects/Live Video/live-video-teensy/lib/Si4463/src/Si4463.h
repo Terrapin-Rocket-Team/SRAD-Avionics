@@ -106,6 +106,8 @@ public:
     // the amount of time between attempting to read/write bytes
     uint32_t byteDelay = 0;
 
+    uint32_t debugTimer = micros();
+
     /*
     Si4463 constructor, uses the following default configuration
     Hardware:
@@ -443,6 +445,8 @@ private:
     // other config that can be private
     // timer for byteDelay
     uint32_t timer = millis();
+    bool TXEmptyFlag = false;
+    bool RXFullFlag = false;
     // force use of SPI CTS until GPIO is setup
     bool useSPICTS = true;
 
