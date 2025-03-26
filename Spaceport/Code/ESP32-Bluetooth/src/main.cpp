@@ -45,22 +45,22 @@ void serverLoop() {
                     std::string name = Serial1.readString().c_str();
                     Serial.println("Received init message!");
                     Serial.println("Server name: " + String(name.c_str()));
-                    Serial.println("WARN: GOT INIT MESSAGE, BUT ALREADY INITIALIZED");
+                    server.start(name);
                 } else {
-                    Serial.println("WARN: R");
+                    Serial.println("WARN: GOT INIT MESSAGE, BUT ALREADY INITIALIZED");
                 }
                 break;
             }
             case DATA_MESSAGE: {
                 Serial.println("Received data message");
+                Serial.println("Server initialized: " + String(server.isInitialized()));
+                Serial.println("Serial1 available: " + String(Serial1.available()));
                 if (server.isInitialized()) {
                     server.update(Serial1);
                 }
                 break;
             }
-            default: {
-                break;
-            };
+            default: {}
         }
     }
 }
