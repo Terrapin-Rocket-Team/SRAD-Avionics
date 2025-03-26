@@ -29,7 +29,7 @@ Message msg;
 
 Si4463HardwareConfig hwcfg = {
     MOD_2GFSK, // modulation
-    DR_500b,   // data rate
+    DR_100k,   // data rate
     433e6,     // frequency (Hz)
     5,       // tx power (127 = ~20dBm)
     48,        // preamble length
@@ -67,7 +67,7 @@ MMFSConfig a = MMFSConfig()
                    .withBBAsync(true, 50)
                    .withBBPin(LED_BUILTIN)
                    .withBBPin(32)
-                   .withBuzzerPin(33)
+                //    .withBuzzerPin(33)
                    .withUsingSensorBiasCorrection(true)
                    .withUpdateRate(10)
                    .withState(&t);
@@ -80,12 +80,12 @@ void setup()
     sys.init();
     bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
     if (radio.begin()) { 
-        bb.aonoff(BUZZER, 1000); // 1 x 1 sec beep for sucessful initialization
-        getLogger().recordLogData(INFO_, "Initialize Radio");
+        bb.onoff(BUZZER, 1000); // 1 x 1 sec beep for sucessful initialization
+        getLogger().recordLogData(INFO_, "Initialized Radio");
         
     } else {
-        bb.aonoff(BUZZER, 2000, 3); // 3 x 2 sec beep for uncessful initialization
-        getLogger().recordLogData(ERROR_, "Initialize Radio Failed");
+        bb.onoff(BUZZER, 2000, 3); // 3 x 2 sec beep for uncessful initialization
+        getLogger().recordLogData(ERROR_, "Initialized Radio Failed");
     }
     getLogger().recordLogData(INFO_, "Initialization Complete");
 }  
