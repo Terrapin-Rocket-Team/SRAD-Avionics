@@ -27,7 +27,7 @@ void setup() {
     // server.start("ESP32 BLE Server");
 #else
     Serial.println("Client booted!");
-    Seria.flush();
+    Serial.flush();
     // client.start("ESP32 BLE Server");
 #endif
 #endif
@@ -41,13 +41,14 @@ void serverLoop() {
 
         switch (messageID) {
             case INIT_MESSAGE: {
-                // std::string name = Serial1.readString().c_str();
-                char buf[128] = {'\0'};
-                Serial1.readBytesUntil('\0', buf, sizeof(buf));
-                Serial.print("Received init message with server name: ");
-                Serial.println(buf);
-
-                server.start(buf);
+                if (!server.isInitialized()) {
+                    std::string name = Serial1.readString().c_str();
+                    Serial.println("Received init message!");
+                    Serial.println("Server name: " + String(name.c_str()));
+                    Serial.println("WARN: GOT INIT MESSAGE, BUT ALREADY INITIALIZED");
+                } else {
+                    Serial.println("WARN: R");
+                }
                 break;
             }
             case DATA_MESSAGE: {
@@ -67,33 +68,45 @@ void serverLoop() {
 
 #ifndef SERVER
 void clientLoop() {
-    if (!client.isConnected()) {
-        Serial.println("Client is not connected");
-        client.update(Serial1);
-    } else {
-        Serial.println("Client is connected");
+    if (!client.isInitialized()) {
         if (Serial1.available()) {
-            uint8_t messageID = Serial1.read();
-
-            switch (messageID) {
-                case INIT_MESSAGE: {
-                    std::string name = Serial1.readString().c_str();
-                    client.start(name);
-                    break;
-                }
-                case DATA_MESSAGE: {
-                    if (client.isInitialized()) {
-                        client.update(Serial1);
-                    }
-                    break;
-                }
-                default: {
-                    break;
-                };
+            const uint8_t messageID = Serial1.read();
+            if (messageID == INIT_MESSAGE) {
+                std::string name = Serial1.readString().c_str();
+                Serial.println("Received init message");
+                Serial.println("Server name: " + String(name.c_str()));
+                client.start(name);
             }
         }
+    } else {
+        if (!client.isConnected()) {
+            client.update(Serial1);
+        } else {
+            if (Serial1.available()) {
+                const uint8_t messageID = Serial1.read();
 
+                switch (messageID) {
+                    case INIT_MESSAGE: {
+                        Serial.println("WARN: GOT INIT MESSAGE, BUT ALREADY INITIALIZED");
+                        break;
+                    }
+                    case DATA_MESSAGE: {
+                        Serial.println("Received data message");
+                        if (client.isInitialized()) {
+                            client.update(Serial1);
+                        }
+                        break;
+                    }
+                    default: {
+                        Serial.println("Unknown message");
+                        break;
+                    };
+                }
+            }
+
+        }
     }
+
 }
 #endif
 
