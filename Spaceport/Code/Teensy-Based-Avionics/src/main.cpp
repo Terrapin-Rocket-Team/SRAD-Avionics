@@ -147,10 +147,13 @@ void loop()
     // Serial1.write(msg.buf, msg.size);
     // Serial1.write('\n');
 
-    btReceiver.receive(bt_aprs);
-    bt_msg.encode(&bt_aprs);
-    radio.send(bt_aprs);
-    Serial.printf("%0.3f - Sent Airbrake APRS Message; %f   |   %d\n", time / 1000.0, bt_aprs.alt, bt_aprs.stateFlags.get());
-    bb.aonoff(BUZZER, 50);
+    radio.update();
+
+    btReceiver.rx();
+    if (btReceiver.receive(bt_aprs)) {
+        bt_msg.encode(&bt_aprs);
+        radio.send(bt_aprs);
+        Serial.printf("%0.3f - Sent Airbrake APRS Message; %f   |   %d\n", time / 1000.0, bt_aprs.alt, bt_aprs.stateFlags.get());
+    }
 
 }
