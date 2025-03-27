@@ -93,6 +93,14 @@ void setup()
         bb.onoff(BUZZER, 2000, 3); // 3 x 2 sec beep for uncessful initialization
         getLogger().recordLogData(ERROR_, "Initialized Radio Failed");
     }
+
+    if (btReceiver.begin()) {
+        bb.onoff(BUZZER, 500); // 1 x 0.5 sec beep for sucessful initialization
+        getLogger().recordLogData(INFO_, "Initialized Bluetooth");
+    } else {
+        bb.onoff(BUZZER, 1000, 3); // 3 x 2 sec beep for uncessful initialization
+        getLogger().recordLogData(ERROR_, "Initialized Bluetooth Failed");
+    }
     getLogger().recordLogData(INFO_, "Initialization Complete");
 }  
 double radio_last;
