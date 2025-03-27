@@ -5,6 +5,7 @@
 #include "AviEventListener.h"
 #include "Pi.h"
 #include "Si4463.h"
+#include <Radio/ESP32BluetoothRadio.h>
 
 #define RPI_PWR 0
 #define RPI_VIDEO 1
@@ -26,6 +27,11 @@ APRSConfig aprsConfig = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWit
 uint8_t encoding[] = {7, 4, 4};
 APRSTelem aprs(aprsConfig);
 Message msg;
+
+ESP32BluetoothRadio btReceiver(Serial1, "AVIONICS", true);
+APRSTelem bt_aprs(aprsConfig);
+Message bt_msg;
+
 
 Si4463HardwareConfig hwcfg = {
     MOD_2GFSK, // modulation
@@ -132,5 +138,11 @@ void loop()
     bb.aonoff(BUZZER, 50);
     // Serial1.write(msg.buf, msg.size);
     // Serial1.write('\n');
+
+    btReceiver.receive(bt_aprs);
+    bt_msg.encode(&bt_aprs);
+    radio.send(bt_aprs);
+    Serial.printf("%0.3f - Sent Airbrake APRS Message; %f   |   %d\n", time / 1000.0, bt_aprs.alt, bt_aprs.stateFlags.get());
+    bb.aonoff(BUZZER, 50);
 
 }
