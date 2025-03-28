@@ -5,6 +5,7 @@
 #include "AviEventListener.h"
 #include "Pi.h"
 #include "Si4463.h"
+#include <Radio/ESP32BluetoothRadio.h>
 
 #define RPI_PWR 8
 #define RPI_VIDEO 7
@@ -26,6 +27,11 @@ APRSConfig aprsConfig = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWit
 uint8_t encoding[] = {7, 4, 4};
 APRSTelem aprs(aprsConfig);
 Message msg;
+
+ESP32BluetoothRadio btReceiver(Serial1, "AVIONICS", true);
+APRSTelem bt_aprs(aprsConfig);
+Message bt_msg;
+
 
 Si4463HardwareConfig hwcfg = {
     MOD_2GFSK, // modulation
@@ -87,6 +93,14 @@ void setup()
     //     bb.onoff(BUZZER, 2000, 3); // 3 x 2 sec beep for uncessful initialization
     //     getLogger().recordLogData(ERROR_, "Initialized Radio Failed");
     // }
+
+    if (btReceiver.begin()) {
+        bb.onoff(BUZZER, 500); // 1 x 0.5 sec beep for sucessful initialization
+        getLogger().recordLogData(INFO_, "Initialized Bluetooth");
+    } else {
+        bb.onoff(BUZZER, 1000, 3); // 3 x 2 sec beep for uncessful initialization
+        getLogger().recordLogData(ERROR_, "Initialized Bluetooth Failed");
+    }
     getLogger().recordLogData(INFO_, "Initialization Complete");
 }  
 double radio_last;
@@ -136,5 +150,14 @@ void loop()
     bb.aonoff(BUZZER, 50);
     // Serial1.write(msg.buf, msg.size);
     // Serial1.write('\n');
+
+    radio.update();
+
+    btReceiver.rx();
+    if (btReceiver.receive(bt_aprs)) {
+        bt_msg.encode(&bt_aprs);
+        radio.send(bt_aprs);
+        Serial.printf("%0.3f - Sent Airbrake APRS Message; %f   |   %d\n", time / 1000.0, bt_aprs.alt, bt_aprs.stateFlags.get());
+    }
 
 }
