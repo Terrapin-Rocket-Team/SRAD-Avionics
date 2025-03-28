@@ -6,8 +6,8 @@
 #include "Pi.h"
 #include "Si4463.h"
 
-#define RPI_PWR 0
-#define RPI_VIDEO 1
+#define RPI_PWR 8
+#define RPI_VIDEO 7
 
 using namespace mmfs;
 
@@ -20,7 +20,7 @@ Sensor *s[] = {&m, &d, &b};
 AvionicsKF fk;
 AvionicsState t(s, sizeof(s) / 4, &fk);
 
-
+Pi pi(RPI_PWR, RPI_VIDEO);
 
 APRSConfig aprsConfig = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
 uint8_t encoding[] = {7, 4, 4};
@@ -79,20 +79,24 @@ void setup()
 {
     sys.init();
     bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
-    if (radio.begin()) { 
-        bb.onoff(BUZZER, 1000); // 1 x 1 sec beep for sucessful initialization
-        getLogger().recordLogData(INFO_, "Initialized Radio");
+    // if (radio.begin()) { 
+    //     bb.onoff(BUZZER, 1000); // 1 x 1 sec beep for sucessful initialization
+    //     getLogger().recordLogData(INFO_, "Initialized Radio");
         
-    } else {
-        bb.onoff(BUZZER, 2000, 3); // 3 x 2 sec beep for uncessful initialization
-        getLogger().recordLogData(ERROR_, "Initialized Radio Failed");
-    }
+    // } else {
+    //     bb.onoff(BUZZER, 2000, 3); // 3 x 2 sec beep for uncessful initialization
+    //     getLogger().recordLogData(ERROR_, "Initialized Radio Failed");
+    // }
     getLogger().recordLogData(INFO_, "Initialization Complete");
 }  
 double radio_last;
 
 void loop()
 {
+    if(millis() > 5* 1000)
+        pi.setRecording(true);
+    if(millis() > 15 * 1000)
+        pi.setRecording(false);
     if (sys.update())
     {
     }
@@ -102,7 +106,7 @@ void loop()
 
     radio_last = time;
     msg.clear();
-    radio.update();
+    // radio.update();
 
     /// printf("%f\n", baro1.getAGLAltFt());
     aprs.alt = d.getAGLAltFt();
@@ -127,7 +131,7 @@ void loop()
     Serial.printf("%d %ld\n", d.getTemp(), aprs.stateFlags.get());
     // aprs.stateFlags = (uint8_t) computer.getStage();
     msg.encode(&aprs);
-    radio.send(aprs);
+    // radio.send(aprs);
     Serial.printf("%0.3f - Sent APRS Message; %f   |   %d\n", time / 1000.0, d.getAGLAltFt(), m.getFixQual());
     bb.aonoff(BUZZER, 50);
     // Serial1.write(msg.buf, msg.size);
