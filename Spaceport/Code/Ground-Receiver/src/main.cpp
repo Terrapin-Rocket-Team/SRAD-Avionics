@@ -55,9 +55,12 @@ uint16_t commandSize = 0;
 // data handling
 uint32_t timerMetrics = millis();
 Message m;
-APRSTelem avionicsTelem;
+
+APRSTelem telem;
 GSData avionicsData(APRSTelem::type, 1, TELEM_DEVICE_ID);
 bool hasAvionicsTelem = false;
+GSData airbrakeData(APRSTelem::type, 2, TELEM_DEVICE_ID);
+bool hasAirbrakeTelem = false;
 
 // sample metrics implementation
 Message metricsMessage;
@@ -238,13 +241,16 @@ void loop()
   if (handshakeSuccess && radio.avail())
   {
     // get the message
-    radio.receive(avionicsTelem);
+    radio.receive(telem);
     // re-encode it to be multiplexed
-    m.encode(&avionicsTelem);
+    m.encode(&telem);
     // update metrics
     telemMetrics.update(m.size, millis(), radio.RSSI());
     // set the flag to transmit data
-    hasAvionicsTelem = true;
+    if (strcmp(telem.config.callsign, "KC3UTM") == 0)
+      hasAirbrakeTelem = true;
+    if (strcmp(telem.config.callsign, "KC3YKX") == 0)
+      hasAvionicsTelem = true;
   }
 
   if (handshakeSuccess)
@@ -260,6 +266,18 @@ void loop()
       Serial.write(m.buf, m.size);
       // reset flag
       hasAvionicsTelem = false;
+    }
+
+    if (hasAirbrakeTelem)
+    {
+      // fill GSData with message
+      airbrakeData.fill(m.buf, m.size);
+      // encode for multplexing
+      m.encode(&airbrakeData);
+      // write
+      Serial.write(m.buf, m.size);
+      // reset flag
+      hasAirbrakeTelem = false;
     }
 
     if (millis() - timerMetrics > 1000)
