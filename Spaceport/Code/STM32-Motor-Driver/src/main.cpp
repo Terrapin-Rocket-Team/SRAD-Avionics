@@ -6,7 +6,7 @@
 #define STEPPER_PIN_3 PA6
 #define STEPPER_PIN_4 PA7
 
-#define HOME_SENS_PIN PA3
+#define HOME_SENS_PIN PA15
 
 /******************************************************
  * Stepper Configuration
