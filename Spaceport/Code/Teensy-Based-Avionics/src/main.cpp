@@ -12,7 +12,6 @@
 
 using namespace mmfs;
 
-
 MAX_M10S m;
 DPS310 d;
 BMI088andLIS3MDL b;
@@ -21,23 +20,18 @@ Sensor *s[] = {&m, &d, &b};
 AvionicsKF fk;
 AvionicsState t(s, sizeof(s) / 4, &fk);
 
-Pi pi(RPI_PWR, RPI_VIDEO);
-
 APRSConfig aprsConfig = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
 uint8_t encoding[] = {7, 4, 4};
 APRSTelem aprs(aprsConfig);
 Message msg;
 
-ESP32BluetoothRadio btReceiver(Serial1, "AVIONICS", true);
-APRSTelem bt_aprs(aprsConfig);
-Message bt_msg;
-
+// ESP32BluetoothRadio btRad(Serial1, "AVIONICS", true);
 
 Si4463HardwareConfig hwcfg = {
     MOD_2GFSK, // modulation
     DR_100k,   // data rate
     433e6,     // frequency (Hz)
-    5,       // tx power (127 = ~20dBm)
+    5,         // tx power (127 = ~20dBm)
     48,        // preamble length
     16,        // required received valid preamble
 };
@@ -55,7 +49,7 @@ Si4463PinConfig pincfg = {
 
 Si4463 radio(hwcfg, pincfg);
 uint32_t radioTimer = millis();
-Pi rpi(RPI_PWR, RPI_VIDEO);
+Pi pi(RPI_PWR, RPI_VIDEO);
 
 extern unsigned long _heap_start;
 extern unsigned long _heap_end;
@@ -73,7 +67,7 @@ MMFSConfig a = MMFSConfig()
                    .withBBAsync(true, 50)
                    .withBBPin(LED_BUILTIN)
                    .withBBPin(32)
-                //    .withBuzzerPin(33)
+                   .withBuzzerPin(33)
                    .withUsingSensorBiasCorrection(true)
                    .withUpdateRate(10)
                    .withState(&t);
@@ -85,35 +79,43 @@ void setup()
 {
     sys.init();
     bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
-    // if (radio.begin()) { 
-    //     bb.onoff(BUZZER, 1000); // 1 x 1 sec beep for sucessful initialization
-    //     getLogger().recordLogData(INFO_, "Initialized Radio");
-        
-    // } else {
-    //     bb.onoff(BUZZER, 2000, 3); // 3 x 2 sec beep for uncessful initialization
-    //     getLogger().recordLogData(ERROR_, "Initialized Radio Failed");
-    // }
-
-    if (btReceiver.begin()) {
-        bb.onoff(BUZZER, 500); // 1 x 0.5 sec beep for sucessful initialization
-        getLogger().recordLogData(INFO_, "Initialized Bluetooth");
-    } else {
-        bb.onoff(BUZZER, 1000, 3); // 3 x 2 sec beep for uncessful initialization
-        getLogger().recordLogData(ERROR_, "Initialized Bluetooth Failed");
+    if (radio.begin())
+    {
+        bb.onoff(BUZZER, 1000); // 1 x 1 sec beep for sucessful initialization
+        getLogger().recordLogData(INFO_, "Initialized Radio");
     }
+    else
+    {
+        bb.onoff(BUZZER, 2000, 3); // 3 x 2 sec beep for uncessful initialization
+        getLogger().recordLogData(ERROR_, "Initialized Radio Failed");
+    }
+
+    // if (btRad.begin()) {
+    //     bb.onoff(BUZZER, 500); // 1 x 0.5 sec beep for sucessful initialization
+    //     getLogger().recordLogData(INFO_, "Initialized Bluetooth");
+    // } else {
+    //     bb.onoff(BUZZER, 1000, 3); // 3 x 2 sec beep for uncessful initialization
+    //     getLogger().recordLogData(ERROR_, "Initialized Bluetooth Failed");
+    // }
     getLogger().recordLogData(INFO_, "Initialization Complete");
-}  
+}
 double radio_last;
 
 void loop()
 {
-    if(millis() > 5* 1000)
+    if (millis() > 5 * 1000)
         pi.setRecording(true);
-    if(millis() > 15 * 1000)
+    if (millis() > 15 * 1000)
         pi.setRecording(false);
+
+    radio.update();
     if (sys.update())
     {
+        // char str[512];
+        // int i = snprintf(str, 512, "La %f Lo %f Al %f Hd %f Ql %d", m.getPos().x(), m.getPos().y(), m.getPos().z(), m.getHeading(), m.getFixQual());
+        // btRad.tx((uint8_t *)str, i);
     }
+
     double time = millis();
     if (time - radio_last < 1000)
         return;
@@ -143,21 +145,10 @@ void loop()
     uint8_t arr[] = {(uint8_t)(int)d.getTemp(), (uint8_t)t.getStage(), (uint8_t)m.getFixQual()};
     aprs.stateFlags.pack(arr);
     Serial.printf("%d %ld\n", d.getTemp(), aprs.stateFlags.get());
-    // aprs.stateFlags = (uint8_t) computer.getStage();
     msg.encode(&aprs);
-    // radio.send(aprs);
+    radio.send(aprs);
     Serial.printf("%0.3f - Sent APRS Message; %f   |   %d\n", time / 1000.0, d.getAGLAltFt(), m.getFixQual());
     bb.aonoff(BUZZER, 50);
     // Serial1.write(msg.buf, msg.size);
     // Serial1.write('\n');
-
-    radio.update();
-
-    btReceiver.rx();
-    if (btReceiver.receive(bt_aprs)) {
-        bt_msg.encode(&bt_aprs);
-        radio.send(bt_aprs);
-        Serial.printf("%0.3f - Sent Airbrake APRS Message; %f   |   %d\n", time / 1000.0, bt_aprs.alt, bt_aprs.stateFlags.get());
-    }
-
 }
