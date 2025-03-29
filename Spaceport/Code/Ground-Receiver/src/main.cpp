@@ -8,7 +8,7 @@
 
 Si4463HardwareConfig hwcfg = {
     MOD_2GFSK,       // modulation
-    DR_40k,          // data rate
+    DR_100k,         // data rate
     (uint32_t)433e6, // frequency (Hz)
     127,             // tx power (127 = ~20dBm)
     48,              // preamble length
@@ -17,13 +17,13 @@ Si4463HardwareConfig hwcfg = {
 
 Si4463PinConfig pincfg = {
     &SPI, // spi bus to use
-    8,    // cs
-    6,    // sdn
-    7,    // irq
-    9,    // gpio0
-    10,   // gpio1
-    4,    // random pin - gpio2 is not connected
-    5,    // random pin - gpio3 is not connected
+    10,   // cs
+    38,   // sdn
+    33,   // irq
+    34,   // gpio0
+    35,   // gpio1
+    36,   // random pin - gpio2 is not connected
+    37,   // random pin - gpio3 is not connected
 };
 
 Si4463 radio(hwcfg, pincfg);

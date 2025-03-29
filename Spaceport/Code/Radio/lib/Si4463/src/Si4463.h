@@ -70,7 +70,7 @@ public:
     // length of the FIFO in default config
     static const uint8_t FIFO_LENGTH = 129; // bytes
     // RX_FIFO_FULL interrupt occurs when there are more than RX_THRESH bytes in FIFO
-    static const uint8_t RX_THRESH = 63; // bytes (max 64)
+    static const uint8_t RX_THRESH = 40; // bytes (max 64)
     // TX_FIFO_EMPTY interrupt occurs when there is more than TX_THRESH bytes of space in FIFO
     static const uint8_t TX_THRESH = 63; // bytes (max 64)
     // the current radio state, does not always align with hardware state
