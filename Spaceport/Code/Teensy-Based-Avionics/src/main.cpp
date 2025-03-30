@@ -5,10 +5,9 @@
 #include "AviEventListener.h"
 #include "Pi.h"
 #include "Si4463.h"
-#include <Radio/ESP32BluetoothRadio.h>
 
-#define RPI_PWR 8
-#define RPI_VIDEO 7
+#define RPI_PWR 24
+#define RPI_VIDEO 25
 
 using namespace mmfs;
 
@@ -78,6 +77,7 @@ AviEventLister listener;
 void setup()
 {
     sys.init();
+    Serial8.begin(115200);
     bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
     if (radio.begin())
     {
@@ -100,13 +100,15 @@ void setup()
     getLogger().recordLogData(INFO_, "Initialization Complete");
 }
 double radio_last;
-
+void calcStuff();
 void loop()
 {
-    if (millis() > 5 * 1000)
+    if (Serial8.available())
+        Serial.write(Serial8.read());
+    if (t.getStage()> 0)
         pi.setRecording(true);
-    if (millis() > 15 * 1000)
-        pi.setRecording(false);
+    // if (millis() > 15 * 1000)
+    //     pi.setRecording(false);
 
     radio.update();
     if (sys.update())
@@ -114,6 +116,7 @@ void loop()
         // char str[512];
         // int i = snprintf(str, 512, "La %f Lo %f Al %f Hd %f Ql %d", m.getPos().x(), m.getPos().y(), m.getPos().z(), m.getHeading(), m.getFixQual());
         // btRad.tx((uint8_t *)str, i);
+        calcStuff();
     }
 
     double time = millis();
@@ -144,11 +147,53 @@ void loop()
 
     uint8_t arr[] = {(uint8_t)(int)d.getTemp(), (uint8_t)t.getStage(), (uint8_t)m.getFixQual()};
     aprs.stateFlags.pack(arr);
-    Serial.printf("%d %ld\n", d.getTemp(), aprs.stateFlags.get());
+    // Serial.printf("%d %ld\n", d.getTemp(), aprs.stateFlags.get());
     msg.encode(&aprs);
     radio.send(aprs);
-    Serial.printf("%0.3f - Sent APRS Message; %f   |   %d\n", time / 1000.0, d.getAGLAltFt(), m.getFixQual());
-    bb.aonoff(BUZZER, 50);
+    // Serial.printf("%0.3f - Sent APRS Message; %f   |   %d\n", time / 1000.0, d.getAGLAltFt(), m.getFixQual());
+    // bb.aonoff(BUZZER, 50);
     // Serial1.write(msg.buf, msg.size);
     // Serial1.write('\n');
+}
+int counter = 0;
+void calcStuff()
+{
+    if (t.getStage() == 3)
+    {
+        if (t.getTimeSinceLastStage() > 3 && counter == 0)
+        {
+            Serial.println("first");
+            Serial8.println("90");
+            counter++;
+        }
+        else if (t.getTimeSinceLastStage() > 6 && counter <= 1)
+        {
+            counter++;
+            Serial8.println("180");
+        }
+        else if (t.getTimeSinceLastStage() > 30 && counter <= 2)
+        {
+            Serial8.println("360");
+            counter++;
+
+        }
+        else if (t.getTimeSinceLastStage() > 300 && counter <= 3)
+        {
+            Serial8.println("180");
+            counter++;
+
+        }
+    }
+    else if (t.getStage() == 4 && counter <= 4)
+    {
+        Serial8.println("180");
+        counter++;
+
+    }
+    else if (t.getStage() == 4 && t.getTimeSinceLastStage() > 30 && counter <= 5)
+    {
+        Serial.println("0");
+        counter++;
+        
+    }
 }

@@ -116,49 +116,49 @@ void parseSerialCommands()
 {
     static String inputString = "";
 
-    // // If there is data available, read it
-    // while (Serial1.available())
-    // {
-    //     char inChar = (char)Serial1.read();
+    // If there is data available, read it
+    while (Serial1.available())
+    {
+        char inChar = (char)Serial1.read();
 
-    //     // If we get newline, we parse the input
-    //     if (inChar == '\n' || inChar == '\r')
-    //     {
-    //         if (inputString.length() > 0)
-    //         {
-    //             // Check if command is "HOME" (case-insensitive)
-    //             if (inputString.equalsIgnoreCase("HOME"))
-    //             {
-    //                 Serial1.println("Homing stepper...");
-    //                 home();
-    //             }
-    //             else
-    //             {
-    //                 // Try to parse a float angle
-    //                 float angle = inputString.toFloat();
-    //                 moveToAngle(angle);
-    //             }
-    //         }
-    //         inputString = ""; // clear buffer
-    //     }
-    //     else
-    //     {
-    //         // Accumulate characters into the string
-    //         inputString += inChar;
-    //         Serial1.println(inputString);
-    //     }
-    // }
+        // If we get newline, we parse the input
+        if (inChar == '\n' || inChar == '\r')
+        {
+            if (inputString.length() > 0)
+            {
+                // Check if command is "HOME" (case-insensitive)
+                if (inputString.equalsIgnoreCase("HOME"))
+                {
+                    Serial1.println("Homing stepper...");
+                    home();
+                }
+                else
+                {
+                    // Try to parse a float angle
+                    float angle = inputString.toFloat();
+                    moveToAngle(angle);
+                }
+            }
+            inputString = ""; // clear buffer
+        }
+        else
+        {
+            // Accumulate characters into the string
+            inputString += inChar;
+            Serial1.println(inputString);
+        }
+    }
 
     // every 5 seconds, move to a random angle
-    if ((millis() - seconds_since_last_move > 5000) && (millis() < 60000))
-    {
-        seconds_since_last_move = millis();
-        angle += 90;
-        moveToAngle(angle);
-    }
-    else if(millis() >= 60000){
-        moveToAngle(((int)angle / 360) * 360);
-    }
+    // if ((millis() - seconds_since_last_move > 5000) && (millis() < 60000))
+    // {
+    //     seconds_since_last_move = millis();
+    //     angle += 90;
+    //     moveToAngle(angle);
+    // }
+    // else if(millis() >= 60000){
+    //     moveToAngle(((int)angle / 360) * 360);
+    // }
 }
 
 /******************************************************
@@ -227,18 +227,18 @@ void setup()
 
     Serial1.println("RotCam STM32F103C8 Example Starting...");
 
-    home();
-    delay(5000);
 
     // Optional: Find how many steps in one revolution
     // (Uncomment if you want to measure steps/rev automatically)
-    // stepsPerRevolution = findStepsPerRevolution();
-    // Serial1.print("Detected steps per revolution: ");
-    // Serial1.println(stepsPerRevolution);
+    stepsPerRevolution = findStepsPerRevolution();
+    Serial1.print("Detected steps per revolution: ");
+    Serial1.println(stepsPerRevolution);
 
     // If you already know your steps per revolution, just set it:
     // stepsPerRevolution = 2048; // example for 28BYJ-48 or 200 for typical NEMA17, etc.
-    // stepper.setCurrentPosition(0);
+    home();
+    delay(5000);
+
 }
 
 /******************************************************

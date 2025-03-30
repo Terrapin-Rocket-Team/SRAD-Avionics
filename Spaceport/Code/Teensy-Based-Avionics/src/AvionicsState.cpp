@@ -19,7 +19,7 @@ void AvionicsState::updateVariables() {
 
 void AvionicsState::determineStage()
 {
-    int timeSinceLaunch = currentTime - timeOfLaunch;
+    double timeSinceLaunch = currentTime - timeOfLaunch;
   
     if (baroVelocity < 0)
     {
@@ -35,7 +35,7 @@ void AvionicsState::determineStage()
     if (stage == 0 &&
         (sensorOK(imu) || sensorOK(baro)) &&
         // (sensorOK(imu) ? abs(imu->getAccelerationGlobal().z()) > 25 : true) &&
-        (sensorOK(baro) ? baro->getAGLAltFt() > 5 : true))
+        (sensorOK(baro) ? baro->getAGLAltFt() > 50 : true))
     // if we are in preflight AND
     // we have either the IMU OR the barometer AND
     // imu is ok AND the z acceleration is greater than 29 ft/s^2 OR imu is not ok AND
@@ -68,12 +68,12 @@ void AvionicsState::determineStage()
         stage = 2;
         getLogger().recordLogData(INFO_, 100, "Coasting detected at %.2f seconds.", timeSinceLaunch);
 
-        if (Serial8.availableForWrite() > 0) {
-            Serial8.println("0");
-            getLogger().recordLogData(INFO_, 100, "RotCam rotated to 0 degrees at %.2f seconds.", timeSinceLaunch);
-        }
+        // if (Serial8.availableForWrite() > 0) {
+        //     Serial8.println("0");
+        //     getLogger().recordLogData(INFO_, 100, "RotCam rotated to 0 degrees at %.2f seconds.", timeSinceLaunch);
+        // }
     }
-    else if (stage == 2 && consecutiveNegativeBaroVelocity > 2 && currentTime - timeOfLastStage > 5 && imuVelocity > 102)
+    else if (stage == 2 && consecutiveNegativeBaroVelocity > 5 && currentTime - timeOfLastStage > 15 /*&& imuVelocity > 102 */)
     {
         bb.aonoff(BUZZER, 200, 3);
         getLogger().recordLogData(INFO_, 100, "Apogee detected at %.2f m.", position.z());
@@ -82,34 +82,38 @@ void AvionicsState::determineStage()
         getLogger().recordLogData(INFO_, 100, "Drogue conditions detected %.2f seconds.", timeSinceLaunch);
 
     }
-    else if (stage == 3 && baro->getAGLAltFt() < 1000 && timeSinceLaunch > 10)
+    else if (stage == 3 && baro->getAGLAltFt() < 1000 && currentTime - timeOfLastStage > 40)
     {
         bb.aonoff(BUZZER, 200, 4);
         stage = 4;
         timeOfLastStage = currentTime;
         getLogger().recordLogData(INFO_, 100, "Main parachute conditions detected at %.2f seconds.", timeSinceLaunch);
 
-        if (Serial8.availableForWrite() > 0) {
-            Serial8.println("180");
-            getLogger().recordLogData(INFO_, "RotCam rotated 180 degrees.");
-        }
+        // if (Serial8.availableForWrite() > 0) {
+        //     Serial8.println("180");
+        //     getLogger().recordLogData(INFO_, "RotCam rotated 180 degrees.");
+        // }
     }
-    else if (stage == 4 && baroVelocity > -1 && baro->getAGLAltFt() < 66 && timeSinceLaunch > 15)
+    else if (stage == 4 && baroVelocity > -1 && baro->getAGLAltFt() < 66 && timeSinceLaunch > 45)
     {
         bb.aonoff(BUZZER, 200, 5);
         timeOfLastStage = currentTime;
         stage = 5;
         getLogger().recordLogData(INFO_, 100, "Landing detected at %.2f seconds. Waiting for 5 seconds to dump data.", timeSinceLaunch);
 
-        if (Serial8.availableForWrite() > 0) {
-            Serial8.println("0");
-            getLogger().recordLogData(INFO_, "RotCam rotated 0 degrees at %.2f seconds.", timeSinceLaunch);
-        }
+        // if (Serial8.availableForWrite() > 0) {
+        //     Serial8.println("0");
+        //     getLogger().recordLogData(INFO_, "RotCam rotated 0 degrees at %.2f seconds.", timeSinceLaunch);
+        // }
     }
-    else if ((stage == 5 && currentTime - timeOfLastStage > 5) || (stage >= 1 && stage != 6 && timeSinceLaunch > 5 * 60))
+    else if ((stage == 5 && currentTime - timeOfLastStage > 5) || (stage >= 1 && stage != 6 && timeSinceLaunch > 10 * 60))
     {
         stage = 6;
         getLogger().setRecordMode(GROUND);
         getLogger().recordLogData(INFO_, 100, "Dumped data after landing at %.2f second.", timeSinceLaunch);
     }
+}
+
+double AvionicsState::getTimeSinceLastStage(){
+    return max(millis() / 1000.0 - timeOfLastStage, 0);
 }
