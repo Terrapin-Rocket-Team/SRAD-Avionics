@@ -1,10 +1,10 @@
 import numpy as np
 import math
-from .base_data_generator import BaseDataGenerator
+from data_generators.base_data_generator import BaseDataGenerator
 from typing import Optional, Union, Callable
 from atmospheric_model.atmosphere import AtmosphereModel
 
-# Assumes flat Earth
+# Assumes flat Earth for now (later add rotation of Earth into dynamics)
 class EnhancedRocketDataGenerator(BaseDataGenerator):
     """Enhanced rocket flight data generator with sophisticated drag modeling."""
     def __init__(self, 
@@ -18,7 +18,7 @@ class EnhancedRocketDataGenerator(BaseDataGenerator):
         :param loop_frequency: Frequency at which data is generated (Hz).
         :param pre_launch_delay: How many seconds the rocket sits idle before launching.
         :param launch_angle: Launch angle relative to the vertical (degrees). Picks a random heading angle for the launch.
-        :param wind_affector: Either a fixed 2D numpy array/list or a callable that takes time and returns a 2D numpy array
+        :param wind_affector: Either a fixed 3D numpy array/list or a callable that takes time and returns a 3D numpy array
         """
         self.rocket = rocket
         self.loop_frequency = loop_frequency
@@ -29,38 +29,123 @@ class EnhancedRocketDataGenerator(BaseDataGenerator):
         self.wind_affector = wind_affector
         self.atmosphere = AtmosphereModel()
 
-    # Helper functions for rotation matrix
-    def rotation_matrix(self, roll, pitch, yaw): # 3-2-1 Euler Angle Convention, 
+    def euler_to_quaternion(self, roll, pitch, yaw):
         """
-        Generate the rotation matrix from body frame to inertial frame based on Euler angles.
+        Convert Euler angles to quaternion.
+        
+        :param roll: Roll angle in radians
+        :param pitch: Pitch angle in radians
+        :param yaw: Yaw angle in radians
+        :return: Quaternion as [w, x, y, z]
         """
-        R_roll = np.array([[1, 0, 0],
-                        [0, np.cos(roll), -np.sin(roll)],
-                        [0, np.sin(roll), np.cos(roll)]])
+        cr = np.cos(roll * 0.5)
+        sr = np.sin(roll * 0.5)
+        cp = np.cos(pitch * 0.5)
+        sp = np.sin(pitch * 0.5)
+        cy = np.cos(yaw * 0.5)
+        sy = np.sin(yaw * 0.5)
         
-        R_pitch = np.array([[np.cos(pitch), 0, np.sin(pitch)],
-                            [0, 1, 0],
-                            [-np.sin(pitch), 0, np.cos(pitch)]])
+        w = cr * cp * cy + sr * sp * sy
+        x = sr * cp * cy - cr * sp * sy
+        y = cr * sp * cy + sr * cp * sy
+        z = cr * cp * sy - sr * sp * cy
         
-        R_yaw = np.array([[np.cos(yaw), -np.sin(yaw), 0],
-                        [np.sin(yaw), np.cos(yaw), 0],
-                        [0, 0, 1]])
+        return np.array([w, x, y, z])
+    
+    def quaternion_to_rotation_matrix(self, q):
+        """
+        Convert quaternion to rotation matrix.
         
-        # Combine the rotations (yaw, pitch, roll)
-        R = R_yaw @ R_pitch @ R_roll
+        :param q: Quaternion as [w, x, y, z]
+        :return: 3x3 rotation matrix
+        """
+        w, x, y, z = q
+        
+        # Normalize quaternion
+        norm = np.sqrt(w*w + x*x + y*y + z*z)
+        if norm > 0:
+            w, x, y, z = w/norm, x/norm, y/norm, z/norm
+        
+        # Quaternion to rotation matrix
+        xx, yy, zz = x*x, y*y, z*z
+        xy, xz, yz = x*y, x*z, y*z
+        wx, wy, wz = w*x, w*y, w*z
+        
+        R = np.array([
+            [1 - 2*(yy + zz), 2*(xy - wz), 2*(xz + wy)],
+            [2*(xy + wz), 1 - 2*(xx + zz), 2*(yz - wx)],
+            [2*(xz - wy), 2*(yz + wx), 1 - 2*(xx + yy)]
+        ])
+        
         return R
     
-    def update_orientation(self, orientation, angular_velocity, dt):
+    def quaternion_multiply(self, q1, q2):
         """
-        Update orientation matrix based on angular velocity using Euler integration.
-        """
-        skew_matrix = np.array([[0, -angular_velocity[2], angular_velocity[1]],
-                                [angular_velocity[2], 0, -angular_velocity[0]],
-                                [-angular_velocity[1], angular_velocity[0], 0]])
+        Multiply two quaternions.
         
-        # Update orientation matrix (rotation)
-        new_orientation = orientation + np.dot(orientation, skew_matrix) * dt
-        return new_orientation
+        :param q1: First quaternion as [w, x, y, z]
+        :param q2: Second quaternion as [w, x, y, z]
+        :return: Result quaternion as [w, x, y, z]
+        """
+        w1, x1, y1, z1 = q1
+        w2, x2, y2, z2 = q2
+        
+        w = w1*w2 - x1*x2 - y1*y2 - z1*z2
+        x = w1*x2 + x1*w2 + y1*z2 - z1*y2
+        y = w1*y2 + y1*w2 + z1*x2 - x1*z2
+        z = w1*z2 + z1*w2 + x1*y2 - y1*x2
+        
+        return np.array([w, x, y, z])
+    
+    def quaternion_conjugate(self, q):
+        """
+        Calculate the conjugate of a quaternion.
+        
+        :param q: Quaternion as [w, x, y, z]
+        :return: Conjugate quaternion as [w, -x, -y, -z]
+        """
+        return np.array([q[0], -q[1], -q[2], -q[3]])
+    
+    def quaternion_normalize(self, q):
+        """
+        Normalize a quaternion.
+        
+        :param q: Quaternion as [w, x, y, z]
+        :return: Normalized quaternion
+        """
+        norm = np.sqrt(np.sum(q**2))
+        if norm > 0:
+            return q / norm
+        return q
+    
+    def angular_velocity_to_quaternion_derivative(self, q, omega):
+        """
+        Convert angular velocity to quaternion derivative.
+        
+        :param q: Current quaternion as [w, x, y, z]
+        :param omega: Angular velocity vector [wx, wy, wz]
+        :return: Quaternion derivative
+        """
+        # Create pure quaternion from angular velocity
+        omega_quat = np.array([0, omega[0], omega[1], omega[2]])
+        
+        # Calculate quaternion derivative: q_dot = 0.5 * q * omega_quat
+        q_dot = 0.5 * self.quaternion_multiply(q, omega_quat)
+        
+        return q_dot
+    
+    def update_quaternion(self, q, angular_velocity, dt):
+        """
+        Update quaternion based on angular velocity using first-order integration.
+        
+        :param q: Current quaternion as [w, x, y, z]
+        :param angular_velocity: Angular velocity vector [wx, wy, wz]
+        :param dt: Time step
+        :return: Updated quaternion
+        """
+        q_dot = self.angular_velocity_to_quaternion_derivative(q, angular_velocity)
+        q_new = q + q_dot * dt
+        return self.quaternion_normalize(q_new)
 
     def thrust_force_inertial(self, time, mass, rotation_matrix):
         """
@@ -187,7 +272,7 @@ class EnhancedRocketDataGenerator(BaseDataGenerator):
         C_d = self.total_drag_coefficient(reynolds, mach_number)
         density = conditions["density"]
     
-        # Calculate pure aerodynamic drag (opposite to relative velocity direction), 
+        # Calculate pure aerodynamic drag (opposite to relative velocity direction)
         drag_force = -0.5 * C_d * density * self.rocket.topCrossSectionalArea * relative_velocity_mag**2 * (relative_velocity / relative_velocity_mag) # top dominates
         return drag_force
 
@@ -265,9 +350,12 @@ class EnhancedRocketDataGenerator(BaseDataGenerator):
         position = np.zeros((3,))
         velocity = np.zeros((3,))
         acceleration = np.array([0, 0, -9.81])
-        # Initialize Rotation
+       
         roll, pitch, yaw = 0, self.launch_angle, self.heading_angle
-        orientation = self.rotation_matrix(roll, pitch, yaw)
+        # Initialize orientation with quaternions
+        # Convert initial roll, pitch, yaw to quaternion
+        quaternion = self.euler_to_quaternion(roll, pitch, yaw)
+        rotation_matrix = self.quaternion_to_rotation_matrix(quaternion)
         angular_velocity = np.zeros((3,))
         angular_acceleration = np.zeros((3,))
 
@@ -275,7 +363,7 @@ class EnhancedRocketDataGenerator(BaseDataGenerator):
         positions = []
         velocities = []
         accelerations = []
-        orientations = []
+        quaternions = []
         angular_velocities = []
         angular_accelerations = []
         
@@ -287,7 +375,7 @@ class EnhancedRocketDataGenerator(BaseDataGenerator):
             positions.append(position.copy())
             velocities.append(velocity.copy())
             accelerations.append(acceleration.copy())
-            orientations.append(orientation.copy())
+            quaternions.append(quaternion.copy())
             angular_velocities.append(angular_velocity.copy())
             angular_accelerations.append(angular_acceleration.copy())
         
@@ -309,7 +397,7 @@ class EnhancedRocketDataGenerator(BaseDataGenerator):
             )
 
             total_force, total_moment = self.total_force_and_moment_body(
-                t_val, altitude, conditions, relative_velocity, relative_velocity_mag, orientation
+                t_val, altitude, conditions, relative_velocity, relative_velocity_mag, rotation_matrix
             )
             
             # Translational motion
@@ -324,14 +412,19 @@ class EnhancedRocketDataGenerator(BaseDataGenerator):
             moment_of_inertia = self.moment_of_inertia(current_mass)
             angular_accel = self.angular_acceleration(total_moment, moment_of_inertia)
             angular_velocity += angular_accel * dt
-            orientation, r =  np.linalg.qr(self.update_orientation(orientation, angular_velocity, dt))
-            # print(orientation)
+            # Update quaternion using angular velocity
+            quaternion = self.update_quaternion(quaternion, angular_velocity, dt)
+            # Get rotation matrix from quaternion for force calculations
+            rotation_matrix = self.quaternion_to_rotation_matrix(quaternion)
+        
             # Store the current state for later retrieval
             positions.append(position.copy())
             velocities.append(velocity.copy())
             accelerations.append(acceleration.copy())
-            print(acceleration)
-            orientations.append(orientation.copy())
+            # print(acceleration)
+            quaternions.append(quaternion.copy())
+            if len(quaternion) != 4:
+                print("Error")
             angular_velocities.append(angular_velocity.copy())
             angular_accelerations.append(angular_accel.copy())
 
@@ -342,6 +435,7 @@ class EnhancedRocketDataGenerator(BaseDataGenerator):
         positions = np.array(positions)
         velocities = np.array(velocities)
         accelerations = np.array(accelerations)
+        quaternions = np.array(quaternions)
         angular_velocities = np.array(angular_velocities)
         angular_accelerations = np.array(angular_accelerations)
 
@@ -356,7 +450,7 @@ class EnhancedRocketDataGenerator(BaseDataGenerator):
             "a_x": accelerations[:, 0],
             "a_y": accelerations[:, 1],
             "a_z": accelerations[:, 2],
-            "orientation": np.array(orientations),  # Return full orientation matrices
+            "quaternion": quaternions,  
             "angular_vx": angular_velocities[:, 0],
             "angular_vy": angular_velocities[:, 1],
             "angular_vz": angular_velocities[:, 2],

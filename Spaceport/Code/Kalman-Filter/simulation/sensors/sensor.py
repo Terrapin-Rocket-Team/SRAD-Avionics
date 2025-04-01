@@ -5,7 +5,7 @@ from typing import Optional, List
 import sys, os      # for importing from parent directory (kinda hacky but wtv)
 sys.path.insert(0, os.path.abspath('..'))
 
-from simulation.noise_generators.base_noise_generator import BaseNoiseGenerator
+from noise_generators.base_noise_generator import BaseNoiseGenerator
 
 class Sensor:
     """
