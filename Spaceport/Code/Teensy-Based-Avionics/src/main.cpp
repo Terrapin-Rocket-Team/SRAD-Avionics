@@ -79,16 +79,16 @@ void setup()
     sys.init();
     Serial8.begin(115200);
     bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
-    if (radio.begin())
-    {
-        bb.onoff(BUZZER, 1000); // 1 x 1 sec beep for sucessful initialization
-        getLogger().recordLogData(INFO_, "Initialized Radio");
-    }
-    else
-    {
-        bb.onoff(BUZZER, 2000, 3); // 3 x 2 sec beep for uncessful initialization
-        getLogger().recordLogData(ERROR_, "Initialized Radio Failed");
-    }
+    // if (radio.begin())
+    // {
+    //     bb.onoff(BUZZER, 1000); // 1 x 1 sec beep for sucessful initialization
+    //     getLogger().recordLogData(INFO_, "Initialized Radio");
+    // }
+    // else
+    // {
+    //     bb.onoff(BUZZER, 2000, 3); // 3 x 2 sec beep for uncessful initialization
+    //     getLogger().recordLogData(ERROR_, "Initialized Radio Failed");
+    // }
 
     // if (btRad.begin()) {
     //     bb.onoff(BUZZER, 500); // 1 x 0.5 sec beep for sucessful initialization
@@ -110,7 +110,7 @@ void loop()
     // if (millis() > 15 * 1000)
     //     pi.setRecording(false);
 
-    radio.update();
+    // radio.update();
     if (sys.update())
     {
         // char str[512];
@@ -149,7 +149,7 @@ void loop()
     aprs.stateFlags.pack(arr);
     // Serial.printf("%d %ld\n", d.getTemp(), aprs.stateFlags.get());
     msg.encode(&aprs);
-    radio.send(aprs);
+    // radio.send(aprs);
     // Serial.printf("%0.3f - Sent APRS Message; %f   |   %d\n", time / 1000.0, d.getAGLAltFt(), m.getFixQual());
     // bb.aonoff(BUZZER, 50);
     // Serial1.write(msg.buf, msg.size);
