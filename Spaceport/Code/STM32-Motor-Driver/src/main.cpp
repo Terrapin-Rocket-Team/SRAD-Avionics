@@ -230,12 +230,12 @@ void setup()
 
     // Optional: Find how many steps in one revolution
     // (Uncomment if you want to measure steps/rev automatically)
-    stepsPerRevolution = findStepsPerRevolution();
-    Serial1.print("Detected steps per revolution: ");
-    Serial1.println(stepsPerRevolution);
+    // stepsPerRevolution = findStepsPerRevolution();
+    // Serial1.print("Detected steps per revolution: ");
+    // Serial1.println(stepsPerRevolution);
 
     // If you already know your steps per revolution, just set it:
-    // stepsPerRevolution = 2048; // example for 28BYJ-48 or 200 for typical NEMA17, etc.
+    stepsPerRevolution = 2500; // example for 28BYJ-48 or 200 for typical NEMA17, etc.
     home();
     delay(5000);
 
