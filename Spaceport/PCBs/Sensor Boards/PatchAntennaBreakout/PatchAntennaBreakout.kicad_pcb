@@ -39,6 +39,45 @@
 		(58 "User.9" user)
 	)
 	(setup
+		(stackup
+			(layer "F.SilkS"
+				(type "Top Silk Screen")
+			)
+			(layer "F.Paste"
+				(type "Top Solder Paste")
+			)
+			(layer "F.Mask"
+				(type "Top Solder Mask")
+				(thickness 0.01)
+			)
+			(layer "F.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "dielectric 1"
+				(type "core")
+				(thickness 1.51)
+				(material "FR4")
+				(epsilon_r 4.5)
+				(loss_tangent 0.02)
+			)
+			(layer "B.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "B.Mask"
+				(type "Bottom Solder Mask")
+				(thickness 0.01)
+			)
+			(layer "B.Paste"
+				(type "Bottom Solder Paste")
+			)
+			(layer "B.SilkS"
+				(type "Bottom Silk Screen")
+			)
+			(copper_finish "None")
+			(dielectric_constraints no)
+		)
 		(pad_to_mask_clearance 0)
 		(allow_soldermask_bridges_in_footprints no)
 		(pcbplotparams
@@ -1123,24 +1162,97 @@
 			(uuid "8691e0ac-4cce-4b63-9fec-49c5a8938003")
 		)
 	)
-	(gr_rect
-		(start 119 68)
-		(end 155 104.25)
+	(gr_line
+		(start 122 67.9)
+		(end 152 67.9)
 		(stroke
 			(width 0.05)
 			(type default)
 		)
-		(fill none)
 		(layer "Edge.Cuts")
-		(uuid "acb0eb8c-8b3f-430b-bcec-2b6140ac2fbb")
+		(uuid "00a53a09-6bc5-41f0-a1e8-770272340d67")
+	)
+	(gr_line
+		(start 152 104.1)
+		(end 122 104.1)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "Edge.Cuts")
+		(uuid "58ebe7eb-d67e-4f60-9bca-76569ae9cd36")
+	)
+	(gr_arc
+		(start 118.9 71)
+		(mid 119.807969 68.807969)
+		(end 122 67.9)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "Edge.Cuts")
+		(uuid "5b2b30fd-cfe6-47ea-b666-2fc459077792")
+	)
+	(gr_arc
+		(start 155.1 101)
+		(mid 154.192031 103.192031)
+		(end 152 104.1)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "Edge.Cuts")
+		(uuid "62c6bb2f-8431-438e-8779-58fc136747f1")
+	)
+	(gr_line
+		(start 155.1 71)
+		(end 155.1 101)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "Edge.Cuts")
+		(uuid "8c884842-d74b-491e-a4cc-88c1fb9585ff")
+	)
+	(gr_arc
+		(start 122 104.1)
+		(mid 119.807969 103.192031)
+		(end 118.9 101)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "Edge.Cuts")
+		(uuid "b2a78c48-25c4-41b4-a330-6fbca8e1e584")
+	)
+	(gr_arc
+		(start 152 67.9)
+		(mid 154.192031 68.807969)
+		(end 155.1 71)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "Edge.Cuts")
+		(uuid "d0ff2069-541d-4e23-83cd-67bf948a1616")
+	)
+	(gr_line
+		(start 118.9 101)
+		(end 118.9 71)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "Edge.Cuts")
+		(uuid "f2a583c4-1bac-4c58-b3cc-191b172119b6")
 	)
 	(segment
-		(start 137 91.365)
-		(end 137 101)
-		(width 0.2)
+		(start 137 101)
+		(end 137 91.365)
+		(width 0.156464)
 		(layer "F.Cu")
 		(net 1)
-		(uuid "28748610-5048-42be-a4ce-8fbea053f630")
+		(uuid "fc939026-c23e-4e8c-80a4-55bc3388ced7")
 	)
 	(via
 		(at 148 81)
