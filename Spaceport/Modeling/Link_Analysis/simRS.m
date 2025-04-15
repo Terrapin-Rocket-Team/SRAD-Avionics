@@ -15,14 +15,15 @@ function errors = simRS(bitrate, flightTime, N, k, BERFunction)
     BER = zeros(packets, 1);
     rawErrorsTime = zeros(packets, 1);
     receivedErrorsTime = zeros(packets, 1);
+    symbolErrorsTime = zeros(packets, 1);
     for n = 1:packets
 
         BER(n) = BERFunction(BER_index);
         count = count + 1;
 
-        if (count >= floor(packets/245))
+        if (count >= floor(packets/k))
             count = 0;
-            if (BER_index < 245)
+            if (BER_index < k)
                 BER_index = BER_index + 1;
              end
         end
@@ -38,33 +39,47 @@ function errors = simRS(bitrate, flightTime, N, k, BERFunction)
         msgRXInitial = uint8(encoded.x);
         msgRX = uint8(encoded.x);
 
+        symbolErrors = 0;
+
         for l = 1:length(msgRX)
             errors = uint8(0b00000000);
 
+            hasSymbolError = false;
+
             if (rand() < BER(n))
+                hasSymbolError = true;
                 errors = bitor(errors, 0b10000000);
             end
             if (rand() < BER(n))
+                hasSymbolError = true;
                 errors = bitor(errors, 0b01000000);
             end
             if (rand() < BER(n))
+                hasSymbolError = true;
                 errors = bitor(errors, 0b00100000);
             end
             if (rand() < BER(n))
+                hasSymbolError = true;
                 errors = bitor(errors, 0b00010000);
             end
             if (rand() < BER(n))
+                hasSymbolError = true;
                 errors = bitor(errors, 0b00001000);
             end
             if (rand() < BER(n))
+                hasSymbolError = true;
                 errors = bitor(errors, 0b00000100);
             end
             if (rand() < BER(n))
+                hasSymbolError = true;
                 errors = bitor(errors, 0b00000010);
             end
             if (rand() < BER(n))
+                hasSymbolError = true;
                 errors = bitor(errors, 0b00000001);
             end
+
+            if (hasSymbolError) symbolErrors = symbolErrors + 1; end
             
             % apply the error
             msgRX(l) = uint8(bitxor(msgRX(l), errors));
@@ -73,18 +88,19 @@ function errors = simRS(bitrate, flightTime, N, k, BERFunction)
 
 
         msgRXgf = gf(msgRX, m);
-        decoded = rsdec(msgRXgf, N, k);
+        [decoded, cerr] = rsdec(msgRXgf, N, k);
     
-        raw_err = biterr(msgRXInitial, msgRX);
+        raw_err = cerr;
         received_err = biterr(data(n,:), uint8(decoded.x));
         rawErrorsTime(n) = raw_err;
         receivedErrorsTime(n) = received_err;
+        symbolErrorsTime(n) = symbolErrors;
         raw_errs = raw_errs + raw_err;
         received_errs = received_errs + received_err;
         disp(n/packets*100)
     end
     
-    disp(raw_errs)
-    disp(received_errs)
-    errors = [rawErrorsTime, receivedErrorsTime];
+    %disp(raw_errs)
+    %disp(received_errs)
+    errors = [(0:flightTime/packets:(flightTime-flightTime/packets))', rawErrorsTime, receivedErrorsTime, symbolErrorsTime];
 end
