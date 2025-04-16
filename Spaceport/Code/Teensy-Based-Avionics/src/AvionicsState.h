@@ -15,5 +15,6 @@ private:
     void determineStage() override;
     double timeOfLaunch;
     double timeOfLastStage;
+    int consecutiveNegativeBaroVelocity;
 };
 #endif
