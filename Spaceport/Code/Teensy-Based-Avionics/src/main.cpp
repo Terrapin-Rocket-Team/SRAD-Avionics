@@ -28,12 +28,12 @@ APRSTelem aprs(aprsConfig);
 Message msg;
 
 Si4463HardwareConfig hwcfg = {
-    MOD_2GFSK, // modulation
-    DR_500b,   // data rate
-    433e6,     // frequency (Hz)
-    127,       // tx power (127 = ~20dBm)
-    48,        // preamble length
-    16,        // required received valid preamble
+    MOD_2GFSK,      // modulation
+    DR_100k,        // data rate
+    433e6,          // frequency (Hz)
+    POWER_HP_33dBm, // tx power (127 = ~20dBm)
+    48,             // preamble length
+    16,             // required received valid preamble
 };
 
 Si4463PinConfig pincfg = {
@@ -84,16 +84,16 @@ void setup()
     // SPI.setClockDivider(SPI_CLOCK_DIV2);
     bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
 
-    // if (radio.begin())
-    // {
-    //     bb.onoff(BUZZER, 1000);
-    //     getLogger().recordLogData(ERROR_, "Radio initialized.");
-    // }
-    // else
-    // {
-    //     bb.onoff(BUZZER, 200, 3);
-    //     getLogger().recordLogData(INFO_, "Radio failed to initialize.");
-    // }
+    if (radio.begin())
+    {
+        bb.onoff(BUZZER, 1000);
+        getLogger().recordLogData(ERROR_, "Radio initialized.");
+    }
+    else
+    {
+        bb.onoff(BUZZER, 200, 3);
+        getLogger().recordLogData(INFO_, "Radio failed to initialize.");
+    }
 
     getLogger().recordLogData(INFO_, "Initialization Complete");
 }

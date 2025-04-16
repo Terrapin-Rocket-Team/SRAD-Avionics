@@ -1,8 +1,7 @@
 #ifndef SI4463_DEFS
 #define SI4463_DEFS
 
-// #include "Radio.h"
-#include <Arduino.h>
+#include "Radio.h"
 
 // tx/rx states
 enum Si4463State : uint8_t
@@ -32,7 +31,7 @@ enum Si4463DataRate : uint64_t
 {
     // assumes Fxtal is 30 M (nominal value)
     // actual data rate ends up being MDR/10
-    // most likely symbol rate, so doubled for 4 level FSK
+    // symbol rate so doubled for 4 level FSK
     // format:
     // only 7 total bytes, so skip first byte
     // next 3 bytes are data rate
@@ -40,15 +39,16 @@ enum Si4463DataRate : uint64_t
     // next 2 bits are TXOSR (only useful for low data rate GFSK)
     // next 2 bits are the most signficiant 2 bits of NCO_MODE
     // next 3 bytes are the rest of NCO_MODE
-    DR_500b = 0x000186A001C9C380, // MDR = 5000 sps, NCO_MODE = 30 M, TXOSR = 10
-    DR_4_8k = 0x0000BB8001C9C380, // MDR = 48 ksps, NCO_MODE = 30 M, TXOSR = 10
-    DR_9_6k = 0x0001770001C9C380, // MDR = 96 ksps, NCO_MODE = 30 M, TXOSR = 10
-    DR_40k = 0x00061A8001C9C380,  // MDR = 400 ksps, NCO_MODE = 30 M, TXOSR = 10
-    DR_100k = 0x000F424001C9C380, // MDR = 1000 ksps, NCO_MODE = 30 M, TXOSR = 10
-    DR_120k = 0x00124F8001C9C380, // MDR = 1200 ksps, NCO_MODE = 30 M, TXOSR = 10
+    // ignore the comments to the right they are no longer correct
+    DR_500b = 0x00004E2005C9C380, // MDR = 5000 sps, NCO_MODE = 30 M, TXOSR = 10
+    DR_4_8k = 0x0002EE0005C9C380, // MDR = 48 ksps, NCO_MODE = 30 M, TXOSR = 10
+    DR_9_6k = 0x0005DC0005C9C380, // MDR = 96 ksps, NCO_MODE = 30 M, TXOSR = 10
+    DR_40k = 0x000C350009C9C380,  // MDR = 400 ksps, NCO_MODE = 30 M, TXOSR = 10
+    DR_100k = 0x001E848009C9C380, // MDR = 1000 ksps, NCO_MODE = 30 M, TXOSR = 10
+    DR_120k = 0x00249F0009C9C380, // MDR = 1200 ksps, NCO_MODE = 30 M, TXOSR = 10
+    DR_250k = 0x002625A001C9C380, // MDR = 2500 ksps, NCO_MODE = 30 M, TXOSR = 10
     DR_500k = 0x004C4B4001C9C380, // MDR = 5000 ksps, NCO_MODE = 30 M, TXOSR = 10
     DR_TEST = 0x0002710005C9C380
-    // DR_1M = 0x98968001C9C38000,   // MDR = 10 Msps, NCO_MODE = 30 M, TXOSR = 10
 };
 
 // band selection
@@ -60,6 +60,15 @@ enum Si4463Band : uint8_t
     BAND_450 = 0b00001010,
     BAND_600 = 0b00001001,
     BAND_900 = 0b00001000,
+};
+
+// output power presets
+enum Si4463Power : uint8_t
+{
+    POWER_HP_33dBm = 25,
+    POWER_HP_20dBm = 8,
+    POWER_HP_23dBm = 11,
+    POWER_LP_20dBm = 127,
 };
 
 // pin settings
