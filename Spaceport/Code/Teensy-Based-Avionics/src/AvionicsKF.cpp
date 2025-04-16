@@ -47,7 +47,7 @@ Matrix AvionicsKF::getR() {
     return Matrix(3, 3, data);
 }
 
-Matrix AvionicsKF::getQ() {
+Matrix AvionicsKF::getQ(double dt) {
     double *data = new double[36]{
         0.1, 0, 0, 0, 0, 0,
         0, 0.1, 0, 0, 0, 0,
