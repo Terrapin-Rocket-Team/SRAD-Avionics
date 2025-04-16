@@ -332,6 +332,8 @@ void Si4463::handleRX()
         if (rIntArgs[2] & 0b00001000)
         {
             Serial.println("Invalid packet! CRC failed.");
+            this->state = STATE_IDLE;
+            this->available = false;
         }
     }
 }
