@@ -5,6 +5,7 @@
 #include "AviEventListener.h"
 #include "Pi.h"
 #include "Si4463.h"
+#include "Radio/ESP32BluetoothRadio.h"
 
 #define RPI_PWR 24
 #define RPI_VIDEO 25
@@ -24,7 +25,7 @@ uint8_t encoding[] = {7, 4, 4};
 APRSTelem aprs(aprsConfig);
 Message msg;
 
-// ESP32BluetoothRadio btRad(Serial1, "AVIONICS", true);
+ESP32BluetoothRadio btRad(Serial1, "AVIONICS", true);
 
 Si4463HardwareConfig hwcfg = {
     MOD_2GFSK, // modulation
@@ -68,7 +69,7 @@ MMFSConfig a = MMFSConfig()
                    .withBBPin(32)
                    .withBuzzerPin(33)
                    .withUsingSensorBiasCorrection(true)
-                   .withUpdateRate(10)
+                   .withUpdateRate(5)
                    .withState(&t);
 MMFSSystem sys(&a);
 
@@ -77,7 +78,7 @@ AviEventLister listener;
 void setup()
 {
     sys.init();
-    Serial8.begin(115200);
+    // Serial1.begin(9600);
     bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
     // if (radio.begin())
     // {
@@ -90,21 +91,23 @@ void setup()
     //     getLogger().recordLogData(ERROR_, "Initialized Radio Failed");
     // }
 
-    // if (btRad.begin()) {
-    //     bb.onoff(BUZZER, 500); // 1 x 0.5 sec beep for sucessful initialization
-    //     getLogger().recordLogData(INFO_, "Initialized Bluetooth");
-    // } else {
-    //     bb.onoff(BUZZER, 1000, 3); // 3 x 2 sec beep for uncessful initialization
-    //     getLogger().recordLogData(ERROR_, "Initialized Bluetooth Failed");
-    // }
+    if (btRad.begin()) {
+        bb.onoff(BUZZER, 500); // 1 x 0.5 sec beep for sucessful initialization
+        getLogger().recordLogData(INFO_, "Initialized Bluetooth");
+    } else {
+        bb.onoff(BUZZER, 1000, 3); // 3 x 2 sec beep for uncessful initialization
+        getLogger().recordLogData(ERROR_, "Initialized Bluetooth Failed");
+    }
     getLogger().recordLogData(INFO_, "Initialization Complete");
 }
 double radio_last;
 void calcStuff();
 void loop()
 {
-    if (Serial8.available())
-        Serial.write(Serial8.read());
+    btRad.rx();
+    if(btRad.isReady()) Serial.print(btRad.isReady());
+    if (Serial1.available())
+        Serial.write(Serial1.read());
     if (t.getStage()> 0)
         pi.setRecording(true);
     // if (millis() > 15 * 1000)
@@ -113,16 +116,20 @@ void loop()
     // radio.update();
     if (sys.update())
     {
-        // char str[512];
-        // int i = snprintf(str, 512, "La %f Lo %f Al %f Hd %f Ql %d", m.getPos().x(), m.getPos().y(), m.getPos().z(), m.getHeading(), m.getFixQual());
-        // btRad.tx((uint8_t *)str, i);
-        calcStuff();
+
     }
 
     double time = millis();
-    if (time - radio_last < 1000)
+    if (time - radio_last < 2000)
         return;
 
+        char str[512];
+        // int i = snprintf(str, 512, "La %.7f Lo %.7f Al %.2f Hd %.2f Ql %d", 1.0, 1.0, 2.0, 360.0, 5);
+        snprintf(str, 512, "1234567890123456789");
+        // btRad.tx("Hello", 5);
+        btRad.tx((uint8_t *)str, strlen(str));
+        Serial.printf("sent %d", strlen(str));
+        // calcStuff();
     radio_last = time;
     msg.clear();
     // radio.update();
