@@ -20,7 +20,7 @@ bool BluetoothClient::start(const std::string &serverName) { //is this the start
     Serial.println("Initializing client device with target server " + String(serverName.c_str()));
 
     pClient = BLEDevice::createClient();
-
+    BLEDevice::setMTU(128);
     BLEScan *pBLEScan = BLEDevice::getScan();
     pScanHandler = new AdvertisingScanHandler(this);
     pBLEScan->setAdvertisedDeviceCallbacks(pScanHandler);
@@ -70,7 +70,6 @@ void BluetoothClient::update(Stream& inputSerial) {
     }
 
     if (initialized && connected) {
-        if (!inputSerial.available()) return;
 
         uint16_t size = 0;
         inputSerial.readBytes(reinterpret_cast<char *>(&size), sizeof(uint16_t));
@@ -82,7 +81,7 @@ void BluetoothClient::update(Stream& inputSerial) {
             inputSerial.readBytes(buffer, size);
             Serial.println("Sending the following message content: ");
             for (int i = 0; i < size; i++) {
-                Serial.print(buffer[i]);
+                Serial.print( (char)buffer[i]);
             }
             Serial.println("");
             send(buffer, size);
@@ -92,8 +91,13 @@ void BluetoothClient::update(Stream& inputSerial) {
 
 bool BluetoothClient::send(uint8_t *data, uint16_t length) {
     if (remoteRx->canWrite()) {
+        uint8_t buf[length + sizeof(uint16_t)];
+        memcpy(buf, &length, sizeof(uint16_t));
+        memcpy(buf + sizeof(uint16_t), data, length);
+
         Serial.println("Writing data to server RX");
-        remoteRx->writeValue(data, length);
+        remoteRx->writeValue(buf, length + sizeof(uint16_t));
+        Serial.write(buf, length + sizeof(uint16_t));
         return true;
     }
     return false;
