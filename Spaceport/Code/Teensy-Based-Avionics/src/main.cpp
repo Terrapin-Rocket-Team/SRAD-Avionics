@@ -67,7 +67,7 @@ MMFSConfig a = MMFSConfig()
                    .withBBAsync(true, 50)
                    .withBBPin(LED_BUILTIN)
                    .withBBPin(32)
-                //    .withBuzzerPin(33)
+                   //    .withBuzzerPin(33)
                    .withUsingSensorBiasCorrection(true)
                    .withUpdateRate(5)
                    .withState(&t);
@@ -91,10 +91,13 @@ void setup()
     //     getLogger().recordLogData(ERROR_, "Initialized Radio Failed");
     // }
 
-    if (btRad.begin()) {
+    if (btRad.begin())
+    {
         bb.onoff(BUZZER, 500); // 1 x 0.5 sec beep for sucessful initialization
         getLogger().recordLogData(INFO_, "Initialized Bluetooth");
-    } else {
+    }
+    else
+    {
         bb.onoff(BUZZER, 1000, 3); // 3 x 2 sec beep for uncessful initialization
         getLogger().recordLogData(ERROR_, "Initialized Bluetooth Failed");
     }
@@ -104,11 +107,12 @@ double radio_last;
 void calcStuff();
 void loop()
 {
-    btRad.rx();
-    if(btRad.isReady()) Serial.print(btRad.isReady());
+    // btRad.rx();
+    if (btRad.isReady())
+        Serial.print(btRad.isReady());
     if (Serial1.available())
         Serial.write(Serial1.read());
-    if (t.getStage()> 0)
+    if (t.getStage() > 0)
         pi.setRecording(true);
     // if (millis() > 15 * 1000)
     //     pi.setRecording(false);
@@ -116,20 +120,19 @@ void loop()
     // radio.update();
     if (sys.update())
     {
-
     }
 
     double time = millis();
     if (time - radio_last < 2000)
         return;
 
-        char str[512];
-        // int i = snprintf(str, 512, "La %.7f Lo %.7f Al %.2f Hd %.2f Ql %d", 1.0, 1.0, 2.0, 360.0, 5);
-        snprintf(str, 512, "1234567890123456789");
-        // btRad.tx("Hello", 5);
-        btRad.tx((uint8_t *)str, strlen(str));
-        Serial.printf("sent %d", strlen(str));
-        // calcStuff();
+    char str[512];
+    // int i = snprintf(str, 512, "La %.7f Lo %.7f Al %.2f Hd %.2f Ql %d", 1.0, 1.0, 2.0, 360.0, 5);
+    snprintf(str, 512, "1234567890123456789");
+    // btRad.tx("Hello", 5);
+    // btRad.tx((uint8_t *)str, strlen(str));
+    // Serial.printf("sent %d", strlen(str));
+    // calcStuff();
     radio_last = time;
     msg.clear();
     // radio.update();
@@ -182,25 +185,21 @@ void calcStuff()
         {
             Serial8.println("360");
             counter++;
-
         }
         else if (t.getTimeSinceLastStage() > 300 && counter <= 3)
         {
             Serial8.println("180");
             counter++;
-
         }
     }
     else if (t.getStage() == 4 && counter <= 4)
     {
         Serial8.println("180");
         counter++;
-
     }
     else if (t.getStage() == 4 && t.getTimeSinceLastStage() > 30 && counter <= 5)
     {
         Serial.println("0");
         counter++;
-        
     }
 }
