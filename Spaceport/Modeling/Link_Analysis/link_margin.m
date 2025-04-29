@@ -121,7 +121,7 @@ if (doFECSim)
     %errors_4FSK_awgn = simRS(bitrate, flightTime, N, k, BER_4FSK_awgn);
     errors_4FSK_fading = simRS(bitrate, flightTime, N, k, BER_4FSK_fading);
 
-    figure(5)
+    figure()
     plot(errors_2FSK_fading(:, 1), errors_2FSK_fading(:, 2))
     hold on;
     plot(errors_2FSK_fading(:, 1), errors_2FSK_fading(:, 3))
@@ -129,7 +129,7 @@ if (doFECSim)
     ylabel("Bit errors")
     title("Bit errors vs time")
     legend("Raw Errors 2FSK Rician Fading", "Received Errors 2FSK Rician Fading")
-    figure(6)
+    figure()
     plot(errors_2FSK_fading(:, 1), errors_4FSK_fading(:, 2))
     hold on;
     plot(errors_2FSK_fading(:, 1), errors_4FSK_fading(:, 3))
@@ -137,7 +137,7 @@ if (doFECSim)
     ylabel("Bit errors")
     title("Bit errors vs time")
     legend("Raw Errors 4FSK Rician Fading", "Received Errors 4FSK Rician Fading")
-    figure(7)
+    figure()
     plot(errors_2FSK_fading(:, 1), errors_2FSK_fading(:, 4))
     hold on;
     plot(errors_2FSK_fading(:, 1), errors_4FSK_fading(:, 4))
