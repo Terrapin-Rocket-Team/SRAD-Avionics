@@ -1,17 +1,17 @@
 #include "Pi.h"
 
-Pi::Pi(int pinCmd, int pinResp)
+Pi::Pi(int pinControl, int pinVideo)
 {
-    this->pinCmd = pinCmd;
-    this->pinResp = pinResp;
+    this->pinControl = pinControl;
+    this->pinVideo = pinVideo;
 
-    pinMode(pinCmd, OUTPUT);
-    pinMode(pinResp, INPUT);
+    pinMode(pinControl, OUTPUT);
+    pinMode(pinVideo, OUTPUT);
 
-    digitalWrite(pinCmd, LOW); // Set video pin to high (off) by default
+    digitalWrite(pinVideo, HIGH); // Set video pin to high (off) by default
 
-    recReqst = false; 
-    recAkn = false;
+    on = false;
+    recording = false;
 }
 
 void Pi::startRec(){
