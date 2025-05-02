@@ -1,3 +1,4 @@
+#include <SPI.h>
 #include <Arduino.h>
 #include <MMFS.h>
 #include "AvionicsState.h"
