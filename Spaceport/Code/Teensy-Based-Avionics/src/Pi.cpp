@@ -1,17 +1,18 @@
 #include "Pi.h"
-
+#include "RecordData/Logger.h"
+using namespace mmfs;
 Pi::Pi(int pinControl, int pinVideo)
 {
-    this->pinControl = pinControl;
-    this->pinVideo = pinVideo;
+    this->pinCmd = pinControl;
+    this->pinResp = pinVideo;
 
     pinMode(pinControl, OUTPUT);
     pinMode(pinVideo, OUTPUT);
 
     digitalWrite(pinVideo, HIGH); // Set video pin to high (off) by default
 
-    on = false;
-    recording = false;
+    recReqst = false;
+    recAkn = false;
 }
 
 void Pi::startRec(){
@@ -20,7 +21,7 @@ void Pi::startRec(){
     recReqst = true;
     recAkn = false;
     digitalWrite(this->pinCmd, HIGH);
-    logger.recordLogData(mmfs::INFO_, "Recording start requested.");
+    getLogger().recordLogData(INFO_, "Recording start requested.");
 }
 
 void Pi::stopRec(){
@@ -29,7 +30,7 @@ void Pi::stopRec(){
     recReqst = false;
     recAkn = false;
     digitalWrite(this->pinCmd, LOW);
-    logger.recordLogData(mmfs::INFO_, "Recording stop requested.");
+    getLogger().recordLogData(INFO_, "Recording stop requested.");
 }
 
 bool Pi::isRecording()
@@ -42,11 +43,11 @@ void Pi::check()
     if(!recAkn && recReqst && isRecording())
     {
         recAkn = true;
-        logger.recordLogData(mmfs::INFO_, "Recording start acknowledged.");
+        getLogger().recordLogData(INFO_, "Recording start acknowledged.");
     }
     else if(!recAkn && !recReqst && !isRecording())
     {
         recAkn = true;
-        logger.recordLogData(mmfs::INFO_, "Recording stop acknowledged.");
+        getLogger().recordLogData(INFO_, "Recording stop acknowledged.");
     }
 }

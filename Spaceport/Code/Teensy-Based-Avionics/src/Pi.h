@@ -8,16 +8,16 @@ class Pi
 {
 public:
     Pi(int pinControl, int pinVideo);
-    void setOn(bool on);
-    void setRecording(bool recording);
+    void startRec();
+    void stopRec();
     bool isOn();
     bool isRecording();
+    void check();
 
 private:
-    int pinControl;
-    int pinVideo;
-    bool on;
-    bool recording;
+    int pinCmd;
+    int pinResp;
+    bool recReqst, recAkn;
 };
 
 #endif // PI_H
