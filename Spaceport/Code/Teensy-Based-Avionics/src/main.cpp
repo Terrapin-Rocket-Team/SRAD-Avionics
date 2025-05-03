@@ -6,6 +6,7 @@
 #include "Pi.h"
 #include "Si4463.h"
 #include "Radio/ESP32BluetoothRadio.h"
+#include "VoltageSensor.h"
 
 #define RPI_PWR 24
 #define RPI_VIDEO 25
@@ -15,8 +16,10 @@ using namespace mmfs;
 MAX_M10S m;
 DPS310 d;
 BMI088andLIS3MDL b;
+VoltageSensor vsfc(A0, 330, 220, "Flight Computer Voltage");
+VoltageSensor vsarch(A1, 330, 220, "ARCH Voltage");
 
-Sensor *s[] = {&m, &d, &b};
+Sensor *s[] = {&m, &d, &b, &vsfc, &vsarch};
 AvionicsKF fk;
 AvionicsState t(s, sizeof(s) / 4, &fk);
 
@@ -120,6 +123,7 @@ void loop()
     // radio.update();
     if (sys.update())
     {
+        // Serial.printf("%.2f | %.2f\n", vsfc.getRawVoltage(), vsfc.getRealVoltage()); // this would never work lmao
     }
 
     double time = millis();
