@@ -31,12 +31,12 @@ Message msg;
 ESP32BluetoothRadio btRad(Serial1, "AVIONICS", true);
 
 Si4463HardwareConfig hwcfg = {
-    MOD_2GFSK, // modulation
-    DR_100k,   // data rate
-    433e6,     // frequency (Hz)
-    5,         // tx power (127 = ~20dBm)
-    48,        // preamble length
-    16,        // required received valid preamble
+    MOD_2GFSK,      // modulation
+    DR_100k,        // data rate
+    433e6,          // frequency (Hz)
+    POWER_HP_33dBm, // tx power (127 = ~20dBm)
+    48,             // preamble length
+    16,             // required received valid preamble
 };
 
 Si4463PinConfig pincfg = {
@@ -83,16 +83,6 @@ void setup()
     sys.init();
     // Serial1.begin(9600);
     bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
-    // if (radio.begin())
-    // {
-    //     bb.onoff(BUZZER, 1000); // 1 x 1 sec beep for sucessful initialization
-    //     getLogger().recordLogData(INFO_, "Initialized Radio");
-    // }
-    // else
-    // {
-    //     bb.onoff(BUZZER, 2000, 3); // 3 x 2 sec beep for uncessful initialization
-    //     getLogger().recordLogData(ERROR_, "Initialized Radio Failed");
-    // }
 
     if (btRad.begin())
     {
@@ -104,6 +94,18 @@ void setup()
         bb.onoff(BUZZER, 1000, 3); // 3 x 2 sec beep for uncessful initialization
         getLogger().recordLogData(ERROR_, "Initialized Bluetooth Failed");
     }
+
+    if (radio.begin())
+    {
+        bb.onoff(BUZZER, 1000);
+        getLogger().recordLogData(ERROR_, "Radio initialized.");
+    }
+    else
+    {
+        bb.onoff(BUZZER, 200, 3);
+        getLogger().recordLogData(INFO_, "Radio failed to initialize.");
+    }
+
     getLogger().recordLogData(INFO_, "Initialization Complete");
 }
 double radio_last;
