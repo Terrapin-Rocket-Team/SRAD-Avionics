@@ -68,6 +68,7 @@ void serverLoop() {
 
 #ifndef SERVER
 void clientLoop() {
+    Serial1.println("a");
     if (!client.isInitialized()) {
         if (Serial1.available()) {
             const uint8_t messageID = Serial1.read();
