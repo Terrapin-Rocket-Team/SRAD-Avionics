@@ -18,9 +18,8 @@ bool BluetoothClient::start(const std::string &serverName) { //is this the start
     this->serverName = serverName;
     BLEDevice::init("");
     Serial.println("Initializing client device with target server " + String(serverName.c_str()));
-
+    Serial.println(BLEDevice::getMTU());
     pClient = BLEDevice::createClient();
-    BLEDevice::setMTU(128);
     BLEScan *pBLEScan = BLEDevice::getScan();
     pScanHandler = new AdvertisingScanHandler(this);
     pBLEScan->setAdvertisedDeviceCallbacks(pScanHandler);
@@ -59,7 +58,7 @@ void BluetoothClient::update(Stream& inputSerial) {
         remoteTx->registerForNotify([this] (BLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify) {
             handleTxCallback(pBLERemoteCharacteristic, pData, length, isNotify);
         });
-
+        Serial.println(pClient->setMTU(128));
         connected = true;
         Serial.println("Client successfully connected to server " + String(serverName.c_str()));
         Serial.println("Writing status message...");

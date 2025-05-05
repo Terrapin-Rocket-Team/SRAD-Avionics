@@ -27,6 +27,7 @@ void setup() {
     // server.start("ESP32 BLE Server");
 #else
     Serial.println("Client booted!");
+    Serial1.println("Serial1");
     Serial.flush();
     // client.start("ESP32 BLE Server");
 #endif
@@ -68,12 +69,11 @@ void serverLoop() {
 
 #ifndef SERVER
 void clientLoop() {
-    Serial1.println("a");
     if (!client.isInitialized()) {
         if (Serial1.available()) {
             const uint8_t messageID = Serial1.read();
             if (messageID == INIT_MESSAGE) {
-                std::string name = Serial1.readStringUntil('\n').c_str();
+                std::string name = Serial1.readStringUntil('\0').c_str();
                 Serial.println("Received init message");
                 Serial.println("Server name: " + String(name.c_str()) + String(name.size()));
                 client.start(name);
