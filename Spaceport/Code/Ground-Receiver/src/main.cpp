@@ -10,20 +10,20 @@ Si4463HardwareConfig hwcfg = {
     MOD_2GFSK,       // modulation
     DR_100k,         // data rate
     (uint32_t)433e6, // frequency (Hz)
-    127,             // tx power (127 = ~20dBm)
+    POWER_HP_20dBm,  // tx power (127 = ~20dBm)
     48,              // preamble length
     16,              // required received valid preamble
 };
 
 Si4463PinConfig pincfg = {
     &SPI, // spi bus to use
-    10,   // cs
-    38,   // sdn
-    33,   // irq
-    34,   // gpio0
-    35,   // gpio1
-    36,   // random pin - gpio2 is not connected
-    37,   // random pin - gpio3 is not connected
+    33,   // cs
+    39,   // sdn
+    34,   // irq
+    35,   // gpio0
+    36,   // gpio1
+    37,   // random pin - gpio2 is not connected
+    38,   // random pin - gpio3 is not connected
 };
 
 Si4463 radio(hwcfg, pincfg);
@@ -249,7 +249,7 @@ void loop()
     // set the flag to transmit data
     if (strcmp(telem.config.callsign, "KC3UTM") == 0)
       hasAirbrakeTelem = true;
-    if (strcmp(telem.config.callsign, "KC3YKX") == 0)
+    if (strcmp(telem.config.callsign, "KC3UTM") == 0)
       hasAvionicsTelem = true;
   }
 
