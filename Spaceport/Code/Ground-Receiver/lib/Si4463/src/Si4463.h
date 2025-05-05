@@ -6,7 +6,7 @@
 #include "SPI.h"
 
 // include the default configuration file
-#include "si4463_default.h"
+#include "Si4463_default.h"
 // RF4463F30 COTS radios require this to be defined
 // #define RF4463F30
 // set to 1 to always force using SPI for CTS
