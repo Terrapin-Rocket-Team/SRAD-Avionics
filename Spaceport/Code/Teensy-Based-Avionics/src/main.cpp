@@ -112,8 +112,8 @@ void calcStuff();
 void loop()
 {
     btRad.rx();
-    if (Serial1.available())
-        Serial.write(Serial1.read());
+    // if (Serial1.available())
+    //     Serial.write(Serial1.read());
     if (millis() > .5 * 1000 * 60)
         pi.setOn(true);
     if (t.getStage() > 0 || millis() > 2 * 1000 * 60)
