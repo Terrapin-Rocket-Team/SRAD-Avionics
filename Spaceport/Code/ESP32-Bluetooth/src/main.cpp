@@ -14,14 +14,14 @@
 #define SERIAL_DBG Serial
 #define SERIAL_IN Serial1
 #else
-#define SERIAL_DBG Serial1
+#define SERIAL_DBG Serial
 #define SERIAL_IN Serial
 #endif
 
 #ifdef SERVER
 BluetoothServer server(SERIAL_IN);
 #else
-BluetoothClient client(SERIAL_IN);
+BluetoothClient client(SERIAL_IN, SERIAL_DBG);
 #endif
 
 void setup()
