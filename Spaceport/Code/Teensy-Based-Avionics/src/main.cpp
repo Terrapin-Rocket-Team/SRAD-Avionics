@@ -132,9 +132,9 @@ void loop()
         return;
 
     char str[512];
-    // int i = snprintf(str, 512, "La %.7f Lo %.7f Al %.2f Hd %.2f Ql %d", 1.0, 1.0, 2.0, 360.0, 5);
-    snprintf(str, 512, "1234567890123456789");
-    btRad.tx("Hello", 5);
+    int i = snprintf(str, 512, "La %.7f Lo %.7f Al %.2f Hd %.2f Ql %d", 1.0, 1.0, 2.0, 360.0, 5);
+    // snprintf(str, 512, "1234567890123456789");
+    // btRad.tx("Hello", 5);
     btRad.tx((uint8_t *)str, strlen(str));
     Serial.printf("sent %d\n", strlen(str));
     // calcStuff();
