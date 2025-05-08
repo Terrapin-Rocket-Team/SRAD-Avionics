@@ -5,7 +5,7 @@ Pi::Pi(int pinControl, int pinVideo)
     this->pinControl = pinControl;
     this->pinVideo = pinVideo;
 
-    pinMode(pinControl, OUTPUT);
+    pinMode(pinControl, INPUT);
     pinMode(pinVideo, OUTPUT);
 
     digitalWrite(pinVideo, HIGH); // Set video pin to high (off) by default
@@ -16,16 +16,25 @@ Pi::Pi(int pinControl, int pinVideo)
 
 void Pi::setOn(bool on)
 {
-    digitalWrite(this->pinControl, on ? HIGH : LOW);
+    if (this->on == on)
+        return;
+    digitalWrite(this->pinControl, LOW);
+    delayMicroseconds(10);
+    digitalWrite(this->pinControl, HIGH);
+    bb.aonoff(mmfs::BUZZER, 50, 5); // Buzz 3 times (100ms on, 100ms off)
+
     this->on = on;
 }
 
 void Pi::setRecording(bool recording)
 {
-    if(this->recording == recording) return; // If the recording state is the same, do nothing
+    if (this->recording == recording)
+        return; // If the recording state is the same, do nothing
 
-    bb.aonoff(mmfs::BUZZER, 100, 3); // Buzz 3 times (100ms on, 100ms off)
-    digitalWrite(pinVideo, recording ? LOW : HIGH);
+    bb.aonoff(mmfs::BUZZER, 50, 2); // Buzz 3 times (100ms on, 100ms off)
+    digitalWrite(this->pinVideo, LOW);
+    delayMicroseconds(10);
+    digitalWrite(this->pinVideo, HIGH);
     this->recording = recording;
 }
 
