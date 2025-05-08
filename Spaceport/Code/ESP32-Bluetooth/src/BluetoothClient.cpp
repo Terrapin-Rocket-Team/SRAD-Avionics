@@ -167,7 +167,7 @@ void BluetoothClient::handleTxCallback(BLERemoteCharacteristic *pBLERemoteCharac
         {
             dbgSerial.println("Sending data received from server to serial");
             outSerial.write(DATA_MESSAGE);
-            outSerial.write(size);
+            outSerial.write((uint8_t *)&size, 2);
             outSerial.write(pData + sizeof(uint16_t), size);
         }
         else
