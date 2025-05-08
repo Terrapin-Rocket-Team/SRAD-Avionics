@@ -2,15 +2,18 @@
 #include "RadioMessage.h"
 #include "Si4463.h"
 
-#define BUZZER 0
+// #define BUZZER 0
+
+// radio config header
+#include "422Mc110_2GFSK_500000U.h"
 
 Si4463HardwareConfig hwcfg = {
-    MOD_2GFSK, // modulation
-    DR_500b,   // data rate
-    433e6,     // frequency (Hz)
-    127,       // tx power (127 = ~20dBm)
-    48,        // preamble length
-    16,        // required received valid preamble
+    MOD_2GFSK,       // modulation
+    DR_500k,         // data rate
+    (uint32_t)433e6, // frequency (Hz)
+    127,             // tx power (127 = ~20dBm)
+    48,              // preamble length
+    16,              // required received valid preamble
 };
 
 Si4463PinConfig pincfg = {
@@ -31,19 +34,19 @@ APRSConfig aprscfg = {"KC3UTM", "ALL", "WIDE1-1", TextMessage, '\\', 'M'};
 
 APRSText testMessage(aprscfg, "RSSI test, longer test message", "");
 
-void beep(int d)
-{
-    digitalWrite(BUZZER, HIGH);
-    delay(d);
-    digitalWrite(BUZZER, LOW);
-    delay(d);
-}
+// void beep(int d)
+// {
+//     digitalWrite(BUZZER, HIGH);
+//     delay(d);
+//     digitalWrite(BUZZER, LOW);
+//     delay(d);
+// }
 
 void setup()
 {
     Serial.begin(9600);
-    pinMode(BUZZER, OUTPUT);
-    digitalWrite(BUZZER, LOW);
+    // pinMode(BUZZER, OUTPUT);
+    // digitalWrite(BUZZER, LOW);
 
     if (!radio.begin())
     {
@@ -51,12 +54,12 @@ void setup()
         Serial.flush();
         while (1)
         {
-            beep(1000);
+            // beep(1000);
         }
     }
     Serial.println("Radio began successfully");
 
-    beep(100);
+    // beep(100);
 }
 
 void loop()
