@@ -35,7 +35,7 @@ uint8_t buf[MSG_LENGTH];
 uint32_t received = 0;
 uint32_t timeouts = 0;
 
-APRSConfig aprscfg = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
+APRSConfig aprscfg = {"KD3BBD", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
 
 APRSText testMessage(aprscfg);
 

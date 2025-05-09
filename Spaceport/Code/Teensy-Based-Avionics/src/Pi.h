@@ -8,9 +8,9 @@ class Pi
 {
 public:
     Pi(int pinControl, int pinVideo);
-    // void setOn(bool on);
+    void setOn(bool on);
     void setRecording(bool recording);
-    // bool isOn();
+    bool isOn();
     bool isRecording();
 
 private:

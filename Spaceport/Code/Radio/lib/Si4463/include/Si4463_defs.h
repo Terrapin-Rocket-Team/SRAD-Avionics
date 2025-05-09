@@ -62,6 +62,15 @@ enum Si4463Band : uint8_t
     BAND_900 = 0b00001000,
 };
 
+// output power presets
+enum Si4463Power : uint8_t
+{
+    POWER_HP_33dBm = 25,
+    POWER_HP_20dBm = 8,
+    POWER_HP_23dBm = 11,
+    POWER_LP_20dBm = 127,
+};
+
 // pin settings
 enum Si4463Pin : uint8_t
 {

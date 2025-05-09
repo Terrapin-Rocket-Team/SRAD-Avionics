@@ -1,23 +1,24 @@
 #include <Arduino.h>
 #include <MMFS.h>
-#include <Radio/ESP32BluetoothRadio.h>
-
 #include "AvionicsState.h"
 #include "AvionicsKF.h"
 #include "AviEventListener.h"
 #include "Pi.h"
 #include "Si4463.h"
+#include "Radio/ESP32BluetoothRadio.h"
+#include "VoltageSensor.h"
 
-#define RPI_PWR 24
-#define RPI_VIDEO 25
+#define RPI_PWR 8
+#define RPI_VIDEO 7
 
 using namespace mmfs;
 
 MAX_M10S m;
 DPS310 d;
 BMI088andLIS3MDL b;
+VoltageSensor vsfc(A0, 330, 220, "Flight Computer Voltage");
 
-Sensor *s[] = {&m, &d, &b};
+Sensor *s[] = {&m, &d, &b, &vsfc};
 AvionicsKF fk;
 AvionicsState t(s, sizeof(s) / 4, &fk);
 
@@ -26,15 +27,15 @@ uint8_t encoding[] = {7, 4, 4};
 APRSTelem aprs(aprsConfig);
 Message msg;
 
-ESP32BluetoothRadio btRad(Serial8, "AVIONICS", true);
+ESP32BluetoothRadio btRad(Serial1, "AVIONICS", true);
 
 Si4463HardwareConfig hwcfg = {
-    MOD_2GFSK, // modulation
-    DR_100k,   // data rate
-    433e6,     // frequency (Hz)
-    5,         // tx power (127 = ~20dBm)
-    48,        // preamble length
-    16,        // required received valid preamble
+    MOD_2GFSK,      // modulation
+    DR_100k,        // data rate
+    433e6,          // frequency (Hz)
+    POWER_HP_33dBm, // tx power (127 = ~20dBm)
+    48,             // preamble length
+    16,             // required received valid preamble
 };
 
 Si4463PinConfig pincfg = {
@@ -68,9 +69,9 @@ MMFSConfig a = MMFSConfig()
                    .withBBAsync(true, 50)
                    .withBBPin(LED_BUILTIN)
                    .withBBPin(32)
-                   .withBuzzerPin(33)
+                    //   .withBuzzerPin(33)
                    .withUsingSensorBiasCorrection(true)
-                   .withUpdateRate(10)
+                   .withUpdateRate(5)
                    .withState(&t);
 MMFSSystem sys(&a);
 
@@ -79,35 +80,43 @@ AviEventLister listener;
 void setup()
 {
     sys.init();
-    // Serial8.begin(9600);
+    Serial8.begin(9600);
     bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
-    // if (radio.begin())
-    // {
-    //     bb.onoff(BUZZER, 1000); // 1 x 1 sec beep for sucessful initialization
-    //     getLogger().recordLogData(INFO_, "Initialized Radio");
-    // }
-    // else
-    // {
-    //     bb.onoff(BUZZER, 2000, 3); // 3 x 2 sec beep for uncessful initialization
-    //     getLogger().recordLogData(ERROR_, "Initialized Radio Failed");
-    // }
 
-    if (btRad.begin()) {
+    if (btRad.begin())
+    {
         bb.onoff(BUZZER, 500); // 1 x 0.5 sec beep for sucessful initialization
         getLogger().recordLogData(INFO_, "Initialized Bluetooth");
-    } else {
+    }
+    else
+    {
         bb.onoff(BUZZER, 1000, 3); // 3 x 2 sec beep for uncessful initialization
         getLogger().recordLogData(ERROR_, "Initialized Bluetooth Failed");
     }
+
+    // if (radio.begin())
+    // {
+    //     bb.onoff(BUZZER, 1000);
+    //     getLogger().recordLogData(ERROR_, "Radio initialized.");
+    // }
+    // else
+    // {
+    //     bb.onoff(BUZZER, 200, 3);
+    //     getLogger().recordLogData(INFO_, "Radio failed to initialize.");
+    // }
+
     getLogger().recordLogData(INFO_, "Initialization Complete");
 }
 double radio_last;
 void calcStuff();
 void loop()
 {
-    if (Serial8.available())
-        Serial.write(Serial8.read());
-    if (t.getStage()> 0)
+    btRad.rx();
+    // if (Serial1.available())
+    //     Serial.write(Serial1.read());
+    if (millis() > .5 * 1000 * 60)
+        pi.setOn(true);
+    if (t.getStage() > 0 || millis() > 2 * 1000 * 60)
         pi.setRecording(true);
     // if (millis() > 15 * 1000)
     //     pi.setRecording(false);
@@ -115,17 +124,20 @@ void loop()
     // radio.update();
     if (sys.update())
     {
-        char str[512];
-        int i = snprintf(str, 512, "La %f Lo %f Al %f Hd %f Ql %d", m.getPos().x(), m.getPos().y(), m.getPos().z(), m.getHeading(), m.getFixQual());
-        Serial.printf("Sending '%s' over BT Radio\n", str);
-        btRad.tx((uint8_t *)str, i);
-        calcStuff();
+        // Serial.printf("%.2f | %.2f\n", vsfc.getRawVoltage(), vsfc.getRealVoltage()); // this would never work lmao
     }
 
     double time = millis();
-    if (time - radio_last < 1000)
+    if (time - radio_last < 2000)
         return;
 
+    char str[512];
+    int i = snprintf(str, 512, "La %.7f Lo %.7f Al %.2f Hd %.2f Ql %d", 1.0, 1.0, 2.0, 360.0, 5);
+    // snprintf(str, 512, "1234567890123456789");
+    // btRad.tx("Hello", 5);
+    btRad.tx((uint8_t *)str, strlen(str));
+    Serial.printf("sent %d\n", strlen(str));
+    // calcStuff();
     radio_last = time;
     msg.clear();
     // radio.update();
@@ -178,25 +190,21 @@ void calcStuff()
         {
             Serial8.println("360");
             counter++;
-
         }
         else if (t.getTimeSinceLastStage() > 300 && counter <= 3)
         {
             Serial8.println("180");
             counter++;
-
         }
     }
     else if (t.getStage() == 4 && counter <= 4)
     {
         Serial8.println("180");
         counter++;
-
     }
     else if (t.getStage() == 4 && t.getTimeSinceLastStage() > 30 && counter <= 5)
     {
-        Serial.println("0");
+        Serial8.println("0");
         counter++;
-        
     }
 }

@@ -2,31 +2,27 @@ import RPi.GPIO as GPIO
 import subprocess
 import time
 import signal
-
+from datetime import datetime
 # GPIO Configuration
 CMD_PIN = 6    # Input pin (from Teensy)
-RESP_PIN = 5   # Output pin (to Teensy)
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(CMD_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(RESP_PIN, GPIO.OUT, initial=GPIO.HIGH)
+GPIO.setup(CMD_PIN, GPIO.IN)
 
 # Process control
 recording = False
 ffmpeg_process = None
 
+unixTime = int((datetime.now() - datetime(1970, 1, 1)).total_seconds())
+
 def start_recording():
     global ffmpeg_process
     command = [
-        'ffmpeg',
-        '-video_size', '1280x720', # Input resolution
-        '-framerate', '30',        # Input framerate
-        '-i', '/dev/video0',       # Camera device
-        '-c:v', 'librav1e',        # AV1 encoding via rav1e
-        '-speed', '6',             # Speed preset (0-10, 6=real-time)
-        '-threads', '4',           # Number of encoding threads
-        '-qp', '40',               # Quality parameter (adjust as needed)
-        '-y',                      # Overwrite output
-        'output.ivf'               # Output path (IVF container)
+        'raspicam-vid',
+        '-t', '0', # Input resolution
+        '--width', '1920',        # Input framerate
+        '--height', '1080',       # Camera device
+        '-framerate', '30',        # AV1 encoding via rav1e
+        '-o', f'output_{str(unixTime)}.ivf',             # Speed preset (0-10, 6=real-time)
     ]
     ffmpeg_process = subprocess.Popen(command, 
                                     stdin=subprocess.PIPE,
@@ -48,14 +44,12 @@ def cmd_callback(channel):
         # Start recording
         start_recording()
         recording = True
-        GPIO.output(RESP_PIN, GPIO.LOW)
         print("Recording started")
         
     elif cmd_state == GPIO.HIGH and recording:
         # Stop recording
         stop_recording()
         recording = False
-        GPIO.output(RESP_PIN, GPIO.HIGH)
         print("Recording stopped")
 
 # Add interrupt detection for both edges
