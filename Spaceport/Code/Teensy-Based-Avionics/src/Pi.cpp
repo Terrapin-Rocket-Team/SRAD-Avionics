@@ -5,7 +5,7 @@ Pi::Pi(int pinControl, int pinVideo)
     this->pinControl = pinControl;
     this->pinVideo = pinVideo;
 
-    pinMode(pinControl, INPUT);
+    pinMode(this->pinControl, INPUT_DISABLE);
     pinMode(pinVideo, OUTPUT);
 
     digitalWrite(pinVideo, HIGH); // Set video pin to high (off) by default
@@ -18,9 +18,10 @@ void Pi::setOn(bool on)
 {
     if (this->on == on)
         return;
+    pinMode(this->pinControl, OUTPUT);
     digitalWrite(this->pinControl, LOW);
     delayMicroseconds(10);
-    digitalWrite(this->pinControl, HIGH);
+    pinMode(this->pinControl, INPUT_DISABLE);
     bb.aonoff(mmfs::BUZZER, 50, 5); // Buzz 3 times (100ms on, 100ms off)
 
     this->on = on;
