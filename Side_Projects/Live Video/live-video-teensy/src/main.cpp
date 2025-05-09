@@ -10,10 +10,10 @@
 // radio config header
 #include "422Mc110_2GFSK_500000U.h"
 
-#define MSG_THRESH 4000
 #define MSG_CHUNK_SIZE 255
-#define MSG_SIZE (MSG_CHUNK_SIZE * 16)              // 8160 (should be * 32)
+#define MSG_SIZE (MSG_CHUNK_SIZE * 32)              // 8160 (should be * 32)
 #define MSG_CHUNK_DATA_SIZE (MSG_CHUNK_SIZE - NPAR) // 251
+#define MSG_THRESH (MSG_SIZE)
 
 bool sdInit(SdFs &sd, FsFile &f, bool read);
 void sdWrite(FsFile &f, const uint8_t *data, int length);
@@ -35,10 +35,13 @@ int bytesThisMessage = 0;
 uint32_t txTimeout = millis();
 
 // testing
-uint32_t debugTimer = millis();
+uint32_t debugTimer = micros();
+int debugCounter = 0;
+uint32_t debugLoopTime = 0;
 // end testing
 
 RS rs;
+bool disableRS = true;
 
 GSData vHeader(VideoData::type, 3, 1);
 uint8_t vHeaderBuf[GSData::headerLen] = {};
@@ -50,7 +53,7 @@ Si4463HardwareConfig hwcfg = {
     MOD_2GFSK,       // modulation
     DR_500k,         // data rate
     (uint32_t)433e6, // frequency (Hz)
-    127,             // tx power (127 = ~20dBm)
+    5,               // tx power (127 = ~20dBm)
     48,              // preamble length
     16,              // required received valid preamble
 };
@@ -58,12 +61,12 @@ Si4463HardwareConfig hwcfg = {
 Si4463PinConfig pincfg = {
     &SPI, // spi bus to use
     10,   // cs
-    7,    // sdn
-    24,   // irq
-    26,   // gpio0
-    25,   // gpio1
-    8,    // random pin - gpio2 is not connected
-    9,    // random pin - gpio3 is not connected
+    38,   // sdn
+    33,   // irq
+    34,   // gpio0
+    35,   // gpio1
+    36,   // random pin - gpio2 is not connected
+    37,   // random pin - gpio3 is not connected
 };
 
 Si4463 radio(hwcfg, pincfg);
@@ -84,13 +87,13 @@ void setup()
   if (CrashReport)
     Serial.println(CrashReport);
 
-  // if (!radio.begin(CONFIG_422Mc110_2GFSK_500000U, sizeof(CONFIG_422Mc110_2GFSK_500000U)))
-  // {
-  //   Serial.println("Transmitter failed to begin");
-  //   Serial.flush();
-  //   while (1)
-  //     ;
-  // }
+  if (!radio.begin(CONFIG_422Mc110_2GFSK_500000U, sizeof(CONFIG_422Mc110_2GFSK_500000U)))
+  {
+    Serial.println("Transmitter failed to begin");
+    Serial.flush();
+    while (1)
+      ;
+  }
 
   if (MSG_THRESH > MSG_SIZE)
   {
@@ -102,27 +105,35 @@ void setup()
 
   // using buf because just need a valid arr
   // only need to extract the header
-  vHeader.fill(buf, MSG_SIZE);
-  vHeader.encode(buf, MSG_SIZE);
+  // vHeader.fill(buf, MSG_SIZE);
+  // vHeader.encode(buf, MSG_SIZE);
   // this header should be valid for every packet
-  memcpy(vHeaderBuf, buf, GSData::headerLen);
+  // memcpy(vHeaderBuf, buf, GSData::headerLen);
   // reset buf for good measure
-  memset(buf, 0, MSG_SIZE);
+  // memset(buf, 0, MSG_SIZE);
 
   // write GSM header
-  GSData::encodeGSMHeader(GSMHeader, GSData::gsmHeaderSize, 400000);
+  // GSData::encodeGSMHeader(GSMHeader, GSData::gsmHeaderSize, 400000);
 
   // sdInit(s, out, false);
   // sdWrite(s, out, (const uint8_t *)"hello", sizeof("hello"));
 
-  // Serial.println("Setup complete");
+  Serial.print("Reed solomon is: ");
+  Serial.println(disableRS ? "DISABLED" : "ENABLED");
+  Serial.print("Message size is: ");
+  Serial.print(MSG_SIZE);
+  Serial.println(" bytes");
+  Serial.print("Threshold is: ");
+  Serial.print(MSG_THRESH);
+  Serial.println(" bytes");
+  Serial.println("Setup complete");
 }
 
 void loop()
 {
-
+  debugTimer = micros();
   // reading from Raspi
-  while (Serial5.available() > 0 && top + 5 < MSG_SIZE * 3)
+  if (Serial5.available() > 0 && top + 5 < MSG_SIZE * 3)
   // while (Wire.available() > 0 && top + 5 < MSG_SIZE * 3)
   {
     txTimeout = millis();
@@ -135,8 +146,11 @@ void loop()
       toSend++;
     }
 
+    // if (hasTransmission)
+    //   radio.update();
+
     // add RS once we have MSG_CHUNK_SIZE bytes
-    if (top != 0 && ((top - (MSG_CHUNK_SIZE * (top / MSG_CHUNK_SIZE))) % MSG_CHUNK_DATA_SIZE) == 0)
+    if (top != 0 && ((top - (MSG_CHUNK_SIZE * (top / MSG_CHUNK_SIZE))) % MSG_CHUNK_DATA_SIZE) == 0 && !disableRS)
     {
       // (top - (MSG_CHUNK_SIZE * (top / MSG_CHUNK_SIZE))) the number of bytes not part of an already coded message
       // Serial.println("RS");
@@ -184,11 +198,9 @@ void loop()
   // Refill fifo here
   if (hasTransmission && toSend > 0)
   {
-    // wrong
-    // radio.writeTXBuf(buf + bytesThisMessage, toSend);
+    radio.writeTXBuf(buf + bytesThisMessage, toSend);
     // sdWrite(out, buf + bytesThisMessage, toSend);
-    // correct
-    Serial.write(buf + bytesThisMessage, toSend);
+    // Serial.write(buf + bytesThisMessage, toSend);
     sent = toSend;
     bytesThisMessage += toSend;
     toSend = 0;
@@ -198,17 +210,17 @@ void loop()
   if ((top >= MSG_THRESH || (millis() - txTimeout > 100 && top > 0 && !firstTX)) && !hasTransmission)
   {
     // TODO: remove temp
-    if (firstTX)
-      Serial.write(GSMHeader, GSData::gsmHeaderSize);
+    // if (firstTX)
+    //   Serial.write(GSMHeader, GSData::gsmHeaderSize);
 
     firstTX = false;
     hasTransmission = true;
     toSend = (top > MSG_SIZE) ? MSG_SIZE : top;
     // TEMP: write GSData header for testing with ground station
-    Serial.write(vHeaderBuf, GSData::headerLen);
+    // Serial.write(vHeaderBuf, GSData::headerLen);
     // write data
-    Serial.write(buf + bytesThisMessage, toSend);
-    // radio.startTX(buf + bytesThisMessage, toSend, MSG_SIZE);
+    // Serial.write(buf + bytesThisMessage, toSend);
+    radio.startTX(buf + bytesThisMessage, toSend, MSG_SIZE);
     // sdWrite(out, buf + bytesThisMessage, toSend);
 
     // set all status vars
@@ -223,7 +235,7 @@ void loop()
   //   sent = 0;
   // }
 
-  if ((bytesThisMessage == MSG_SIZE || (millis() - txTimeout > 100 && toSend == 0 && hasTransmission)))
+  if ((bytesThisMessage == MSG_SIZE || (millis() - txTimeout > 100 && toSend == 0)) && hasTransmission && radio.state == STATE_IDLE)
   {
     // remove sent bytes
     top -= bytesThisMessage;
@@ -232,10 +244,15 @@ void loop()
     if (millis() - txTimeout > 100 && toSend == 0 && hasTransmission)
     {
       // sdClose(out);
-      // Serial.println("finished");
     }
     hasTransmission = false;
+    Serial.println();
+    Serial.print("top ");
+    Serial.print(top);
+    Serial.println(" finished");
   }
+
+  radio.update();
 
   // if (millis() - debugTimer > 100)
   // {
@@ -250,9 +267,15 @@ void loop()
   //   Serial.print(toSend);
   //   Serial.print("\tbytesThisMessage ");
   //   Serial.print(bytesThisMessage);
+  //   Serial.print("\tavailLen ");
+  //   Serial.print(radio.availLen);
+  //   Serial.print("\txfrd ");
+  //   Serial.print(radio.xfrd);
+  //   Serial.print("\tTX_MODE ");
+  //   Serial.print(radio.gpio3());
+  //   Serial.print("\tTX_FIFO_EMPTY ");
+  //   Serial.print(radio.gpio0());
   // }
-
-  radio.update();
 
   if (radio.state == STATE_TX && radio.availLen > 0 && radio.availLen == radio.xfrd && radio.xfrd < MSG_SIZE && radio.gpio0())
   {
