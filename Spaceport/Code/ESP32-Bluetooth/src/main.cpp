@@ -13,18 +13,19 @@
 #ifdef SERVER
 BluetoothServer server(Serial1);
 #else
-BluetoothClient client(Serial);
+BluetoothClient client(Serial1);
 #endif
 
 void setup() {
     Serial.begin(9600);
+    //36 and 37 on the actual board, 16, 17 on the dev board
     Serial1.begin(9600, SERIAL_8N1, 16, 17);
     Serial.println("Hello from ESP32!");
 #ifdef DEBUG
 #ifdef SERVER
     Serial.println("Server booted!");
     Serial.flush();
-    // server.start("ESP32 BLE Server");
+    // server.start("AVIONICS");
 #else
     Serial.println("Client booted!");
     Serial.flush();
@@ -72,7 +73,7 @@ void clientLoop() {
         if (Serial1.available()) {
             const uint8_t messageID = Serial1.read();
             if (messageID == INIT_MESSAGE) {
-                std::string name = Serial1.readString().c_str();
+                std::string name = Serial1.readStringUntil('\n').c_str();
                 Serial.println("Received init message");
                 Serial.println("Server name: " + String(name.c_str()));
                 client.start(name);

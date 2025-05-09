@@ -17,6 +17,7 @@ bool BluetoothClient::start(const std::string &serverName) { //is this the start
     //add serial communication code because currently it's all bluetooth
     this->serverName = serverName;
     BLEDevice::init("");
+    BLEDevice::setMTU(128);
     Serial.println("Initializing client device with target server " + String(serverName.c_str()));
 
     pClient = BLEDevice::createClient();
