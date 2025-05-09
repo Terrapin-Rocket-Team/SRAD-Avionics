@@ -1,5 +1,7 @@
 #include <Arduino.h>
 #include <MMFS.h>
+#include <Radio/ESP32BluetoothRadio.h>
+
 #include "AvionicsState.h"
 #include "AvionicsKF.h"
 #include "AviEventListener.h"
@@ -24,7 +26,7 @@ uint8_t encoding[] = {7, 4, 4};
 APRSTelem aprs(aprsConfig);
 Message msg;
 
-// ESP32BluetoothRadio btRad(Serial1, "AVIONICS", true);
+ESP32BluetoothRadio btRad(Serial8, "AVIONICS", true);
 
 Si4463HardwareConfig hwcfg = {
     MOD_2GFSK, // modulation
@@ -77,7 +79,7 @@ AviEventLister listener;
 void setup()
 {
     sys.init();
-    Serial8.begin(115200);
+    // Serial8.begin(9600);
     bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
     // if (radio.begin())
     // {
@@ -90,13 +92,13 @@ void setup()
     //     getLogger().recordLogData(ERROR_, "Initialized Radio Failed");
     // }
 
-    // if (btRad.begin()) {
-    //     bb.onoff(BUZZER, 500); // 1 x 0.5 sec beep for sucessful initialization
-    //     getLogger().recordLogData(INFO_, "Initialized Bluetooth");
-    // } else {
-    //     bb.onoff(BUZZER, 1000, 3); // 3 x 2 sec beep for uncessful initialization
-    //     getLogger().recordLogData(ERROR_, "Initialized Bluetooth Failed");
-    // }
+    if (btRad.begin()) {
+        bb.onoff(BUZZER, 500); // 1 x 0.5 sec beep for sucessful initialization
+        getLogger().recordLogData(INFO_, "Initialized Bluetooth");
+    } else {
+        bb.onoff(BUZZER, 1000, 3); // 3 x 2 sec beep for uncessful initialization
+        getLogger().recordLogData(ERROR_, "Initialized Bluetooth Failed");
+    }
     getLogger().recordLogData(INFO_, "Initialization Complete");
 }
 double radio_last;
@@ -113,9 +115,10 @@ void loop()
     // radio.update();
     if (sys.update())
     {
-        // char str[512];
-        // int i = snprintf(str, 512, "La %f Lo %f Al %f Hd %f Ql %d", m.getPos().x(), m.getPos().y(), m.getPos().z(), m.getHeading(), m.getFixQual());
-        // btRad.tx((uint8_t *)str, i);
+        char str[512];
+        int i = snprintf(str, 512, "La %f Lo %f Al %f Hd %f Ql %d", m.getPos().x(), m.getPos().y(), m.getPos().z(), m.getHeading(), m.getFixQual());
+        Serial.printf("Sending '%s' over BT Radio\n", str);
+        btRad.tx((uint8_t *)str, i);
         calcStuff();
     }
 

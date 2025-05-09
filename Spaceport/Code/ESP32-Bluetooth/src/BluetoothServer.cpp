@@ -20,6 +20,7 @@ bool BluetoothServer::start(const std::string &name) {
     this->name = name;
 
     BLEDevice::init(name);
+    BLEDevice::setMTU(128);
 
     Serial.print("Server Device initialized with name: ");
     Serial.println(name.c_str());
@@ -139,7 +140,7 @@ void BluetoothServer::onWrite(BLECharacteristic *pCharacteristic, esp_ble_gatts_
             const uint8_t *data = pRxCharacteristic->getData() + sizeof(uint16_t);
             Serial.println("Message content");
             for (int i = 0; i < size; i++) {
-                Serial.print(data[i]);
+                Serial.print(static_cast<char>(data[i]));
             }
             Serial.println("");
             outSerial.write(DATA_MESSAGE);
@@ -160,6 +161,8 @@ ClientConnectionHandler::ClientConnectionHandler(BluetoothServer *pServer) {
 
 void ClientConnectionHandler::onConnect(BLEServer *pServer) {
     Serial.println("Client connection established!");
+    pServer->updatePeerMTU(pServer->getConnId(), 128);
+    Serial.println("Peer MTU: " + String(pServer->getPeerMTU(pServer->getConnId())));
     // Serial.println("onConnect, restarting advertising");
     // pServer->startAdvertising(); //restart advertising when a device connects
 }
