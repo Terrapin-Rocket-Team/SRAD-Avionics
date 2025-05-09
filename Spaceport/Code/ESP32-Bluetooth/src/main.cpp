@@ -7,7 +7,7 @@
 #include <BluetoothClient.h>
 #include <BluetoothServer.h>
 
-#define SERVER
+// #define SERVER // SERVER is on Avionics, CLIENT is on Airbrake. Comment/uncomment line to change.
 #define DEBUG
 
 #ifdef SERVER
@@ -72,9 +72,9 @@ void clientLoop() {
         if (Serial1.available()) {
             const uint8_t messageID = Serial1.read();
             if (messageID == INIT_MESSAGE) {
-                std::string name = Serial1.readString().c_str();
+                std::string name = Serial1.readStringUntil('\n').c_str();
                 Serial.println("Received init message");
-                Serial.println("Server name: " + String(name.c_str()));
+                Serial.println("Server name: " + String(name.c_str()) + String(name.size()));
                 client.start(name);
             }
         }
@@ -98,7 +98,8 @@ void clientLoop() {
                         break;
                     }
                     default: {
-                        Serial.println("Unknown message");
+                        Serial.printf("Unknown message, %hhd\n", messageID);
+                        
                         break;
                     };
                 }
