@@ -25,9 +25,10 @@ private:
   BLECharacteristic *pTxCharacteristic = nullptr;
   BLEAdvertising *pAdvertising = nullptr;
   Stream &outSerial;
+  Stream &dbgSerial;
   bool initialized = false;
 public:
-  explicit BluetoothServer(Stream &outSerial);
+  explicit BluetoothServer(Stream &outSerial, Stream &dbgSerial);
   ~BluetoothServer() override;
 
   bool start(const std::string& name);
@@ -48,8 +49,9 @@ public:
 class ClientConnectionHandler : public BLEServerCallbacks {
 private:
   BluetoothServer *pServer = nullptr;
+  Stream &dbgSerial;
 public:
-  ClientConnectionHandler(BluetoothServer *pServer);
+  ClientConnectionHandler(BluetoothServer *pServer, Stream &dbgSerial);
   void onConnect(BLEServer *pServer) override;
   void onDisconnect(BLEServer *pServer) override;
 };
