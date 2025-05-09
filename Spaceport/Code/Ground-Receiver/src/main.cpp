@@ -17,13 +17,13 @@ Si4463HardwareConfig hwcfg = {
 
 Si4463PinConfig pincfg = {
     &SPI, // spi bus to use
-    10,   // cs
-    38,   // sdn
-    33,   // irq
-    34,   // gpio0
-    35,   // gpio1
+    33,   // cs
+    34,   // sdn
+    39,   // irq
+    38,   // gpio0
+    37,   // gpio1
     36,   // random pin - gpio2 is not connected
-    37,   // random pin - gpio3 is not connected
+    35,   // random pin - gpio3 is not connected
 };
 
 Si4463 radio(hwcfg, pincfg);
