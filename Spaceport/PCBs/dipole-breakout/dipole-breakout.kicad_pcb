@@ -45,7 +45,7 @@
 			(layerselection 0x00010fc_ffffffff)
 			(plot_on_all_layers_selection 0x0000000_00000000)
 			(disableapertmacros no)
-			(usegerberextensions no)
+			(usegerberextensions yes)
 			(usegerberattributes yes)
 			(usegerberadvancedattributes yes)
 			(creategerberjobfile yes)
@@ -74,9 +74,9 @@
 			(subtractmaskfromsilk no)
 			(outputformat 1)
 			(mirror no)
-			(drillshape 1)
+			(drillshape 0)
 			(scaleselection 1)
-			(outputdirectory "")
+			(outputdirectory "../Gerbers/dipole-breakout/")
 		)
 	)
 	(net 0 "")
@@ -803,7 +803,7 @@
 			(unlocked yes)
 			(layer "F.SilkS")
 			(hide yes)
-			(uuid "700deb60-64e3-4eaf-a71a-fef4efab3418")
+			(uuid "b4b5fc51-1df0-4f27-af14-8721b7cb64bb")
 			(effects
 				(font
 					(size 0.83312 0.83312)
@@ -817,7 +817,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "34c4eb9d-ba89-4943-8dcf-d9bcae89d4fe")
+			(uuid "c61957c1-2169-4cee-8c91-607a66cd6857")
 			(effects
 				(font
 					(size 0.73152 0.73152)
@@ -830,7 +830,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "3e3f347f-66ac-4f4c-9e6e-2b07610e8bee")
+			(uuid "a8039512-f14f-4e25-88b7-7c6ba2fa4ebc")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -842,7 +842,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "d6a2c7af-9dc9-4c66-8d48-146cf5686f62")
+			(uuid "d2d98fad-6bc9-4398-9026-7d018f550c85")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -854,7 +854,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "aa2eca54-b90b-4270-ae61-b7d73062d6ba")
+			(uuid "c8aee8b3-4315-4a3c-ad28-3fda5ff61aa4")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -868,7 +868,7 @@
 		(sheetfile "dipole-breakout.kicad_sch")
 		(pad "1" smd rect
 			(at 0 0 90)
-			(size 1.27 4.064)
+			(size 1.5 4.064)
 			(layers "F.Cu" "F.Mask")
 			(net 2 "GND")
 			(pinfunction "Pin_1")
@@ -876,7 +876,18 @@
 			(solder_mask_margin 0.1016)
 			(zone_connect 2)
 			(thermal_bridge_angle 0)
-			(uuid "4b0c1f9b-e7fa-4410-b2af-262259be6ff0")
+			(teardrops
+				(best_length_ratio 0.5)
+				(max_length 1)
+				(best_width_ratio 1)
+				(max_width 2)
+				(curve_points 0)
+				(filter_ratio 0.9)
+				(enabled yes)
+				(allow_two_segments yes)
+				(prefer_zone_connections yes)
+			)
+			(uuid "ffae8743-c27c-4737-9e74-33ccd4d185a5")
 		)
 	)
 	(footprint "Inductor_SMD:L_0805_2012Metric_Pad1.15x1.40mm_HandSolder"
@@ -1220,7 +1231,7 @@
 			(unlocked yes)
 			(layer "F.SilkS")
 			(hide yes)
-			(uuid "0dcf59f9-4439-4774-a878-e7627976c036")
+			(uuid "2b5eb5af-1226-4ba3-9703-c5aeea5296ac")
 			(effects
 				(font
 					(size 0.83312 0.83312)
@@ -1234,7 +1245,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "0d027f7c-1d86-4fcd-8069-66dfc5c964f8")
+			(uuid "c67f8d2c-590b-42dc-ab41-47b00f9d89c0")
 			(effects
 				(font
 					(size 0.73152 0.73152)
@@ -1247,7 +1258,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "ffee8d08-899f-4874-9d67-41bd1ec2eeee")
+			(uuid "4f506b9d-ebce-4f47-940f-c1aa9cf99bb9")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1259,7 +1270,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "bf2a4938-b655-4deb-a3b6-c63f046344b1")
+			(uuid "054b3d4f-39bf-41dc-8c34-7d4660de25ee")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1271,7 +1282,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "a0ba3896-d0e8-4abd-a9d0-83049b250566")
+			(uuid "55573c91-3826-4dd5-9eb2-8b302b62f93c")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1285,7 +1296,7 @@
 		(sheetfile "dipole-breakout.kicad_sch")
 		(pad "1" smd rect
 			(at 0 0 90)
-			(size 1.27 4.064)
+			(size 1.5 4.064)
 			(layers "F.Cu" "F.Mask")
 			(net 1 "Net-(J1-In)")
 			(pinfunction "Pin_1")
@@ -1293,7 +1304,18 @@
 			(solder_mask_margin 0.1016)
 			(zone_connect 2)
 			(thermal_bridge_angle 0)
-			(uuid "04df3de6-0b72-4b63-bb1b-c01770815225")
+			(teardrops
+				(best_length_ratio 0.5)
+				(max_length 1)
+				(best_width_ratio 1)
+				(max_width 2)
+				(curve_points 0)
+				(filter_ratio 0.9)
+				(enabled yes)
+				(allow_two_segments yes)
+				(prefer_zone_connections yes)
+			)
+			(uuid "804f0b84-5bfe-4cde-a781-18eb0939d705")
 		)
 	)
 	(footprint "MountingHole:MountingHole_2.2mm_M2"
@@ -1606,5 +1628,83 @@
 		(layer "B.Cu")
 		(net 2)
 		(uuid "1f9b942a-6fc2-48c2-b512-8418cbdb212e")
+	)
+	(zone
+		(net 1)
+		(net_name "Net-(J1-In)")
+		(layer "F.Cu")
+		(uuid "4abe5bcf-25f1-4c5f-887c-0ef52c04383e")
+		(name "$teardrop_padvia$")
+		(hatch full 0.1)
+		(priority 30000)
+		(attr
+			(teardrop
+				(type padvia)
+			)
+		)
+		(connect_pads yes
+			(clearance 0)
+		)
+		(min_thickness 0.0254)
+		(filled_areas_thickness no)
+		(fill yes
+			(thermal_gap 0.5)
+			(thermal_bridge_width 0.5)
+			(island_removal_mode 1)
+			(island_area_min 10)
+		)
+		(polygon
+			(pts
+				(xy 171.618 81.45) (xy 171.618 82.55) (xy 172.368 82.75) (xy 174.401 82) (xy 172.368 81.25)
+			)
+		)
+		(filled_polygon
+			(layer "F.Cu")
+			(pts
+				(xy 172.371477 81.251282) (xy 174.360467 81.985047) (xy 174.371245 81.989023) (xy 174.37782 81.995102)
+				(xy 174.378172 82.00405) (xy 174.372093 82.010625) (xy 174.371245 82.010977) (xy 172.37148 82.748716)
+				(xy 172.364415 82.749044) (xy 171.626685 82.552316) (xy 171.619575 82.546873) (xy 171.618 82.541011)
+				(xy 171.618 81.458989) (xy 171.621427 81.450716) (xy 171.626685 81.447684) (xy 172.364418 81.250955)
+			)
+		)
+	)
+	(zone
+		(net 2)
+		(net_name "GND")
+		(layer "F.Cu")
+		(uuid "f12bfd12-9b0a-4eba-943c-c67c55f50281")
+		(name "$teardrop_padvia$")
+		(hatch full 0.1)
+		(priority 30000)
+		(attr
+			(teardrop
+				(type padvia)
+			)
+		)
+		(connect_pads yes
+			(clearance 0)
+		)
+		(min_thickness 0.0254)
+		(filled_areas_thickness no)
+		(fill yes
+			(thermal_gap 0.5)
+			(thermal_bridge_width 0.5)
+			(island_removal_mode 1)
+			(island_area_min 10)
+		)
+		(polygon
+			(pts
+				(xy 168.882 82.55) (xy 168.882 81.45) (xy 168.132 81.25) (xy 166.099 82) (xy 168.132 82.75)
+			)
+		)
+		(filled_polygon
+			(layer "F.Cu")
+			(pts
+				(xy 168.873315 81.447684) (xy 168.880425 81.453127) (xy 168.882 81.458989) (xy 168.882 82.541011)
+				(xy 168.878573 82.549284) (xy 168.873315 82.552316) (xy 168.135584 82.749044) (xy 168.128519 82.748716)
+				(xy 166.128753 82.010976) (xy 166.122179 82.004898) (xy 166.121827 81.99595) (xy 166.127906 81.989375)
+				(xy 166.128746 81.989026) (xy 168.128522 81.251282) (xy 168.135581 81.250955)
+			)
+		)
 	)
 )
