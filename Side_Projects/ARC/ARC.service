@@ -1,0 +1,11 @@
+[Unit]
+Description=ARC Controller service
+After=multi-user.service
+
+[Service]
+Type=idle
+User=USER_NAME
+ExecStart=USER_SCRIPT/ARC_controller.py
+
+[Install]
+WantedBy=multi-user.target
