@@ -73,13 +73,14 @@ else
     echo "Found"
 fi
 
-# TODO: is boost needed?
-echo -n "Checking for Boost 1.74..."
-if [ ! -d /usr/include/boost ] || [ ! -f /usr/lib/aarch64-linux-gnu/libboost_program_options.so ]
+echo -n "Checking for wiringPi..."
+if [ ! -f /usr/include/wiringPi.h ]
 then
     echo "Not Found"
-    echo "Installing Boost 1.74"
-    apt install libboost1.74-all-dev -y
+    echo "Installing wiringPi..."
+    curl -LO https://github.com/WiringPi/WiringPi/releases/download/3.4/wiringpi_3.4_arm64.deb
+    apt install ./wiringpi_3.4_arm64.deb
+    rm wiringpi_3.4_arm64.deb
 else
     echo "Found"
 fi
@@ -110,12 +111,12 @@ echo "Building AV1 encoder..."
 sleep 1
 
 cmake ..
-make
+#make
 
 echo "Installing encoder..."
 sleep 1
 
-make install
+#make install
 
 cd ../../
 

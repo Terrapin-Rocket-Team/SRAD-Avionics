@@ -43,26 +43,26 @@ LDLIBS    = -lwiringPi -lwiringPiDev -lpthread -lm -lcrypt -lrt
 
 all: premake    main
 
-really-all:     $(BINS)
+really-all:	$(BINS)
 
 premake:
-        mkdir -p $(BUILDDIR)
+	mkdir -p $(BUILDDIR)
 
-main:   $(BUILDDIR)/main.o
-        $Q echo [link]
-        $Q $(CC) $^ -o $(BUILDDIR)/$@ $(LDFLAGS) $(LDLIBS)
+main:	$(BUILDDIR)/main.o
+	$Q echo [link]
+	$Q $(CC) $^ -o $(BUILDDIR)/$@ $(LDFLAGS) $(LDLIBS)
 
 $(BUILDDIR)/%.o: %.cpp
-        $Q echo [CC] $<
-        $Q $(CC) -c $(CFLAGS) $< -o $@
+	$Q echo [CC] $<
+	$Q $(CC) -c $(CFLAGS) $< -o $@
 
 clean:
-        $Q echo "[Clean]"
-        $Q rm -f $(OBJ) *~ core tags $(BINS)
+	$Q echo "[Clean]"
+	$Q rm -f $(OBJ) *~ core tags $(BINS)
 
-tags:   $(SRC)
-        $Q echo [ctags]
-        $Q ctags $(SRC)
+tags:	$(SRC)
+	$Q echo [ctags]
+	$Q ctags $(SRC)
 
 depend:
-        makedepend -Y $(SRC)
+	makedepend -Y $(SRC)

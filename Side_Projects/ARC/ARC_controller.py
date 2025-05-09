@@ -13,16 +13,17 @@ INTERFACE_PIN = 12 # Input pin (external source)
 # RESP_PIN = 5   # Output pin (to Teensy)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(CMD_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(INTERFACE_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 # GPIO.setup(RESP_PIN, GPIO.OUT, initial=GPIO.HIGH)
 unixTime = int((datetime.now() - datetime(1970, 1, 1)).total_seconds())
 
 logFile = open(os.path.expanduser("~/ARC_log/log_" + str(unixTime) + ".txt"), "w")
 
 # handy logging functions
-def logPrintln(str):
-    str = "[" + datetime.now().time() + "]" + str
-    print(str)
-    logFile.write(str + "\n")
+def logPrintln(s):
+    s = "[" + str(datetime.now().time()) + "] " + s
+    print(s)
+    logFile.write(s + "\n")
     logFile.flush()
 
 
