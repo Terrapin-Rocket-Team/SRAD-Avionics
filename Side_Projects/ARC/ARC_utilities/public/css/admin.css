@@ -1,0 +1,173 @@
+#admin-nav {
+  width: 100vw;
+  height: 12vh;
+  max-height: 55px;
+  background-color: #ccc;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 500;
+}
+
+#admin-nav-left,
+#admin-nav-right {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+#admin-nav-left {
+  width: 70%;
+  float: left;
+  justify-content: left;
+  padding-left: 3vw;
+}
+
+#admin-nav-right {
+  width: 30%;
+  float: right;
+  justify-content: right;
+  padding-right: 3vw;
+}
+
+#page-content {
+  height: 100vh;
+  width: 100vw;
+}
+
+.submission-info {
+  width: 90%;
+  height: 5vh;
+  margin: 2vh auto;
+  display: flex;
+  flex-direction: column;
+  background-color: #bbb;
+  border-radius: 5px;
+  transition: height 1s ease-in-out;
+  overflow: hidden;
+}
+
+.collapsed {
+  width: 100%;
+  min-height: 5vh;
+  display: flex;
+  align-items: center;
+  background-color: #bbb;
+  border-radius: 5px;
+  padding: 0 2vw;
+  position: relative;
+}
+
+.collapsed-info {
+  margin-right: 2vw;
+  max-width: 20%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: calc(1.5vh + 5px);
+}
+
+.collapsed a,
+.expanded a {
+  text-decoration: none;
+  color: #11a;
+  padding: 0 1vw;
+  border-radius: 3px;
+  transition: background-color 0.2s linear;
+  height: 4vh;
+  display: flex;
+  align-items: center;
+}
+
+.collapsed a:hover,
+.expanded a:hover {
+  cursor: pointer;
+  background-color: #999;
+  transition: background-color 0.2s linear;
+}
+
+.collapsed img {
+  height: 4vh;
+  width: 4vh;
+  border-radius: 3px;
+  position: absolute;
+  right: 1vw;
+  transition: background-color 0.2s linear;
+}
+
+.collapsed img:hover {
+  cursor: pointer;
+  background-color: #999;
+  transition: background-color 0.2s linear;
+}
+
+.submission-info.submission-expanded {
+  height: 25vh;
+  transition: height 1s ease-in-out;
+}
+
+.expanded {
+  width: 100%;
+  height: 20vh;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  background-color: #bbb;
+  border-radius: 5px;
+  padding: 0 2vw;
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.expanded p {
+  font-size: calc(2vh + 4px);
+}
+
+.expanded p.team {
+  font-size: calc(1.5vh + 5px);
+  margin-bottom: 1vh;
+}
+
+.expanded a {
+  display: block;
+  width: 20vw;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: calc(1.5vh + 5px);
+}
+
+.small-info {
+  margin-bottom: 1vh;
+  width: 100%;
+  height: 3vh;
+}
+
+.small-info span {
+  float: left;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.small-info a {
+  float: right;
+  width: 50%;
+  height: 100%;
+}
+
+@media only screen and (max-width: 1040px) {
+  .collapsed-info {
+    max-width: 40%;
+  }
+  .collapsed a {
+    display: none;
+  }
+  .files {
+    display: none;
+  }
+  .expanded {
+    flex-wrap: nowrap;
+  }
+}

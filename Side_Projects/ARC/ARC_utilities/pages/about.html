@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="css/about.css" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="js/about.js"></script>
+    <title>About Game Jam</title>
+  </head>
+  <body>
+    <nav id="top-nav">
+      <div id="top-nav-left">
+        <a id="logo" href="/"
+          ><img src="data/images/favicon.png" alt="Logo" />Urbana Game Jam</a
+        >
+        <a class="top-nav-link" href="/">Home</a>
+        <a class="top-nav-link active" href="/about">About</a>
+        <a class="top-nav-link" href="/tutorials">Tutorials</a>
+        <a class="top-nav-link" href="/submit">Submit</a>
+      </div>
+      <div id="top-nav-right">
+        <a
+          class="top-nav-link"
+          href="https://forms.gle/GFXUPB5Ac9JzXbWu6"
+          target="_blank"
+          >Register</a
+        >
+      </div>
+      <a id="logo-small" class="small-flex" href="/"
+        ><img src="data/images/favicon.png" alt="Logo" />Urbana Game Jam</a
+      >
+      <button id="hamburger-menu">
+        <img
+          src="data/images/menu.svg"
+          alt="Menu"
+          class="small"
+          id="hamburger-menu-img"
+        />
+      </button>
+    </nav>
+    <nav id="small-nav" class="small">
+      <div id="small-bar-buffer">
+        <p>Urbana Game Jam</p>
+        <img src="data/images/back_menu.svg" alt="Back" id="back" />
+      </div>
+      <div id="small-nav-top">
+        <a class="small-nav-link" href="/">Home</a>
+        <a class="small-nav-link" href="/about">About</a>
+        <a class="small-nav-link" href="/tutorials">Tutorials</a>
+        <a class="small-nav-link" href="/submit">Submit</a>
+      </div>
+      <div id="small-nav-bottom">
+        <a
+          class="small-nav-link"
+          href="https://forms.gle/GFXUPB5Ac9JzXbWu6"
+          target="_blank"
+          >Register</a
+        >
+      </div>
+    </nav>
+    <div id="page-content">
+      <div id="top-bar-buffer"></div>
+      <div id="header">
+        <div id="text-background">
+          <h1>About</h1>
+        </div>
+      </div>
+      <div id="header-separator"></div>
+      <div id="details">
+        <div id="details-about">
+          <h2>About Game Jam</h2>
+          <p>
+            Urbana Game Jam is a virtual game jam for high school students. It
+            will take place between May 21-28. A game jam is an event where
+            participants collaborate to create games. Your creative work will be
+            guided by a central theme revealed before the game jam starts. A
+            game jam focuses on rapid game development, allowing participants to
+            quickly discover new talents, enjoy programming and artistry, and
+            challenge themselves.<br /><br />To sign up, fill out the
+            registration form with your personal email account and join the
+            Discord. Email urbanagamejam@gmail.com with any questions.
+          </p>
+        </div>
+        <img
+          src="data/images/about_1.png"
+          alt="Oregon Trail"
+          id="details-img-1"
+        />
+        <div id="details-purpose">
+          <h2>Purpose</h2>
+          <p>
+            Our team noticed a niche in computer science classes that was not
+            explored more: the learning ability of games. We are interested in
+            promoting the fun and engaging aspects of computer science and
+            tapping into the creative side of every participant. A game jam is
+            an easy and fun way to meet like-minded individuals and learn at
+            your own pace on your own time.
+          </p>
+        </div>
+        <img
+          src="data/images/about_2.png"
+          alt="Atari Breakout"
+          id="details-img-2"
+        />
+      </div>
+      <div id="contact">
+        <div id="contact-text-container">
+          <h2>Contact</h2>
+          <p>Have questions? Here's how you can contact us.</p>
+          <form id="contact-form">
+            <h3 id="email-header">
+              Email:
+              <a href="mailto:urbanagamejam@gmail.com" target="_blank"
+                >urbanagamejam@gmail.com</a
+              >
+            </h3>
+            <label for="name">Name:</label>
+            <input type="text" name="name" id="name" />
+            <label for="email">Email:</label>
+            <input type="email" name="email" id="email" />
+            <label for="message" id="message-label">Message:</label>
+            <textarea type="text" name="message" id="message"></textarea>
+            <button id="submit">Submit</button>
+          </form>
+          <div id="right-contact">
+            <div id="in-person">
+              <h3>In person:</h3>
+              <p>Stop by Mr. Smucker's room A214</p>
+            </div>
+            <div id="join-discord">
+              <h3>Discord:</h3>
+              <p>Join our discord!</p>
+              <a href="https://discord.gg/tKCUcxpNgR">Join</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="function.js"></script>
+  </body>
+</html>

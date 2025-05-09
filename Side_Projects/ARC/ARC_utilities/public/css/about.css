@@ -1,0 +1,266 @@
+#page-content {
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100vh;
+}
+
+#header {
+  height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: url("../data/images/favicon.png") no-repeat center center;
+  -webkit-background-size: 80%;
+  -moz-background-size: 80%;
+  -o-background-size: 80%;
+  background-size: 80%;
+}
+
+#text-background {
+  padding: 1vh 3vw;
+  height: 100%;
+  width: 100%;
+  backdrop-filter: blur(1px);
+  position: relative;
+}
+
+#header h1 {
+  font-size: calc(7vh + 15px);
+  margin-bottom: 3vh;
+  padding: 2vh 2vw;
+  background-color: white;
+  position: absolute;
+  bottom: 50%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+#header-separator {
+  background-color: #11a;
+  height: 10vh;
+}
+
+#details {
+  background-color: #ddd;
+  position: relative;
+  height: 100vh;
+}
+
+#details-about {
+  position: absolute;
+  top: 4vh;
+  left: 0;
+  height: min-content;
+  width: 50vw;
+  background-color: white;
+  padding: 3vh 0;
+}
+
+#details-purpose {
+  position: absolute;
+  bottom: 4vh;
+  right: 0;
+  height: min-content;
+  width: 40vw;
+  background-color: white;
+  padding: 3vh 0;
+}
+
+#details h2 {
+  display: block;
+  text-align: center;
+  margin: 3vh auto;
+  font-size: calc(2.5vh + 8px);
+}
+
+#details p {
+  display: block;
+  width: 80%;
+  margin: auto;
+  white-space: wrap;
+  text-align: center;
+  font-size: calc(1.5vh + 6px);
+}
+
+#details-img-1 {
+  position: absolute;
+  right: 16vh;
+  top: 8vh;
+  height: 32vh;
+}
+
+#details-img-2 {
+  position: absolute;
+  left: 16vh;
+  bottom: 8vh;
+  height: 32vh;
+}
+
+#team {
+  height: 100vh;
+}
+
+#contact {
+  height: 80vh;
+  background-color: #11a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#contact-text-container {
+  height: 90%;
+  width: 90%;
+  margin: 5% 5%;
+  background-color: white;
+}
+
+#contact h2 {
+  font-size: calc(3vh + 8px);
+  display: block;
+  margin: 4vh auto 2vh auto;
+  text-align: center;
+}
+
+#contact p {
+  font-size: calc(1.5vh + 6px);
+  display: block;
+  margin: 2vh auto 4vh auto;
+  text-align: center;
+}
+
+#contact h3 {
+  font-size: (2vh + 7px);
+}
+
+#contact-form {
+  float: left;
+  width: 60%;
+  margin-bottom: 2vh;
+  height: 70%;
+}
+
+#email-header {
+  margin: 0 0 2vh 5%;
+}
+
+#email-header a {
+  font-size: calc(1.3vh + 4px);
+  color: #11a;
+  font-weight: 400;
+}
+
+#contact-form h3 a:visited {
+  color: #11a;
+}
+
+#contact-form label {
+  font-size: calc(1.3vh + 4px);
+  display: inline-block;
+  width: 25%;
+  margin: 0 0 2vh 5%;
+}
+
+#contact-form input {
+  display: inline-block;
+  padding: 0.5vh 0.3vw;
+  width: 65%;
+}
+
+#message-label {
+  height: 40%;
+}
+
+#contact-form textarea {
+  padding: 0.5vh 0.3vw;
+  resize: none;
+  display: inline-block;
+  width: 65%;
+  height: 40%;
+  vertical-align: text-top;
+}
+
+#contact-form button,
+#join-discord a {
+  font-size: calc(1.3vh + 4px);
+  display: block;
+  width: 80%;
+  padding: 2vh;
+  margin: 3vh auto 0 auto;
+  border-radius: 3px;
+  border: 3px solid #11a;
+  text-align: center;
+  color: #11a;
+  background-color: white;
+}
+
+#contact-form button:hover,
+#join-discord a:hover {
+  background-color: #11a;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+#right-contact {
+  float: right;
+  width: 40%;
+}
+
+#in-person p,
+#join-discord p {
+  font-size: calc(1.3vh + 4px);
+  text-align: left;
+}
+
+#join-discord a {
+  text-decoration: none;
+  margin: 3vh 0 0 0;
+  width: 30%;
+}
+
+@media only screen and (max-width: 1040px) {
+  #header {
+    -webkit-background-size: 100%;
+    -moz-background-size: 100%;
+    -o-background-size: 100%;
+    background-size: 100%;
+  }
+  #details {
+    position: initial;
+    height: min-content;
+    padding: 4vh 4vw;
+  }
+  #details-about,
+  #details-purpose {
+    width: 92vw;
+    position: initial;
+    margin: 0 auto 4vh auto;
+  }
+  #details-img-1,
+  #details-img-2 {
+    display: block;
+    position: initial;
+    height: unset;
+    width: 92vw;
+    margin: 5vh auto;
+  }
+  #details-img-2 {
+    margin-bottom: 0;
+  }
+  #contact {
+    height: 140vh;
+  }
+  #contact-form {
+    height: 60vh;
+  }
+  #right-contact {
+    padding-left: 5%;
+  }
+  #contact-form,
+  #right-contact {
+    float: none;
+    display: block;
+    width: 90vw;
+  }
+}

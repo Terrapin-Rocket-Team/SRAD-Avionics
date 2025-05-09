@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ARC Utilities</title>
+    <link rel="stylesheet" href="css/index.css" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="js/index.js"></script>
+  </head>
+  <body>
+    <nav id="top-nav">
+      <a id="logo" href="/"
+        ><img src="data/images/ARC_Logo_2.png" alt="Logo" /> Utilities</a
+      >
+    </nav>
+    <div id="page-content">
+      <div id="left-content">
+        Downloads
+        <button id="download-latest">Latest</button>
+        <div id="downloads-list"></div>
+      </div>
+      <div id="center-content">
+        <div id="video-container">
+          <video
+            controls
+            autoplay
+            preload="auto"
+            src="http://localhost:7999"
+            id="video-el"
+          ></video>
+        </div>
+      </div>
+      <div id="bottom-content">
+        <button id="record-video">Record</button>
+        <button id="transmit-video">Transmit</button>
+        <button id="stream-video">Stream</button>
+        <button id="stop-video">Stop</button>
+      </div>
+    </div>
+    <script src="function.js"></script>
+  </body>
+</html>
