@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo " --------------------------------------------------"
-echo " | Starting Avionics Live Video Setup Script v1.0 |"
+echo " | Starting ARC Setup Script v2.0                 |"
 echo " --------------------------------------------------"
 
 if [ $EUID -ne 0 ]
@@ -53,12 +53,12 @@ else
     echo "Found"
 fi
 
-echo -n "Checking for libcamera..."
-if ! type libcamera-vid &> /dev/null
+echo -n "Checking for rpicam..."
+if ! type rpicam-vid &> /dev/null
 then
     echo "Not Found"
-    echo "Installing libcamera..."
-    apt install libcamera-apps -y
+    echo "Installing rpicam..."
+    apt install rpicam-apps -y
 else
     echo "Found"
 fi
@@ -73,6 +73,7 @@ else
     echo "Found"
 fi
 
+# TODO: is boost needed?
 echo -n "Checking for Boost 1.74..."
 if [ ! -d /usr/include/boost ] || [ ! -f /usr/lib/aarch64-linux-gnu/libboost_program_options.so ]
 then
@@ -129,13 +130,21 @@ sleep 1
 
 cd ../
 
-chmod +x tests/localsave.sh
-chmod +x tests/localsave1080p.sh
-chmod +x tests/localsave1080pv2.sh
-chmod +x tests/networkstream.sh
+chmod +x tests/*
+chmod +x ARC_controller.py
+chmod +x setup-user.sh
 
-crontab -u ${SUDO_USER} crontab-config
+# add wifi
+nmcli connection add type wifi con-name ARC-1 autoconnect yes ssid TRT-ARC-1 802-11-wireless-security.key-mgmt WPA-PSK 802-11-wireless-security.psk IREC2025!
+nmcli connection add type wifi con-name ARC-2 autoconnect yes ssid TRT-ARC-2 802-11-wireless-security.key-mgmt WPA-PSK 802-11-wireless-security.psk IREC2025!
+nmcli connection add type wifi con-name ARC-3 autoconnect yes ssid TRT-ARC-3 802-11-wireless-security.key-mgmt WPA-PSK 802-11-wireless-security.psk IREC2025!
 
-sudo -u ${SUDO_USER} bash -c "mkdir -p ~/video"
+sudo -u ${SUDO_USER} bash -c "./setup-user.sh"
+
+chmod 644 ARC.service.temp
+mv ARC.service.temp /lib/systemd/system/ARC.service
+systemctl daemon-reload
+systemctl enable ARC
+systemctl start ARC
 
 echo "Setup complete!"
