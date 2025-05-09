@@ -19,7 +19,7 @@
 #endif
 
 #ifdef SERVER
-BluetoothServer server(SERIAL_IN);
+BluetoothServer server(SERIAL_IN, SERIAL_DBG);
 #else
 BluetoothClient client(SERIAL_IN, SERIAL_DBG);
 #endif
