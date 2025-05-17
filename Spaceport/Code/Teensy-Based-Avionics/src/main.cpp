@@ -69,7 +69,7 @@ MMFSConfig a = MMFSConfig()
                    .withBBAsync(true, 50)
                    .withBBPin(LED_BUILTIN)
                    .withBBPin(32)
-                    //   .withBuzzerPin(33)
+                   //   .withBuzzerPin(33)
                    .withUsingSensorBiasCorrection(true)
                    .withUpdateRate(5)
                    .withState(&t);
@@ -137,6 +137,15 @@ void loop()
     // btRad.tx("Hello", 5);
     btRad.tx((uint8_t *)str, strlen(str));
     Serial.printf("sent %d\n", strlen(str));
+
+    Serial.println("Receive buffer size: " + String(btRad.getReceiveSize()));
+    Serial.print("\tRecieve buffer: ");
+    for (int i = 0; i < btRad.getReceiveSize(); i++)
+    {
+        Serial.print((char)btRad.getReceiveBuffer()[i]);
+    }
+    Serial.println();
+
     // calcStuff();
     radio_last = time;
     msg.clear();
