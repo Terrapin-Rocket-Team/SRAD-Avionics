@@ -3,6 +3,7 @@
 //
 
 #include "BluetoothClient.h"
+#include "esp_gap_ble_api.h"
 
 #include <HardwareSerial.h>
 
@@ -61,6 +62,16 @@ void BluetoothClient::update(Stream &inputSerial)
             connected = false;
             return;
         }
+        esp_ble_conn_update_params_t conn_params = {};
+        memcpy(conn_params.bda, pServerAddress->getNative(), sizeof(conn_params.bda));
+        conn_params.min_int = 0x10; // 20 ms
+        conn_params.max_int = 0x20; // 40 ms
+        conn_params.latency = 0;
+        conn_params.timeout = 400; // 4s supervision timeout
+
+        esp_err_t err = esp_ble_gap_update_conn_params(&conn_params);
+        dbgSerial.println("Requested connection interval update, result: " + String(err));
+
         remoteTx->registerForNotify([this](BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)
                                     { handleTxCallback(pBLERemoteCharacteristic, pData, length, isNotify); });
         dbgSerial.println(pClient->setMTU(128));
