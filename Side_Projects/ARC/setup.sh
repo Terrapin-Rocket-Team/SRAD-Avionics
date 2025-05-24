@@ -73,6 +73,16 @@ else
     echo "Found"
 fi
 
+echo -n "Checking for node..."
+if ! type node &> /dev/null
+then
+    echo "Not Found"
+    echo "Installing node..."
+    apt install nodejs -y
+else
+    echo "Found"
+fi
+
 echo -n "Checking for wiringPi..."
 if [ ! -f /usr/include/wiringPi.h ]
 then
@@ -111,12 +121,12 @@ echo "Building AV1 encoder..."
 sleep 1
 
 cmake ..
-#make
+make
 
 echo "Installing encoder..."
 sleep 1
 
-#make install
+make install
 
 cd ../../
 
