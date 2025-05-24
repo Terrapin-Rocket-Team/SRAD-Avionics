@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
     <title>ARC Utilities</title>
     <link rel="stylesheet" href="css/index.css" />
     <link rel="stylesheet" href="style.css" />
@@ -12,31 +13,33 @@
   <body>
     <nav id="top-nav">
       <a id="logo" href="/"
-        ><img src="data/images/ARC_Logo_2.png" alt="Logo" /> Utilities</a
+        ><img src="data/images/ARC_logo_2.png" alt="Logo" /> Utilities</a
       >
     </nav>
     <div id="page-content">
       <div id="left-content">
         Downloads
-        <button id="download-latest">Latest</button>
+        <a id="download-latest" class="button" href="">Latest</a>
         <div id="downloads-list"></div>
       </div>
       <div id="center-content">
         <div id="video-container">
           <video
             controls
-            autoplay
             preload="auto"
-            src="http://localhost:7999"
+            src=""
+            preload="none"
             id="video-el"
+            playsinline
           ></video>
+	<button id="reload-video">Reload</button>
         </div>
       </div>
       <div id="bottom-content">
-        <button id="record-video">Record</button>
-        <button id="transmit-video">Transmit</button>
-        <button id="stream-video">Stream</button>
-        <button id="stop-video">Stop</button>
+        <button id="record-video" class="button">Record</button>
+        <button id="transmit-video" class="button">Transmit</button>
+        <button id="stream-video" class="button">Stream</button>
+        <button id="stop-video" class="button">Stop</button>
       </div>
     </div>
     <script src="function.js"></script>

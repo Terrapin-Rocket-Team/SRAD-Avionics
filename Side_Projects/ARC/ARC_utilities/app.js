@@ -1,15 +1,21 @@
 const express = require("express");
 const favicon = require("serve-favicon");
 const morgan = require("morgan");
-// const zip = require("express-easy-zip");
 const fs = require("fs");
 const path = require("path");
-// const formidable = require("formidable");
-// const nodemailer = require("nodemailer");
+const { execSync } = require("child_process");
+const os = require("os");
 
 //global variables
-const ADMIN_KEYS = [];
-let timouts = [];
+let videoDir, logsDir;
+
+if (os.platform() === "win32") {
+  videoDir = path.join(__dirname, "ARC_video");
+  logsDir = path.join(__dirname, "ARC_log");
+} else {
+  videoDir = path.join(os.homedir(), "ARC_video");
+  logsDir = path.join(os.homedir(), "ARC_log");
+}
 
 const logPath = path.join(__dirname, "logs");
 const morganLogs = path.join(logPath, "morgan.log");
@@ -38,7 +44,6 @@ fs.truncate(systemLogs, (err) => {
 app.use(favicon(path.join(__dirname, "public/data/images/favicon.png")));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
-// app.use(zip());
 app.use(
   morgan("combined", {
     stream: fs.createWriteStream(morganLogs, { flags: "a" }),
@@ -60,170 +65,145 @@ const log = (string, level) => {
   });
 };
 log("Initialized server");
+log("Reading videos from: " + videoDir);
+log("Reading logs from: " + logsDir);
 
 //routes
 app.get("/", (req, res) => {
   res.sendFile("index.html", { root: __dirname });
 });
 
-app.get("/about", (req, res) => {
-  res.sendFile("pages/about.html", { root: __dirname });
-});
-
-app.get("/admin", (req, res) => {
-  res.sendFile("pages/admin-login.html", { root: __dirname });
-});
-
-//check key against list of valid keys
-const adminAuth = (url) => {
-  const key = new URL("locahost:8000" + url).searchParams.get("key");
-  const valid = new URL("locahost:8000" + url).searchParams.get("valid");
-  if (key && ADMIN_KEYS.includes(key) && valid === "true") {
-    return true;
-  } else {
-    return false;
+const getFileSize = (p) => {
+  if (!path.isAbsolute(p)) {
+    log("[Warn] Could not find file size, path not absolute");
+    return -1;
   }
+  return fs.statSync(p).size;
 };
 
-app.get("/admin-view", (req, res) => {
-  //if user has a valid key, send admin page, else redirect to login
-  let login = adminAuth(req.url);
-  if (login) {
-    res.sendFile("pages/admin.html", { root: __dirname });
-  } else {
-    res.redirect("/admin");
-  }
-});
+const getAvailFiles = () => {
+  const list = [];
+  try {
+    const videoList = [];
+    const logList = [];
 
-//used to fetch submission data
-app.get("/admin-view/submissions", async (req, res) => {
-  //check if key is valid
-  let login = adminAuth(req.url);
-  if (login) {
-    const submissions = fs.readdirSync("submissions");
-    const list = [];
-    //get info.json for each submission
-    submissions.forEach((submission) => {
-      if (submission != "temp") {
-        let doc = JSON.parse(
-          fs.readFileSync("submissions/" + submission + "/info.json")
-        );
-        list.push({
-          number: doc.number,
-          title: doc.title,
-          members: doc.members,
-          files: doc.oldNames,
-        });
-      }
+    // get times for each video and log
+    fs.readdirSync(videoDir).forEach((video) => {
+      videoList.push(video.split("_")[0]);
     });
-    res.json({ list });
-  } else {
-    res.status(401).sendFile("pages/401.html", { root: __dirname });
+    fs.readdirSync(logsDir).forEach((logFile) => {
+      logList.push(logFile.split("_")[0]);
+    });
+
+    // combine two lists taking into account whether corresponding video/log files exist
+    videoList.forEach((vEntry) => {
+      list.push({
+        time: parseInt(vEntry),
+        video: getFileSize(path.join(videoDir, vEntry + "_video.av1")),
+        log: logList.includes(vEntry)
+          ? getFileSize(path.join(logsDir, vEntry + "_log.txt"))
+          : -1,
+      });
+    });
+
+    logList.forEach((lEntry) => {
+      // if (!videoList.includes(lEntry)) {
+      // }
+      list.push({
+        time: parseInt(lEntry),
+        video: -1,
+        log: getFileSize(path.join(logsDir, lEntry + "_log.txt")),
+      });
+    });
+
+  } catch (err) {
+    log("[ERROR] " + err);
   }
+  return list;
+};
+
+app.get("/files", (req, res) => {
+  // {time: python start time, video: video size, log: log size}
+  res.json({ list: getAvailFiles() });
 });
 
-//used to download submissions
-app.get("/admin-view/download", async (req, res) => {
-  //check if key is valid
-  let login = adminAuth(req.url);
-  if (login) {
-    //get data from url
-    const fileReq = new URL("locahost:8000" + req.url).searchParams;
-    const files = fileReq.getAll("files");
-    const number = fileReq.get("number");
-    const single = fileReq.get("single");
-    const genericPath = __dirname + "/submissions/" + number + "/files/";
+app.get("/download", (req, res) => {
+  //get data from url
+  const fileReq = new URL("locahost:8000" + req.url).searchParams;
+  const type = fileReq.get("type"); // log or video
+  const file = fileReq.get("file"); // 0000000 (time)
+  if (file.match(/^[0-9]+$/g)) {
+    // make sure file name matches correct format
     try {
-      let doc = JSON.parse(
-        fs.readFileSync("submissions/" + number + "/info.json")
-      );
-      let index = doc.oldNames.indexOf(files[0]);
-      //download the single file if it exists
-      if (single === "true") {
-        if (fs.existsSync(genericPath + doc.newNames[index])) {
-          res.download(genericPath + doc.newNames[index], doc.oldNames[index]);
-        } else {
-          throw (
-            "no such file or directory: " + genericPath + doc.newNames[index]
-          );
-        }
+      let dir = "";
+      if (type === "log") dir = path.join(logsDir, file + "_log.txt");
+      else if (type === "video") dir = path.join(videoDir, file + "_video.av1");
+      else res.status(400).redirect("/");
+
+      if (fs.existsSync(dir)) {
+        res.download(dir, path.basename(dir));
       } else {
-        //otherwise zip all the requested files into a .zip with the team number
-        const zipArray = [];
-        if (files.length > 1) {
-          for (let i = 0; i < files.length; i++) {
-            zipArray.push({
-              path: genericPath + doc.newNames[i],
-              name: doc.oldNames[i],
-            });
-          }
-          res.zip({
-            files: zipArray,
-            filename: "team-" + number + ".zip",
-          });
-        } else {
-          if (fs.existsSync(genericPath + doc.newNames[0], doc.oldNames[0])) {
-            res.download(genericPath + doc.newNames[0], doc.oldNames[0]);
-          } else {
-            throw "no such file or directory: " + genericPath + doc.newNames[0];
-          }
-        }
+        throw "no such file or directory: " + dir;
       }
     } catch (err) {
       log("[ERROR] " + err);
       res.status(501).sendFile("pages/501.html", { root: __dirname });
     }
   } else {
-    res.status(401).sendFile("pages/401.html", { root: __dirname });
+    res.status(400).redirect("/");
   }
 });
 
-//handles logging in with a password
-app.post("/admin-login", (req, res) => {
-  if (req.body.input === "smucka!%(159") {
-    log("A user logged into admin");
-    //create a key
-    let key = "";
-    for (let i = 0; i < 10; i++) {
-      let num = (Math.random().toFixed(2) * 100).toFixed(0);
-      if (num > 49) {
-        let letters = ["a", "c", "e", "g", "i", "k", "m", "o", "q", "s"];
-        num = (num / 7).toFixed();
-        num %= 10;
-        key += letters[num];
-      } else {
-        num %= 10;
-        key += num.toString();
-      }
+app.get("/download/latest", (req, res) => {
+  let list = getAvailFiles();
+
+  if (list.length > 0) {
+    let maxIndexLog = -1;
+    let maxIndexVideo = -1;
+    for (let i = 0; i < list.length; i++) {
+      if (list[i].time >= list[Math.max(maxIndexLog, 0)].time && list[i].log > 0) maxIndexLog = i;
+      if (list[i].time >= list[Math.max(maxIndexVideo, 0)].time && list[i].video > 0) maxIndexVideo = i;
     }
-    const date = new Date();
-    date.setTime(date.getTime() + 86400000);
-    let expires = date.getTime() - Date.now();
-    //set a timeout to remove the key in 24 hrs
-    timouts.push(
-      setTimeout(() => {
-        ADMIN_KEYS.splice(ADMIN_KEYS.indexOf(key), 1);
-      }, expires)
-    );
-    //add the key to the array
-    ADMIN_KEYS.push(key);
-    res.redirect("/admin-view?valid=true&key=" + key);
+
+    let type = "video";
+    let index = maxIndexVideo;
+
+    if (maxIndexVideo === -1 && maxIndexLog > 0) {
+      index = maxIndexLog;
+      type = "log";
+    } else {
+      index = 0;
+    }
+
+    res.redirect("/download?type=" + type + "&file=" + list[index].time);
   } else {
-    log("Failed login attempt. Input: " + req.body.input);
-    res.redirect("/");
+    res.status(501).sendFile("pages/501.html", { root: __dirname });
   }
 });
 
-//handles auto-login if the user has a key
-app.post("/admin-key", (req, res) => {
-  if (ADMIN_KEYS.includes(req.body.key)) {
-    res.redirect("/admin-view?valid=true&key=" + req.body.key);
-  } else {
-    res.redirect("/admin?valid=false");
-  }
+//cmd_list = ["start recording", "start transmitting", "stop video", "stop interface"]
+
+app.post("/record", (req, res) => {
+  //log("PYCMD| stop video");
+  log("PYCMD| start recording");
+  res.status(200);
+});
+app.post("/transmit", (req, res) => {
+  //log("PYCMD| stop video");
+  log("PYCMD| start transmitting");
+  res.status(200);
+});
+app.post("/stream", (req, res) => {
+  //log("PYCMD| stop video");
+  log("PYCMD| start streaming");
+  res.status(200);
+});
+app.post("/stop", (req, res) => {
+  log("PYCMD| stop video");
+  res.status(200);
 });
 
-//404
+// 404
 app.use((req, res) => {
   res.status(404).sendFile("pages/404.html", { root: __dirname });
 });
