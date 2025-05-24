@@ -1,0 +1,227 @@
+#page-content {
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100vh;
+}
+
+.main-section {
+  height: 100vh;
+}
+
+#header {
+  display: flex;
+  align-items: center;
+  background: url("../data/images/home.png") no-repeat center center;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+
+#text-background {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  background-color: white;
+  padding: 1vh 3vw;
+}
+
+#header h1 {
+  font-size: calc(7vh + 15px);
+  margin-bottom: 3vh;
+}
+
+#header p,
+#header span {
+  font-size: calc(3vh + 8px);
+  margin-bottom: 8vh;
+}
+
+#header a {
+  text-decoration: none;
+  border: 3px solid #11a;
+  width: 13vw;
+  text-align: center;
+  padding: 1vh 0;
+  font-size: calc(2vh + 6px);
+  margin-bottom: 1vh;
+  color: #11a;
+}
+
+#header a:hover {
+  background-color: #11a;
+  color: white;
+  transition: background-color 0.3s ease-in-out;
+}
+
+#intro {
+  padding-top: 4vh;
+  background-color: #11a;
+}
+
+#intro-text {
+  float: left;
+  width: 60%;
+  height: 100%;
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+#intro-text h2 {
+  width: 70%;
+  margin-bottom: 3vh;
+  font-size: calc(3vh + 6px);
+}
+
+#intro-text p {
+  width: 70%;
+  font-size: calc(2vh + 5px);
+  text-align: justify;
+}
+
+#intro-video {
+  float: right;
+  width: 40%;
+  height: 100%;
+  background-color: #ddd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+#intro-video h2 {
+  width: 75%;
+  margin-bottom: 3vh;
+  font-size: calc(3vh + 6px);
+}
+
+#intro-video-frame {
+  width: 75%;
+  height: 36%;
+}
+
+#contact {
+  background-color: #11a;
+}
+
+#boxes {
+  height: 80%;
+  padding: 4vw;
+}
+
+#form {
+  background-color: white;
+  float: left;
+  width: 48%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+#discord {
+  background-color: white;
+  float: right;
+  width: 48%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+#discord h2,
+#form h2 {
+  font-size: calc(3vh + 6px);
+  margin-bottom: 4vh;
+}
+
+#discord p,
+#form p {
+  font-size: calc(2vh + 5px);
+  margin-bottom: 5vh;
+}
+
+#discord a,
+#form a,
+#contact-link a {
+  display: block;
+  text-decoration: none;
+  width: 60%;
+  padding: 2vh;
+  border-radius: 3px;
+  border: 3px solid #11a;
+  text-align: center;
+  color: #11a;
+}
+
+#discord a:hover,
+#form a:hover,
+#contact-link a:hover {
+  background-color: #11a;
+  color: white;
+  transition: background-color 0.3s ease-in-out;
+}
+
+#contact-link {
+  width: 100vw;
+  background-color: #ddd;
+  height: 20%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@media only screen and (max-width: 1040px) {
+  #header {
+    height: 100vh;
+  }
+  .main-section {
+    height: 200vh;
+  }
+  #intro {
+    height: 100vh;
+  }
+  #text-background {
+    position: relative;
+    top: -30px;
+  }
+  #header span {
+    display: block;
+  }
+  #header a {
+    width: 20vh;
+  }
+  #intro-text,
+  #intro-video {
+    float: none;
+    width: 100%;
+    height: 100%;
+  }
+  #intro-video {
+    display: none;
+  }
+  #intro-text p {
+    font-size: calc(1.7vh + 3px);
+    text-align: center;
+  }
+  #intro-video-frame {
+    width: 96vw;
+    height: 54vw;
+  }
+  #form,
+  #discord {
+    float: none;
+    width: 100%;
+    height: 48%;
+  }
+  #discord {
+    position: relative;
+    top: 4%;
+  }
+}
