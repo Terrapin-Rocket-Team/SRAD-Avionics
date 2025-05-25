@@ -5,13 +5,13 @@
 // #define BUZZER 0
 
 // radio config header
-#include "422Mc110_2GFSK_500000U.h"
+#include "422Mc86_4GFSK_500000H.h"
 
 Si4463HardwareConfig hwcfg = {
-    MOD_2GFSK,       // modulation
+    MOD_4FSK,       // modulation
     DR_500k,         // data rate
     (uint32_t)433e6, // frequency (Hz)
-    127,             // tx power (127 = ~20dBm)
+    POWER_HP_33dBm, // tx power (127 = ~20dBm)
     48,              // preamble length
     16,              // required received valid preamble
 };

@@ -15,7 +15,7 @@ Si4463HardwareConfig hwcfg = {
 
 Si4463PinConfig pincfg = {
     &SPI, // spi bus to use
-    8,    // cs
+    8,  // cs
     6,    // sdn
     7,    // irq
     9,    // gpio0
