@@ -18,6 +18,15 @@ bool MockRadio::begin()
 {
     this->s->begin(this->dataRate);
 
+    // clear serial buffer
+    // this is stupid but we need to clear a random null character that shows up when the serial port is connected
+    // but not immediately after serial.begin
+    // so wait a second and then completely flush the input buffer
+    delay(1000);
+    this->s->flush();
+    while (this->s->available() > 0)
+        this->s->read();
+
     return true;
 }
 
@@ -545,7 +554,7 @@ void MockRadio::internalUpdate()
             {
                 this->internalLength += this->internalBuf[1];
             }
-            if (this->internalLength > 0 && this->totalBytes == this->internalLength)
+            if (this->internalLength > 0 && this->totalBytes - 2 == this->internalLength)
             {
                 this->totalBytes = 0;
                 this->gpio2State = false;
@@ -570,7 +579,7 @@ void MockRadio::internalUpdate()
         {
             this->internalLength += this->internalBuf[0];
         }
-        if (this->internalLength > 0 && this->totalBytes == this->internalLength)
+        if (this->internalLength > 0 && this->totalBytes - 2 == this->internalLength)
         {
             this->totalBytes = 0;
             this->gpio3State = false;
