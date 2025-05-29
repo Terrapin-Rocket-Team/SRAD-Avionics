@@ -4,6 +4,7 @@
 #include "rs.h"
 
 #include "Si4463.h"
+#include "MockRadio.h"
 #include "RadioMessage.h"
 #include "SDFatBoilerplate.h"
 
@@ -49,27 +50,36 @@ uint8_t vHeaderBuf[GSData::headerLen] = {};
 // radio
 APRSConfig aprscfg = {"KC3UTM", "ALL", "WIDE1-1", TextMessage, '\\', 'M'};
 
-Si4463HardwareConfig hwcfg = {
-    MOD_2GFSK,       // modulation
-    DR_500k,         // data rate
-    (uint32_t)433e6, // frequency (Hz)
-    5,               // tx power (127 = ~20dBm)
-    48,              // preamble length
-    16,              // required received valid preamble
-};
+// Si4463HardwareConfig hwcfg = {
+//     MOD_2GFSK,       // modulation
+//     DR_500k,         // data rate
+//     (uint32_t)433e6, // frequency (Hz)
+//     5,               // tx power (127 = ~20dBm)
+//     48,              // preamble length
+//     16,              // required received valid preamble
+// };
 
-Si4463PinConfig pincfg = {
-    &SPI, // spi bus to use
-    10,   // cs
-    38,   // sdn
-    33,   // irq
-    34,   // gpio0
-    35,   // gpio1
-    36,   // random pin - gpio2 is not connected
-    37,   // random pin - gpio3 is not connected
-};
+// Si4463PinConfig pincfg = {
+//     &SPI, // spi bus to use
+//     10,   // cs
+//     38,   // sdn
+//     33,   // irq
+//     34,   // gpio0
+//     35,   // gpio1
+//     36,   // random pin - gpio2 is not connected
+//     37,   // random pin - gpio3 is not connected
+// };
 
-Si4463 radio(hwcfg, pincfg);
+// Si4463 radio(hwcfg, pincfg);
+
+MockHardwareConfig hwcfg = {
+    500000};
+
+MockPinConfig pincfg = {
+    &Serial6};
+
+MockRadio radio(hwcfg, pincfg);
+
 SdFs s;
 FsFile out;
 
@@ -77,17 +87,18 @@ char GSMHeader[GSData::gsmHeaderSize] = {};
 
 void setup()
 {
-  Serial.begin(500000);
+  Serial.begin(250000);
 
   // serial
-  Serial5.begin(500000);
+  Serial1.begin(500000);
   // i2c
   // Wire.begin(0x01);
 
   if (CrashReport)
     Serial.println(CrashReport);
 
-  if (!radio.begin(CONFIG_422Mc110_2GFSK_500000U, sizeof(CONFIG_422Mc110_2GFSK_500000U)))
+  // if (!radio.begin(CONFIG_422Mc110_2GFSK_500000U, sizeof(CONFIG_422Mc110_2GFSK_500000U)))
+  if (!radio.begin())
   {
     Serial.println("Transmitter failed to begin");
     Serial.flush();
@@ -133,11 +144,11 @@ void loop()
 {
   debugTimer = micros();
   // reading from Raspi
-  if (Serial5.available() > 0 && top + 5 < MSG_SIZE * 3)
+  if (Serial1.available() > 0 && top + 5 < MSG_SIZE * 3)
   // while (Wire.available() > 0 && top + 5 < MSG_SIZE * 3)
   {
     txTimeout = millis();
-    buf[top] = Serial5.read();
+    buf[top] = Serial1.read();
     // buf[top] = Wire.read();
     top++;
 
@@ -254,28 +265,28 @@ void loop()
 
   radio.update();
 
-  // if (millis() - debugTimer > 100)
-  // {
-  //   debugTimer = millis();
-  //   Serial.print("\r                                                                                                   ");
-  //   Serial.print("\rBuffer state: ");
-  //   Serial.print("\ttop ");
-  //   Serial.print(top);
-  //   Serial.print("\tsent ");
-  //   Serial.print(sent);
-  //   Serial.print("\ttoSend ");
-  //   Serial.print(toSend);
-  //   Serial.print("\tbytesThisMessage ");
-  //   Serial.print(bytesThisMessage);
-  //   Serial.print("\tavailLen ");
-  //   Serial.print(radio.availLen);
-  //   Serial.print("\txfrd ");
-  //   Serial.print(radio.xfrd);
-  //   Serial.print("\tTX_MODE ");
-  //   Serial.print(radio.gpio3());
-  //   Serial.print("\tTX_FIFO_EMPTY ");
-  //   Serial.print(radio.gpio0());
-  // }
+  if (millis() - debugTimer > 100)
+  {
+    debugTimer = millis();
+    Serial.print("\r                                                                                                   ");
+    Serial.print("\rBuffer state: ");
+    Serial.print("\ttop ");
+    Serial.print(top);
+    Serial.print("\tsent ");
+    Serial.print(sent);
+    Serial.print("\ttoSend ");
+    Serial.print(toSend);
+    Serial.print("\tbytesThisMessage ");
+    Serial.print(bytesThisMessage);
+    Serial.print("\tavailLen ");
+    Serial.print(radio.availLen);
+    Serial.print("\txfrd ");
+    Serial.print(radio.xfrd);
+    Serial.print("\tTX_MODE ");
+    Serial.print(radio.gpio3());
+    Serial.print("\tTX_FIFO_EMPTY ");
+    Serial.print(radio.gpio0());
+  }
 
   if (radio.state == STATE_TX && radio.availLen > 0 && radio.availLen == radio.xfrd && radio.xfrd < MSG_SIZE && radio.gpio0())
   {
