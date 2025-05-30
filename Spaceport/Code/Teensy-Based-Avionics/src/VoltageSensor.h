@@ -12,7 +12,7 @@ public:
     bool begin(bool unused = false) override;
     void update() override;
 
-    const SensorType getType() const override { return SensorType::OTHER_; }
+    const SensorType getType() const override { return "Voltage Sensor"_i; }
     const char *getTypeString() const override { return "Voltage Sensor"; }
 
     double getRawVoltage() { return rawV; }

@@ -8,13 +8,13 @@
 #include "Radio/ESP32BluetoothRadio.h"
 #include "VoltageSensor.h"
 
-#define RPI_PWR 8
-#define RPI_VIDEO 7
+#define RPI_PWR 24
+#define RPI_VIDEO 25
 
 using namespace mmfs;
 
 MAX_M10S m;
-DPS310 d;
+DPS368 d;
 BMI088andLIS3MDL b;
 VoltageSensor vsfc(A0, 330, 220, "Flight Computer Voltage");
 
@@ -22,35 +22,35 @@ Sensor *s[] = {&m, &d, &b, &vsfc};
 AvionicsKF fk;
 AvionicsState t(s, sizeof(s) / 4, &fk);
 
-APRSConfig aprsConfig = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
-uint8_t encoding[] = {7, 4, 4};
-APRSTelem aprs(aprsConfig);
-Message msg;
+// APRSConfig aprsConfig = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
+// uint8_t encoding[] = {7, 4, 4};
+// APRSTelem aprs(aprsConfig);
+// Message msg;
 
-ESP32BluetoothRadio btRad(Serial1, "AVIONICS", true);
+// ESP32BluetoothRadio btRad(Serial1, "AVIONICS", true);
 
-Si4463HardwareConfig hwcfg = {
-    MOD_2GFSK,      // modulation
-    DR_100k,        // data rate
-    433e6,          // frequency (Hz)
-    POWER_HP_33dBm, // tx power (127 = ~20dBm)
-    48,             // preamble length
-    16,             // required received valid preamble
-};
+// Si4463HardwareConfig hwcfg = {
+//     MOD_2GFSK,      // modulation
+//     DR_100k,        // data rate
+//     433e6,          // frequency (Hz)
+//     POWER_HP_33dBm, // tx power (127 = ~20dBm)
+//     48,             // preamble length
+//     16,             // required received valid preamble
+// };
 
-Si4463PinConfig pincfg = {
-    &SPI, // spi bus to use
-    10,   // cs
-    20,   // sdn
-    23,   // irq
-    22,   // gpio0
-    21,   // gpio1
-    36,   // random pin - gpio2 is not connected
-    37,   // random pin - gpio3 is not connected
-};
+// Si4463PinConfig pincfg = {
+//     &SPI, // spi bus to use
+//     10,   // cs
+//     20,   // sdn
+//     23,   // irq
+//     22,   // gpio0
+//     21,   // gpio1
+//     36,   // random pin - gpio2 is not connected
+//     37,   // random pin - gpio3 is not connected
+// };
 
-Si4463 radio(hwcfg, pincfg);
-uint32_t radioTimer = millis();
+// Si4463 radio(hwcfg, pincfg);
+// uint32_t radioTimer = millis();
 Pi pi(RPI_PWR, RPI_VIDEO);
 
 extern unsigned long _heap_start;
@@ -69,9 +69,9 @@ MMFSConfig a = MMFSConfig()
                    .withBBAsync(true, 50)
                    .withBBPin(LED_BUILTIN)
                    .withBBPin(32)
-                      .withBuzzerPin(33)
+                   .withBuzzerPin(33)
                    .withUsingSensorBiasCorrection(true)
-                   .withUpdateRate(5)
+                   .withUpdateRate(20)
                    .withState(&t);
 MMFSSystem sys(&a);
 
@@ -80,7 +80,7 @@ AviEventLister listener;
 void setup()
 {
     sys.init();
-    Serial8.begin(9600);
+    Serial1.begin(115200);
     bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
 
     // if (btRad.begin())
@@ -94,21 +94,22 @@ void setup()
     //     getLogger().recordLogData(ERROR_, "Initialized Bluetooth Failed");
     // }
 
-    if (radio.begin())
-    {
-        bb.onoff(BUZZER, 1000);
-        getLogger().recordLogData(ERROR_, "Radio initialized.");
-    }
-    else
-    {
-        bb.onoff(BUZZER, 200, 3);
-        getLogger().recordLogData(INFO_, "Radio failed to initialize.");
-    }
+    // if (radio.begin())
+    // {
+    //     bb.onoff(BUZZER, 1000);
+    //     getLogger().recordLogData(ERROR_, "Radio initialized.");
+    // }
+    // else
+    // {
+    //     bb.onoff(BUZZER, 200, 3);
+    //     getLogger().recordLogData(INFO_, "Radio failed to initialize.");
+    // }
 
     getLogger().recordLogData(INFO_, "Initialization Complete");
 }
 double radio_last;
 void calcStuff();
+
 void loop()
 {
     // btRad.rx();
@@ -116,57 +117,69 @@ void loop()
     //     Serial.print(btRad.isReady());
     // if (Serial1.available())
     //     Serial.write(Serial1.read());
-    if (millis() > .5 * 1000 * 60)
+    if (millis() > .5 * 1000 * 60 && !pi.isOn())
+    {
         pi.setOn(true);
-    if (t.getStage() > 0 || millis() > 2 * 1000 * 60)
+    }
+    if (millis() > 2 * 1000 * 60 && !pi.isRecording())
+    {
         pi.setRecording(true);
-    // if (millis() > 15 * 1000)
-    //     pi.setRecording(false);
+    }
 
-    radio.update();
+    // radio.update();
     if (sys.update())
     {
+        calcStuff();
+        // Serial.println(d.getPressure());
         // Serial.printf("%.2f | %.2f\n", vsfc.getRawVoltage(), vsfc.getRealVoltage()); // this would never work lmao
     }
 
-    double time = millis();
-    if (time - radio_last < 2000)
-        return;
+    // double time = millis();
+    // if (time - radio_last < 2000)
+    //     return;
 
-    char str[512];
+    // char str[512];
     // int i = snprintf(str, 512, "La %.7f Lo %.7f Al %.2f Hd %.2f Ql %d", 1.0, 1.0, 2.0, 360.0, 5);
-    snprintf(str, 512, "1234567890123456789");
+    // snprintf(str, 512, "1234567890123456789");
     // btRad.tx("Hello", 5);
     // btRad.tx((uint8_t *)str, strlen(str));
-    // Serial.printf("sent %d", strlen(str));
-    calcStuff();
-    radio_last = time;
-    msg.clear();
+    // Serial.printf("sent %d\n", strlen(str));
+
+    // Serial.println("Receive buffer size: " + String(btRad.getReceiveSize()));
+    // // Serial.print("\tRecieve buffer: ");
+    // for (int i = 0; i < btRad.getReceiveSize(); i++)
+    // {
+    //     Serial.print((char)btRad.getReceiveBuffer()[i]);
+    // }
+    // Serial.println();
+
+    // radio_last = time;
+    // msg.clear();
     // radio.update();
 
-    /// printf("%f\n", baro1.getAGLAltFt());
-    aprs.alt = d.getAGLAltFt();
-    // printf("%f\n", gps.getHeading());
-    aprs.hdg = m.getHeading();
-    // printf("%f\n", gps.getPos().x());
-    aprs.lat = m.getPos().x();
-    // printf("%f\n", gps.getPos().y());
-    aprs.lng = m.getPos().y();
-    // printf("%f\n", computer.getVelocity().z());
-    aprs.spd = t.getVelocity().z();
-    // printf("%f\n", bno.getAngularVelocity().x());
-    aprs.orient[0] = b.getAngularVelocity().x();
-    // printf("%f\n", bno.getAngularVelocity().y());
-    aprs.orient[1] = b.getAngularVelocity().y();
-    // printf("%f\n", bno.getAngularVelocity().z());
-    aprs.orient[2] = b.getAngularVelocity().z();
-    aprs.stateFlags.setEncoding(encoding, 3);
+    // /// printf("%f\n", baro1.getAGLAltFt());
+    // aprs.alt = d.getAGLAltFt();
+    // // printf("%f\n", gps.getHeading());
+    // aprs.hdg = m.getHeading();
+    // // printf("%f\n", gps.getPos().x());
+    // aprs.lat = m.getPos().x();
+    // // printf("%f\n", gps.getPos().y());
+    // aprs.lng = m.getPos().y();
+    // // printf("%f\n", computer.getVelocity().z());
+    // aprs.spd = t.getVelocity().z();
+    // // printf("%f\n", bno.getAngularVelocity().x());
+    // aprs.orient[0] = b.getAngularVelocity().x();
+    // // printf("%f\n", bno.getAngularVelocity().y());
+    // aprs.orient[1] = b.getAngularVelocity().y();
+    // // printf("%f\n", bno.getAngularVelocity().z());
+    // aprs.orient[2] = b.getAngularVelocity().z();
+    // aprs.stateFlags.setEncoding(encoding, 3);
 
-    uint8_t arr[] = {(uint8_t)(int)d.getTemp(), (uint8_t)t.getStage(), (uint8_t)m.getFixQual()};
-    aprs.stateFlags.pack(arr);
+    // uint8_t arr[] = {(uint8_t)(int)d.getTemp(), (uint8_t)t.getStage(), (uint8_t)m.getFixQual()};
+    // aprs.stateFlags.pack(arr);
     // Serial.printf("%d %ld\n", d.getTemp(), aprs.stateFlags.get());
-    msg.encode(&aprs);
-    radio.send(aprs);
+    // msg.encode(&aprs);
+    // radio.send(aprs);
     // Serial.printf("%0.3f - Sent APRS Message; %f   |   %d\n", time / 1000.0, d.getAGLAltFt(), m.getFixQual());
     // bb.aonoff(BUZZER, 50);
     // Serial1.write(msg.buf, msg.size);
@@ -175,38 +188,38 @@ void loop()
 int counter = 0;
 void calcStuff()
 {
-    if (t.getStage() == 3)
+    if (t.getStage() == 3 || t.getStage() == 4)
     {
         if (t.getTimeSinceLastStage() > 3 && counter == 0)
         {
             Serial.println("first");
-            Serial8.println("90");
+            Serial1.println("90");
             counter++;
         }
-        else if (t.getTimeSinceLastStage() > 6 && counter <= 1)
+        else if (t.getTimeSinceLastStage() > 5 && counter <= 1)
         {
             counter++;
-            Serial8.println("180");
+            Serial1.println("180");
         }
-        else if (t.getTimeSinceLastStage() > 30 && counter <= 2)
+        else if (t.getTimeSinceLastStage() > 20 && counter <= 2)
         {
-            Serial8.println("360");
+            Serial1.println("360");
             counter++;
         }
-        else if (t.getTimeSinceLastStage() > 300 && counter <= 3)
+        else if (t.getTimeSinceLastStage() > 30 && counter <= 3)
         {
-            Serial8.println("180");
+            Serial1.println("180");
             counter++;
         }
     }
-    else if (t.getStage() == 4 && counter <= 4)
-    {
-        Serial8.println("180");
-        counter++;
-    }
-    else if (t.getStage() == 4 && t.getTimeSinceLastStage() > 30 && counter <= 5)
-    {
-        Serial8.println("0");
-        counter++;
-    }
+    // else if (t.getStage() == 4 && counter <= 4)
+    // {
+    //     Serial1.println("180");
+    //     counter++;
+    // }
+    // else if (t.getStage() == 4 && t.getTimeSinceLastStage() > 10 && counter <= 5)
+    // {
+    //     Serial1.println("0");
+    //     counter++;
+    // }
 }

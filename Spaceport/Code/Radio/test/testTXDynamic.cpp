@@ -3,7 +3,7 @@
 #include "Si4463.h"
 
 // radio config header
-#include "422Mc110_2GFSK_500000U.h"
+#include "422Mc86_4GFSK_500000H.h"
 
 #define BUZZER 0
 
@@ -63,7 +63,7 @@ void setup()
     pinMode(BUZZER, OUTPUT);
     digitalWrite(BUZZER, LOW);
 
-    if (!radio.begin(CONFIG_422Mc110_2GFSK_500000U, sizeof(CONFIG_422Mc110_2GFSK_500000U)))
+    if (!radio.begin(CONFIG_422Mc86_4GFSK_500000H, sizeof(CONFIG_422Mc86_4GFSK_500000H)))
     {
         Serial.println("Error: radio failed to begin");
         Serial.flush();
