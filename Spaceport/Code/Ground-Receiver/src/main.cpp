@@ -2,36 +2,78 @@
 #include "RadioMessage.h"
 #include "Si4463.h"
 
-// #define BUZZER_PIN 0
-
 #define TELEM_DEVICE_ID 3
+#define AVIONICS_DEVICE_ID 2
+#define PAYLOAD_DEVICE_ID 1
 
 const char avionicsCall[] = "KD3BBD";
 const char airbrakeCall[] = "KC3UTM";
 const char payloadCall[] = "KQ4TCN";
-const char commandCall[] = "KD3BBD"; // TODO
+const char commandCall[] = "KD3BBD"; // TODO: sync with commandConfig object
 
-Si4463HardwareConfig hwcfg = {
-    MOD_2GFSK,       // modulation
-    DR_100k,         // data rate
-    (uint32_t)433e6, // frequency (Hz)
-    POWER_HP_20dBm,  // tx power (127 = ~20dBm)
+Si4463HardwareConfig hwcfgTelem = {
+    MOD_4GFSK,       // modulation
+    DR_9_6k,         // data rate
+    (uint32_t)430e6, // frequency (Hz)
+    POWER_HP_33dBm,  // tx power (127 = ~20dBm)
     48,              // preamble length
     16,              // required received valid preamble
 };
 
-Si4463PinConfig pincfg = {
+Si4463PinConfig pincfgTelem = {
     &SPI, // spi bus to use
     33,   // cs
     39,   // sdn
     34,   // irq
     35,   // gpio0
     36,   // gpio1
-    37,   // random pin - gpio2 is not connected
-    38,   // random pin - gpio3 is not connected
+    37,   // gpio2
+    38,   // gpio3
 };
 
-Si4463 radio(hwcfg, pincfg);
+Si4463HardwareConfig hwcfgAvionics = {
+    MOD_4GFSK,         // modulation
+    DR_500k,           // data rate
+    (uint32_t)430.6e6, // frequency (Hz)
+    POWER_HP_20dBm,    // tx power (127 = ~20dBm)
+    48,                // preamble length
+    16,                // required received valid preamble
+};
+
+Si4463PinConfig pincfgAvionics = {
+    &SPI, // spi bus to use
+    30,   // cs
+    29,   // sdn
+    24,   // irq
+    25,   // gpio0
+    26,   // gpio1
+    27,   // gpio2
+    28,   // gpio3
+};
+
+Si4463HardwareConfig hwcfgPayload = {
+    MOD_4GFSK,         // modulation
+    DR_500k,           // data rate
+    (uint32_t)431.3e6, // frequency (Hz)
+    POWER_HP_20dBm,    // tx power (127 = ~20dBm)
+    48,                // preamble length
+    16,                // required received valid preamble
+};
+
+Si4463PinConfig pincfgPayload = {
+    &SPI, // spi bus to use
+    6,    // cs
+    5,    // sdn
+    0,    // irq
+    1,    // gpio0
+    2,    // gpio1
+    3,    // gpio2
+    4,    // gpio3
+};
+
+Si4463 radioTelem(hwcfgTelem, pincfgTelem);
+Si4463 radioAvionics(hwcfgAvionics, pincfgAvionics);
+Si4463 radioPayload(hwcfgPayload, pincfgPayload);
 
 enum InputState
 {
@@ -61,6 +103,7 @@ uint16_t commandSize = 0;
 uint32_t timerMetrics = millis();
 Message m;
 
+// telemetry
 APRSTelem telem;
 GSData avionicsData(APRSTelem::type, 1, TELEM_DEVICE_ID);
 bool hasAvionicsTelem = false;
@@ -69,18 +112,22 @@ bool hasAirbrakeTelem = false;
 GSData payloadData(APRSTelem::type, 3, TELEM_DEVICE_ID);
 bool hasPayloadTelem = false;
 
+// video
+Message avionicsVideoMessage;
+VideoData avionicsVideo;
+GSData avionicsVideoData(VideoData::type, 5, AVIONICS_DEVICE_ID);
+bool hasAvionicsVideo = false;
+Message payloadVideoMessage;
+VideoData payloadVideo;
+GSData payloadVideoData(VideoData::type, 6, PAYLOAD_DEVICE_ID);
+bool hasPayloadVideo = false;
+
 // sample metrics implementation
 Message metricsMessage;
 Metrics telemMetrics(TELEM_DEVICE_ID);
+Metrics avionicsVideoMetrics(AVIONICS_DEVICE_ID);
+Metrics payloadVideoMetrics(PAYLOAD_DEVICE_ID);
 GSData metricsGSData(Metrics::type, 4, TELEM_DEVICE_ID);
-
-// void beep(int d)
-// {
-//   digitalWrite(BUZZER_PIN, HIGH);
-//   delay(d);
-//   digitalWrite(BUZZER_PIN, LOW);
-//   delay(d);
-// }
 
 void log(const char *str1, const char *str2 = "", const char *str3 = "")
 {
@@ -95,40 +142,40 @@ void setup()
   // Modify baud rate to match desired bitrate
   Serial.begin(115200);
   Serial5.begin(115200);
-  // setup buzzer
-  // pinMode(BUZZER_PIN, OUTPUT);
-  // digitalWrite(BUZZER_PIN, LOW);
 
   if (CrashReport)
   {
     Serial.println(CrashReport);
     while (1)
       ;
-    // beep(100);
   }
 
-  // if (!radio.begin())
-  // {
-  //   log("Error: radio failed to begin");
-  //   beep(1000);
-  //   while (1)
-  //     ;
-  // }
+  if (!radioTelem.begin())
+  {
+    log("Error: telemetry radio failed to begin");
+    while (1)
+      ;
+  }
+
+  if (!radioAvionics.begin())
+  {
+    log("Error: Avionics video radio failed to begin");
+    while (1)
+      ;
+  }
+
+  if (!radioPayload.begin())
+  {
+    log("Error: Payload video radio failed to begin");
+    while (1)
+      ;
+  }
 
   log("Initialization complete");
   log("Avionics callsign is: ", avionicsCall);
   log("Airbrake callsign is: ", airbrakeCall);
   log("Payload callsign is: ", payloadCall);
   log("Command calsign is: ", commandCall);
-
-  // while (1)
-  // {
-  //   Serial5.println("hello world!");
-  //   while (Serial5.available() > 0)
-  //     Serial5.write(Serial5.read());
-  //   delay(1000);
-  // }
-  // beep(100);
 }
 
 void loop()
@@ -276,22 +323,46 @@ void loop()
   }
 
   // radio
-  // if (handshakeSuccess && radio.avail())
-  // {
-  //   // get the message
-  //   radio.receive(telem);
-  //   // re-encode it to be multiplexed
-  //   m.encode(&telem);
-  //   // update metrics
-  //   telemMetrics.update(m.size, millis(), radio.RSSI());
-  //   // set the flag to transmit data
-  //   if (strcmp(telem.config.callsign, avionicsCall) == 0)
-  //     hasAvionicsTelem = true;
-  //   if (strcmp(telem.config.callsign, airbrakeCall) == 0)
-  //     hasAirbrakeTelem = true;
-  //   if (strcmp(telem.config.callsign, payloadCall) == 0)
-  //     hasPayloadTelem = true;
-  // }
+  if (handshakeSuccess && radioTelem.avail())
+  {
+    // get the message
+    radioTelem.receive(telem);
+    // re-encode it to be multiplexed
+    m.encode(&telem);
+    // update metrics
+    telemMetrics.update(m.size, millis(), radioTelem.RSSI());
+    // set the flag to transmit data
+    if (strcmp(telem.config.callsign, avionicsCall) == 0)
+      hasAvionicsTelem = true;
+    if (strcmp(telem.config.callsign, airbrakeCall) == 0)
+      hasAirbrakeTelem = true;
+    if (strcmp(telem.config.callsign, payloadCall) == 0)
+      hasPayloadTelem = true;
+  }
+
+  if (handshakeSuccess && radioAvionics.avail())
+  {
+    // get the message
+    avionicsVideo.size = radioAvionics.readRXBuf(avionicsVideo.data, VideoData::maxSize);
+    // re-encode it to be multiplexed
+    avionicsVideoMessage.encode(&avionicsVideo);
+    // update metrics
+    avionicsVideoMetrics.update(avionicsVideoMessage.size, millis(), radioAvionics.RSSI());
+    // set the flag to transmit data
+    hasAvionicsVideo = true;
+  }
+
+  if (handshakeSuccess && radioPayload.avail())
+  {
+    // get the message
+    payloadVideo.size = radioPayload.readRXBuf(payloadVideo.data, VideoData::maxSize);
+    // re-encode it to be multiplexed
+    payloadVideoMessage.encode(&payloadVideo);
+    // update metrics
+    payloadVideoMetrics.update(payloadVideoMessage.size, millis(), radioPayload.RSSI());
+    // set the flag to transmit data
+    hasPayloadVideo = true;
+  }
 
   if (handshakeSuccess)
   {
@@ -335,6 +406,30 @@ void loop()
       hasPayloadTelem = false;
     }
 
+    if (hasAvionicsVideo)
+    {
+      // fill GSData with message
+      avionicsVideoData.fill(avionicsVideoMessage.buf, avionicsVideoMessage.size);
+      // encode for multplexing
+      avionicsVideoMessage.encode(&avionicsVideoData);
+      // write
+      Serial5.write(avionicsVideoMessage.buf, avionicsVideoMessage.size);
+      // reset flag
+      hasAvionicsVideo = false;
+    }
+
+    if (hasPayloadVideo)
+    {
+      // fill GSData with message
+      payloadVideoData.fill(payloadVideoMessage.buf, payloadVideoMessage.size);
+      // encode for multplexing
+      payloadVideoMessage.encode(&payloadVideoData);
+      // write
+      Serial5.write(payloadVideoMessage.buf, payloadVideoMessage.size);
+      // reset flag
+      hasPayloadVideo = false;
+    }
+
     if (millis() - timerMetrics > 1000)
     {
       timerMetrics = millis();
@@ -345,5 +440,5 @@ void loop()
     }
   }
 
-  // radio.update();
+  radio.update();
 }
