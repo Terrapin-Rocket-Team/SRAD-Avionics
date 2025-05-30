@@ -8,10 +8,10 @@
 #include "422Mc86_4GFSK_500000H.h"
 
 Si4463HardwareConfig hwcfg = {
-    MOD_4FSK,       // modulation
-    DR_500k,         // data rate
+    MOD_2GFSK,       // modulation
+    DR_100k,         // data rate
     (uint32_t)433e6, // frequency (Hz)
-    POWER_HP_33dBm, // tx power (127 = ~20dBm)
+    POWER_HP_33dBm,  // tx power (127 = ~20dBm)
     48,              // preamble length
     16,              // required received valid preamble
 };
