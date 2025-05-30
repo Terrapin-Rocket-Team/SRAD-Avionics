@@ -9,9 +9,9 @@
 
 Si4463HardwareConfig hwcfg = {
     MOD_2GFSK,       // modulation
-    DR_500k,         // data rate
+    DR_100k,         // data rate
     (uint32_t)433e6, // frequency (Hz)
-    127,             // tx power (127 = ~20dBm)
+    POWER_LP_20dBm,  // tx power (127 = ~20dBm)
     48,              // preamble length
     16,              // required received valid preamble
 };
@@ -47,8 +47,8 @@ void setup()
     if (CrashReport)
         Serial.println(CrashReport);
 
-    if (!radio.begin(CONFIG_422Mc110_2GFSK_500000U, sizeof(CONFIG_422Mc110_2GFSK_500000U)))
-    // if (!radio.begin())
+    // if (!radio.begin(CONFIG_422Mc110_2GFSK_500000U, sizeof(CONFIG_422Mc110_2GFSK_500000U)))
+    if (!radio.begin())
     {
         Serial.println("Error: radio failed to begin");
         Serial.flush();
@@ -86,16 +86,16 @@ void loop()
     {
         timer = millis();
         timeouts++;
-        // logStats();
+        logStats();
     }
     // need to call as fast as possible every loop
     radio.update();
 }
 
-// void logStats()
-// {
-//     Serial.print("Received: ");
-//     Serial.print(received);
-//     Serial.print(" | Timeouts: ");
-//     Serial.println(timeouts);
-// }
+void logStats()
+{
+    Serial.print("Received: ");
+    Serial.print(received);
+    Serial.print(" | Timeouts: ");
+    Serial.println(timeouts);
+}
