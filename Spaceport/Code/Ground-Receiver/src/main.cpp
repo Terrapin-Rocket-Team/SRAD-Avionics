@@ -2,28 +2,33 @@
 #include "RadioMessage.h"
 #include "Si4463.h"
 
-#define BUZZER_PIN 0
+// #define BUZZER_PIN 0
 
 #define TELEM_DEVICE_ID 3
+
+const char avionicsCall[] = "KD3BBD";
+const char airbrakeCall[] = "KC3UTM";
+const char payloadCall[] = "KQ4TCN";
+const char commandCall[] = "KD3BBD"; // TODO
 
 Si4463HardwareConfig hwcfg = {
     MOD_2GFSK,       // modulation
     DR_100k,         // data rate
     (uint32_t)433e6, // frequency (Hz)
-    127,             // tx power (127 = ~20dBm)
+    POWER_HP_20dBm,  // tx power (127 = ~20dBm)
     48,              // preamble length
     16,              // required received valid preamble
 };
 
 Si4463PinConfig pincfg = {
     &SPI, // spi bus to use
-    10,   // cs
-    38,   // sdn
-    33,   // irq
-    34,   // gpio0
-    35,   // gpio1
-    36,   // random pin - gpio2 is not connected
-    37,   // random pin - gpio3 is not connected
+    33,   // cs
+    39,   // sdn
+    34,   // irq
+    35,   // gpio0
+    36,   // gpio1
+    37,   // random pin - gpio2 is not connected
+    38,   // random pin - gpio3 is not connected
 };
 
 Si4463 radio(hwcfg, pincfg);
@@ -49,7 +54,7 @@ int bytesAvail = 0;
 char serialBuf[Message::maxSize] = {0};
 int serialBufLength = 0;
 Message commandMsg;
-APRSConfig commandConfig = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
+APRSConfig commandConfig = {"KD3BBD", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
 uint16_t commandSize = 0;
 
 // data handling
@@ -61,92 +66,122 @@ GSData avionicsData(APRSTelem::type, 1, TELEM_DEVICE_ID);
 bool hasAvionicsTelem = false;
 GSData airbrakeData(APRSTelem::type, 2, TELEM_DEVICE_ID);
 bool hasAirbrakeTelem = false;
+GSData payloadData(APRSTelem::type, 3, TELEM_DEVICE_ID);
+bool hasPayloadTelem = false;
 
 // sample metrics implementation
 Message metricsMessage;
 Metrics telemMetrics(TELEM_DEVICE_ID);
 GSData metricsGSData(Metrics::type, 4, TELEM_DEVICE_ID);
 
-void beep(int d)
+// void beep(int d)
+// {
+//   digitalWrite(BUZZER_PIN, HIGH);
+//   delay(d);
+//   digitalWrite(BUZZER_PIN, LOW);
+//   delay(d);
+// }
+
+void log(const char *str1, const char *str2 = "", const char *str3 = "")
 {
-  digitalWrite(BUZZER_PIN, HIGH);
-  delay(d);
-  digitalWrite(BUZZER_PIN, LOW);
-  delay(d);
+  Serial.print(str1);
+  Serial.print(str2);
+  Serial.print(str3);
+  Serial.write("\n");
 }
 
 void setup()
 {
   // Modify baud rate to match desired bitrate
   Serial.begin(115200);
+  Serial5.begin(115200);
   // setup buzzer
-  pinMode(BUZZER_PIN, OUTPUT);
-  digitalWrite(BUZZER_PIN, LOW);
+  // pinMode(BUZZER_PIN, OUTPUT);
+  // digitalWrite(BUZZER_PIN, LOW);
 
   if (CrashReport)
   {
     Serial.println(CrashReport);
     while (1)
-      beep(100);
-  }
-
-  if (!radio.begin())
-  {
-    // Serial.println("Error: radio failed to begin");
-    // Serial.flush();
-    beep(1000);
-    while (1)
       ;
+    // beep(100);
   }
 
-  beep(100);
+  // if (!radio.begin())
+  // {
+  //   log("Error: radio failed to begin");
+  //   beep(1000);
+  //   while (1)
+  //     ;
+  // }
+
+  log("Initialization complete");
+  log("Avionics callsign is: ", avionicsCall);
+  log("Airbrake callsign is: ", airbrakeCall);
+  log("Payload callsign is: ", payloadCall);
+  log("Command calsign is: ", commandCall);
+
+  // while (1)
+  // {
+  //   Serial5.println("hello world!");
+  //   while (Serial5.available() > 0)
+  //     Serial5.write(Serial5.read());
+  //   delay(1000);
+  // }
+  // beep(100);
 }
 
 void loop()
 {
-  if (((bytesAvail = Serial.available()) > 0))
+  if (((bytesAvail = Serial5.available()) > 0))
   {
     // check if a command is being sent
     if (currState == NONE)
     {
+      log("buf");
       for (int i = 0; i < bytesAvail; i++)
       {
-        char c = Serial.read();
+        char c = Serial5.read();
         if (c == '\n')
         {
-          serialBuf[i] = 0;
+          serialBuf[serialBufLength] = 0;
           foundNewline = true;
           break;
         }
-        serialBuf[i] = c;
+        serialBuf[serialBufLength] = c;
         serialBufLength++;
         if (serialBufLength >= (int)sizeof(serialBuf))
           break;
       }
-      bytesAvail = Serial.available();
+      bytesAvail = Serial5.available();
 
       if (foundNewline)
       {
+        log("newline command");
         if (strcmp(serialBuf, "handshake") == 0)
         {
+          log("Starting handshake");
           // begin the handshake
           handshakeSuccess = false;
           currState = HANDSHAKE;
         }
         else if (strcmp(serialBuf, "handshake succeeded") == 0)
         {
+          log("Successful handshake");
           // the handshake was successful
           handshakeSuccess = true;
-          // we will start sending data, so setup metrics
+          // we will start sending data, so set up metrics
           telemMetrics.setInitialTime(millis());
         }
         else if (strcmp(serialBuf, "handshake failed") == 0)
         {
+          log("Failed handshake");
           // the handshake was not successful
           handshakeSuccess = false;
         }
         else if (strcmp(serialBuf, "command") == 0)
         {
+          log("Ready for radio command");
           // the next text will be a radio command
           commandMsg.clear();
           currState = COMMAND;
@@ -155,6 +190,7 @@ void loop()
 
         // reset serial buffer
         memset(serialBuf, 0, sizeof(serialBuf));
+        serialBufLength = 0;
         foundNewline = false;
       }
     }
@@ -164,19 +200,21 @@ void loop()
     {
       for (int i = 0; i < bytesAvail; i++)
       {
-        char c = Serial.read();
+        char c = Serial5.read();
+        log("read:");
         // skip odd characters that accidently get added
         if (c != 0xff && c != 0)
         {
-          Serial.write(c);
+          Serial5.write(c);
           if (c == '\n')
           {
+            log("newline handshake");
             foundNewline = true;
             break;
           }
         }
       }
-      bytesAvail = Serial.available();
+      bytesAvail = Serial5.available();
 
       if (foundNewline)
       {
@@ -191,11 +229,11 @@ void loop()
       // read into serial buffer
       for (int i = 0; i < bytesAvail; i++)
       {
-        commandMsg.append(Serial.read());
+        commandMsg.append(Serial5.read());
         if (commandMsg.size >= Message::maxSize)
           break;
       }
-      bytesAvail = Serial.available();
+      bytesAvail = Serial5.available();
 
       if (commandMsg.size >= GSData::headerLen)
       {
@@ -228,7 +266,7 @@ void loop()
         commandMsg.decode(&cmd);
         cmd.config = commandConfig;
         commandMsg.encode(&cmd);
-        commandMsg.write(Serial); // TODO: send to radio
+        commandMsg.write(Serial); // TODO: log for now, need to send to radio
         // we are now finished handling the radio command on the Serial side
         currState = NONE;
       }
@@ -238,20 +276,22 @@ void loop()
   }
 
   // radio
-  if (handshakeSuccess && radio.avail())
-  {
-    // get the message
-    radio.receive(telem);
-    // re-encode it to be multiplexed
-    m.encode(&telem);
-    // update metrics
-    telemMetrics.update(m.size, millis(), radio.RSSI());
-    // set the flag to transmit data
-    if (strcmp(telem.config.callsign, "KC3UTM") == 0)
-      hasAirbrakeTelem = true;
-    if (strcmp(telem.config.callsign, "KC3YKX") == 0)
-      hasAvionicsTelem = true;
-  }
+  // if (handshakeSuccess && radio.avail())
+  // {
+  //   // get the message
+  //   radio.receive(telem);
+  //   // re-encode it to be multiplexed
+  //   m.encode(&telem);
+  //   // update metrics
+  //   telemMetrics.update(m.size, millis(), radio.RSSI());
+  //   // set the flag to transmit data
+  //   if (strcmp(telem.config.callsign, avionicsCall) == 0)
+  //     hasAvionicsTelem = true;
+  //   if (strcmp(telem.config.callsign, airbrakeCall) == 0)
+  //     hasAirbrakeTelem = true;
+  //   if (strcmp(telem.config.callsign, payloadCall) == 0)
+  //     hasPayloadTelem = true;
+  // }
 
   if (handshakeSuccess)
   {
@@ -263,7 +303,8 @@ void loop()
       // encode for multplexing
       m.encode(&avionicsData);
       // write
-      Serial.write(m.buf, m.size);
+      log("Avionics data: ", (const char *)m.buf);
+      Serial5.write(m.buf, m.size);
       // reset flag
       hasAvionicsTelem = false;
     }
@@ -275,9 +316,23 @@ void loop()
       // encode for multplexing
       m.encode(&airbrakeData);
       // write
-      Serial.write(m.buf, m.size);
+      log("Airbrake data: ", (const char *)m.buf);
+      Serial5.write(m.buf, m.size);
       // reset flag
       hasAirbrakeTelem = false;
+    }
+
+    if (hasPayloadTelem)
+    {
+      // fill GSData with message
+      payloadData.fill(m.buf, m.size);
+      // encode for multplexing
+      m.encode(&payloadData);
+      // write
+      log("Payload data: ", (const char *)m.buf);
+      Serial5.write(m.buf, m.size);
+      // reset flag
+      hasPayloadTelem = false;
     }
 
     if (millis() - timerMetrics > 1000)
@@ -286,9 +341,9 @@ void loop()
       metricsMessage.encode(&telemMetrics);
       metricsGSData.fill(metricsMessage.buf, metricsMessage.size);
       metricsMessage.encode(&metricsGSData);
-      Serial.write(metricsMessage.buf, metricsMessage.size);
+      Serial5.write(metricsMessage.buf, metricsMessage.size);
     }
   }
 
-  radio.update();
+  // radio.update();
 }
