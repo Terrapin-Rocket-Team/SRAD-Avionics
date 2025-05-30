@@ -8,8 +8,8 @@
 #include "Radio/ESP32BluetoothRadio.h"
 #include "VoltageSensor.h"
 
-#define RPI_PWR 8
-#define RPI_VIDEO 7
+#define RPI_PWR 24
+#define RPI_VIDEO 25
 
 using namespace mmfs;
 
@@ -51,7 +51,7 @@ AvionicsState t(s, sizeof(s) / 4, &fk);
 
 // Si4463 radio(hwcfg, pincfg);
 // uint32_t radioTimer = millis();
-// Pi pi(RPI_PWR, RPI_VIDEO);
+Pi pi(RPI_PWR, RPI_VIDEO);
 
 extern unsigned long _heap_start;
 extern unsigned long _heap_end;
@@ -109,17 +109,22 @@ void setup()
 }
 double radio_last;
 void calcStuff();
+
 void loop()
 {
     // btRad.rx();
-    if (Serial1.available())
-        Serial.write(Serial1.read());
-    // if (millis() > .5 * 1000 * 60)
-    //     pi.setOn(true);
-    // if (t.getStage() > 0 || millis() > 2 * 1000 * 60)
-    //     pi.setRecording(true);
-    // if (millis() > 15 * 1000)
-    //     pi.setRecording(false);
+    // if (btRad.isReady())
+    //     Serial.print(btRad.isReady());
+    // if (Serial1.available())
+    //     Serial.write(Serial1.read());
+    if (millis() > .5 * 1000 * 60 && !pi.isOn())
+    {
+        pi.setOn(true);
+    }
+    if (millis() > 2 * 1000 * 60 && !pi.isRecording())
+    {
+        pi.setRecording(true);
+    }
 
     // radio.update();
     if (sys.update())
