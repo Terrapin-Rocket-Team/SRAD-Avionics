@@ -6,14 +6,14 @@
 #include <Sensors/IMU/IMU.h>
 
 
-#define ADDRESS (0x53) //alt address pin tied low for our case 
+#define ADDRESS (0x1D) //alt address pin tied low for our case 
 
 
 
     class Adafruit_ADXL375Wrap : public mmfs::IMU {
         public:
 
-            Adafruit_ADXL375Wrap(): accel(ID++) //using default wire bus
+            Adafruit_ADXL375Wrap(): accel(ID++, &Wire2)
             {}
 
             bool init();
