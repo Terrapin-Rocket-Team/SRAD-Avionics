@@ -13,8 +13,8 @@ bool Adafruit_ADXL375Wrap::init(){ //used to initialize
     //setup complimentary filters and automatically scale 
     sensors_event_t event;
     this->accel.getEvent(&event);
-    this->measuredAcc = mmfs::Vector<3>(event.acceleration.x, event.acceleration.y, 
-        event.acceleration.z); //using event to update readings and updating at that 
+    this->measuredAcc = mmfs::Vector<3>((double) event.acceleration.x, (double) event.acceleration.y, 
+        (double) event.acceleration.z); //using event to update readings and updating at that 
                                 // reference
     //copied over from the BMI088 cpp implementation
     quaternionBasedComplimentaryFilterSetup();
@@ -27,8 +27,8 @@ void Adafruit_ADXL375Wrap::read(){ //implementing read function
                             // accelerations in x, y, and z directions
     this->accel.getEvent(&event);
                         
-     this->measuredAcc = mmfs::Vector<3>(event.acceleration.x, event.acceleration.y, 
-        event.acceleration.z); //using event to update readings and updating at that 
+     this->measuredAcc = mmfs::Vector<3>((double) event.acceleration.x, (double) event.acceleration.y, 
+        (double) event.acceleration.z); //using event to update readings and updating at that 
                                 // reference
         quaternionBasedComplimentaryFilter(UPDATE_INTERVAL / 1000.0);
 

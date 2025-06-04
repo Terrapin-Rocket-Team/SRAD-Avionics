@@ -18,7 +18,7 @@ void AvionicsState::updateVariables() {
     IMU *imu_2 = reinterpret_cast<IMU*> (getSensor(IMU_, 2));
 
     if(imu_1->getAccelerationGlobal().z() > 220){
-        acceleration = imu_2->getAccelerationGlobal();
+        acceleration = imu_2->getAcceleration();
     } else{
         acceleration = imu_1->getAccelerationGlobal();
     }
