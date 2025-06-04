@@ -13,7 +13,7 @@
     class Adafruit_ADXL375Wrap : public mmfs::IMU {
         public:
 
-            Adafruit_ADXL375Wrap(): accel(ID++, &Wire2)
+            Adafruit_ADXL375Wrap(): accel(ID, &Wire2)
             {}
 
             bool init();
@@ -22,7 +22,7 @@
         private:
             Adafruit_ADXL375 accel;
 
-            static signed int ID;
+            static const unsigned int ID = 2;
             bool initialized;
 
 
