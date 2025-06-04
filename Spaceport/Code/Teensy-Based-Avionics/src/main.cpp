@@ -71,7 +71,7 @@ MMFSConfig a = MMFSConfig()
                    .withBBAsync(true, 50)
                    .withBBPin(LED_BUILTIN)
                    .withBBPin(32)
-                      .withBuzzerPin(33)
+                     // .withBuzzerPin(33)
                    .withUsingSensorBiasCorrection(true)
                    .withUpdateRate(5)
                    .withState(&t);
@@ -96,16 +96,16 @@ void setup()
     //     getLogger().recordLogData(ERROR_, "Initialized Bluetooth Failed");
     // }
 
-    if (radio.begin())
-    {
-        bb.onoff(BUZZER, 1000);
-        getLogger().recordLogData(ERROR_, "Radio initialized.");
-    }
-    else
-    {
-        bb.onoff(BUZZER, 200, 3);
-        getLogger().recordLogData(INFO_, "Radio failed to initialize.");
-    }
+    // if (radio.begin())
+    // {
+    //     bb.onoff(BUZZER, 1000);
+    //     getLogger().recordLogData(ERROR_, "Radio initialized.");
+    // }
+    // else
+    // {
+    //     bb.onoff(BUZZER, 200, 3);
+    //     getLogger().recordLogData(INFO_, "Radio failed to initialize.");
+    // }
 
     getLogger().recordLogData(INFO_, "Initialization Complete");
 }
@@ -125,7 +125,7 @@ void loop()
     // if (millis() > 15 * 1000)
     //     pi.setRecording(false);
 
-    radio.update();
+  //radio.update();
     if (sys.update())
     {
         // Serial.printf("%.2f | %.2f\n", vsfc.getRawVoltage(), vsfc.getRealVoltage()); // this would never work lmao
@@ -168,7 +168,7 @@ void loop()
     aprs.stateFlags.pack(arr);
     // Serial.printf("%d %ld\n", d.getTemp(), aprs.stateFlags.get());
     msg.encode(&aprs);
-    radio.send(aprs);
+   //radio.send(aprs);
     // Serial.printf("%0.3f - Sent APRS Message; %f   |   %d\n", time / 1000.0, d.getAGLAltFt(), m.getFixQual());
     // bb.aonoff(BUZZER, 50);
     // Serial1.write(msg.buf, msg.size);

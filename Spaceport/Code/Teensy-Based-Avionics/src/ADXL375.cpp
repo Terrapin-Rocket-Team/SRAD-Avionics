@@ -4,7 +4,7 @@ using namespace mmfs;
 
 bool Adafruit_ADXL375Wrap::init(){ //used to initialize
     this->initialized = false;
-    bool status = this->accel.begin(); //begin accelerometer
+    bool status = this->accel.begin(0x1D); //begin accelerometer
     if(status){ 
         this->initialized = true;
     } else {
@@ -25,6 +25,7 @@ bool Adafruit_ADXL375Wrap::init(){ //used to initialize
 void Adafruit_ADXL375Wrap::read(){ //implementing read function 
     sensors_event_t event; // creating an event object to get the
                             // accelerations in x, y, and z directions
+    this->accel.getEvent(&event);
                         
      this->measuredAcc = mmfs::Vector<3>(event.acceleration.x, event.acceleration.y, 
         event.acceleration.z); //using event to update readings and updating at that 

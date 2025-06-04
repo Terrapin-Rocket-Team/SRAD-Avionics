@@ -6,7 +6,7 @@
 #include <Sensors/IMU/IMU.h>
 
 
-#define ADDRESS (0x1D) //alt address pin tied low for our case 
+#define ADXL375_ADDRESS (0x1D) //alt address pin tied low for our case 
 
 
 
@@ -14,7 +14,9 @@
         public:
 
             Adafruit_ADXL375Wrap(): accel(ID, &Wire2)
-            {}
+            {
+                 setName("ADXL");
+            }
 
             bool init();
             void read();
