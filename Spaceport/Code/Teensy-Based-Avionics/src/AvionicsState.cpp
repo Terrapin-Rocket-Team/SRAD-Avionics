@@ -14,7 +14,17 @@ AvionicsState::AvionicsState(Sensor **sensors, int numSensors, LinearKalmanFilte
 
 void AvionicsState::updateVariables() {
     State::updateVariables();
+    IMU *imu_1 = reinterpret_cast<IMU*>(getSensor(IMU_, 1));
+    IMU *imu_2 = reinterpret_cast<IMU*> (getSensor(IMU_, 2));
+
+    if(imu_1->getAccelerationGlobal().z() > 220){
+        acceleration = imu_2->getAccelerationGlobal();
+    } else{
+        acceleration = imu_1->getAccelerationGlobal();
+    }
+
     imuVelocity += acceleration.magnitude() * UPDATE_INTERVAL;
+    
 }
 
 void AvionicsState::determineStage()

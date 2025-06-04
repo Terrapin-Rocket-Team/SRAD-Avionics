@@ -7,6 +7,7 @@
 #include "Si4463.h"
 #include "Radio/ESP32BluetoothRadio.h"
 #include "VoltageSensor.h"
+#include "ADXL375.h"
 
 #define RPI_PWR 8
 #define RPI_VIDEO 7
@@ -14,11 +15,12 @@
 using namespace mmfs;
 
 MAX_M10S m;
+
 DPS310 d;
 BMI088andLIS3MDL b;
 VoltageSensor vsfc(A0, 330, 220, "Flight Computer Voltage");
-
-Sensor *s[] = {&m, &d, &b, &vsfc};
+Adafruit_ADXL375Wrap accel;
+Sensor *s[] = {&m, &d, &b, &vsfc, &accel};
 AvionicsKF fk;
 AvionicsState t(s, sizeof(s) / 4, &fk);
 
