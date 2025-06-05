@@ -18,14 +18,14 @@
                  setName("ADXL");
             }
 
-            bool init();
-            void read();
+            bool init() override;
+            void read() override;
 
         private:
             Adafruit_ADXL375 accel;
 
             static const unsigned int ID = 2;
-            bool initialized;
+          
 
 
     };
