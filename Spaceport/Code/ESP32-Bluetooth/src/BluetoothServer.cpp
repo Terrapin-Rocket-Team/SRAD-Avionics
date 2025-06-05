@@ -162,6 +162,7 @@ ClientConnectionHandler::ClientConnectionHandler(BluetoothServer *pServer, Strea
 void ClientConnectionHandler::onConnect(BLEServer *pServer) {
     dbgSerial.println("Client connection established!");
     pServer->updatePeerMTU(pServer->getConnId(), 128);
+
     dbgSerial.println("Peer MTU: " + String(pServer->getPeerMTU(pServer->getConnId())));
     // Serial.println("onConnect, restarting advertising");
     // pServer->startAdvertising(); //restart advertising when a device connects
