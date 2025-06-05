@@ -69,7 +69,7 @@ void BluetoothClient::update(Stream &inputSerial)
         conn_params.latency = 0;
         conn_params.timeout = 400; // 4s supervision timeout
 
-        esp_err_t err = esp_ble_gap_update_conn_params(&conn_params);
+        esp_err_t err = esp_ble_gap_set_prefer_conn_params(conn_params.bda, conn_params.min_int, conn_params.max_int, conn_params.latency, conn_params.timeout);
         dbgSerial.println("Requested connection interval update, result: " + String(err));
 
         remoteTx->registerForNotify([this](BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)
