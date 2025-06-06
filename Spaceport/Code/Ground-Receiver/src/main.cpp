@@ -3,7 +3,7 @@
 #include "Si4463.h"
 
 #include "422Mc86_4GFSK_500000H.h"
-#include "422Mc80_4GFSK_010000H.h"
+#include "422Mc80_4GFSK_009600H.h"
 
 #define TELEM_DEVICE_ID 3
 #define AVIONICS_DEVICE_ID 2
@@ -158,7 +158,7 @@ void setup()
       ;
   }
 
-  // if (!radioTelem.begin(CONFIG_422Mc80_4GFSK_010000H, sizeof(CONFIG_422Mc80_4GFSK_010000H)))
+  // if (!radioTelem.begin(CONFIG_422Mc80_4GFSK_009600H, sizeof(CONFIG_422Mc80_4GFSK_009600H)))
   // {
   //   log("Error: telemetry radio failed to begin");
   //   while (1)
