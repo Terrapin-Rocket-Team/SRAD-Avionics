@@ -8,6 +8,8 @@
 #include "Radio/ESP32BluetoothRadio.h"
 #include "VoltageSensor.h"
 
+#include "422Mc80_4GFSK_009600H.h"
+
 #define RPI_PWR 24
 #define RPI_VIDEO 25
 
@@ -22,34 +24,34 @@ Sensor *s[] = {&m, &d, &b, &vsfc};
 AvionicsKF fk;
 AvionicsState t(s, sizeof(s) / 4, &fk);
 
-// APRSConfig aprsConfig = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
+// APRSConfig aprsConfig = {"KD3BBD", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
 // uint8_t encoding[] = {7, 4, 4};
 // APRSTelem aprs(aprsConfig);
 // Message msg;
 
 // ESP32BluetoothRadio btRad(Serial1, "AVIONICS", true);
 
-// Si4463HardwareConfig hwcfg = {
-//     MOD_2GFSK,      // modulation
-//     DR_100k,        // data rate
-//     433e6,          // frequency (Hz)
-//     POWER_HP_33dBm, // tx power (127 = ~20dBm)
-//     48,             // preamble length
-//     16,             // required received valid preamble
-// };
+Si4463HardwareConfig hwcfg = {
+    MOD_4GFSK,        // modulation
+    DR_9_6k,          // data rate
+    (uint8_t)430e6,   // frequency (Hz)
+    POWER_COTS_30dBm, // tx power (127 = ~20dBm)
+    192,              // preamble length
+    32,               // required received valid preamble
+};
 
-// Si4463PinConfig pincfg = {
-//     &SPI, // spi bus to use
-//     10,   // cs
-//     20,   // sdn
-//     23,   // irq
-//     22,   // gpio0
-//     21,   // gpio1
-//     36,   // random pin - gpio2 is not connected
-//     37,   // random pin - gpio3 is not connected
-// };
+Si4463PinConfig pincfg = {
+    &SPI, // spi bus to use
+    10,   // cs
+    20,   // sdn
+    23,   // irq
+    22,   // gpio0
+    21,   // gpio1
+    36,   // gpio2
+    37,   // gpio3
+};
 
-// Si4463 radio(hwcfg, pincfg);
+Si4463 radio(hwcfg, pincfg);
 // uint32_t radioTimer = millis();
 Pi pi(RPI_PWR, RPI_VIDEO);
 
@@ -94,16 +96,16 @@ void setup()
     //     getLogger().recordLogData(ERROR_, "Initialized Bluetooth Failed");
     // }
 
-    // if (radio.begin())
-    // {
-    //     bb.onoff(BUZZER, 1000);
-    //     getLogger().recordLogData(ERROR_, "Radio initialized.");
-    // }
-    // else
-    // {
-    //     bb.onoff(BUZZER, 200, 3);
-    //     getLogger().recordLogData(INFO_, "Radio failed to initialize.");
-    // }
+    if (radio.begin(CONFIG_422Mc80_4GFSK_009600H, sizeof(CONFIG_422Mc80_4GFSK_009600H)))
+    {
+        bb.onoff(BUZZER, 1000);
+        getLogger().recordLogData(ERROR_, "Radio initialized.");
+    }
+    else
+    {
+        bb.onoff(BUZZER, 200, 3);
+        getLogger().recordLogData(INFO_, "Radio failed to initialize.");
+    }
 
     getLogger().recordLogData(INFO_, "Initialization Complete");
 }
