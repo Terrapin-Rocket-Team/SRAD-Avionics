@@ -2,6 +2,9 @@
 #include "RadioMessage.h"
 #include "Si4463.h"
 
+#include "422Mc86_4GFSK_500000H.h"
+#include "422Mc80_4GFSK_010000H.h"
+
 #define TELEM_DEVICE_ID 3
 #define AVIONICS_DEVICE_ID 2
 #define PAYLOAD_DEVICE_ID 1
@@ -11,13 +14,15 @@ const char airbrakeCall[] = "KC3UTM";
 const char payloadCall[] = "KQ4TCN";
 const char commandCall[] = "KD3BBD"; // TODO: sync with commandConfig object
 
+HardwareSerial *s;
+
 Si4463HardwareConfig hwcfgTelem = {
     MOD_4GFSK,       // modulation
     DR_9_6k,         // data rate
     (uint32_t)430e6, // frequency (Hz)
     POWER_HP_33dBm,  // tx power (127 = ~20dBm)
-    48,              // preamble length
-    16,              // required received valid preamble
+    192,             // preamble length
+    32,              // required received valid preamble
 };
 
 Si4463PinConfig pincfgTelem = {
@@ -32,12 +37,13 @@ Si4463PinConfig pincfgTelem = {
 };
 
 Si4463HardwareConfig hwcfgAvionics = {
-    MOD_4GFSK,         // modulation
-    DR_500k,           // data rate
-    (uint32_t)430.6e6, // frequency (Hz)
-    POWER_HP_20dBm,    // tx power (127 = ~20dBm)
-    48,                // preamble length
-    16,                // required received valid preamble
+    MOD_4GFSK,       // modulation
+    DR_250k,         // data rate
+    (uint32_t)433e6, // frequency (Hz)
+    // (uint32_t)430.6e6, // frequency (Hz)
+    POWER_HP_20dBm, // tx power (127 = ~20dBm)
+    192,            // preamble length
+    32,             // required received valid preamble
 };
 
 Si4463PinConfig pincfgAvionics = {
@@ -53,11 +59,11 @@ Si4463PinConfig pincfgAvionics = {
 
 Si4463HardwareConfig hwcfgPayload = {
     MOD_4GFSK,         // modulation
-    DR_500k,           // data rate
+    DR_250k,           // data rate
     (uint32_t)431.3e6, // frequency (Hz)
     POWER_HP_20dBm,    // tx power (127 = ~20dBm)
-    48,                // preamble length
-    16,                // required received valid preamble
+    192,               // preamble length
+    32,                // required received valid preamble
 };
 
 Si4463PinConfig pincfgPayload = {
@@ -131,45 +137,47 @@ GSData metricsGSData(Metrics::type, 4, TELEM_DEVICE_ID);
 
 void log(const char *str1, const char *str2 = "", const char *str3 = "")
 {
-  Serial.print(str1);
-  Serial.print(str2);
-  Serial.print(str3);
-  Serial.write("\n");
+  Serial5.print(str1);
+  Serial5.print(str2);
+  Serial5.print(str3);
+  Serial5.write("\n");
 }
 
 void setup()
 {
   // Modify baud rate to match desired bitrate
-  Serial.begin(115200);
+  Serial.begin(1000000);
   Serial5.begin(115200);
+
+  s = (HardwareSerial *)&Serial;
 
   if (CrashReport)
   {
-    Serial.println(CrashReport);
+    Serial5.println(CrashReport);
     while (1)
       ;
   }
 
-  if (!radioTelem.begin())
-  {
-    log("Error: telemetry radio failed to begin");
-    while (1)
-      ;
-  }
+  // if (!radioTelem.begin(CONFIG_422Mc80_4GFSK_010000H, sizeof(CONFIG_422Mc80_4GFSK_010000H)))
+  // {
+  //   log("Error: telemetry radio failed to begin");
+  //   while (1)
+  //     ;
+  // }
 
-  if (!radioAvionics.begin())
+  if (!radioAvionics.begin(CONFIG_422Mc86_4GFSK_500000H, sizeof(CONFIG_422Mc86_4GFSK_500000H)))
   {
     log("Error: Avionics video radio failed to begin");
     while (1)
       ;
   }
 
-  if (!radioPayload.begin())
-  {
-    log("Error: Payload video radio failed to begin");
-    while (1)
-      ;
-  }
+  // if (!radioPayload.begin(CONFIG_422Mc86_4GFSK_500000H, sizeof(CONFIG_422Mc86_4GFSK_500000H)))
+  // {
+  //   log("Error: Payload video radio failed to begin");
+  //   while (1)
+  //     ;
+  // }
 
   log("Initialization complete");
   log("Avionics callsign is: ", avionicsCall);
@@ -180,7 +188,7 @@ void setup()
 
 void loop()
 {
-  if (((bytesAvail = Serial5.available()) > 0))
+  if (((bytesAvail = s->available()) > 0))
   {
     // check if a command is being sent
     if (currState == NONE)
@@ -188,23 +196,26 @@ void loop()
       log("buf");
       for (int i = 0; i < bytesAvail; i++)
       {
-        char c = Serial5.read();
+        char c = s->read();
         if (c == '\n')
         {
           serialBuf[serialBufLength] = 0;
           foundNewline = true;
           break;
         }
-        serialBuf[serialBufLength] = c;
-        serialBufLength++;
-        if (serialBufLength >= (int)sizeof(serialBuf))
-          break;
+        if (c != '\0')
+        {
+          serialBuf[serialBufLength] = c;
+          serialBufLength++;
+          if (serialBufLength >= (int)sizeof(serialBuf))
+            break;
+        }
       }
-      bytesAvail = Serial5.available();
+      bytesAvail = s->available();
 
       if (foundNewline)
       {
-        log("newline command");
+        log("newline command ", serialBuf);
         if (strcmp(serialBuf, "handshake") == 0)
         {
           log("Starting handshake");
@@ -247,12 +258,12 @@ void loop()
     {
       for (int i = 0; i < bytesAvail; i++)
       {
-        char c = Serial5.read();
+        char c = s->read();
         log("read:");
         // skip odd characters that accidently get added
         if (c != 0xff && c != 0)
         {
-          Serial5.write(c);
+          s->write(c);
           if (c == '\n')
           {
             log("newline handshake");
@@ -261,7 +272,7 @@ void loop()
           }
         }
       }
-      bytesAvail = Serial5.available();
+      bytesAvail = s->available();
 
       if (foundNewline)
       {
@@ -276,11 +287,11 @@ void loop()
       // read into serial buffer
       for (int i = 0; i < bytesAvail; i++)
       {
-        commandMsg.append(Serial5.read());
+        commandMsg.append(s->read());
         if (commandMsg.size >= Message::maxSize)
           break;
       }
-      bytesAvail = Serial5.available();
+      bytesAvail = s->available();
 
       if (commandMsg.size >= GSData::headerLen)
       {
@@ -323,46 +334,50 @@ void loop()
   }
 
   // radio
-  if (handshakeSuccess && radioTelem.avail())
-  {
-    // get the message
-    radioTelem.receive(telem);
-    // re-encode it to be multiplexed
-    m.encode(&telem);
-    // update metrics
-    telemMetrics.update(m.size, millis(), radioTelem.RSSI());
-    // set the flag to transmit data
-    if (strcmp(telem.config.callsign, avionicsCall) == 0)
-      hasAvionicsTelem = true;
-    if (strcmp(telem.config.callsign, airbrakeCall) == 0)
-      hasAirbrakeTelem = true;
-    if (strcmp(telem.config.callsign, payloadCall) == 0)
-      hasPayloadTelem = true;
-  }
+  // if (handshakeSuccess && radioTelem.avail())
+  // {
+  //   // get the message
+  //   radioTelem.receive(telem);
+  //   // re-encode it to be multiplexed
+  //   m.encode(&telem);
+  //   // update metrics
+  //   telemMetrics.update(m.size, millis(), radioTelem.RSSI());
+  //   // set the flag to transmit data
+  //   if (strcmp(telem.config.callsign, avionicsCall) == 0)
+  //     hasAvionicsTelem = true;
+  //   if (strcmp(telem.config.callsign, airbrakeCall) == 0)
+  //     hasAirbrakeTelem = true;
+  //   if (strcmp(telem.config.callsign, payloadCall) == 0)
+  //     hasPayloadTelem = true;
+  // }
 
   if (handshakeSuccess && radioAvionics.avail())
   {
     // get the message
-    avionicsVideo.size = radioAvionics.readRXBuf(avionicsVideo.data, VideoData::maxSize);
+    avionicsVideo.size = radioAvionics.readRXBuf(avionicsVideo.data, radioAvionics.length);
     // re-encode it to be multiplexed
     avionicsVideoMessage.encode(&avionicsVideo);
     // update metrics
     avionicsVideoMetrics.update(avionicsVideoMessage.size, millis(), radioAvionics.RSSI());
     // set the flag to transmit data
     hasAvionicsVideo = true;
+    // reset avail flag
+    radioAvionics.available = false;
   }
 
-  if (handshakeSuccess && radioPayload.avail())
-  {
-    // get the message
-    payloadVideo.size = radioPayload.readRXBuf(payloadVideo.data, VideoData::maxSize);
-    // re-encode it to be multiplexed
-    payloadVideoMessage.encode(&payloadVideo);
-    // update metrics
-    payloadVideoMetrics.update(payloadVideoMessage.size, millis(), radioPayload.RSSI());
-    // set the flag to transmit data
-    hasPayloadVideo = true;
-  }
+  // if (handshakeSuccess && radioPayload.avail())
+  // {
+  //   // get the message
+  //   payloadVideo.size = radioPayload.readRXBuf(payloadVideo.data, VideoData::maxSize);
+  //   // re-encode it to be multiplexed
+  //   payloadVideoMessage.encode(&payloadVideo);
+  //   // update metrics
+  //   payloadVideoMetrics.update(payloadVideoMessage.size, millis(), radioPayload.RSSI());
+  //   // set the flag to transmit data
+  //   hasPayloadVideo = true;
+  //   // reset avail flag
+  //   radioPayload.available = false
+  // }
 
   if (handshakeSuccess)
   {
@@ -375,7 +390,7 @@ void loop()
       m.encode(&avionicsData);
       // write
       log("Avionics data: ", (const char *)m.buf);
-      Serial5.write(m.buf, m.size);
+      s->write(m.buf, m.size);
       // reset flag
       hasAvionicsTelem = false;
     }
@@ -388,7 +403,7 @@ void loop()
       m.encode(&airbrakeData);
       // write
       log("Airbrake data: ", (const char *)m.buf);
-      Serial5.write(m.buf, m.size);
+      s->write(m.buf, m.size);
       // reset flag
       hasAirbrakeTelem = false;
     }
@@ -401,33 +416,85 @@ void loop()
       m.encode(&payloadData);
       // write
       log("Payload data: ", (const char *)m.buf);
-      Serial5.write(m.buf, m.size);
+      s->write(m.buf, m.size);
       // reset flag
       hasPayloadTelem = false;
     }
 
     if (hasAvionicsVideo)
     {
-      // fill GSData with message
-      avionicsVideoData.fill(avionicsVideoMessage.buf, avionicsVideoMessage.size);
-      // encode for multplexing
-      avionicsVideoMessage.encode(&avionicsVideoData);
-      // write
-      Serial5.write(avionicsVideoMessage.buf, avionicsVideoMessage.size);
-      // reset flag
-      hasAvionicsVideo = false;
+      if (avionicsVideoMessage.size > GSData::maxSize)
+      {
+        // Assume it is no more than double the maxSize
+        // Need to split into 255 bytes chunks (assume it is an integer multiple of 255)
+        int chunks = avionicsVideo.size / 255;
+        int chunksFirstHalf = chunks - chunks / 2;
+        int chunksSecondHalf = chunks - chunksFirstHalf;
+
+        // fill GSData with first half of message
+        avionicsVideoData.fill(avionicsVideo.data, chunksFirstHalf * 255);
+        // encode for multplexing
+        avionicsVideoMessage.encode(&avionicsVideoData);
+        // write
+        s->write(avionicsVideoMessage.buf, avionicsVideoMessage.size);
+        // fill GSData with second half of message
+        avionicsVideoData.fill(avionicsVideo.data + (chunksFirstHalf * 255), chunksSecondHalf * 255);
+        // encode for multplexing
+        avionicsVideoMessage.encode(&avionicsVideoData);
+        // write
+        s->write(avionicsVideoMessage.buf, avionicsVideoMessage.size);
+        // reset flag
+        hasAvionicsVideo = false;
+      }
+      else
+      {
+        // fill GSData with message
+        avionicsVideoData.fill(avionicsVideoMessage.buf, avionicsVideoMessage.size);
+        // encode for multplexing
+        avionicsVideoMessage.encode(&avionicsVideoData);
+        // write
+        s->write(avionicsVideoMessage.buf, avionicsVideoMessage.size);
+        // reset flag
+        hasAvionicsVideo = false;
+      }
     }
 
     if (hasPayloadVideo)
     {
-      // fill GSData with message
-      payloadVideoData.fill(payloadVideoMessage.buf, payloadVideoMessage.size);
-      // encode for multplexing
-      payloadVideoMessage.encode(&payloadVideoData);
-      // write
-      Serial5.write(payloadVideoMessage.buf, payloadVideoMessage.size);
-      // reset flag
-      hasPayloadVideo = false;
+      if (payloadVideoMessage.size > GSData::maxSize)
+      {
+        // Assume it is no more than double the maxSize
+        // Need to split into 255 bytes chunks (assume it is an integer multiple of 255)
+        int chunks = payloadVideoMessage.size / 255;
+        int chunksFirstHalf = chunks - chunks / 2;
+        int chunksSecondHalf = chunks - chunksFirstHalf;
+
+        // fill GSData with first half of message
+        payloadVideoData.fill(payloadVideoMessage.buf, chunksFirstHalf * 255);
+        // encode for multplexing
+        payloadVideoMessage.encode(&payloadVideoData);
+        // write
+        s->write(payloadVideoMessage.buf, payloadVideoMessage.size);
+        // fill GSData with second half of message
+        payloadVideoData.fill(payloadVideoMessage.buf + (chunksFirstHalf * 255), chunksSecondHalf * 255);
+        // encode for multplexing
+        payloadVideoMessage.encode(&payloadVideoData);
+        // write
+        s->write(payloadVideoMessage.buf, payloadVideoMessage.size);
+        // reset flag
+        hasPayloadVideo = false;
+      }
+      else
+      {
+        // fill GSData with message
+        payloadVideoData.fill(payloadVideoMessage.buf, payloadVideoMessage.size);
+        // encode for multplexing
+        payloadVideoMessage.encode(&payloadVideoData);
+        // write
+        s->write(payloadVideoMessage.buf, payloadVideoMessage.size);
+        // reset flag
+        hasPayloadVideo = false;
+      }
     }
 
     if (millis() - timerMetrics > 1000)
@@ -436,9 +503,19 @@ void loop()
       metricsMessage.encode(&telemMetrics);
       metricsGSData.fill(metricsMessage.buf, metricsMessage.size);
       metricsMessage.encode(&metricsGSData);
-      Serial5.write(metricsMessage.buf, metricsMessage.size);
+      s->write(metricsMessage.buf, metricsMessage.size);
+      metricsMessage.encode(&avionicsVideoMetrics);
+      metricsGSData.fill(metricsMessage.buf, metricsMessage.size);
+      metricsMessage.encode(&metricsGSData);
+      s->write(metricsMessage.buf, metricsMessage.size);
+      metricsMessage.encode(&payloadVideoMetrics);
+      metricsGSData.fill(metricsMessage.buf, metricsMessage.size);
+      metricsMessage.encode(&metricsGSData);
+      s->write(metricsMessage.buf, metricsMessage.size);
     }
   }
 
-  radio.update();
+  // radioTelem.update();
+  radioAvionics.update();
+  // radioPayload.update();
 }
