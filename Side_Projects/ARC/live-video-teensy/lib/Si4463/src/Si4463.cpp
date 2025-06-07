@@ -205,7 +205,7 @@ bool Si4463::tx(const uint8_t *message, int len)
         digitalWrite(this->_cs, HIGH);
 
         // set packet length for variable length packets
-        this->setProperty(G_PKT, 2, P_PKT_FIELD_2_LENGTH2, mLen);
+        // this->setProperty(G_PKT, 2, P_PKT_FIELD_2_LENGTH2, mLen);
 
         // start tx
         // enter rx state after tx

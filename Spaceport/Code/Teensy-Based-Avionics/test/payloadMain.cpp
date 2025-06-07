@@ -25,13 +25,16 @@ AvionicsKF fk;
 AvionicsState t(s, sizeof(s) / 4, &fk);
 
 APRSConfig aprsConfigAvionics = {"KD3BBD", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
+APRSConfig aprsConfigPayload = {"KQ4TCN", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
 uint8_t encoding[] = {7, 4, 4};
-APRSConfig aprsConfigAirbrake = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
-// uint8_t encoding[] = {7, 4, 4};
+APRSTelem avionicsTelem(aprsConfigAvionics);
 Message msgAvionics;
-Message msgAirbrake;
+Message msgPayload;
 
-ESP32BluetoothRadio btRad(Serial2, "AVIONICS", true);
+const char *avionicsCall = "KD3BBD";
+const char *airbrakeCall = "KC3UTM";
+
+// ESP32BluetoothRadio btRad(Serial2, "AVIONICS", true);
 
 Si4463HardwareConfig hwcfg = {
     MOD_4GFSK,        // modulation
@@ -45,10 +48,10 @@ Si4463HardwareConfig hwcfg = {
 Si4463PinConfig pincfg = {
     &SPI, // spi bus to use
     10,   // cs
-    23,   // sdn
-    20,   // irq
-    21,   // gpio0
-    22,   // gpio1
+    38,   // sdn
+    33,   // irq
+    34,   // gpio0
+    35,   // gpio1
     36,   // gpio2
     37,   // gpio3
 };
@@ -72,8 +75,8 @@ void FreeMem()
 MMFSConfig a = MMFSConfig()
                    .withBBAsync(true, 50)
                    .withBBPin(LED_BUILTIN)
-                   .withBBPin(32)
-                   .withBuzzerPin(33)
+                   .withBBPin(-1)
+                   .withBuzzerPin(-1)
                    .withUsingSensorBiasCorrection(true)
                    .withUpdateRate(10)
                    .withState(&t);
@@ -88,16 +91,16 @@ void setup()
     Serial2.begin(115200);
     bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
 
-    if (btRad.begin())
-    {
-        bb.onoff(BUZZER, 500); // 1 x 0.5 sec beep for sucessful initialization
-        getLogger().recordLogData(INFO_, "Initialized Bluetooth");
-    }
-    else
-    {
-        bb.onoff(BUZZER, 1000, 3); // 3 x 2 sec beep for uncessful initialization
-        getLogger().recordLogData(ERROR_, "Initialized Bluetooth Failed");
-    }
+    // if (btRad.begin())
+    // {
+    //     bb.onoff(BUZZER, 500); // 1 x 0.5 sec beep for sucessful initialization
+    //     getLogger().recordLogData(INFO_, "Initialized Bluetooth");
+    // }
+    // else
+    // {
+    //     bb.onoff(BUZZER, 1000, 3); // 3 x 2 sec beep for uncessful initialization
+    //     getLogger().recordLogData(ERROR_, "Initialized Bluetooth Failed");
+    // }
 
     if (radio.begin(CONFIG_422Mc80_4GFSK_009600H, sizeof(CONFIG_422Mc80_4GFSK_009600H)))
     // if (radio.begin())
@@ -113,40 +116,41 @@ void setup()
 
     getLogger().recordLogData(INFO_, "Initialization Complete");
 }
-uint32_t avionicsTimer = millis();
-uint32_t airbrakeTimer = millis();
-bool sendAirbrake = false;
+uint32_t payloadTimer = millis();
+uint32_t debugTimer = millis();
+uint32_t txTimeout = millis();
+bool sendPayload = false;
 
 void calcStuff();
 
 void loop()
 {
-    btRad.rx();
-    if (btRad.isReady())
-        Serial.print(btRad.isReady());
+    // btRad.rx();
+    // if (btRad.isReady())
+    // Serial.print(btRad.isReady());
     // if (Serial2.available())
     //     Serial.write(Serial2.read());
-    if (millis() > .5 * 1000 * 60 && !pi.isOn())
-    {
-        pi.setOn(true);
-    }
-    if (millis() > 2 * 1000 * 60 && !pi.isRecording())
-    {
-        pi.setRecording(true);
-    }
+    // if (millis() > .5 * 1000 * 60 && !pi.isOn())
+    // {
+    //     pi.setOn(true);
+    // }
+    // if (millis() > 2 * 1000 * 60 && !pi.isRecording())
+    // {
+    //     pi.setRecording(true);
+    // }
 
     if (sys.update())
     {
-        calcStuff();
+        // calcStuff();
         // Serial.println(d.getPressure());
         // Serial.printf("%.2f | %.2f\n", vsfc.getRawVoltage(), vsfc.getRealVoltage()); // this would never work lmao
         // Serial.println("Receive buffer size: " + String(btRad.getReceiveSize()));
         // Serial.print("\tRecieve buffer: ");
 
-        if (btRad.getReceiveSize() > 0)
-        {
-            msgAirbrake.size = btRad.readBuffer((char *)msgAirbrake.buf, Message::maxSize);
-        }
+        // if (btRad.getReceiveSize() > 0)
+        // {
+        //     msgAirbrake.size = btRad.readBuffer((char *)msgAirbrake.buf, Message::maxSize);
+        // }
 
         // for (int i = 0; i < btRad.getReceiveSize(); i++)
         // {
@@ -155,54 +159,50 @@ void loop()
         // Serial.println();
     }
 
-    if (millis() - avionicsTimer > 600)
+    if (millis() - txTimeout > 180 && radio.avail())
     {
-        avionicsTimer = millis();
-        sendAirbrake = true;
-        // msg.clear();
+        msgAvionics.size = radio.readRXBuf(msgAvionics.buf, Message::maxSize);
+        char call[7] = {0};
+        memset(call, 0, sizeof(char));
+        memcpy(call, msgAvionics.buf, 6);
+        Serial.println(call);
+        if (strcmp(call, avionicsCall) == 0)
+        {
+            Serial.println("Got avionics telem");
+            msgAvionics.decode(&avionicsTelem);
+            payloadTimer = millis();
+            sendPayload = true;
+        }
+        radio.available = false;
+    }
+
+    if (millis() - payloadTimer > 400 && sendPayload)
+    // if (millis() - payloadTimer > 600)
+    {
+        // payloadTimer = millis();
+        sendPayload = false;
+        Serial.print("Timer after avionics is ");
+        Serial.print(millis() - payloadTimer);
+        Serial.println(", sending own telem");
 
         double orient[3] = {b.getAngularVelocity().x(), b.getAngularVelocity().y(), b.getAngularVelocity().z()};
-        APRSTelem aprs = APRSTelem(aprsConfigAvionics, m.getPos().x(), m.getPos().y(), d.getAGLAltFt(), t.getVelocity().z(), m.getHeading(), orient, 0);
+        APRSTelem aprs = APRSTelem(aprsConfigPayload, m.getPos().x(), m.getPos().y(), d.getAGLAltFt(), t.getVelocity().z(), m.getHeading(), orient, 0);
 
         aprs.stateFlags.setEncoding(encoding, 3);
         uint8_t arr[] = {(uint8_t)(int)d.getTemp(), (uint8_t)t.getStage(), (uint8_t)m.getFixQual()};
         aprs.stateFlags.pack(arr);
-        // msgAvionics.encode(&aprs);
         radio.send(aprs);
 
-        // Serial.printf("%d %ld\n", d.getTemp(), aprs.stateFlags.get());
-
-        // Serial.printf("%0.3f - Sent APRS Message; %f   |   %d\n", time / 1000.0, d.getAGLAltFt(), m.getFixQual());
-        // bb.aonoff(BUZZER, 50);
-        // Serial.write(msgAvionics.buf, msgAvionics.size);
-        // Serial.write('\n');
+        txTimeout = millis();
     }
-    if (sendAirbrake && millis() - avionicsTimer > 200 && millis() - avionicsTimer < 300 && millis())
+
+    if (millis() - debugTimer > 500)
     {
-        sendAirbrake = false;
-        double orient[3] = {b.getAngularVelocity().x(), b.getAngularVelocity().y(), b.getAngularVelocity().z()};
-        APRSTelem aprs = APRSTelem(aprsConfigAirbrake, m.getPos().x(), m.getPos().y(), d.getAGLAltFt(), t.getVelocity().z(), m.getHeading(), orient, 0);
-
-        aprs.stateFlags.setEncoding(encoding, 3);
-        uint8_t arr[] = {(uint8_t)(int)d.getTemp(), (uint8_t)t.getStage(), (uint8_t)m.getFixQual()};
-        aprs.stateFlags.pack(arr);
-        // msgAvionics.encode(&aprs);
-        radio.send(aprs);
-        // radio.tx(msgAirbrake.buf, msgAirbrake.size);
-        // Serial.println("sending");
-        // Serial.write(msgAirbrake.buf, msgAirbrake.size);
-        // Serial.println();
-        msgAirbrake.size = 0;
+        debugTimer = millis();
+        Serial.println("here");
+        Serial.println(radio.state);
+        Serial.println(radio.readFRR(0));
     }
-
-    // char str[512];
-    // int i = snprintf(str, 512, "La %.7f Lo %.7f Al %.2f Hd %.2f Ql %d", 1.0, 1.0, 2.0, 360.0, 5);
-    // snprintf(str, 512, "1234567890123456789");
-    // btRad.tx("Hello", 5);
-    // btRad.tx((uint8_t *)str, strlen(str));
-    // Serial.printf("sent %d\n", strlen(str));
-
-    // /// printf("%f\n", baro1.getAGLAltFt());
 
     radio.update();
 }
