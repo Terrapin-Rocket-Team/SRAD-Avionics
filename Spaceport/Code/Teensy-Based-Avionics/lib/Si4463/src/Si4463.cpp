@@ -209,7 +209,8 @@ bool Si4463::tx(const uint8_t *message, int len)
 
         // start tx
         // enter rx state after tx
-        uint8_t txArgs[6] = {this->channel, 0b00110000, 0, 0, 0, 0};
+        // uint8_t txArgs[6] = {this->channel, 0b00110000, 0, 0, 0, 0};
+        uint8_t txArgs[6] = {this->channel, 0b10000000, 0, 0, 0, 0};
         this->spi_write(C_START_TX, sizeof(txArgs), txArgs);
 
         this->state = STATE_TX;
@@ -585,7 +586,8 @@ void Si4463::update()
             this->state = STATE_RX;
         }
         // if (status[0] == 3 && (status[3] & 0b00100000) == 0b00100000) // ready state and check packet sent
-        if (status[0] == 3) // ready state and check packet sent
+        // if (status[0] == 3) // ready state and check packet sent
+        else if (status[0] > 8 || status[0] == 3)
         {
             this->state = STATE_IDLE;
         }
@@ -626,13 +628,6 @@ void Si4463::update()
     if (this->state == STATE_RX)
     {
         this->handleRX();
-    }
-    // throttle reading and writing a bit cause the teensy does it faster than the FIFO status pins update
-    if (millis() - this->timer > this->byteDelay)
-    {
-        this->timer = millis();
-        // check if we are transmitting and the FIFO is almost empty
-        // check if we are receving and the FIFO is almost full
     }
 }
 
