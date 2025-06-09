@@ -27,24 +27,14 @@ Si4463HardwareConfig hwcfgTelem = {
 
 Si4463PinConfig pincfgTelem = {
     &SPI, // spi bus to use
-    30,   // cs
-    29,   // sdn
-    24,   // irq
-    25,   // gpio0
-    26,   // gpio1
-    27,   // gpio2
-    28,   // gpio3
+    33,   // cs
+    39,   // sdn
+    34,   // irq
+    35,   // gpio0
+    36,   // gpio1
+    37,   // gpio2
+    38,   // gpio3
 };
-// Si4463PinConfig pincfgTelem = {
-//     &SPI, // spi bus to use
-//     33,   // cs
-//     39,   // sdn
-//     34,   // irq
-//     35,   // gpio0
-//     36,   // gpio1
-//     37,   // gpio2
-//     38,   // gpio3
-// };
 
 Si4463HardwareConfig hwcfgAvionics = {
     MOD_4GFSK,       // modulation
@@ -168,20 +158,19 @@ void setup()
       ;
   }
 
-  if (!radioTelem.begin(CONFIG_422Mc80_4GFSK_009600H, sizeof(CONFIG_422Mc80_4GFSK_009600H)))
-  // if (!radioTelem.begin())
-  {
-    log("Error: telemetry radio failed to begin");
-    while (1)
-      ;
-  }
-
-  // if (!radioAvionics.begin(CONFIG_422Mc86_4GFSK_500000H, sizeof(CONFIG_422Mc86_4GFSK_500000H)))
+  // if (!radioTelem.begin(CONFIG_422Mc80_4GFSK_009600H, sizeof(CONFIG_422Mc80_4GFSK_009600H)))
   // {
-  //   log("Error: Avionics video radio failed to begin");
+  //   log("Error: telemetry radio failed to begin");
   //   while (1)
   //     ;
   // }
+
+  if (!radioAvionics.begin(CONFIG_422Mc86_4GFSK_500000H, sizeof(CONFIG_422Mc86_4GFSK_500000H)))
+  {
+    log("Error: Avionics video radio failed to begin");
+    while (1)
+      ;
+  }
 
   // if (!radioPayload.begin(CONFIG_422Mc86_4GFSK_500000H, sizeof(CONFIG_422Mc86_4GFSK_500000H)))
   // {
@@ -345,36 +334,36 @@ void loop()
   }
 
   // radio
-  if (handshakeSuccess && radioTelem.avail())
-  {
-    // get the message
-    radioTelem.receive(telem);
-    // re-encode it to be multiplexed
-    m.encode(&telem);
-    // update metrics
-    telemMetrics.update(m.size, millis(), radioTelem.RSSI());
-    // set the flag to transmit data
-    if (strcmp(telem.config.callsign, avionicsCall) == 0)
-      hasAvionicsTelem = true;
-    if (strcmp(telem.config.callsign, airbrakeCall) == 0)
-      hasAirbrakeTelem = true;
-    if (strcmp(telem.config.callsign, payloadCall) == 0)
-      hasPayloadTelem = true;
-  }
-
-  // if (handshakeSuccess && radioAvionics.avail())
+  // if (handshakeSuccess && radioTelem.avail())
   // {
   //   // get the message
-  //   avionicsVideo.size = radioAvionics.readRXBuf(avionicsVideo.data, radioAvionics.length);
+  //   radioTelem.receive(telem);
   //   // re-encode it to be multiplexed
-  //   avionicsVideoMessage.encode(&avionicsVideo);
+  //   m.encode(&telem);
   //   // update metrics
-  //   avionicsVideoMetrics.update(avionicsVideoMessage.size, millis(), radioAvionics.RSSI());
+  //   telemMetrics.update(m.size, millis(), radioTelem.RSSI());
   //   // set the flag to transmit data
-  //   hasAvionicsVideo = true;
-  //   // reset avail flag
-  //   radioAvionics.available = false;
+  //   if (strcmp(telem.config.callsign, avionicsCall) == 0)
+  //     hasAvionicsTelem = true;
+  //   if (strcmp(telem.config.callsign, airbrakeCall) == 0)
+  //     hasAirbrakeTelem = true;
+  //   if (strcmp(telem.config.callsign, payloadCall) == 0)
+  //     hasPayloadTelem = true;
   // }
+
+  if (handshakeSuccess && radioAvionics.avail())
+  {
+    // get the message
+    avionicsVideo.size = radioAvionics.readRXBuf(avionicsVideo.data, radioAvionics.length);
+    // re-encode it to be multiplexed
+    avionicsVideoMessage.encode(&avionicsVideo);
+    // update metrics
+    avionicsVideoMetrics.update(avionicsVideoMessage.size, millis(), radioAvionics.RSSI());
+    // set the flag to transmit data
+    hasAvionicsVideo = true;
+    // reset avail flag
+    radioAvionics.available = false;
+  }
 
   // if (handshakeSuccess && radioPayload.avail())
   // {
@@ -526,7 +515,7 @@ void loop()
     }
   }
 
-  radioTelem.update();
-  // radioAvionics.update();
+  // radioTelem.update();
+  radioAvionics.update();
   // radioPayload.update();
 }

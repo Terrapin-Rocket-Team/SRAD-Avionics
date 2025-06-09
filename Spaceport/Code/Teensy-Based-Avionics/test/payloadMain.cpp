@@ -48,10 +48,10 @@ Si4463HardwareConfig hwcfg = {
 Si4463PinConfig pincfg = {
     &SPI, // spi bus to use
     10,   // cs
-    38,   // sdn
-    33,   // irq
-    34,   // gpio0
-    35,   // gpio1
+    15,   // sdn
+    14,   // irq
+    24,   // gpio0
+    25,   // gpio1
     36,   // gpio2
     37,   // gpio3
 };
@@ -120,6 +120,7 @@ uint32_t payloadTimer = millis();
 uint32_t debugTimer = millis();
 uint32_t txTimeout = millis();
 bool sendPayload = false;
+bool lookingForAvionics = true;
 
 void calcStuff();
 
@@ -159,7 +160,7 @@ void loop()
         // Serial.println();
     }
 
-    if (millis() - txTimeout > 180 && radio.avail())
+    if (lookingForAvionics && radio.avail())
     {
         msgAvionics.size = radio.readRXBuf(msgAvionics.buf, Message::maxSize);
         char call[7] = {0};
@@ -171,6 +172,7 @@ void loop()
             Serial.println("Got avionics telem");
             msgAvionics.decode(&avionicsTelem);
             payloadTimer = millis();
+            lookingForAvionics = false;
             sendPayload = true;
         }
         radio.available = false;
@@ -194,6 +196,7 @@ void loop()
         radio.send(aprs);
 
         txTimeout = millis();
+        lookingForAvionics = true;
     }
 
     if (millis() - debugTimer > 500)

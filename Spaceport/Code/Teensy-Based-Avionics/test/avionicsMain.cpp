@@ -115,6 +115,7 @@ void setup()
 }
 uint32_t avionicsTimer = millis();
 uint32_t airbrakeTimer = millis();
+uint32_t debugTimer = millis();
 bool sendAirbrake = false;
 
 void calcStuff();
@@ -177,7 +178,7 @@ void loop()
         // Serial.write(msgAvionics.buf, msgAvionics.size);
         // Serial.write('\n');
     }
-    if (sendAirbrake && millis() - avionicsTimer > 200 && millis() - avionicsTimer < 300 && millis())
+    if (sendAirbrake && millis() - avionicsTimer > 200 && millis() - avionicsTimer < 300)
     {
         sendAirbrake = false;
         double orient[3] = {b.getAngularVelocity().x(), b.getAngularVelocity().y(), b.getAngularVelocity().z()};
@@ -204,6 +205,13 @@ void loop()
 
     // /// printf("%f\n", baro1.getAGLAltFt());
 
+    if (millis() - debugTimer > 500)
+    {
+        debugTimer = millis();
+        Serial.println("here");
+        Serial.println(radio.state);
+        Serial.println(radio.readFRR(0));
+    }
     radio.update();
 }
 int counter = 0;
