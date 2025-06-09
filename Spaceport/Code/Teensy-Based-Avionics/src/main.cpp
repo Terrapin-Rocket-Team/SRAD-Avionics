@@ -29,7 +29,7 @@ AvionicsState t(s, sizeof(s) / 4, &fk);
 // APRSTelem aprs(aprsConfig);
 // Message msg;
 
-// ESP32BluetoothRadio btRad(Serial1, "AVIONICS", true);
+ESP32BluetoothRadio btRad(Serial1, "AVIONICS", true);
 
 Si4463HardwareConfig hwcfg = {
     MOD_4GFSK,        // modulation
@@ -85,16 +85,16 @@ void setup()
     Serial1.begin(115200);
     bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
 
-    // if (btRad.begin())
-    // {
-    //     bb.onoff(BUZZER, 500); // 1 x 0.5 sec beep for sucessful initialization
-    //     getLogger().recordLogData(INFO_, "Initialized Bluetooth");
-    // }
-    // else
-    // {
-    //     bb.onoff(BUZZER, 1000, 3); // 3 x 2 sec beep for uncessful initialization
-    //     getLogger().recordLogData(ERROR_, "Initialized Bluetooth Failed");
-    // }
+    if (btRad.begin())
+    {
+        bb.onoff(BUZZER, 500); // 1 x 0.5 sec beep for sucessful initialization
+        getLogger().recordLogData(INFO_, "Initialized Bluetooth");
+    }
+    else
+    {
+        bb.onoff(BUZZER, 1000, 3); // 3 x 2 sec beep for uncessful initialization
+        getLogger().recordLogData(ERROR_, "Initialized Bluetooth Failed");
+    }
 
     if (radio.begin(CONFIG_422Mc80_4GFSK_009600H, sizeof(CONFIG_422Mc80_4GFSK_009600H)))
     {
@@ -111,10 +111,11 @@ void setup()
 }
 double radio_last;
 void calcStuff();
-
+Message mess;
+APRSCmd cmd;
 void loop()
 {
-    // btRad.rx();
+    btRad.rx();
     // if (btRad.isReady())
     //     Serial.print(btRad.isReady());
     // if (Serial1.available())
@@ -126,6 +127,22 @@ void loop()
     if (millis() > 2 * 1000 * 60 && !pi.isRecording())
     {
         pi.setRecording(true);
+    }
+    if (radio.avail())
+    {
+        radio.readRXBuf(mess.buf, mess.maxSize);
+        if(!strcmp((char *) mess.buf, "KD3BBD")){
+            mess.decode(&cmd);
+            if(cmd.cmd == 3){
+                pi.setOn(cmd.args.get());
+            }
+            else if(cmd.cmd == 4) {
+                pi.setRecording(cmd.args.get());
+            }
+            else if(cmd.cmd == 17){
+                Serial1.println()
+            }
+        }
     }
 
     // radio.update();
