@@ -592,10 +592,10 @@ void Si4463::update()
     if (this->state == STATE_RX_COMPLETE)
     {
         uint8_t status = this->readFRR(0);
-        if (status == 8) // RX state
-        {
-            this->state = STATE_RX;
-        }
+        // if (status == 8) // RX state
+        // {
+        //     this->state = STATE_RX;
+        // }
         if (status == 3) // ready state
         {
             this->state = STATE_IDLE;

@@ -132,7 +132,7 @@ bool Si4463::begin()
     this->useSPICTS = false;
 
     // set defaults for FRRs
-    this->setFRRs(FRR_CURRENT_STATE, FRR_LATCHED_RSSI, FRR_INT_MODEM_PEND, FRR_INT_PH_STATUS);
+    this->setFRRs(FRR_CURRENT_STATE, FRR_LATCHED_RSSI, FRR_INT_MODEM_PEND, FRR_INT_PH_PEND);
 
     this->setPacketConfig(this->mod, this->preambleLen, this->preambleThresh);
 
@@ -157,7 +157,7 @@ bool Si4463::begin(const uint8_t *config, uint32_t length)
 bool Si4463::tx(const uint8_t *message, int len)
 {
     // make sure the packet isn't too long
-    if (len > Si4463::MAX_LEN)
+    if (len > Si4463::MAX_LEN || len == 0)
         return false; // Error: the packet is too long
 
     // Serial.println(this->state);
@@ -209,7 +209,8 @@ bool Si4463::tx(const uint8_t *message, int len)
 
         // start tx
         // enter rx state after tx
-        uint8_t txArgs[6] = {this->channel, 0b00110000, 0, 0, 0, 0};
+        // uint8_t txArgs[6] = {this->channel, 0b00110000, 0, 0, 0, 0};
+        uint8_t txArgs[6] = {this->channel, 0b10000000, 0, 0, 0, 0};
         this->spi_write(C_START_TX, sizeof(txArgs), txArgs);
 
         this->state = STATE_TX;
@@ -449,7 +450,7 @@ void Si4463::handleRX()
 bool Si4463::startTX(const uint8_t *data, uint16_t len, uint16_t totalLen)
 {
     // make sure the packet isn't too long and we have at least 1 byte
-    if (totalLen > Si4463::MAX_LEN && len > 0)
+    if (totalLen > Si4463::MAX_LEN || len == 0)
         return false; // Error: the packet is too long
 
     //  prefill fifo in idle state
@@ -578,12 +579,15 @@ void Si4463::update()
 
     if (this->state == STATE_TX_COMPLETE)
     {
-        uint8_t status = this->readFRR(0);
-        if (status == 8) // RX state
+        uint8_t status[4] = {0};
+        this->readFRRs(status);
+        if (status[0] == 8) // RX state
         {
             this->state = STATE_RX;
         }
-        if (status == 3) // ready state
+        // if (status[0] == 3 && (status[3] & 0b00100000) == 0b00100000) // ready state and check packet sent
+        // if (status[0] == 3) // ready state and check packet sent
+        else if (status[0] > 8 || status[0] == 3)
         {
             this->state = STATE_IDLE;
         }
@@ -592,10 +596,10 @@ void Si4463::update()
     if (this->state == STATE_RX_COMPLETE)
     {
         uint8_t status = this->readFRR(0);
-        if (status == 8) // RX state
-        {
-            this->state = STATE_RX;
-        }
+        // if (status == 8) // RX state
+        // {
+        //     this->state = STATE_RX;
+        // }
         if (status == 3) // ready state
         {
             this->state = STATE_IDLE;
@@ -624,13 +628,6 @@ void Si4463::update()
     if (this->state == STATE_RX)
     {
         this->handleRX();
-    }
-    // throttle reading and writing a bit cause the teensy does it faster than the FIFO status pins update
-    if (millis() - this->timer > this->byteDelay)
-    {
-        this->timer = millis();
-        // check if we are transmitting and the FIFO is almost empty
-        // check if we are receving and the FIFO is almost full
     }
 }
 
