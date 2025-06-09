@@ -18,7 +18,7 @@ HardwareSerial *s;
 
 Si4463HardwareConfig hwcfgTelem = {
     MOD_4GFSK,       // modulation
-    DR_9_6k,         // data rate
+    DR_4_8k,         // data rate
     (uint32_t)430e6, // frequency (Hz)
     POWER_HP_33dBm,  // tx power (127 = ~20dBm)
     192,             // preamble length

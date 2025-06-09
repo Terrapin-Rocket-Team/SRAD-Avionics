@@ -115,11 +115,11 @@ void setup()
 }
 uint32_t avionicsTimer = millis();
 uint32_t airbrakeTimer = millis();
+uint32_t debugTimer = millis();
 bool sendAirbrake = false;
 
 void calcStuff();
-Message mess;
-APRSCmd cmd;
+
 void loop()
 {
     btRad.rx();
@@ -134,22 +134,6 @@ void loop()
     if (millis() > 2 * 1000 * 60 && !pi.isRecording())
     {
         pi.setRecording(true);
-    }
- if (radio.avail())
-    {
-        radio.readRXBuf(mess.buf, mess.maxSize);
-        if(!strcmp((char *) mess.buf, "KD3BBD")){
-            mess.decode(&cmd);
-            if(cmd.cmd == 3){
-                pi.setOn(cmd.args.get());
-            }
-            else if(cmd.cmd == 4) {
-                pi.setRecording(cmd.args.get());
-            }
-            else if(cmd.cmd == 17){
-                Serial1.println()
-            }
-        }
     }
 
     if (sys.update())
@@ -194,7 +178,7 @@ void loop()
         // Serial.write(msgAvionics.buf, msgAvionics.size);
         // Serial.write('\n');
     }
-    if (sendAirbrake && millis() - avionicsTimer > 200 && millis() - avionicsTimer < 300 && millis())
+    if (sendAirbrake && millis() - avionicsTimer > 200 && millis() - avionicsTimer < 300)
     {
         sendAirbrake = false;
         double orient[3] = {b.getAngularVelocity().x(), b.getAngularVelocity().y(), b.getAngularVelocity().z()};
@@ -221,6 +205,13 @@ void loop()
 
     // /// printf("%f\n", baro1.getAGLAltFt());
 
+    if (millis() - debugTimer > 500)
+    {
+        debugTimer = millis();
+        Serial.println("here");
+        Serial.println(radio.state);
+        Serial.println(radio.readFRR(0));
+    }
     radio.update();
 }
 int counter = 0;
