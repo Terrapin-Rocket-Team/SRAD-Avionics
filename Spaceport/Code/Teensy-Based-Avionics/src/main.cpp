@@ -27,7 +27,6 @@ AvionicsState t(s, sizeof(s) / 4, &fk);
 APRSConfig aprsConfigAvionics = {"KD3BBD", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
 uint8_t encoding[] = {7, 4, 4};
 APRSConfig aprsConfigAirbrake = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
-// uint8_t encoding[] = {7, 4, 4};
 Message msgAvionics;
 Message msgAirbrake;
 
@@ -73,7 +72,7 @@ MMFSConfig a = MMFSConfig()
                    .withBBAsync(true, 50)
                    .withBBPin(LED_BUILTIN)
                    .withBBPin(32)
-                   .withBuzzerPin(33)
+                   //    .withBuzzerPin(33)
                    .withUsingSensorBiasCorrection(true)
                    .withUpdateRate(10)
                    .withState(&t);
@@ -85,7 +84,7 @@ void setup()
 {
     sys.init();
     Serial8.begin(115200);
-    Serial2.begin(115200);
+    Serial2.begin(9600);
     bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
 
     if (btRad.begin())
@@ -100,7 +99,6 @@ void setup()
     }
 
     if (radio.begin(CONFIG_422Mc80_4GFSK_009600H, sizeof(CONFIG_422Mc80_4GFSK_009600H)))
-    // if (radio.begin())
     {
         bb.onoff(BUZZER, 1000);
         getLogger().recordLogData(ERROR_, "Radio initialized.");
@@ -120,34 +118,53 @@ bool sendAirbrake = false;
 void calcStuff();
 Message mess;
 APRSCmd cmd;
+
+double motorTimer = 0;
+int motorAngle = 0;
 void loop()
 {
-    btRad.rx();
+    double timeeee = millis();
+    if (millis() - motorTimer > 3000)
+    {
+        int mult = 1;
+        if (motorAngle >= 360)
+            mult = -1;
+        else
+            mult = 1;
+        motorAngle += (mult * 90);
+        Serial8.println(motorAngle);
+    }
+
     if (btRad.isReady())
         Serial.print(btRad.isReady());
     // if (Serial2.available())
     //     Serial.write(Serial2.read());
-    if (millis() > .5 * 1000 * 60 && !pi.isOn())
+    btRad.rx();
+    if (millis() > .125 * 1000 * 60 && !pi.isOn())
     {
         pi.setOn(true);
     }
-    if (millis() > 2 * 1000 * 60 && !pi.isRecording())
+    if (millis() > .25 * 1000 * 60 && !pi.isRecording())
     {
         pi.setRecording(true);
     }
- if (radio.avail())
+    if (radio.avail())
     {
         radio.readRXBuf(mess.buf, mess.maxSize);
-        if(!strcmp((char *) mess.buf, "KD3BBD")){
+        if (!strcmp((char *)mess.buf, "KD3BBD"))
+        {
             mess.decode(&cmd);
-            if(cmd.cmd == 3){
+            if (cmd.cmd == 3)
+            {
                 pi.setOn(cmd.args.get());
             }
-            else if(cmd.cmd == 4) {
+            else if (cmd.cmd == 4)
+            {
                 pi.setRecording(cmd.args.get());
             }
-            else if(cmd.cmd == 17){
-                Serial1.println()
+            else if (cmd.cmd == 17)
+            {
+                // Serial1.println();
             }
         }
     }
@@ -155,21 +172,33 @@ void loop()
     if (sys.update())
     {
         calcStuff();
-        // Serial.println(d.getPressure());
-        // Serial.printf("%.2f | %.2f\n", vsfc.getRawVoltage(), vsfc.getRealVoltage()); // this would never work lmao
-        // Serial.println("Receive buffer size: " + String(btRad.getReceiveSize()));
-        // Serial.print("\tRecieve buffer: ");
-
         if (btRad.getReceiveSize() > 0)
         {
-            msgAirbrake.size = btRad.readBuffer((char *)msgAirbrake.buf, Message::maxSize);
+            APRSTelem ab(aprsConfigAirbrake);
+            char asdf[100];
+            int i = btRad.readBuffer(asdf, 100);
+            ab.decode((uint8_t *)asdf, i);
+            // Serial.println("Decode");
+            if (!ab.err)
+            {
+                msgAirbrake.size = i;
+                memcpy(msgAirbrake.buf, asdf, i);
+                // msgAirbrake.decode(&ab);
+                // Serial.write(msgAirbrake.buf, msgAirbrake.size);
+                // Serial.println();
+            }
+            else
+            {
+                Serial.println("error");
+            }
+            // Serial.write(asdf, i);
+            // Serial.println();
+            // for (int i = 0; i < msgAirbrake.size; i++)
+            // {
+            //     Serial.write((char *)msgAirbrake.buf, msgAirbrake.size);
+            // }
+            // Serial.println();
         }
-
-        // for (int i = 0; i < btRad.getReceiveSize(); i++)
-        // {
-        //     Serial.print((char)btRad.getReceiveBuffer()[i]);
-        // }
-        // Serial.println();
     }
 
     if (millis() - avionicsTimer > 600)
@@ -184,8 +213,10 @@ void loop()
         aprs.stateFlags.setEncoding(encoding, 3);
         uint8_t arr[] = {(uint8_t)(int)d.getTemp(), (uint8_t)t.getStage(), (uint8_t)m.getFixQual()};
         aprs.stateFlags.pack(arr);
-        // msgAvionics.encode(&aprs);
+        msgAvionics.encode(&aprs);
+        // Serial.print("sending");
         radio.send(aprs);
+        // Serial.println("sending");
 
         // Serial.printf("%d %ld\n", d.getTemp(), aprs.stateFlags.get());
 
@@ -197,19 +228,20 @@ void loop()
     if (sendAirbrake && millis() - avionicsTimer > 200 && millis() - avionicsTimer < 300 && millis())
     {
         sendAirbrake = false;
-        double orient[3] = {b.getAngularVelocity().x(), b.getAngularVelocity().y(), b.getAngularVelocity().z()};
-        APRSTelem aprs = APRSTelem(aprsConfigAirbrake, m.getPos().x(), m.getPos().y(), d.getAGLAltFt(), t.getVelocity().z(), m.getHeading(), orient, 0);
+        // double orient[3] = {b.getAngularVelocity().x(), b.getAngularVelocity().y(), b.getAngularVelocity().z()};
+        // APRSTelem aprs = APRSTelem(aprsConfigAirbrake, m.getPos().x(), m.getPos().y(), d.getAGLAltFt(), t.getVelocity().z(), m.getHeading(), orient, 0);
 
-        aprs.stateFlags.setEncoding(encoding, 3);
-        uint8_t arr[] = {(uint8_t)(int)d.getTemp(), (uint8_t)t.getStage(), (uint8_t)m.getFixQual()};
-        aprs.stateFlags.pack(arr);
+        // aprs.stateFlags.setEncoding(encoding, 3);
+        // uint8_t arr[] = {(uint8_t)(int)d.getTemp(), (uint8_t)t.getStage(), (uint8_t)m.getFixQual()};
+        // aprs.stateFlags.pack(arr);
         // msgAvionics.encode(&aprs);
-        radio.send(aprs);
+        // radio.send(aprs);
         // radio.tx(msgAirbrake.buf, msgAirbrake.size);
         // Serial.println("sending");
+        // Serial.println(msgAirbrake.size);
         // Serial.write(msgAirbrake.buf, msgAirbrake.size);
         // Serial.println();
-        msgAirbrake.size = 0;
+        // msgAirbrake.size = 0;
     }
 
     // char str[512];
@@ -222,34 +254,38 @@ void loop()
     // /// printf("%f\n", baro1.getAGLAltFt());
 
     radio.update();
+    if (millis() - timeeee > 30)
+        Serial.println(millis() - timeeee);
 }
 int counter = 0;
 void calcStuff()
 {
-    if (t.getStage() == 3 || t.getStage() == 4)
-    {
-        if (t.getTimeSinceLastStage() > 3 && counter == 0)
-        {
-            Serial.println("first");
-            Serial8.println("90");
-            counter++;
-        }
-        else if (t.getTimeSinceLastStage() > 5 && counter <= 1)
-        {
-            counter++;
-            Serial8.println("180");
-        }
-        else if (t.getTimeSinceLastStage() > 20 && counter <= 2)
-        {
-            Serial8.println("360");
-            counter++;
-        }
-        else if (t.getTimeSinceLastStage() > 30 && counter <= 3)
-        {
-            Serial8.println("180");
-            counter++;
-        }
-    }
+
+    // if (t.getStage() == 3 || t.getStage() == 4)
+    // {
+    //     if (t.getTimeSinceLastStage() > 3 && counter == 0)
+    //     {
+    //         Serial.println("first");
+    //         Serial8.println("90");
+    //         counter++;
+    //     }
+    //     else if (t.getTimeSinceLastStage() > 5 && counter <= 1)
+    //     {
+    //         counter++;
+    //         Serial8.println("180");
+    //     }
+    //     else if (t.getTimeSinceLastStage() > 20 && counter <= 2)
+    //     {
+    //         Serial8.println("360");
+    //         counter++;
+    //     }
+    //     else if (t.getTimeSinceLastStage() > 30 && counter <= 3)
+    //     {
+    //         Serial8.println("180");
+    //         counter++;
+    //     }
+    // }
+
     // else if (t.getStage() == 4 && counter <= 4)
     // {
     //     Serial8.println("180");
