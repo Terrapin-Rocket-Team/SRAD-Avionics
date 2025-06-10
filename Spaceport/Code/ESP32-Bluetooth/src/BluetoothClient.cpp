@@ -18,7 +18,7 @@ bool BluetoothClient::start(const std::string &serverName)
 { // is this the start for bluetooth or serial communication??
 
     // add serial communication code because currently it's all bluetooth
-    this->serverName = serverName;
+    this->serverName = "AVIONICS";
     BLEDevice::init("");
     dbgSerial.println("Initializing client device with target server " + String(serverName.c_str()));
     dbgSerial.println(BLEDevice::getMTU());
@@ -39,6 +39,7 @@ bool BluetoothClient::start(const std::string &serverName)
 
 void BluetoothClient::update(Stream &inputSerial)
 {
+
     if (!connected && pServerAddress != nullptr)
     {
         dbgSerial.println("Attempting to connect to " + String(pServerAddress->toString().c_str()));
@@ -64,17 +65,17 @@ void BluetoothClient::update(Stream &inputSerial)
         }
         esp_ble_conn_update_params_t conn_params = {};
         memcpy(conn_params.bda, pServerAddress->getNative(), sizeof(conn_params.bda));
-        conn_params.min_int = 0x10; // 20 ms
-        conn_params.max_int = 0x20; // 40 ms
+        conn_params.min_int = 0x400; // 40 ms
+        conn_params.max_int = 0x400; // 60 ms
         conn_params.latency = 0;
         conn_params.timeout = 400; // 4s supervision timeout
 
-        esp_err_t err = esp_ble_gap_set_prefer_conn_params(conn_params.bda, conn_params.min_int, conn_params.max_int, conn_params.latency, conn_params.timeout);
-        dbgSerial.println("Requested connection interval update, result: " + String(err));
+        // esp_err_t err = esp_ble_gap_set_prefer_conn_params(conn_params.bda, conn_params.min_int, conn_params.max_int, conn_params.latency, conn_params.timeout);
+        // dbgSerial.println("Requested connection interval update, result: " + String(err));
 
         remoteTx->registerForNotify([this](BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)
                                     { handleTxCallback(pBLERemoteCharacteristic, pData, length, isNotify); });
-        dbgSerial.println(pClient->setMTU(128));
+        dbgSerial.println(pClient->setMTU(256));
         connected = true;
         dbgSerial.println("Client successfully connected to server " + String(serverName.c_str()));
         dbgSerial.println("Writing status message...");
@@ -86,24 +87,26 @@ void BluetoothClient::update(Stream &inputSerial)
 
     if (initialized && connected)
     {
+        char asdf[] = "KQ4TCN>ALL,WIDE1-1:!MNN!!NN!!\\ !!\"1#Q$!!#j!!!!!\\(";
+        send((uint8_t *)asdf, sizeof(asdf) - 1);
+        delay(400);
+        //     uint16_t size = 0;
+        //     inputSerial.readBytes(reinterpret_cast<char *>(&size), sizeof(uint16_t));
 
-        uint16_t size = 0;
-        inputSerial.readBytes(reinterpret_cast<char *>(&size), sizeof(uint16_t));
+        //     dbgSerial.println("Received message to send with size: " + String(size));
 
-        dbgSerial.println("Received message to send with size: " + String(size));
-
-        if (size != 0 && size <= MAX_MESSAGE_SIZE - sizeof(uint16_t))
-        {
-            uint8_t buffer[size];
-            inputSerial.readBytes(buffer, size);
-            dbgSerial.println("Sending the following message content: ");
-            for (int i = 0; i < size; i++)
-            {
-                dbgSerial.print((char)buffer[i]);
-            }
-            dbgSerial.println("");
-            send(buffer, size);
-        }
+        //     if (size != 0 && size <= MAX_MESSAGE_SIZE - sizeof(uint16_t))
+        //     {
+        //         uint8_t buffer[size];
+        //         inputSerial.readBytes(buffer, size);
+        //         dbgSerial.println("Sending the following message content: ");
+        //         for (int i = 0; i < size; i++)
+        //         {
+        //             dbgSerial.print((char)buffer[i]);
+        //         }
+        //         dbgSerial.println("");
+        //         send(buffer, size);
+        //     }
     }
 }
 

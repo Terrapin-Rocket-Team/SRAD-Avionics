@@ -17,9 +17,11 @@ public:
 
     double getRawVoltage() { return rawV; }
     double getRealVoltage() { return realV; }
+    int getResult() { return result; }
 
 protected:
     double rawV = 0, realV = 0;
+    int result = 0;
     int pin;
     double ratio;
 };
