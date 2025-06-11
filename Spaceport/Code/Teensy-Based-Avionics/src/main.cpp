@@ -10,8 +10,8 @@
 
 #include "422Mc80_4GFSK_009600H.h"
 
-#define RPI_PWR 24
-#define RPI_VIDEO 25
+#define RPI_PWR 1
+#define RPI_VIDEO 0
 
 using namespace mmfs;
 
@@ -72,7 +72,7 @@ MMFSConfig a = MMFSConfig()
                    .withBBAsync(true, 50)
                    .withBBPin(LED_BUILTIN)
                    .withBBPin(32)
-                   //    .withBuzzerPin(33)
+                      .withBuzzerPin(33)
                    .withUsingSensorBiasCorrection(true)
                    .withUpdateRate(10)
                    .withState(&t);
@@ -140,38 +140,41 @@ void loop()
     // if (Serial2.available())
     //     Serial.write(Serial2.read());
     btRad.rx();
-    if (millis() > .125 * 1000 * 60 && !pi.isOn())
+    if (millis() > 44 * 1000 * 60 && !pi.isOn())
     {
         pi.setOn(true);
     }
-    if (millis() > .25 * 1000 * 60 && !pi.isRecording())
-    {
-        pi.setRecording(true);
-    }
-    if (radio.avail())
-    {
-        radio.readRXBuf(mess.buf, mess.maxSize);
-        if (!strcmp((char *)mess.buf, "KD3BBD"))
-        {
-            mess.decode(&cmd);
-            if (cmd.cmd == 3)
-            {
-                pi.setOn(cmd.args.get());
-            }
-            else if (cmd.cmd == 4)
-            {
-                pi.setRecording(cmd.args.get());
-            }
-            else if (cmd.cmd == 17)
-            {
-                // Serial1.println();
-            }
-        }
-    }
+    // if (millis() > 1 * 1000 * 60 && !pi.isRecording())
+    // {
+    //     pi.setRecording(true);
+    // }
+    // if (radio.avail())
+    // {
+    //     radio.readRXBuf(mess.buf, mess.maxSize);
+    //     if (!strcmp((char *)mess.buf, "KD3BBD"))
+    //     {
+    //         mess.decode(&cmd);
+    //         if (cmd.cmd == 1)
+    //         {
+    //             pi.setOn(cmd.args.get());
+    //         }
+    //         else if (cmd.cmd == 2)
+    //         {
+    //             pi.setRecording(cmd.args.get());
+    //         }
+    //         else if (cmd.cmd == 8)
+    //         {
+    //             if (!(t.getStage() == 1 || t.getStage() == 2))
+    //                 Serial2.printf("%d\n", cmd.args.get());
+    //         }
+    //     }
+    // }
 
     if (sys.update())
     {
         calcStuff();
+        if(!pi.isRecording() && t.getStage() > 0)
+            pi.setRecording(true);
         if (btRad.getReceiveSize() > 0)
         {
             APRSTelem ab(aprsConfigAirbrake);
@@ -201,7 +204,7 @@ void loop()
         }
     }
 
-    if (millis() - avionicsTimer > 600)
+    if (millis() - avionicsTimer > 1000)
     {
         avionicsTimer = millis();
         sendAirbrake = true;
@@ -225,7 +228,7 @@ void loop()
         // Serial.write(msgAvionics.buf, msgAvionics.size);
         // Serial.write('\n');
     }
-    if (sendAirbrake && millis() - avionicsTimer > 200 && millis() - avionicsTimer < 300 && millis())
+    if (sendAirbrake && millis() - avionicsTimer > 300 && millis() - avionicsTimer < 400 && millis())
     {
         sendAirbrake = false;
         // double orient[3] = {b.getAngularVelocity().x(), b.getAngularVelocity().y(), b.getAngularVelocity().z()};
@@ -236,7 +239,7 @@ void loop()
         // aprs.stateFlags.pack(arr);
         // msgAvionics.encode(&aprs);
         // radio.send(aprs);
-        // radio.tx(msgAirbrake.buf, msgAirbrake.size);
+        radio.tx(msgAirbrake.buf, msgAirbrake.size);
         // Serial.println("sending");
         // Serial.println(msgAirbrake.size);
         // Serial.write(msgAirbrake.buf, msgAirbrake.size);
@@ -260,40 +263,38 @@ void loop()
 int counter = 0;
 void calcStuff()
 {
-
-    // if (t.getStage() == 3 || t.getStage() == 4)
-    // {
-    //     if (t.getTimeSinceLastStage() > 3 && counter == 0)
-    //     {
-    //         Serial.println("first");
-    //         Serial8.println("90");
-    //         counter++;
-    //     }
-    //     else if (t.getTimeSinceLastStage() > 5 && counter <= 1)
-    //     {
-    //         counter++;
-    //         Serial8.println("180");
-    //     }
-    //     else if (t.getTimeSinceLastStage() > 20 && counter <= 2)
-    //     {
-    //         Serial8.println("360");
-    //         counter++;
-    //     }
-    //     else if (t.getTimeSinceLastStage() > 30 && counter <= 3)
-    //     {
-    //         Serial8.println("180");
-    //         counter++;
-    //     }
-    // }
-
-    // else if (t.getStage() == 4 && counter <= 4)
-    // {
-    //     Serial8.println("180");
-    //     counter++;
-    // }
-    // else if (t.getStage() == 4 && t.getTimeSinceLastStage() > 10 && counter <= 5)
-    // {
-    //     Serial8.println("0");
-    //     counter++;
-    // }
+    if (t.getStage() == 3 || t.getStage() == 4)
+    {
+        if (t.getTimeSinceLastStage() > 3 && counter == 0)
+        {
+            Serial.println("first");
+            Serial8.println("90");
+            counter++;
+        }
+        else if (t.getTimeSinceLastStage() > 5 && counter <= 1)
+        {
+            counter++;
+            Serial8.println("180");
+        }
+        else if (t.getTimeSinceLastStage() > 20 && counter <= 2)
+        {
+            Serial8.println("360");
+            counter++;
+        }
+        else if (t.getTimeSinceLastStage() > 30 && counter <= 3)
+        {
+            Serial8.println("180");
+            counter++;
+        }
+    }
+    else if (t.getStage() == 4 && counter <= 4)
+    {
+        Serial8.println("180");
+        counter++;
+    }
+    else if (t.getStage() == 4 && t.getTimeSinceLastStage() > 10 && counter <= 5)
+    {
+        Serial8.println("0");
+        counter++;
+    }
 }

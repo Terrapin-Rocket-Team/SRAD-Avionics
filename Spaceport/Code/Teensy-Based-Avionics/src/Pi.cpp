@@ -21,7 +21,7 @@ void Pi::setOn(bool on)
         return;
     // pulse high to toggle
     digitalWrite(this->pinControl, HIGH);
-    delayMicroseconds(10);
+    delayMicroseconds(150);
     digitalWrite(this->pinControl, LOW);
     bb.aonoff(mmfs::BUZZER, 50, 5); // Buzz 3 times (100ms on, 100ms off)
 
