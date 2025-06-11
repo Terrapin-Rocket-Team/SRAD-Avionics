@@ -64,6 +64,7 @@ bool Si4463::begin()
     this->_cts = this->_irq;
 
     this->spi->begin();
+    this->spi->setClockDivider(SPI_CLOCK_DIV32);
 
     if (!this->shutdown(true))
         return false;
@@ -128,7 +129,7 @@ bool Si4463::begin()
     this->setAFC(true);
 
     // set defaults for gpio pins
-    this->setPins(PIN_TX_FIFO_EMPTY, PIN_RX_FIFO_FULL, PIN_RX_STATE, PIN_TX_STATE, PIN_CTS, false);
+    this->setPins(PIN_TX_FIFO_EMPTY, PIN_RX_FIFO_FULL, PIN_RX_STATE, PIN_TX_STATE, PIN_TX_STATE, false);
     this->useSPICTS = false;
 
     // set defaults for FRRs
@@ -157,10 +158,13 @@ bool Si4463::begin(const uint8_t *config, uint32_t length)
 bool Si4463::tx(const uint8_t *message, int len)
 {
     // make sure the packet isn't too long
-    if (len > Si4463::MAX_LEN)
+    if (len > Si4463::MAX_LEN || len == 0)
         return false; // Error: the packet is too long
 
     // Serial.println(this->state);
+            //  enter idle state
+        // uint8_t cIdleArgs[1] = {0b00000011};
+        // this->sendCommandC(C_CHANGE_STATE, 1, cIdleArgs);
     //  prefill fifo in idle state
     if (this->state == STATE_IDLE || this->state == STATE_RX || this->state == STATE_RX_COMPLETE)
     {
@@ -173,9 +177,7 @@ bool Si4463::tx(const uint8_t *message, int len)
         // reset available since we have just overwritten the internal buffer
         this->available = false;
 
-        //  enter idle state
-        uint8_t cIdleArgs[1] = {0b00000011};
-        this->sendCommandC(C_CHANGE_STATE, 1, cIdleArgs);
+
 
         // clear fifo
         uint8_t cClearFIFO[1] = {0b00000011};
@@ -198,9 +200,9 @@ bool Si4463::tx(const uint8_t *message, int len)
         while (count++ < FIFO_LENGTH - 2 && this->xfrd < this->length)
         {
             this->spi->transfer(this->buf[this->xfrd++]);
-            // Serial.print((char)this->buf[this->xfrd - 1]);
+            Serial.print((char)this->buf[this->xfrd - 1]);
         }
-        // Serial.println();
+        Serial.println();
 
         digitalWrite(this->_cs, HIGH);
 
@@ -271,16 +273,16 @@ bool Si4463::rx()
         this->length = 0; // need to reset length, info in buf now lost
 
         // enter idle state
-        // uint8_t cIdleArgs[1] = {0b00000011};
-        // this->sendCommandC(C_CHANGE_STATE, 1, cIdleArgs);
+        uint8_t cIdleArgs[1] = {0b00000011};
+        this->sendCommandC(C_CHANGE_STATE, 1, cIdleArgs);
 
         // clear fifo
         uint8_t cClearFIFO[1] = {0b00000011};
         this->sendCommandC(C_FIFO_INFO, 1, cClearFIFO);
 
         // set back to max length for rx mode?
-        // uint8_t cLen2[2] = {0x1f, 0xff};
-        // this->setProperty(G_PKT, 2, P_PKT_FIELD_2_LENGTH2, cLen2);
+        uint8_t cLen2[2] = {0x1f, 0xff};
+        this->setProperty(G_PKT, 2, P_PKT_FIELD_2_LENGTH2, cLen2);
 
         // enter RX mode
         uint8_t rxArgs[7] = {this->channel, 0, 0, 0, 0x08, 0x03, 0x08};
@@ -579,11 +581,13 @@ void Si4463::update()
     if (this->state == STATE_TX_COMPLETE)
     {
         uint8_t status = this->readFRR(0);
+        Serial.println(status);
+        Serial.println(this->irq());
         if (status == 8) // RX state
         {
             this->state = STATE_RX;
         }
-        if (status == 3) // ready state
+        else if (status > 8 || status == 3) // ready state
         {
             this->state = STATE_IDLE;
         }
@@ -596,7 +600,7 @@ void Si4463::update()
         // {
         //     this->state = STATE_RX;
         // }
-        if (status == 3) // ready state
+        if (status > 8 || status == 3) // ready state
         {
             this->state = STATE_IDLE;
         }

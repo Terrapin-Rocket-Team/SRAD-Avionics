@@ -87,7 +87,7 @@ void BluetoothClient::update(Stream &inputSerial)
 
     if (initialized && connected)
     {
-        char asdf[] = "KQ4TCN>ALL,WIDE1-1:!MNN!!NN!!\\ !!\"1#Q$!!#j!!!!!\\(";
+        char asdf[] = "KC3UTM>ALL,WIDE1-1:!MNN!!NN!!\\ !!\"1#Q$!!#j!!!!!\\(";
         send((uint8_t *)asdf, sizeof(asdf) - 1);
         delay(400);
         //     uint16_t size = 0;

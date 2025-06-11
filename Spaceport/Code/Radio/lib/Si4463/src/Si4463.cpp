@@ -160,11 +160,11 @@ bool Si4463::tx(const uint8_t *message, int len)
     if (len > Si4463::MAX_LEN)
         return false; // Error: the packet is too long
 
-    // Serial.println(this->state);
+    Serial.println(this->state);
     //  prefill fifo in idle state
     if (this->state == STATE_IDLE || this->state == STATE_RX || this->state == STATE_RX_COMPLETE)
     {
-        // Serial.println("tx");
+        Serial.println("tx");
         // add the message to the internal buffer
         this->length = len;
         this->availLen = len;
@@ -174,8 +174,8 @@ bool Si4463::tx(const uint8_t *message, int len)
         this->available = false;
 
         //  enter idle state
-        uint8_t cIdleArgs[1] = {0b00000011};
-        this->sendCommandC(C_CHANGE_STATE, 1, cIdleArgs);
+        // uint8_t cIdleArgs[1] = {0b00000011};
+        // this->sendCommandC(C_CHANGE_STATE, 1, cIdleArgs);
 
         // clear fifo
         uint8_t cClearFIFO[1] = {0b00000011};
@@ -198,14 +198,14 @@ bool Si4463::tx(const uint8_t *message, int len)
         while (count++ < FIFO_LENGTH - 2 && this->xfrd < this->length)
         {
             this->spi->transfer(this->buf[this->xfrd++]);
-            // Serial.print((char)this->buf[this->xfrd - 1]);
+            Serial.print((char)this->buf[this->xfrd - 1]);
         }
-        // Serial.println();
+        Serial.println();
 
         digitalWrite(this->_cs, HIGH);
 
         // set packet length for variable length packets
-        this->setProperty(G_PKT, 2, P_PKT_FIELD_2_LENGTH2, mLen);
+        // this->setProperty(G_PKT, 2, P_PKT_FIELD_2_LENGTH2, mLen);
 
         // start tx
         // enter rx state after tx
@@ -583,7 +583,7 @@ void Si4463::update()
         {
             this->state = STATE_RX;
         }
-        if (status == 3) // ready state
+        else if (status > 8 || status == 3) // ready state
         {
             this->state = STATE_IDLE;
         }
@@ -596,7 +596,7 @@ void Si4463::update()
         // {
         //     this->state = STATE_RX;
         // }
-        if (status == 3) // ready state
+        if (status > 8 || status == 3) // ready state
         {
             this->state = STATE_IDLE;
         }
