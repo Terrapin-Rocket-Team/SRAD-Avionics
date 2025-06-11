@@ -211,7 +211,7 @@ void loop()
         // msg.clear();
 
         double orient[3] = {b.getAngularVelocity().x(), b.getAngularVelocity().y(), b.getAngularVelocity().z()};
-        APRSTelem aprs = APRSTelem(aprsConfigAvionics, m.getPos().x(), m.getPos().y(), d.getAGLAltFt(), t.getVelocity().z(), m.getHeading(), orient, 0);
+        APRSTelem aprs = APRSTelem(aprsConfigAvionics, m.getPos().x(), m.getPos().y(), d.getAGLAltFt(), t.getVelocity().z() * 3.28, m.getHeading(), orient, 0);
 
         aprs.stateFlags.setEncoding(encoding, 3);
         uint8_t arr[] = {(uint8_t)(int)d.getTemp(), (uint8_t)t.getStage(), (uint8_t)m.getFixQual()};
