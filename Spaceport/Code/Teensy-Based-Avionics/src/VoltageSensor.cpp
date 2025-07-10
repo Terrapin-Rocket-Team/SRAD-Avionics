@@ -16,16 +16,9 @@ bool VoltageSensor::init(){
     return initialized = true;
 }
 
-void VoltageSensor::read(){
+bool VoltageSensor::read(){
     result = analogRead(pin);
     rawV =  result * 3.3 / 1023; //values from analogRead range from 0 to 1023 (0 to 3.3v)
     realV = rawV * ratio;
-}
-
-bool VoltageSensor::begin(bool unused) {
-    return init();
-}
-
-void VoltageSensor::update(){
-    read();
+    return true;
 }

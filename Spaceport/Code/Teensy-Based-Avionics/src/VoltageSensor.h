@@ -8,9 +8,7 @@ class VoltageSensor : public Sensor
 public:
     VoltageSensor(int pin, int r1, int r2, const char *name = "Voltage Sensor");
     bool init() override;
-    void read() override;
-    bool begin(bool unused = false) override;
-    void update() override;
+    bool read() override;
 
     const SensorType getType() const override { return "Voltage Sensor"_i; }
     const char *getTypeString() const override { return "Voltage Sensor"; }
