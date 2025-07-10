@@ -4,17 +4,19 @@
 #include "AvionicsKF.h"
 #include "AviEventListener.h"
 #include "VoltageSensor.h"
+#include "ADXL375.h"
 
 using namespace mmfs;
 
 MAX_M10S m;
+
 DPS368 d;
 BMI088Gyro g;
 BMI088Accel a;
 mmfs::LIS3MDL l;
 VoltageSensor vsfc(A0, 330, 220, "Flight Computer Voltage");
-
-Sensor *s[] = {&m, &d, &g, &a, &l, &vsfc};
+ADXL375 accel;
+Sensor *s[] = {&m, &d, &g, &a, &l, &vsfc, &accel};
 AvionicsKF fk;
 AvionicsState t(s, sizeof(s) / 4, &fk);
 

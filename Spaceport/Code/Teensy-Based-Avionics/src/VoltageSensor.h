@@ -10,9 +10,6 @@ public:
     bool init() override;
     bool read() override;
 
-    const SensorType getType() const override { return "Voltage Sensor"_i; }
-    const char *getTypeString() const override { return "Voltage Sensor"; }
-
     double getRawVoltage() { return rawV; }
     double getRealVoltage() { return realV; }
     int getResult() { return result; }
