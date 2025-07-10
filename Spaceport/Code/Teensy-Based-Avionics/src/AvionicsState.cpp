@@ -14,8 +14,8 @@ AvionicsState::AvionicsState(Sensor **sensors, int numSensors, LinearKalmanFilte
 
 void AvionicsState::updateVariables() {
     State::updateVariables();
-    IMU *imu_1 = reinterpret_cast<IMU*>(getSensor(IMU_, 1));
-    IMU *imu_2 = reinterpret_cast<IMU*> (getSensor(IMU_, 2));
+    IMU *imu_1 = reinterpret_cast<IMU*>(getSensor("IMU"_i, 1));
+    IMU *imu_2 = reinterpret_cast<IMU*> (getSensor("IMU"_i, 2));
 
     if(imu_1->getAccelerationGlobal().z() > 220){
         acceleration = imu_2->getAcceleration();
@@ -61,16 +61,6 @@ void AvionicsState::determineStage()
         timeOfLastStage = currentTime;
         getLogger().recordLogData(INFO_, 100, "Launch detected at %.2f seconds.", timeSinceLaunch);
         //getLogger().recordLogData(INFO_, "Printing static data.");
-        for (int i = 0; i < maxNumSensors; i++)
-        {
-            if (sensorOK(sensors[i]))
-            {
-                // char logData[200];
-                // snprintf(logData, 200, "%s: %s", sensors[i]->getName(), sensors[i]->getStaticDataString());
-                // getLogger().recordLogData(INFO_, logData);
-                sensors[i]->setBiasCorrectionMode(false);
-            }
-        }
     } // TODO: Add checks for each sensor being ok and decide what to do if they aren't.
     else if (stage == 1 && abs(acceleration.z()) < 10)
     {
