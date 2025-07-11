@@ -2,6 +2,7 @@ import serial as pyserial
 import serial.tools.list_ports
 import threading
 import queue
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
@@ -14,6 +15,8 @@ class SerialManager:
         self.running = False
         self.quat_queue = queue.Queue()
         self.accel_queue = queue.Queue()
+        self.baro_queue = queue.Queue()         # queue for raw baro readings
+        self.estimate_queue = queue.Queue()     # queue for KF estimates
 
     def list_ports(self):
         return [p.device for p in pyserial.tools.list_ports.comports()]
@@ -64,6 +67,20 @@ class SerialManager:
                         self.accel_queue.put(a)
                     except ValueError:
                         pass
+            # Parse baro altitude lines
+            elif line.startswith('B,'):
+                try:
+                    b = float(line[2:])
+                    self.baro_queue.put(b)
+                except ValueError:
+                    pass
+            # Parse KF estimate lines
+            elif line.startswith('E,'):
+                try:
+                    e = float(line[2:])
+                    self.estimate_queue.put(e)
+                except ValueError:
+                    pass
             else:
                 print("Received:", line)
 
@@ -79,7 +96,20 @@ class SerialManager:
             a = self.accel_queue.get()
         return a
 
+    def get_latest_baro(self):
+        b = None
+        while not self.baro_queue.empty():
+            b = self.baro_queue.get()
+        return b
+
+    def get_latest_estimate(self):
+        e = None
+        while not self.estimate_queue.empty():
+            e = self.estimate_queue.get()
+        return e
+
 # Quaternion helper
+
 def quaternion_conjugate(q):
     w, x, y, z = q
     return np.array([w, -x, -y, -z])
@@ -97,72 +127,91 @@ def quat_mult(a, b):
 def rotate_vector(v, q):
     # Rotate vector v (3,) by quaternion q [w,x,y,z]
     vq = np.concatenate(([0.0], v))
-    q_conj = quaternion_conjugate(q)
     tmp = quat_mult(q, vq)
-    res = quat_mult(tmp, q_conj)
+    res = quat_mult(tmp, quaternion_conjugate(q))
     return res[1:]
 
-# Interactive script
+# === Main script ===
 if __name__ == "__main__":
     sm = SerialManager()
     print("Available ports:", sm.list_ports())
-    print("Commands:")
-    print("  list               - show available serial ports")
-    print("  open <port> [baud] - open serial port")
-    print("  close              - close current port")
-    print("  exit               - quit")
-    
-    # Start 3D plot
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.set_xlim([-1,1]); ax.set_ylim([-1,1]); ax.set_zlim([-1,1])
-    ax.set_xlabel('X'); ax.set_ylabel('Y'); ax.set_zlabel('Z')
+    print("Commands: list, open <port> [baud], close, exit")
+
+    # Buffers for rolling plots
+    times, raw_baro, kf_est = [], [], []
+    acc_times, acc_vals = [], []
+    start_time = None
+
+    fig = plt.figure(figsize=(8,12))
+    ax3d = fig.add_subplot(311, projection='3d')
+    ax_alt = fig.add_subplot(312)
+    ax_acc = fig.add_subplot(313)
+    ax_alt.set_ylabel('Altitude [m]')
+    ax_alt.set_xlabel('Time [s]')
+    ax_acc.set_ylabel('Acc Mag [m/s²]')
+    ax_acc.set_xlabel('Time [s]')
 
     def update(frame):
+        global start_time
+        t_now = time.time()
+        if start_time is None:
+            start_time = t_now
+        t_rel = t_now - start_time
+
+        # Fetch latest data
         q = sm.get_latest_quaternion()
         a_raw = sm.get_latest_accel()
+        b_raw = sm.get_latest_baro()
+        e_raw = sm.get_latest_estimate()
+
+        # Orientation plot
         if q is not None:
-            # body axes
-            x_v = rotate_vector([1,0,0], q)
-            y_v = rotate_vector([0,1,0], q)
-            z_v = rotate_vector([0,0,1], q)
-            # earth-frame acceleration direction
-            acc_dir = a_raw if a_raw is not None else None
-            ax.cla()
-            ax.set_xlim([-1,1]); ax.set_ylim([-1,1]); ax.set_zlim([-1,1])
-            ax.set_xlabel('X'); ax.set_ylabel('Y'); ax.set_zlabel('Z')
-            # plot axes
-            ax.quiver(0,0,0, *x_v, color='r', length=1)
-            ax.quiver(0,0,0, *y_v, color='g', length=1)
-            ax.quiver(0,0,0, *z_v, color='b', length=1)
-            # plot acceleration vector if available (normalized)
-            if acc_dir is not None:
-                norm = np.linalg.norm(acc_dir)
-                if norm>1e-3:
-                    acc_unit = acc_dir / norm
-                    ax.quiver(0,0,0, *acc_unit, color='m', length=1, linewidth=2)
-        return []
+            ax3d.cla()
+            ax3d.set_xlim([-1,1]); ax3d.set_ylim([-1,1]); ax3d.set_zlim([-1,1])
+            for vec, col in zip([[1,0,0],[0,1,0],[0,0,1]], ['r','g','b']):
+                v = rotate_vector(vec, q)
+                ax3d.quiver(0,0,0, *v, color=col, length=1)
+
+        # Altitude plot
+        if b_raw is not None:
+            times.append(t_rel)
+            raw_baro.append(b_raw)
+            kf_est.append(e_raw if e_raw is not None else np.nan)
+            # Keep last 200
+            times[:] = times[-200:]
+            raw_baro[:] = raw_baro[-200:]
+            kf_est[:] = kf_est[-200:]
+
+            ax_alt.cla()
+            ax_alt.plot(times, raw_baro, label='Raw Baro')
+            ax_alt.plot(times, kf_est, label='KF Estimate')
+            ax_alt.legend(loc='upper left')
+
+        # Acceleration plot
+        if a_raw is not None:
+            acc_times.append(t_rel)
+            acc_vals.append(np.linalg.norm(a_raw))
+            acc_times[:] = acc_times[-200:]
+            acc_vals[:] = acc_vals[-200:]
+
+            ax_acc.cla()
+            ax_acc.plot(acc_times, acc_vals, label='|Accel|')
+            ax_acc.legend(loc='upper left')
 
     ani = FuncAnimation(fig, update, interval=50)
 
-    # Console thread
+    # Simple console thread
     def console_loop():
         while True:
-            cmd = input("> ").split()
-            if not cmd:
-                continue
-            if cmd[0] == "list":
-                print("Available ports:", sm.list_ports())
-            elif cmd[0] == "open" and len(cmd)>=2:
-                port = cmd[1]
-                baud = int(cmd[2]) if len(cmd)>=3 else 115200
-                sm.open(port, baud)
-            elif cmd[0] == "close":
-                sm.close()
-            elif cmd[0] == "exit":
-                sm.close(); plt.close('all'); break
-            else:
-                print("Unknown command")
+            cmd = input('> ').split()
+            if not cmd: continue
+            if cmd[0] == 'list': print('Ports:', sm.list_ports())
+            elif cmd[0] == 'open' and len(cmd)>=2:
+                sm.open(cmd[1], int(cmd[2]) if len(cmd)>=3 else 115200)
+            elif cmd[0] == 'close': sm.close()
+            elif cmd[0] == 'exit': sm.close(); plt.close('all'); break
+            else: print('Unknown cmd')
 
     threading.Thread(target=console_loop, daemon=True).start()
+    plt.tight_layout()
     plt.show()

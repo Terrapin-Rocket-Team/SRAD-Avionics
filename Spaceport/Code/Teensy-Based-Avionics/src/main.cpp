@@ -6,6 +6,7 @@
 #include "VoltageSensor.h"
 #include "ADXL375.h"
 #include "Mahony.h"
+#include "LKF.h"
 
 void FreeMem();
 
@@ -25,15 +26,13 @@ Sensor *s[] = {&m, &d, &g, &a, &l, &vsfc, &accel};
 AvionicsKF fk;
 AvionicsState t(s, sizeof(s) / 4, &fk);
 
-
-
 MMFSConfig c = MMFSConfig()
                    .withBBAsync(true, 50)
                    .withBBPin(LED_BUILTIN)
                    .withBBPin(32)
                    .withBuzzerPin(33)
                    .withUsingSensorBiasCorrection(true)
-                   .withUpdateRate(50)
+                   .withUpdateRate(10)
                    .withLoggingRate(10)
                    .withState(&t);
 MMFSSystem sys(&c);
@@ -42,6 +41,16 @@ AviEventLister listener;
 
 MahonyAHRS ahrs(1.5, 0.002);
 unsigned long lastMicros = 0;
+
+LKF lkf(
+    Matrix(3, 9, new double[27]{
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 1, 0, 0, 0, 0, 0, 0
+    }),
+    Matrix::ident(3) * 0.1,
+    0.1 // m/s² accel noise
+);
 
 void setup()
 {
@@ -54,7 +63,8 @@ void setup()
     // Example usage:
     // MahonyAHRS ahrs;
     // // During pad static phase:
-    for(int i=0; i<200; i++){
+    for (int i = 0; i < 200; i++)
+    {
         a.update();
         g.update();
         ahrs.calibrate(a.getAccel(), g.getAngVel());
@@ -65,8 +75,8 @@ void setup()
 void loop()
 {
 
-
-    if(sys.update()){
+    if (sys.update())
+    {
         unsigned long now = micros();
         double dt = (now - lastMicros) * 1e-6;
         lastMicros = now;
@@ -77,9 +87,17 @@ void loop()
         ahrs.update(acc, gyro, dt);
         Quaternion q = ahrs.getQuaternion();
         Vector<3> accelNed = ahrs.toEarthFrame(acc);
-        Serial.printf("%f,%f,%f,%f,%f,%f\n", acc.x(), acc.y(), acc.z(), accelNed.x(), accelNed.y(), accelNed.z());
         Serial.printf("A,%f,%f,%f\n", accelNed.x(), accelNed.y(), accelNed.z());
         Serial.printf("Q,%f,%f,%f,%f\n", q.w(), q.x(), q.y(), q.z());
+        Serial.printf("B,%f\n", d.getAGLAltM());
+        accelNed.z() -= 9.81; // remove gravity
+        lkf.update(accelNed, Vector<3>(0, 0, d.getAGLAltM()), dt);
+        Vector<9> state = lkf.state();
+        Serial.printf("E,%f\n", state[2]);
+        auto st = lkf.state();
+        Serial.printf("bias_z = %f  err = %f\n",
+                      st[8], // bias on z axis
+                      d.getAGLAltM() - st[2]);
     }
 }
 
