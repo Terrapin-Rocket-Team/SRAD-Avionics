@@ -2,7 +2,7 @@
 
 using namespace mmfs;
 
-ADXL375::ADXL375(const char *name, TwoWire &bus, uint8_t address) : IMU(name), accel(0, &bus), addr(address)
+ADXL375::ADXL375(const char *name, TwoWire &bus, uint8_t address) : Accel(name), accel(0, &bus), addr(address)
 {
 }
 
@@ -21,7 +21,7 @@ bool ADXL375::read()
     sensors_event_t event;
     if (this->accel.getEvent(&event))
     {
-        this->measuredAcc = mmfs::Vector<3>((double)event.acceleration.x, (double)event.acceleration.y, (double)event.acceleration.z);
+        acc = Vector<3>((double)event.acceleration.x, (double)event.acceleration.y, (double)event.acceleration.z);
         return true;
     }
     else

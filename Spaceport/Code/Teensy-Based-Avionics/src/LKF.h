@@ -31,7 +31,6 @@ public:
         Matrix z_m(3, 1, new double[3]{z.x(), z.y(), z.z()});
         // --- build per‐step matrices ---
         build_F_B_Q(dt);
-        
         // --- predict ---
         x_pred = _F * x + B * u_m;
         P_pred = _F * P * _F.transpose() + Q;
@@ -70,14 +69,11 @@ private:
         for (int i = 0; i < 3; ++i)
         {
             // position ← position + velocity·dt + (u_i - b_i)*0.5·dt²
-            _F(i, i + 3) = dt;        // p  depends on v
-            _F(i, 6 + i) = -half_dt2; // p  depends on -b
+            _F(i, i + 3) = dt; // p  depends on v
         }
-
         B = Matrix(N, 3, new double[N * 3]);
-        for( int i = 0; i < N * 3; i++)
+        for (int i = 0; i < N * 3; i++)
             B.getArr()[i] = 0.0;
-
         //   → position rows get 0.5·dt²
         //   → velocity rows get dt
         for (int i = 0; i < 3; ++i)
@@ -85,9 +81,10 @@ private:
             B(i, i) = half_dt2;
             B(i + 3, i) = dt;
         }
-
         // Q = B * (σ_acc² * I₃) * Bᵀ
         Matrix Q_base = Matrix::ident(3) * (sigma_acc * sigma_acc);
+        Matrix Q_temp = B * Q_base;
+        Matrix B_transpose = B.transpose();
         Q = B * Q_base * B.transpose();
     }
 };

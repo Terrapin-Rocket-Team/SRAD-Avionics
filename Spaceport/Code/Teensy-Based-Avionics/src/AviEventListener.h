@@ -4,7 +4,8 @@
 #include <Events/Event.h>
 #include <BlinkBuzz/BlinkBuzz.h>
 using namespace mmfs;
-class AviEventLister : public IEventListener {
+class AviEventLister : public IEventListener
+{
 
 public:
     AviEventLister() : IEventListener() {};

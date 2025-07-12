@@ -1,3 +1,6 @@
+#ifndef MAHONY_H
+#define MAHONY_H
+
 #include <Arduino.h>
 #include "Math/Quaternion.h"
 #include "Math/Vector.h"
@@ -130,3 +133,5 @@ private:
     int _calibSamples;
     bool _initialized;
 };
+
+#endif // MAHONY_H
