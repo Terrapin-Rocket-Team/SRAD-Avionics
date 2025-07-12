@@ -6,7 +6,7 @@
 
 using namespace mmfs;
 
-static const int N = 9, M = 3;
+static const int N = 6, M = 3;
 class LKF
 {
 public:
@@ -31,17 +31,9 @@ public:
         Matrix z_m(3, 1, new double[3]{z.x(), z.y(), z.z()});
         // --- build per‐step matrices ---
         build_F_B_Q(dt);
-
-        // pull bias out of the state vector
-        double bx = x.getArr()[6];
-        double by = x.getArr()[7];
-        double bz = x.getArr()[8];
-
-        // form an “unbiased” accel control
-        Matrix u_eff(3, 1, new double[3]{u.x() - bx, u.y() - by, u.z() - bz});
         
         // --- predict ---
-        x_pred = _F * x + B * u_eff;
+        x_pred = _F * x + B * u_m;
         P_pred = _F * P * _F.transpose() + Q;
         // --- update ---
         y = z_m - H * x_pred;
@@ -80,8 +72,6 @@ private:
             // position ← position + velocity·dt + (u_i - b_i)*0.5·dt²
             _F(i, i + 3) = dt;        // p  depends on v
             _F(i, 6 + i) = -half_dt2; // p  depends on -b
-            // velocity ← velocity + (u_i - b_i)·dt
-            _F(i + 3, 6 + i) = -dt; // v  depends on -b
         }
 
         B = Matrix(N, 3, new double[N * 3]);
@@ -99,12 +89,6 @@ private:
         // Q = B * (σ_acc² * I₃) * Bᵀ
         Matrix Q_base = Matrix::ident(3) * (sigma_acc * sigma_acc);
         Q = B * Q_base * B.transpose();
-
-        double sigma_b = 0.05; // e.g. ~0.01 m/s² drift per step
-        for (int i = 0; i < 3; ++i)
-        {
-            Q(6 + i, 6 + i) = sigma_b * sigma_b;
-        }
     }
 };
 

@@ -7,6 +7,7 @@
 #include "ADXL375.h"
 #include "Mahony.h"
 #include "LKF.h"
+#include "Utils/CircBuffer.h"
 
 void FreeMem();
 
@@ -30,9 +31,9 @@ MMFSConfig c = MMFSConfig()
                    .withBBAsync(true, 50)
                    .withBBPin(LED_BUILTIN)
                    .withBBPin(32)
-                   .withBuzzerPin(33)
+                   //    .withBuzzerPin(33)
                    .withUsingSensorBiasCorrection(true)
-                   .withUpdateRate(10)
+                   .withUpdateRate(50)
                    .withLoggingRate(10)
                    .withState(&t);
 MMFSSystem sys(&c);
@@ -43,11 +44,7 @@ MahonyAHRS ahrs(1.5, 0.002);
 unsigned long lastMicros = 0;
 
 LKF lkf(
-    Matrix(3, 9, new double[27]{
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 1, 0, 0, 0, 0, 0, 0
-    }),
+    Matrix(3, 6, new double[18]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0}),
     Matrix::ident(3) * 0.1,
     0.1 // m/s² accel noise
 );
@@ -87,17 +84,32 @@ void loop()
         ahrs.update(acc, gyro, dt);
         Quaternion q = ahrs.getQuaternion();
         Vector<3> accelNed = ahrs.toEarthFrame(acc);
-        Serial.printf("A,%f,%f,%f\n", accelNed.x(), accelNed.y(), accelNed.z());
-        Serial.printf("Q,%f,%f,%f,%f\n", q.w(), q.x(), q.y(), q.z());
-        Serial.printf("B,%f\n", d.getAGLAltM());
         accelNed.z() -= 9.81; // remove gravity
+
+        CircBuffer<Vector<3>> buf(UPDATE_RATE * 2);
+        buf.push(accelNed);
+        Vector<3> tot;
+        int ct = buf.getCount() / 2 - 1;
+        for(int i = 0; i < ct; i++)
+        {
+            tot += buf[i];
+        }
+        tot.x() /= ct;
+        tot.y() /= ct;
+        tot.z() /= ct;
+        accelNed = accelNed - tot; // remove bias
+        
         lkf.update(accelNed, Vector<3>(0, 0, d.getAGLAltM()), dt);
-        Vector<9> state = lkf.state();
+        Vector<6> state = lkf.state();
         Serial.printf("E,%f\n", state[2]);
         auto st = lkf.state();
         Serial.printf("bias_z = %f  err = %f\n",
-                      st[8], // bias on z axis
-                      d.getAGLAltM() - st[2]);
+                      accelNed.z(), // bias on z axis
+                      d.getAGLAltM());
+
+        Serial.printf("A,%f,%f,%f\n", accelNed.x(), accelNed.y(), accelNed.z());
+        Serial.printf("Q,%f,%f,%f,%f\n", q.w(), q.x(), q.y(), q.z());
+        Serial.printf("B,%f\n", d.getAGLAltM());
     }
 }
 

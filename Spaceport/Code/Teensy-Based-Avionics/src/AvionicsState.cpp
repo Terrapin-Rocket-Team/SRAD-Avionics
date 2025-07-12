@@ -17,12 +17,6 @@ void AvionicsState::updateVariables() {
     IMU *imu_1 = reinterpret_cast<IMU*>(getSensor("IMU"_i, 1));
     IMU *imu_2 = reinterpret_cast<IMU*> (getSensor("IMU"_i, 2));
 
-    if(imu_1->getAccelerationGlobal().z() > 220){
-        acceleration = imu_2->getAcceleration();
-    } else{
-        acceleration = imu_1->getAccelerationGlobal();
-    }
-
     imuVelocity += acceleration.magnitude() * UPDATE_INTERVAL;
     
 }
@@ -44,8 +38,7 @@ void AvionicsState::determineStage()
     // GPS *gps = reinterpret_cast<GPS *>(getSensor(GPS_));
     if (stage == 0 &&
         (sensorOK(imu) || sensorOK(baro)) &&
-        (sensorOK(imu) ? abs(imu->getAccelerationGlobal().magnitude()) > 40 : true) 
-        // (sensorOK(baro) ? baro->getAGLAltFt() > 10 : true)
+        (sensorOK(baro) ? baro->getAGLAltFt() > 10 : true)
         )
     // if we are in preflight AND
     // we have either the IMU OR the barometer AND

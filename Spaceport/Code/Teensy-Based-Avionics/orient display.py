@@ -190,7 +190,7 @@ if __name__ == "__main__":
         # Acceleration plot
         if a_raw is not None:
             acc_times.append(t_rel)
-            acc_vals.append(np.linalg.norm(a_raw))
+            acc_vals.append(a_raw[2])
             acc_times[:] = acc_times[-200:]
             acc_vals[:] = acc_vals[-200:]
 
