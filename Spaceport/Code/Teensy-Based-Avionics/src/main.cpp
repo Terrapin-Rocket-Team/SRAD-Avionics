@@ -28,10 +28,10 @@ MMFSConfig c = MMFSConfig()
                    .withBBAsync(true, 50)
                    .withBBPin(LED_BUILTIN)
                    .withBBPin(32)
-                   .withBuzzerPin(33)
+                //    .withBuzzerPin(33)
                    .withUsingSensorBiasCorrection(true)
                    .withUpdateRate(50)
-                   .withLoggingRate(10)
+                   .withLoggingRate(20)
                    .withState(&t);
 MMFSSystem sys(&c);
 
@@ -49,6 +49,7 @@ void loop()
 
     if (sys.update())
     {
+        Serial.println("vsfc: " + String(vsfc.getRealVoltage(), 3) + "V");
     }
 }
 

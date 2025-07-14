@@ -122,10 +122,10 @@ void AvionicsState::updateVariables()
     alt -= tot[3];
     lkf.update(accelNed, Vector<3>(gps->getDisplacement().x(), gps->getDisplacement().y(), alt), dt);
     Vector<6> state = lkf.state();
-    Serial.printf("E,%f\n", state[2]);
-    Serial.printf("Q,%f,%f,%f,%f\n", q.w(), q.x(), q.y(), q.z());
-    Serial.printf("A,%f,%f,%f\n", accelNed.x(), accelNed.y(), accelNed.z());
-    Serial.printf("B,%f\n", alt);
+    // Serial.printf("E,%f\n", state[2]);
+    // Serial.printf("Q,%f,%f,%f,%f\n", q.w(), q.x(), q.y(), q.z());
+    // Serial.printf("A,%f,%f,%f\n", accelNed.x(), accelNed.y(), accelNed.z());
+    // Serial.printf("B,%f\n", alt);
 
     position = Vector<3>(state[0], state[1], state[2]); // x, y, z in m
     velocity = Vector<3>(state[3], state[4], state[5]);
