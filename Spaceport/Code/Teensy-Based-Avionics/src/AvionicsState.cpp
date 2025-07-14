@@ -6,7 +6,10 @@ using namespace mmfs;
 AvionicsState::AvionicsState(Sensor **sensors, int numSensors, LinearKalmanFilter *kfilter) : State(sensors, numSensors, kfilter),
                                                                                               ahrs(1.5, 0.002),
                                                                                               lkf(
-                                                                                                  Matrix(3, 6, new double[18]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0}),
+                                                                                                  Matrix(3, 6, new double[18]{
+                                                                                                        1, 0, 0, 0, 0, 0,
+                                                                                                        0, 1, 0, 0, 0, 0,
+                                                                                                        0, 0, 1, 0, 0, 0}),
                                                                                                   Matrix::ident(3) * 0.01,
                                                                                                   0.2 // m/s² accel noise
                                                                                                   ),
