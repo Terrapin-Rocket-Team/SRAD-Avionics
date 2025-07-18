@@ -1,7 +1,7 @@
 #include "VoltageSensor.h"
 #include <Arduino.h>
 
-VoltageSensor::VoltageSensor(int pin, int r1, int r2, const char *name){
+VoltageSensor::VoltageSensor(int pin, int r1, int r2, const char *name) : Sensor (name) {
     setName(name);
     this->pin = pin;
     this->ratio = 1.0 / (r2 / ( 1.0 * r1 + r2));
