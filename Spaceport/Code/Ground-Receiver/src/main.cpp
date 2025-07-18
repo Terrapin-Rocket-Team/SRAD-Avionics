@@ -1,6 +1,34 @@
 #include <Arduino.h>
 #include "RadioMessage.h"
 #include "Si4463.h"
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 32 // OLED display height, in pixels
+
+#define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
+#define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+static const unsigned char PROGMEM logo_bmp[] =
+{ 0b00000000, 0b11000000,
+  0b00000001, 0b11000000,
+  0b00000001, 0b11000000,
+  0b00000011, 0b11100000,
+  0b11110011, 0b11100000,
+  0b11111110, 0b11111000,
+  0b01111110, 0b11111111,
+  0b00110011, 0b10011111,
+  0b00011111, 0b11111100,
+  0b00001101, 0b01110000,
+  0b00011011, 0b10100000,
+  0b00111111, 0b11100000,
+  0b00111111, 0b11110000,
+  0b01111100, 0b11110000,
+  0b01110000, 0b01110000,
+  0b00000000, 0b00110000 };
+
+
 
 #include "422Mc86_4GFSK_500000H.h"
 #include "422Mc80_4GFSK_009600H.h"
@@ -157,6 +185,30 @@ void setup()
     while (1)
       ;
   }
+  //adding the ground station OLED stuff
+  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for(;;); // Don't proceed, loop forever
+  }
+
+  // Show initial display buffer contents on the screen --
+  // the library initializes this with an Adafruit splash screen.
+  display.display();
+  delay(2000); // Pause for 2 seconds
+
+  // Clear the buffer
+  display.clearDisplay();
+  delay(2000);
+  // display.display() is NOT necessary after every single drawing command,
+  // unless that's what you want...rather, you can batch up a bunch of
+  // drawing operations and then update the screen all at once by calling
+  // display.display(). These examples demonstrate both approaches...
+
+  // Invert and restore display, pausing in-between
+  display.invertDisplay(true);
+  delay(1000);
+  display.invertDisplay(false);
+  delay(1000);
 
   // if (!radioTelem.begin(CONFIG_422Mc80_4GFSK_009600H, sizeof(CONFIG_422Mc80_4GFSK_009600H)))
   // {
@@ -188,7 +240,50 @@ void setup()
 
 void loop()
 {
-  if (((bytesAvail = s->available()) > 0))
+  //adding the OLED stuff 
+  char s[50];
+
+
+  display.clearDisplay();
+  //all the settings for the text 
+  display.setCursor(0, 0);
+  display.setFont(NULL);
+  display.setTextColor(SSD1306_WHITE);
+  display.startWrite();
+  display.setTextSize(1);
+  display.setTextWrap(false);
+
+  //latitude double addition 
+  double lf = -0.2;
+  snprintf(s, sizeof(s), "Lat: %lf \n", lf);
+  display.print(s);
+
+  //longtitude double addition
+  double lf2 = -0.5;
+  snprintf(s, sizeof(s), "Long: %lf", lf2);
+  display.setCursor(0, 8);
+  display.print(s);
+
+  //RSSI integer addition
+  int lf3 = 35;
+  snprintf(s, sizeof(s), "RSSI: %d", lf3);
+  display.setCursor(0, 17);
+  display.print(s);
+
+
+  //displaying avionics, airbrake, and payload warning signals
+  display.setCursor(24, 25);
+  display.print("AVI, AIR, PAY");
+  //optional delay
+  delay(100);
+  //DISPLAY.DISPLAY() IS NEEDED!!
+  display.display();
+
+  //optional delay
+  delay(2000);
+
+
+  if (((bytesAvail = Serial5.available()) > 0))
   {
     // check if a command is being sent
     if (currState == NONE)
