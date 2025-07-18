@@ -75,9 +75,9 @@ bool Si4463::begin()
     this->powerOn();
 
     // clear pending interrupts
-    // uint8_t cIntArgs[3] = {0, 0, 0};
-    // uint8_t rIntArgs[8] = {};
-    // sendCommand(C_GET_INT_STATUS, 3, cIntArgs, 8, rIntArgs);
+    uint8_t cIntArgs[3] = {0, 0, 0};
+    uint8_t rIntArgs[8] = {};
+    sendCommand(C_GET_INT_STATUS, 3, cIntArgs, 8, rIntArgs);
     // Serial.println("INTERRUPTS");
     //  for (int i = 0; i < 8; i++)
     //  {
@@ -100,7 +100,7 @@ bool Si4463::begin()
 
 #ifndef RF4463F30
     // set the global config, this is the defaults, but apparently a reserved field needs to be set manually
-    this->setProperty(G_GLOBAL, P_GLOBAL_CONFIG, 0b01110000);
+    this->setProperty(G_GLOBAL, P_GLOBAL_CONFIG, 0b01010000);
 
     // set clock config
     this->setProperty(G_GLOBAL, P_GLOBAL_XO_TUNE, 0x00);
@@ -110,11 +110,6 @@ bool Si4463::begin()
     this->setProperty(G_GLOBAL, P_GLOBAL_CONFIG, 0b01110000);
     this->setProperty(G_GLOBAL, P_GLOBAL_XO_TUNE, 0x62); // from rf4463f30 datasheet
 #endif
-
-    // reset FIFOs
-    uint8_t cClearFIFO[1] = {0b00000011};
-    uint8_t rClearFIFO[2] = {0x00, 0x00};
-    sendCommand(C_FIFO_INFO, 1, cClearFIFO, 2, rClearFIFO);
 
     // disable interrupts
     this->setProperty(G_INT_CTL, P_INT_CTL_ENABLE, 0x00);
@@ -210,7 +205,7 @@ bool Si4463::tx(const uint8_t *message, int len)
         digitalWrite(this->_cs, HIGH);
 
         // set packet length for variable length packets
-        this->setProperty(G_PKT, 2, P_PKT_FIELD_2_LENGTH2, mLen);
+        // this->setProperty(G_PKT, 2, P_PKT_FIELD_2_LENGTH2, mLen);
 
         // start tx
         // enter rx state after tx
@@ -234,18 +229,9 @@ void Si4463::handleTX()
     if (!this->TXEmptyFlag && this->xfrd < this->availLen && this->gpio0())
     {
         this->TXEmptyFlag = true;
-        uint8_t cClearFIFO[1] = {0b00000000};
-        uint8_t rClearFIFO[2] = {0x00, 0x00};
-        sendCommand(C_FIFO_INFO, 1, cClearFIFO, 2, rClearFIFO);
-        this->debugTimer = micros();
-        if (rClearFIFO[1] > 120)
-        {
-            Serial.println("\nHandleTX");
-            Serial.println(this->xfrd);
-            Serial.println(this->availLen);
-            Serial.println("FIFO STATUS");
-            Serial.println(rClearFIFO[1]);
-        }
+        // Serial.println("handleTX");
+        // Serial.println(this->xfrd);
+        // Serial.println(this->availLen);
         digitalWrite(this->_cs, LOW);
 
         // write to the TX FIFO
@@ -282,6 +268,7 @@ bool Si4463::rx()
     {
         // reset availLen
         this->availLen = 0;
+        this->length = 0; // need to reset length, info in buf now lost
 
         // enter idle state
         // uint8_t cIdleArgs[1] = {0b00000011};
@@ -296,7 +283,7 @@ bool Si4463::rx()
         // this->setProperty(G_PKT, 2, P_PKT_FIELD_2_LENGTH2, cLen2);
 
         // enter RX mode
-        uint8_t rxArgs[7] = {this->channel, 0b00110000, 0, 0, 0, 0b00000011, 0b00000001};
+        uint8_t rxArgs[7] = {this->channel, 0, 0, 0, 0x08, 0x03, 0x08};
         this->spi_write(C_START_RX, 7, rxArgs);
         this->state = STATE_RX;
         return true;
@@ -306,11 +293,26 @@ bool Si4463::rx()
 
 void Si4463::handleRX()
 {
+    // uint8_t cClearFIFO[1] = {0b00000000};
+    // uint8_t rClearFIFO[2] = {0x00, 0x00};
+    // sendCommand(C_FIFO_INFO, 1, cClearFIFO, 2, rClearFIFO);
+    // Serial.println("FIFO STATUS");
+    // for (int i = 0; i < sizeof(rClearFIFO); i++)
+    //     Serial.println(rClearFIFO[i]);
+    // uint8_t cIntArgs[3] = {0, 0, 0};
+    // uint8_t rIntArgs[8] = {};
+    // sendCommand(C_GET_INT_STATUS, 3, cIntArgs, 8, rIntArgs);
+    // Serial.println("INTERRUPTS");
+    // for (int i = 0; i < 8; i++)
+    // {
+    //     Serial.println(rIntArgs[i], BIN);
+    // }
     // assume we are in RX mode
     // this is how we read the packet until we have less than the RX FIFO THRESH left
     if (!this->RXFullFlag && this->gpio1()) // valid preamble and more than RX_THRESH bytes in FIFO
     {
         this->RXFullFlag = true;
+        // this->debugTimer = micros();
         // Serial.println("here");
         // Serial.println(this->xfrd);
         // Serial.println(this->length);
@@ -321,14 +323,15 @@ void Si4463::handleRX()
         // for (int i = 0; i < sizeof(rClearFIFO); i++)
         //     Serial.println(rClearFIFO[i]);
         // rssi should be available
-        this->rssi = this->readFRR(1);
+        if (this->xfrd == 0)
+            this->rssi = this->readFRR(1);
         digitalWrite(this->_cs, LOW);
 
         // read from RX FIFO
         this->spi->transfer(C_READ_RX_FIFO);
 
         // holds data received this iteration
-        int count = 0;
+        int lenBytes = 0;
 
         // if the internal length and xfrd variables are 0, then this is the first part of the message
         if (this->xfrd == 0)
@@ -341,7 +344,7 @@ void Si4463::handleRX()
             from_bytes(this->length, 0, 0, mLen);
             // Serial.print("len ");
             // Serial.println(this->length);
-            count += 2;
+            lenBytes += 2;
             // make sure the message is not too long (could be erroneous transmission)
             if (this->length > Si4463::MAX_LEN || this->length == 0)
             {
@@ -351,6 +354,7 @@ void Si4463::handleRX()
         }
 
         // receive message data
+        int count = lenBytes;
         while (this->xfrd < this->length && count < RX_THRESH)
         {
             count++;
@@ -358,8 +362,11 @@ void Si4463::handleRX()
             // Serial.print((char)this->buf[this->xfrd - 1]);
         }
         // Serial.println();
-
         digitalWrite(this->_cs, HIGH);
+        // Serial.print("count ");
+        // Serial.print(count);
+        // Serial.print("xfrd ");
+        // Serial.println(this->xfrd);
 
         // if we've transferred length bytes, we've received the whole message
         if (this->xfrd == this->length && this->length > 0)
@@ -396,14 +403,18 @@ void Si4463::handleRX()
             this->spi->transfer(C_READ_RX_FIFO);
 
             // receive message data
-            int bytes = 0;
-            while (this->xfrd < this->length && bytes < rFIFOInfo[0])
+            int count = 0;
+            while (this->xfrd < this->length && count < rFIFOInfo[0])
             {
-                bytes++;
+                count++;
                 this->buf[this->xfrd++] = this->spi->transfer(0x00);
                 // Serial.print((char)this->buf[this->xfrd - 1]);
             }
             // Serial.println();
+            // Serial.print("count ");
+            // Serial.print(count);
+            // Serial.print("\txfrd ");
+            // Serial.println(this->xfrd);
 
             digitalWrite(this->_cs, HIGH);
         }
@@ -438,7 +449,7 @@ void Si4463::handleRX()
 bool Si4463::startTX(const uint8_t *data, uint16_t len, uint16_t totalLen)
 {
     // make sure the packet isn't too long and we have at least 1 byte
-    if (totalLen > Si4463::MAX_LEN || len == 0)
+    if (totalLen > Si4463::MAX_LEN && len > 0)
         return false; // Error: the packet is too long
 
     //  prefill fifo in idle state
@@ -450,9 +461,6 @@ bool Si4463::startTX(const uint8_t *data, uint16_t len, uint16_t totalLen)
         this->xfrd = 0;
         memcpy(this->buf, data, this->availLen);
         // Serial.println("tx");
-        // Serial.println(this->availLen);
-        // Serial.println(this->length);
-
         //  enter idle state
         // uint8_t cIdleArgs[1] = {0b00000011};
         // this->sendCommandC(C_CHANGE_STATE, 1, cIdleArgs);
@@ -507,14 +515,6 @@ uint16_t Si4463::writeTXBuf(const uint8_t *data, uint16_t len)
     // make sure we do not already have enough bytes
     if (this->state == STATE_TX && len > 0 && this->length > 0 && this->availLen < this->length)
     {
-        // Serial.print("\nwriteTXBuf");
-        // Serial.print("\tlen ");
-        // Serial.print(len);
-        // Serial.print("\tlength ");
-        // Serial.print(this->length);
-        // Serial.print("\tavailLen ");
-        // Serial.print(this->availLen);
-        // Serial.print("\n");
         if (this->availLen + len > this->length)
             len = this->length - this->availLen;
         // copy from the array into the internal buf
@@ -533,10 +533,12 @@ uint16_t Si4463::readRXBuf(uint8_t *data, uint16_t len)
     // make sure the user asked for some bytes
     // make sure xfrd is not 0
     // make sure we have not already copied all the available bytes
-    if ((this->state == STATE_RX || this->available) && len > 0 && this->xfrd > 0 && this->availLen < this->xfrd)
+    if ((this->available && len > 0) || (this->state == STATE_RX && this->availLen > 0 && this->availLen < this->xfrd))
     {
-        if (this->availLen + len > this->xfrd)
+        if (this->state == STATE_RX && this->availLen + len > this->xfrd)
             len = this->xfrd - this->availLen;
+        else if ((this->state == STATE_IDLE || this->state == STATE_RX_COMPLETE) && this->availLen + len > this->length)
+            len = this->length - this->availLen;
         // copy from the internal buf into the array
         memcpy(data, this->buf + this->availLen, len);
         this->availLen += len;
@@ -562,11 +564,14 @@ void Si4463::update()
 
     if (this->state == STATE_RX_COMPLETE)
     {
-        if (this->gpio2()) // RX state
-            this->state = STATE_RX;
+        // if (this->gpio2()) // RX state
+        //     this->state = STATE_RX;
 
-        else if (!this->gpio3()) // ready state (not RX, must go through STATE_ENTER_TX to get to TX)
+        if (!this->gpio2() && !this->gpio3()) // ready state (not RX, must go through STATE_ENTER_TX to get to TX)
+        {
             this->state = STATE_IDLE;
+            // Serial.println("set to idle after rx complete");
+        }
     }
 #else
     // slightly worse version to use for rf4463
@@ -587,10 +592,10 @@ void Si4463::update()
     if (this->state == STATE_RX_COMPLETE)
     {
         uint8_t status = this->readFRR(0);
-        if (status == 8) // RX state
-        {
-            this->state = STATE_RX;
-        }
+        // if (status == 8) // RX state
+        // {
+        //     this->state = STATE_RX;
+        // }
         if (status == 3) // ready state
         {
             this->state = STATE_IDLE;
@@ -620,13 +625,6 @@ void Si4463::update()
     {
         this->handleRX();
     }
-    // throttle reading and writing a bit cause the teensy does it faster than the FIFO status pins update
-    if (millis() - this->timer > this->byteDelay)
-    {
-        this->timer = millis();
-        // check if we are transmitting and the FIFO is almost empty
-        // check if we are receving and the FIFO is almost full
-    }
 }
 
 bool Si4463::send(Data &data)
@@ -650,7 +648,6 @@ bool Si4463::receive(Data &data)
         // decode the message
         this->available = false;
         this->m.fill(this->buf, this->length)->decode(&data);
-        this->length = 0; // need to reset length, info should now be stored in m
         return true;
     }
     return false;
@@ -847,11 +844,11 @@ void Si4463::setPacketConfig(Si4463Mod mod, uint8_t preambleLength, uint8_t prea
     // setup all packet fields
     this->setProperty(G_PKT, P_PKT_CONFIG1, pktConfArgs);
     // turn on data whitening for fields 1 and 2
-    this->setProperty(G_PKT, P_PKT_FIELD_1_CONFIG, 0x06 | pktConfArgs);
-    this->setProperty(G_PKT, P_PKT_FIELD_2_CONFIG, 0x02 | pktConfArgs);
+    this->setProperty(G_PKT, P_PKT_FIELD_1_CONFIG, 0x06 | pktFieldConfArgs);
+    this->setProperty(G_PKT, P_PKT_FIELD_2_CONFIG, 0x02 | pktFieldConfArgs);
 
     // enable variable length packets
-    this->setProperty(G_PKT, P_PKT_LEN, 0b00011010);
+    this->setProperty(G_PKT, P_PKT_LEN, 0b00111010);
     this->setProperty(G_PKT, P_PKT_LEN_FIELD_SOURCE, 0x01);
     // turn off crc
     this->setProperty(G_PKT, P_PKT_CRC_CONFIG, 0x00);

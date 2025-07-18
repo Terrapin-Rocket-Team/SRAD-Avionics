@@ -29,10 +29,10 @@ void setup()
     SERIAL_DBG.begin(9600);
     if (&SERIAL_DBG != &SERIAL_IN)
         SERIAL_IN.begin(9600, SERIAL_8N1, 16, 17);
-    SERIAL_DBG.println("Hello from ESP32!");
+    // SERIAL_DBG.println("Hello from ESP32!");
 #ifdef DEBUG
 #ifdef SERVER
-    SERIAL_DBG.println("Server booted!");
+    // SERIAL_DBG.println("Server booted!");
     SERIAL_DBG.flush();
     // server.start("ESP32 BLE Server");
 #else
@@ -45,12 +45,18 @@ void setup()
 }
 
 #ifdef SERVER
+double lastping = 0;
 void serverLoop()
 {
+    if (millis() - lastping > 2000)
+    {
+        // SERIAL_DBG.println("ping");
+        lastping = millis();
+    }
     if (SERIAL_IN.available())
     {
         uint8_t messageID = SERIAL_IN.read();
-        SERIAL_DBG.println("Received message: " + String(messageID));
+        // SERIAL_DBG.println("Received message: " + String(messageID));
 
         switch (messageID)
         {
@@ -59,21 +65,21 @@ void serverLoop()
             if (!server.isInitialized())
             {
                 std::string name = SERIAL_IN.readString().c_str();
-                SERIAL_DBG.println("Received init message!");
-                SERIAL_DBG.println("Server name: " + String(name.c_str()));
+                // SERIAL_DBG.println("Received init message!");
+                // SERIAL_DBG.println("Server name: " + String(name.c_str()));
                 server.start(name);
             }
             else
             {
-                SERIAL_DBG.println("WARN: GOT INIT MESSAGE, BUT ALREADY INITIALIZED");
+                // SERIAL_DBG.println("WARN: GOT INIT MESSAGE, BUT ALREADY INITIALIZED");
             }
             break;
         }
         case DATA_MESSAGE:
         {
-            SERIAL_DBG.println("Received data message");
-            SERIAL_DBG.println("Server initialized: " + String(server.isInitialized()));
-            SERIAL_DBG.println("SERIAL_IN available: " + String(SERIAL_IN.available()));
+            // SERIAL_DBG.println("Received data message");
+            // SERIAL_DBG.println("Server initialized: " + String(server.isInitialized()));
+            // SERIAL_DBG.println("SERIAL_IN available: " + String(SERIAL_IN.available()));
             if (server.isInitialized())
             {
                 server.update(SERIAL_IN);
@@ -91,8 +97,11 @@ void serverLoop()
 #ifndef SERVER
 void clientLoop()
 {
+
+
     if (!client.isInitialized())
     {
+            client.start("AVIONICS");
         if (SERIAL_IN.available())
         {
             const uint8_t messageID = SERIAL_IN.read();
@@ -107,6 +116,7 @@ void clientLoop()
     }
     else
     {
+        client.update(SERIAL_IN);
         if (!client.isConnected())
         {
             client.update(SERIAL_IN);

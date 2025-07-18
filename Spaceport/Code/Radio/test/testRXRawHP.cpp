@@ -11,20 +11,20 @@ Si4463HardwareConfig hwcfg = {
     MOD_2GFSK,       // modulation
     DR_500k,         // data rate
     (uint32_t)433e6, // frequency (Hz)
-    127,             // tx power (127 = ~20dBm)
+    POWER_HP_20dBm,  // tx power (127 = ~20dBm)
     48,              // preamble length
     16,              // required received valid preamble
 };
 
 Si4463PinConfig pincfg = {
     &SPI, // spi bus to use
-    10,   // cs
-    38,   // sdn
-    33,   // irq
-    34,   // gpio0
-    35,   // gpio1
-    36,   // random pin - gpio2 is not connected
-    37,   // random pin - gpio3 is not connected
+    30,   // cs
+    29,   // sdn
+    24,   // irq
+    25,   // gpio0
+    26,   // gpio1
+    27,   // gpio2
+    28,   // gpio3
 };
 
 Si4463 radio(hwcfg, pincfg);
@@ -58,8 +58,8 @@ void loop()
 {
     if (radio.avail())
     {
-        Serial.println("here");
-        uint16_t receivedLength = radio.readRXBuf(buf, radio.length);
+        // Serial.println("here");
+        uint16_t receivedLength = radio.readRXBuf(buf, sizeof(buf));
         if (receivedLength != MSG_LENGTH)
         {
             Serial.print("Error: recevied length does not match expected length. Got: ");
@@ -67,7 +67,11 @@ void loop()
             Serial.print(", Expected: ");
             Serial.println(MSG_LENGTH);
         }
-        Serial.write(buf, receivedLength);
+        // Serial.write(buf, receivedLength);
+        Serial.print("Sniffing packet: ");
+        Serial.print(buf[0], HEX);
+        Serial.print(buf[1], HEX);
+        Serial.println(buf[2], HEX);
         radio.available = false;
 
         // reset timeout

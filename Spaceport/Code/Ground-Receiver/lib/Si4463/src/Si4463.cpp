@@ -537,6 +537,8 @@ uint16_t Si4463::readRXBuf(uint8_t *data, uint16_t len)
     {
         if (this->state == STATE_RX && this->availLen + len > this->xfrd)
             len = this->xfrd - this->availLen;
+        else if ((this->state == STATE_IDLE || this->state == STATE_RX_COMPLETE) && this->availLen + len > this->length)
+            len = this->length - this->availLen;
         // copy from the internal buf into the array
         memcpy(data, this->buf + this->availLen, len);
         this->availLen += len;
@@ -590,10 +592,10 @@ void Si4463::update()
     if (this->state == STATE_RX_COMPLETE)
     {
         uint8_t status = this->readFRR(0);
-        if (status == 8) // RX state
-        {
-            this->state = STATE_RX;
-        }
+        // if (status == 8) // RX state
+        // {
+        //     this->state = STATE_RX;
+        // }
         if (status == 3) // ready state
         {
             this->state = STATE_IDLE;
@@ -849,8 +851,8 @@ void Si4463::setPacketConfig(Si4463Mod mod, uint8_t preambleLength, uint8_t prea
     // setup all packet fields
     this->setProperty(G_PKT, P_PKT_CONFIG1, pktConfArgs);
     // turn on data whitening for fields 1 and 2
-    this->setProperty(G_PKT, P_PKT_FIELD_1_CONFIG, 0x06 | pktConfArgs);
-    this->setProperty(G_PKT, P_PKT_FIELD_2_CONFIG, 0x02 | pktConfArgs);
+    this->setProperty(G_PKT, P_PKT_FIELD_1_CONFIG, 0x06 | pktFieldConfArgs);
+    this->setProperty(G_PKT, P_PKT_FIELD_2_CONFIG, 0x02 | pktFieldConfArgs);
 
     // enable variable length packets
     this->setProperty(G_PKT, P_PKT_LEN, 0b00111010);

@@ -10,7 +10,7 @@
 // RF4463F30 COTS radios require this to be defined
 // #define RF4463F30
 // set to 1 to always force using SPI for CTS
-#define FORCE_SPI_CTS 0
+// #define FORCE_SPI_CTS 1
 
 /*
 Si4463 Hardware Configuration
