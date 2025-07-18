@@ -14,7 +14,7 @@ class AdvertisingScanHandler;
 
 class BluetoothClient {
 public:
-    BluetoothClient(Stream& outSerial);
+    BluetoothClient(Stream& outSerial, Stream &dbgSerial);
     // Constructor to create client object using server name connected, server UUID, and sending characteristic UUID
     ~BluetoothClient(); // Destructor
 
@@ -44,7 +44,7 @@ private:
     bool connected = false;
 
     // Serial communication object for connecting to the Arduino
-    Stream& outSerial;  // Reference to serial output stream (Arduino)
+    Stream& outSerial, &dbgSerial;  // Reference to serial output stream (Arduino)
 };
 
 
