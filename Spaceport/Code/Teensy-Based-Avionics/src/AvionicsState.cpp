@@ -34,8 +34,9 @@ void AvionicsState::determineStage()
     // GPS *gps = reinterpret_cast<GPS *>(getSensor(GPS_));
     if (stage == 0 &&
         (sensorOK(imu) || sensorOK(baro)) &&
-        // (sensorOK(imu) ? abs(imu->getAccelerationGlobal().z()) > 25 : true) &&
-        (sensorOK(baro) ? baro->getAGLAltFt() > 30 : true))
+        (sensorOK(imu) ? abs(imu->getAccelerationGlobal().magnitude()) > 40 : true) 
+        // (sensorOK(baro) ? baro->getAGLAltFt() > 10 : true)
+        )
     // if we are in preflight AND
     // we have either the IMU OR the barometer AND
     // imu is ok AND the z acceleration is greater than 29 ft/s^2 OR imu is not ok AND
@@ -73,7 +74,7 @@ void AvionicsState::determineStage()
         //     getLogger().recordLogData(INFO_, 100, "RotCam rotated to 0 degrees at %.2f seconds.", timeSinceLaunch);
         // }
     }
-    else if (stage == 2 && consecutiveNegativeBaroVelocity > 5 && currentTime - timeOfLastStage > 3 /*&& imuVelocity > 102 */)
+    else if (stage == 2 && consecutiveNegativeBaroVelocity > 5 && currentTime - timeOfLastStage > 25 /*&& imuVelocity > 102 */)
     {
         bb.aonoff(BUZZER, 200, 3);
         getLogger().recordLogData(INFO_, 100, "Apogee detected at %.2f m.", position.z());
@@ -82,7 +83,7 @@ void AvionicsState::determineStage()
         getLogger().recordLogData(INFO_, 100, "Drogue conditions detected %.2f seconds.", timeSinceLaunch);
 
     }
-    else if (stage == 3 && baro->getAGLAltFt() < 1500 && currentTime - timeOfLastStage > 2)
+    else if (stage == 3 && baro->getAGLAltFt() < 1500 && currentTime - timeOfLastStage > 45)
     {
         bb.aonoff(BUZZER, 200, 4);
         stage = 4;
