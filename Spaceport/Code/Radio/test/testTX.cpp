@@ -2,15 +2,18 @@
 #include "RadioMessage.h"
 #include "Si4463.h"
 
+// radio config header
+#include "422Mc110_2GFSK_500000U.h"
+
 #define BUZZER 0
 
 Si4463HardwareConfig hwcfg = {
-    MOD_2GFSK, // modulation
-    DR_500b,   // data rate
-    433e6,     // frequency (Hz)
-    127,       // tx power (127 = ~20dBm)
-    48,        // preamble length
-    16,        // required received valid preamble
+    MOD_2GFSK,       // modulation
+    DR_500k,         // data rate
+    (uint32_t)433e6, // frequency (Hz)
+    127,             // tx power (127 = ~20dBm)
+    48,              // preamble length
+    16,              // required received valid preamble
 };
 
 Si4463PinConfig pincfg = {
@@ -29,7 +32,7 @@ uint32_t timer = millis();
 
 APRSConfig aprscfg = {"KC3UTM", "ALL", "WIDE1-1", TextMessage, '\\', 'M'};
 
-APRSText testMessage(aprscfg, "RSSI test, longer test message", "");
+APRSText testMessage(aprscfg, "test with payload longer than FIFO length, test with payload longer than FIFO length, test with payload longer than FIFO length", "");
 
 void beep(int d)
 {
@@ -45,7 +48,7 @@ void setup()
     pinMode(BUZZER, OUTPUT);
     digitalWrite(BUZZER, LOW);
 
-    if (!radio.begin())
+    if (!radio.begin(CONFIG_422Mc110_2GFSK_500000U, sizeof(CONFIG_422Mc110_2GFSK_500000U)))
     {
         Serial.println("Error: radio failed to begin");
         Serial.flush();

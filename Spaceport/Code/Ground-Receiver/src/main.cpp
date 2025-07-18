@@ -8,7 +8,7 @@
 
 Si4463HardwareConfig hwcfg = {
     MOD_2GFSK,       // modulation
-    DR_40k,          // data rate
+    DR_100k,         // data rate
     (uint32_t)433e6, // frequency (Hz)
     127,             // tx power (127 = ~20dBm)
     48,              // preamble length
@@ -17,13 +17,13 @@ Si4463HardwareConfig hwcfg = {
 
 Si4463PinConfig pincfg = {
     &SPI, // spi bus to use
-    8,    // cs
-    6,    // sdn
-    7,    // irq
-    9,    // gpio0
-    10,   // gpio1
-    4,    // random pin - gpio2 is not connected
-    5,    // random pin - gpio3 is not connected
+    10,   // cs
+    38,   // sdn
+    33,   // irq
+    34,   // gpio0
+    35,   // gpio1
+    36,   // random pin - gpio2 is not connected
+    37,   // random pin - gpio3 is not connected
 };
 
 Si4463 radio(hwcfg, pincfg);
@@ -55,9 +55,12 @@ uint16_t commandSize = 0;
 // data handling
 uint32_t timerMetrics = millis();
 Message m;
-APRSTelem avionicsTelem;
+
+APRSTelem telem;
 GSData avionicsData(APRSTelem::type, 1, TELEM_DEVICE_ID);
 bool hasAvionicsTelem = false;
+GSData airbrakeData(APRSTelem::type, 2, TELEM_DEVICE_ID);
+bool hasAirbrakeTelem = false;
 
 // sample metrics implementation
 Message metricsMessage;
@@ -238,13 +241,16 @@ void loop()
   if (handshakeSuccess && radio.avail())
   {
     // get the message
-    radio.receive(avionicsTelem);
+    radio.receive(telem);
     // re-encode it to be multiplexed
-    m.encode(&avionicsTelem);
+    m.encode(&telem);
     // update metrics
     telemMetrics.update(m.size, millis(), radio.RSSI());
     // set the flag to transmit data
-    hasAvionicsTelem = true;
+    if (strcmp(telem.config.callsign, "KC3UTM") == 0)
+      hasAirbrakeTelem = true;
+    if (strcmp(telem.config.callsign, "KC3YKX") == 0)
+      hasAvionicsTelem = true;
   }
 
   if (handshakeSuccess)
@@ -260,6 +266,18 @@ void loop()
       Serial.write(m.buf, m.size);
       // reset flag
       hasAvionicsTelem = false;
+    }
+
+    if (hasAirbrakeTelem)
+    {
+      // fill GSData with message
+      airbrakeData.fill(m.buf, m.size);
+      // encode for multplexing
+      m.encode(&airbrakeData);
+      // write
+      Serial.write(m.buf, m.size);
+      // reset flag
+      hasAirbrakeTelem = false;
     }
 
     if (millis() - timerMetrics > 1000)
