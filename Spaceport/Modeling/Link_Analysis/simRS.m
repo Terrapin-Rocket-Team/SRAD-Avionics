@@ -1,7 +1,7 @@
 % Reed solomon test
 function errors = simRS(bitrate, flightTime, N, k, BERFunction)
     bytesPerFlight = flightTime * (bitrate/8);
-    packets = round(bytesPerFlight/k) + 1;
+    packets = round(bytesPerFlight/k) + 1
 
     data = uint8(round(255*rand(packets, k)));
 
@@ -18,14 +18,15 @@ function errors = simRS(bitrate, flightTime, N, k, BERFunction)
     symbolErrorsTime = zeros(packets, 1);
     for n = 1:packets
 
-        BER(n) = BERFunction(BER_index);
+        %BER(n) = BERFunction(BER_index);
+        BER(n) = BERFunction(ceil(length(BERFunction)*(n/packets)));
         count = count + 1;
 
         if (count >= floor(packets/k))
             count = 0;
             if (BER_index < k)
                 BER_index = BER_index + 1;
-             end
+            end
         end
     end
 

@@ -11,6 +11,8 @@ BERfsk2n = berawgn(EbNo, "fsk", 2, "noncoherent");
 BERfsk4 = berawgn(EbNo, "fsk", 4, "coherent");
 BERfsk4n = berawgn(EbNo, "fsk", 4, "noncoherent");
 
+BERmsk2 = berawgn(EbNo, "msk", "off");
+
 BERcpfsk2 = berawgn(EbNo, "cpfsk", 2, 1, 1);
 BERcpfsk4 = berawgn(EbNo, "cpfsk", 4, 1, 1);
 BERcpmsk2 = berawgn(EbNo, "cpfsk", 2, 0.5, 1);
@@ -68,6 +70,14 @@ hold on;
 semilogy(EbNo, BERcpmsk4)
 
 legend("2-CPMSK", "4-CPMSK")
+axis([0, 20, 10^-10, 10^0])
+ylabel("BER")
+xlabel("Eb/No (dB)")
+
+figure(7)
+semilogy(EbNo, BERmsk2)
+
+legend("2-MSK coherent")
 axis([0, 20, 10^-10, 10^0])
 ylabel("BER")
 xlabel("Eb/No (dB)")
