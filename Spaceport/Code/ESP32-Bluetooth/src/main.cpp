@@ -2,116 +2,162 @@
 // Created by ramykaddouri on 2/5/25.
 //
 
-#include<Arduino.h>
-#include<BLEDevice.h>
+#include <Arduino.h>
+#include <BLEDevice.h>
 #include <BluetoothClient.h>
 #include <BluetoothServer.h>
 
 // #define SERVER // SERVER is on Avionics, CLIENT is on Airbrake. Comment/uncomment line to change.
 #define DEBUG
 
-#ifdef SERVER
-BluetoothServer server(Serial1);
+#ifdef DEV_BRD
+#define SERIAL_DBG Serial
+#define SERIAL_IN Serial1
 #else
-BluetoothClient client(Serial);
+#define SERIAL_DBG Serial
+#define SERIAL_IN Serial
 #endif
 
-void setup() {
-    Serial.begin(9600);
-    Serial1.begin(9600, SERIAL_8N1, 16, 17);
-    Serial.println("Hello from ESP32!");
+#ifdef SERVER
+BluetoothServer server(SERIAL_IN, SERIAL_DBG);
+#else
+BluetoothClient client(SERIAL_IN, SERIAL_DBG);
+#endif
+
+void setup()
+{
+    SERIAL_DBG.begin(9600);
+    if (&SERIAL_DBG != &SERIAL_IN)
+        SERIAL_IN.begin(9600, SERIAL_8N1, 16, 17);
+    // SERIAL_DBG.println("Hello from ESP32!");
 #ifdef DEBUG
 #ifdef SERVER
-    Serial.println("Server booted!");
-    Serial.flush();
+    // SERIAL_DBG.println("Server booted!");
+    SERIAL_DBG.flush();
     // server.start("ESP32 BLE Server");
 #else
-    Serial.println("Client booted!");
-    Serial.flush();
+    SERIAL_DBG.println("Client booted!");
+    SERIAL_IN.println("SERIAL_IN");
+    SERIAL_DBG.flush();
     // client.start("ESP32 BLE Server");
 #endif
 #endif
 }
 
 #ifdef SERVER
-void serverLoop() {
-    if (Serial1.available()) {
-        uint8_t messageID = Serial1.read();
-        Serial.println("Received message: " + String(messageID));
+double lastping = 0;
+void serverLoop()
+{
+    if (millis() - lastping > 2000)
+    {
+        // SERIAL_DBG.println("ping");
+        lastping = millis();
+    }
+    if (SERIAL_IN.available())
+    {
+        uint8_t messageID = SERIAL_IN.read();
+        // SERIAL_DBG.println("Received message: " + String(messageID));
 
-        switch (messageID) {
-            case INIT_MESSAGE: {
-                if (!server.isInitialized()) {
-                    std::string name = Serial1.readString().c_str();
-                    Serial.println("Received init message!");
-                    Serial.println("Server name: " + String(name.c_str()));
-                    server.start(name);
-                } else {
-                    Serial.println("WARN: GOT INIT MESSAGE, BUT ALREADY INITIALIZED");
-                }
-                break;
+        switch (messageID)
+        {
+        case INIT_MESSAGE:
+        {
+            if (!server.isInitialized())
+            {
+                std::string name = SERIAL_IN.readString().c_str();
+                // SERIAL_DBG.println("Received init message!");
+                // SERIAL_DBG.println("Server name: " + String(name.c_str()));
+                server.start(name);
             }
-            case DATA_MESSAGE: {
-                Serial.println("Received data message");
-                Serial.println("Server initialized: " + String(server.isInitialized()));
-                Serial.println("Serial1 available: " + String(Serial1.available()));
-                if (server.isInitialized()) {
-                    server.update(Serial1);
-                }
-                break;
+            else
+            {
+                // SERIAL_DBG.println("WARN: GOT INIT MESSAGE, BUT ALREADY INITIALIZED");
             }
-            default: {}
+            break;
+        }
+        case DATA_MESSAGE:
+        {
+            // SERIAL_DBG.println("Received data message");
+            // SERIAL_DBG.println("Server initialized: " + String(server.isInitialized()));
+            // SERIAL_DBG.println("SERIAL_IN available: " + String(SERIAL_IN.available()));
+            if (server.isInitialized())
+            {
+                server.update(SERIAL_IN);
+            }
+            break;
+        }
+        default:
+        {
+        }
         }
     }
 }
 #endif
 
 #ifndef SERVER
-void clientLoop() {
-    if (!client.isInitialized()) {
-        if (Serial1.available()) {
-            const uint8_t messageID = Serial1.read();
-            if (messageID == INIT_MESSAGE) {
-                std::string name = Serial1.readStringUntil('\n').c_str();
-                Serial.println("Received init message");
-                Serial.println("Server name: " + String(name.c_str()) + String(name.size()));
+void clientLoop()
+{
+
+
+    if (!client.isInitialized())
+    {
+            client.start("AVIONICS");
+        if (SERIAL_IN.available())
+        {
+            const uint8_t messageID = SERIAL_IN.read();
+            if (messageID == INIT_MESSAGE)
+            {
+                std::string name = SERIAL_IN.readStringUntil('\0').c_str();
+                SERIAL_DBG.println("Received init message");
+                SERIAL_DBG.println("Server name: " + String(name.c_str()) + String(name.size()));
                 client.start(name);
             }
         }
-    } else {
-        if (!client.isConnected()) {
-            client.update(Serial1);
-        } else {
-            if (Serial1.available()) {
-                const uint8_t messageID = Serial1.read();
+    }
+    else
+    {
+        client.update(SERIAL_IN);
+        if (!client.isConnected())
+        {
+            client.update(SERIAL_IN);
+        }
+        else
+        {
+            if (SERIAL_IN.available())
+            {
+                const uint8_t messageID = SERIAL_IN.read();
 
-                switch (messageID) {
-                    case INIT_MESSAGE: {
-                        Serial.println("WARN: GOT INIT MESSAGE, BUT ALREADY INITIALIZED");
-                        break;
+                switch (messageID)
+                {
+                case INIT_MESSAGE:
+                {
+                    SERIAL_DBG.println("WARN: GOT INIT MESSAGE, BUT ALREADY INITIALIZED");
+                    break;
+                }
+                case DATA_MESSAGE:
+                {
+                    SERIAL_DBG.println("Received data message");
+                    if (client.isInitialized())
+                    {
+                        client.update(SERIAL_IN);
                     }
-                    case DATA_MESSAGE: {
-                        Serial.println("Received data message");
-                        if (client.isInitialized()) {
-                            client.update(Serial1);
-                        }
-                        break;
-                    }
-                    default: {
-                        Serial.printf("Unknown message, %hhd\n", messageID);
-                        
-                        break;
-                    };
+                    break;
+                }
+                default:
+                {
+                    SERIAL_DBG.printf("Unknown message, %hhd\n", messageID);
+
+                    break;
+                };
                 }
             }
-
         }
     }
-
 }
 #endif
 
-void loop() {
+void loop()
+{
 #ifdef SERVER
     serverLoop();
 #else
