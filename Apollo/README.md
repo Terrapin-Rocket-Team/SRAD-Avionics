@@ -16,7 +16,7 @@ Sensor hardware:
     - BMP390
     - BMP280
 - GPS modules:
-    - TBD patch breakout
+    - TODO
 
 PCB requirements:
 - Measure alititude based on barometric pressure
@@ -24,4 +24,3 @@ PCB requirements:
 - Visually indicate system status 
 - Power from 4.8V battery
 - Include connectivity for GPS
-- 
