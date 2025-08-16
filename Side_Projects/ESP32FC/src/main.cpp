@@ -1,139 +1,142 @@
-/*
-  RadioLib LR11x0 Blocking Transmit Example
-
-  This example transmits packets using LR1110 LoRa radio module.
-  Each packet contains up to 256 bytes of data, in the form of:
-  - Arduino String
-  - null-terminated char array (C-string)
-  - arbitrary binary data (byte array)
-
-  Other modules from LR11x0 family can also be used.
-
-  This example assumes Seeed Studio Wio WM1110 is used.
-  For other LR11x0 modules, some configuration such as
-  RF switch control may have to be adjusted.
-
-  For default module settings, see the wiki page
-  https://github.com/jgromes/RadioLib/wiki/Default-configuration#lr11x0---lora-modem
-
-  For full API reference, see the GitHub Pages
-  https://jgromes.github.io/RadioLib/
-*/
-
-// include the library
 #include <RadioLib.h>
-
-// LR1110 has the following connections:
-// NSS pin:   10
-// IRQ pin:   2
-// NRST pin:  3
-// BUSY pin:  9
-
 SPIClass spi(HSPI);
-LR1110 radio = new Module(14, 36, 38, 37, spi); // CS,DIO1,RST,BUSY
+LR1121 radio = new Module(14, 36, 38, 37, spi);
 
-// or detect the pinout automatically using RadioBoards
-// https://github.com/radiolib-org/RadioBoards
-/*
-#define RADIO_BOARD_AUTO
-#include <RadioBoards.h>
-Radio radio = new RadioModule();
-*/
-
-// set RF switch configuration for Wio WM1110
-// Wio WM1110 uses DIO5 and DIO6 for RF switching
-// NOTE: other boards may be different!
 static const uint32_t rfswitch_dio_pins[] = {
     RADIOLIB_LR11X0_DIO5, RADIOLIB_LR11X0_DIO6,
-    RADIOLIB_NC, RADIOLIB_NC, RADIOLIB_NC};
+    RADIOLIB_LR11X0_DIO7, RADIOLIB_NC, RADIOLIB_NC};
 
 static const Module::RfSwitchMode_t rfswitch_table[] = {
-    // mode                  DIO5  DIO6
-    {LR11x0::MODE_STBY, {LOW, LOW}},
-    {LR11x0::MODE_RX, {HIGH, LOW}},
-    {LR11x0::MODE_TX, {HIGH, HIGH}},
-    {LR11x0::MODE_TX_HP, {LOW, HIGH}},
-    {LR11x0::MODE_TX_HF, {LOW, LOW}},
-    {LR11x0::MODE_GNSS, {LOW, LOW}},
-    {LR11x0::MODE_WIFI, {LOW, LOW}},
+    // mode                  DIO5  DIO6  DIO7
+    {LR11x0::MODE_STBY, {LOW, LOW, LOW}},
+    {LR11x0::MODE_RX, {LOW, LOW, HIGH}},
+    {LR11x0::MODE_TX, {LOW, HIGH, LOW}},
+    {LR11x0::MODE_TX_HP, {HIGH, LOW, LOW}},
     END_OF_MODE_TABLE,
 };
 
-void setup()
-{
-    USBSerial.begin(9600);
+// save transmission states between loops
+int transmissionState = RADIOLIB_ERR_NONE;
 
-    // initialize LR1110 with default settings
-    USBSerial.print(F("[LR1110] Initializing ... "));
-    spi.begin(13, 12, 11, /*SS*/ 14);
-    int state = radio.begin();
-    if (state == RADIOLIB_ERR_NONE)
-    {
-        USBSerial.println(F("success!"));
-    }
-    else
-    {
-        USBSerial.print(F("failed, code "));
-        USBSerial.println(state);
-        delay(1000);
-        while (true)
-        {
-            delay(10);
-        }
-    }
+// flag to indicate transmission or reception state
+bool transmitFlag = false;
 
-    // set RF switch control configuration
-    radio.setRfSwitchTable(rfswitch_dio_pins, rfswitch_table);
+// flag to indicate that a packet was sent or received
+volatile bool operationDone = false;
+
+// this function is called when a complete packet
+// is transmitted or received by the module
+// IMPORTANT: this function MUST be 'void' type
+//            and MUST NOT have any arguments!
+#if defined(ESP8266) || defined(ESP32)
+  ICACHE_RAM_ATTR
+#endif
+void setFlag(void) {
+  // we sent or received a packet, set the flag
+  operationDone = true;
 }
 
-// counter to keep track of transmitted packets
-int count = 0;
+void setup() {
+  USBSerial.begin(9600);
+  delay(5000);
+  spi.begin(13, 12, 11, /*SS*/ 14);
 
-void loop()
-{
-    USBSerial.print(F("[LR1110] Transmitting packet ... "));
+  // initialize LR1110 with default settings
+  USBSerial.print(F("[LR1110] Initializing ... "));
+  int state = radio.begin();
+  if (state == RADIOLIB_ERR_NONE) {
+    USBSerial.println(F("success!"));
+  } else {
+    USBSerial.print(F("failed, code "));
+    USBSerial.println(state);
+    while (true) { delay(10); }
+  }
 
-    // you can transmit C-string or Arduino string up to
-    // 256 characters long
-    // NOTE: transmit() is a blocking method!
-    //       See example LR11x0_Transmit_Interrupt for details
-    //       on non-blocking transmission method.
-    String str = "Hello World! #" + String(count++);
-    int state = radio.transmit(str);
+  // set RF switch control configuration
+  radio.setRfSwitchTable(rfswitch_dio_pins, rfswitch_table);
 
-    // you can also transmit byte array up to 256 bytes long
-    /*
-      byte byteArr[] = {0x01, 0x23, 0x45, 0x56, 0x78, 0xAB, 0xCD, 0xEF};
-      int state = radio.transmit(byteArr, 8);
-    */
+  radio.setRegulatorDCDC();
 
-    if (state == RADIOLIB_ERR_NONE)
-    {
-        // the packet was successfully transmitted
-        USBSerial.println(F("success!"));
+  // set the function that will be called
+  // when new packet is received
+  radio.setIrqAction(setFlag);
 
-        // print measured data rate
-        USBSerial.print(F("[LR1110] Datarate:\t"));
-        USBSerial.print(radio.getDataRate());
-        USBSerial.println(F(" bps"));
+  #if defined(INITIATING_NODE)
+    // send the first packet on this node
+    USBSerial.print(F("[LR1110] Sending first packet ... "));
+    transmissionState = radio.startTransmit("Hello World!");
+    transmitFlag = true;
+  #else
+    // start listening for LoRa packets on this node
+    USBSerial.print(F("[LR1110] Starting to listen ... "));
+    state = radio.startReceive();
+    if (state == RADIOLIB_ERR_NONE) {
+      USBSerial.println(F("success!"));
+    } else {
+      USBSerial.print(F("failed, code "));
+      USBSerial.println(state);
+      while (true) { delay(10); }
     }
-    else if (state == RADIOLIB_ERR_PACKET_TOO_LONG)
-    {
-        // the supplied packet was longer than 256 bytes
-        USBSerial.println(F("too long!"));
-    }
-    else if (state == RADIOLIB_ERR_TX_TIMEOUT)
-    {
-        // timeout occured while transmitting packet
-        USBSerial.println(F("timeout!"));
-    }
-    else
-    {
-        // some other error occurred
+  #endif
+}
+
+void loop() {
+  // check if the previous operation finished
+  if(operationDone) {
+    // reset flag
+    operationDone = false;
+
+    if(transmitFlag) {
+      // the previous operation was transmission, listen for response
+      // print the result
+      if (transmissionState == RADIOLIB_ERR_NONE) {
+        // packet was successfully sent
+        USBSerial.println(F("transmission finished!"));
+
+      } else {
         USBSerial.print(F("failed, code "));
-        USBSerial.println(state);
-    }
+        USBSerial.println(transmissionState);
 
-    // wait for a second before transmitting again
-    delay(1000);
+      }
+
+      // listen for response
+      radio.startReceive();
+      transmitFlag = false;
+
+    } else {
+      // the previous operation was reception
+      // print data and send another packet
+      String str;
+      int state = radio.readData(str);
+
+      if (state == RADIOLIB_ERR_NONE) {
+        // packet was successfully received
+        USBSerial.println(F("[LR1110] Received packet!"));
+
+        // print data of the packet
+        USBSerial.print(F("[LR1110] Data:\t\t"));
+        USBSerial.println(str);
+
+        // print RSSI (Received Signal Strength Indicator)
+        USBSerial.print(F("[LR1110] RSSI:\t\t"));
+        USBSerial.print(radio.getRSSI());
+        USBSerial.println(F(" dBm"));
+
+        // print SNR (Signal-to-Noise Ratio)
+        USBSerial.print(F("[LR1110] SNR:\t\t"));
+        USBSerial.print(radio.getSNR());
+        USBSerial.println(F(" dB"));
+
+      }
+
+      // wait a second before transmitting again
+      delay(1000);
+
+      // send another one
+      USBSerial.print(F("[LR1110] Sending another packet ... "));
+      transmissionState = radio.startTransmit("Hello World!");
+      transmitFlag = true;
+    }
+  
+  }
 }

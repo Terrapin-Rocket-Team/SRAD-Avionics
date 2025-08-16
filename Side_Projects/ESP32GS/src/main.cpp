@@ -5,48 +5,122 @@ SPIClass spi(HSPI);
 //              CS  DIO0  RST   NC     SPI
 Module *m = new Module(47, 48, 16, RADIOLIB_NC, spi);
 RFM96 radio(m);
+#define INITIATING_NODE
 
-void setup()
-{
-    USBSerial.begin(115200);
-    delay(200);
-    spi.begin(/*SCK*/ 13, /*MISO*/ 12, /*MOSI*/ 11, /*SS*/ 47);
+int transmissionState = RADIOLIB_ERR_NONE;
 
-    int s = radio.begin();
-    USBSerial.printf("RFM96 begin: %d\n", s);
+// flag to indicate transmission or reception state
+bool transmitFlag = false;
 
-    // LoRa PHY that must MATCH the LR1121 side
-    radio.setFrequency(915.0);
-    radio.setBandwidth(125.0);   // kHz
-    radio.setSpreadingFactor(7); // SF7
-    radio.setCodingRate(5);      // 4/5
-    radio.setPreambleLength(8);
-    radio.setCRC(true);
-    radio.setSyncWord(0x34); // “public” LoRa sync word
-    radio.explicitHeader();
-    radio.invertIQ(false); // public sync
+// flag to indicate that a packet was sent or received
+volatile bool operationDone = false;
+
+// this function is called when a complete packet
+// is transmitted or received by the module
+// IMPORTANT: this function MUST be 'void' type
+//            and MUST NOT have any arguments!
+#if defined(ESP8266) || defined(ESP32)
+  ICACHE_RAM_ATTR
+#endif
+void setFlag(void) {
+  // we sent or received  packet, set the flag
+  operationDone = true;
 }
 
-void loop()
-{
+void setup() {
+  USBSerial.begin(9600);
+  spi.begin(13, 12, 11, /*SS*/ 47);
+  delay(5000);
+  // initialize SX1278 with default settings
+  USBSerial.print(F("[SX1278] Initializing ... "));
+  int state = radio.begin();
+  if (state == RADIOLIB_ERR_NONE) {
+    USBSerial.println(F("success!"));
+  } else {
+    USBSerial.print(F("failed, code "));
+    USBSerial.println(state);
+    while (true) { delay(10); }
+  }
 
-    
-    // String rx;
-    // int s = radio.receive(rx); // blocking; fine for smoke test
-    // if (s == RADIOLIB_ERR_NONE)
-    // {
-    //     USBSerial.printf("RX ok: %s  RSSI=%.1f  SNR=%.1f\n",
-    //                      rx.c_str(), radio.getRSSI(), radio.getSNR());
-    // }
-    // else if (s == RADIOLIB_ERR_RX_TIMEOUT)
-    // {
-    //     // no packet this cycle; you can ignore or retry
-    // }
-    // else
-    // {
-    //     USBSerial.printf("RX err: %d\n", s);
-    // }
+  // set the function that will be called
+  // when new packet is received
+  radio.setDio0Action(setFlag, RISING);
 
-    int ch = radio.scanChannel();  // 1 if activity/preamble detected, 0 if clear, <0 error
-USBSerial.printf("scanChannel: %d  RSSI=%.1f\n", ch, radio.getRSSI());
+  #if defined(INITIATING_NODE)
+    // send the first packet on this node
+    USBSerial.print(F("[SX1278] Sending first packet ... "));
+    transmissionState = radio.startTransmit("Hello World!");
+    transmitFlag = true;
+  #else
+    // start listening for LoRa packets on this node
+    USBSerial.print(F("[SX1278] Starting to listen ... "));
+    state = radio.startReceive();
+    if (state == RADIOLIB_ERR_NONE) {
+      USBSerial.println(F("success!"));
+    } else {
+      USBSerial.print(F("failed, code "));
+      USBSerial.println(state);
+      while (true) { delay(10); }
+    }
+  #endif
+}
+
+void loop() {
+  // check if the previous operation finished
+  if(operationDone) {
+    // reset flag
+    operationDone = false;
+
+    if(transmitFlag) {
+      // the previous operation was transmission, listen for response
+      // print the result
+      if (transmissionState == RADIOLIB_ERR_NONE) {
+        // packet was successfully sent
+        USBSerial.println(F("transmission finished!"));
+
+      } else {
+        USBSerial.print(F("failed, code "));
+        USBSerial.println(transmissionState);
+
+      }
+
+      // listen for response
+      radio.startReceive();
+      transmitFlag = false;
+
+    } else {
+      // the previous operation was reception
+      // print data and send another packet
+      String str;
+      int state = radio.readData(str);
+
+      if (state == RADIOLIB_ERR_NONE) {
+        // packet was successfully received
+        USBSerial.println(F("[SX1278] Received packet!"));
+
+        // print data of the packet
+        USBSerial.print(F("[SX1278] Data:\t\t"));
+        USBSerial.println(str);
+
+        // print RSSI (Received Signal Strength Indicator)
+        USBSerial.print(F("[SX1278] RSSI:\t\t"));
+        USBSerial.print(radio.getRSSI());
+        USBSerial.println(F(" dBm"));
+
+        // print SNR (Signal-to-Noise Ratio)
+        USBSerial.print(F("[SX1278] SNR:\t\t"));
+        USBSerial.print(radio.getSNR());
+        USBSerial.println(F(" dB"));
+
+      }
+
+      // wait a second before transmitting again
+      delay(1000);
+
+      // send another one
+      USBSerial.print(F("[SX1278] Sending another packet ... "));
+      transmissionState = radio.startTransmit("Hello World!");
+      transmitFlag = true;
+    }
+  }
 }
