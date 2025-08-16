@@ -29,13 +29,14 @@ void AvionicsState::determineStage()
     {
         consecutiveNegativeBaroVelocity = 0;
     }
-    IMU *imu = reinterpret_cast<IMU *>(getSensor(IMU_));
-    Barometer *baro = reinterpret_cast<Barometer *>(getSensor(BAROMETER_));
+    IMU *imu = reinterpret_cast<IMU *>(getSensor("IMU"_i));
+    Barometer *baro = reinterpret_cast<Barometer *>(getSensor("Barometer"_i));
     // GPS *gps = reinterpret_cast<GPS *>(getSensor(GPS_));
     if (stage == 0 &&
         (sensorOK(imu) || sensorOK(baro)) &&
-        // (sensorOK(imu) ? abs(imu->getAccelerationGlobal().z()) > 25 : true) &&
-        (sensorOK(baro) ? baro->getAGLAltFt() > 50 : true))
+        (sensorOK(imu) ? abs(imu->getAccelerationGlobal().magnitude()) > 40 : true) 
+        // (sensorOK(baro) ? baro->getAGLAltFt() > 10 : true)
+        )
     // if we are in preflight AND
     // we have either the IMU OR the barometer AND
     // imu is ok AND the z acceleration is greater than 29 ft/s^2 OR imu is not ok AND
@@ -73,7 +74,7 @@ void AvionicsState::determineStage()
         //     getLogger().recordLogData(INFO_, 100, "RotCam rotated to 0 degrees at %.2f seconds.", timeSinceLaunch);
         // }
     }
-    else if (stage == 2 && consecutiveNegativeBaroVelocity > 5 && currentTime - timeOfLastStage > 15 /*&& imuVelocity > 102 */)
+    else if (stage == 2 && consecutiveNegativeBaroVelocity > 5 && currentTime - timeOfLastStage > 25 /*&& imuVelocity > 102 */)
     {
         bb.aonoff(BUZZER, 200, 3);
         getLogger().recordLogData(INFO_, 100, "Apogee detected at %.2f m.", position.z());
@@ -82,19 +83,19 @@ void AvionicsState::determineStage()
         getLogger().recordLogData(INFO_, 100, "Drogue conditions detected %.2f seconds.", timeSinceLaunch);
 
     }
-    else if (stage == 3 && baro->getAGLAltFt() < 1000 && currentTime - timeOfLastStage > 40)
+    else if (stage == 3 && baro->getAGLAltFt() < 1500 && currentTime - timeOfLastStage > 45)
     {
         bb.aonoff(BUZZER, 200, 4);
         stage = 4;
         timeOfLastStage = currentTime;
-        getLogger().recordLogData(INFO_, 100, "Main parachute conditions detected at %.2f seconds.", timeSinceLaunch);
+        getLogger().recordLogData(INFO_, 100, "MODIFIED Main parachute conditions detected at %.2f seconds.", timeSinceLaunch);
 
         // if (Serial8.availableForWrite() > 0) {
         //     Serial8.println("180");
         //     getLogger().recordLogData(INFO_, "RotCam rotated 180 degrees.");
         // }
     }
-    else if (stage == 4 && baroVelocity > -1 && baro->getAGLAltFt() < 66 && timeSinceLaunch > 45)
+    else if (stage == 4 && baroVelocity > -1 && baro->getAGLAltFt() < 66 && currentTime - timeOfLastStage > 10)
     {
         bb.aonoff(BUZZER, 200, 5);
         timeOfLastStage = currentTime;
