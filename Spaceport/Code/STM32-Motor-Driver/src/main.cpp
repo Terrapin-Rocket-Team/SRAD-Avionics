@@ -198,8 +198,8 @@ long findStepsPerRevolution()
     // If your sensor triggers multiple times per rev, you might need to
     // repeat until a second trigger to get the full 360.
 
-    Serial1.print("Approx steps measured so far: ");
-    Serial1.println(numSteps);
+    // Serial1.print("Approx steps measured so far: ");
+    // Serial1.println(numSteps);
 
     return numSteps;
 }
@@ -230,12 +230,12 @@ void setup()
 
     // Optional: Find how many steps in one revolution
     // (Uncomment if you want to measure steps/rev automatically)
-    // stepsPerRevolution = findStepsPerRevolution();
-    // Serial1.print("Detected steps per revolution: ");
-    // Serial1.println(stepsPerRevolution);
+    stepsPerRevolution = findStepsPerRevolution();
+    Serial1.print("Detected steps per revolution: ");
+    Serial1.println(stepsPerRevolution);
 
     // If you already know your steps per revolution, just set it:
-    stepsPerRevolution = 2500; // example for 28BYJ-48 or 200 for typical NEMA17, etc.
+    // stepsPerRevolution = 2500; // example for 28BYJ-48 or 200 for typical NEMA17, etc.
     home();
     delay(5000);
 
