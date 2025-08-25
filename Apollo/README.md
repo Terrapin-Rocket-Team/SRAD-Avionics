@@ -1,6 +1,10 @@
-# Apollo    
+# Project Apollo    
 
-Welcome to the Terrapin Rocket Team (TRT). Project Apollo is a TOP SECRET mission with the goal of developing cutting edge technology for the scientific community. You have been asked to create a High Fidelity Data Logging Flight Computer for an L1 High Power Rocket (HFDLFCL1HPR). The instruments you will create will progress the aerospace industry and bring us closer to coninuous pressence on the Lunar surface and beyond... 
+~~~
+apollo.websiteURL.github.io
+~~~
+
+Welcome to the Terrapin Rocket Team (TRT). Project Apollo is a TOP SECRET mission with the goal of developing cutting edge technology for the scientific community. NASA is asking you to design a High Fidelity Data Logging Flight Computer for an L1 High Power Rocket (HFDLFCL1HPR). The instruments you will create will progress the aerospace industry and bring us closer to coninuous pressence on the Lunar surface and beyond... 
 
 Your selection for this opportunity is a testament to your capabilities. Over the next several weeks, you will work on a multidiplinary team to research, design, test and integrate the next generation of SRAD (student researched and developed) avionics. 
 
@@ -33,15 +37,15 @@ PCB requirements:
 - SPI breakout
 
 ## Project Objectives
-
+~~~
     1. Become familiar with the PCB schematic and layout design process
     2. Develop expertise in integrating sensor hardware with different communication protocols (I2C, UART, SPI)
     3. Create a reliable data logging program with TRT Multi Mission Flight Software (MMFS) libraries
     4. Understand what goes in to creating an embedded system 
-
+~~~
 ## Development Strategy
 
-Phase 1, Research:
+Phase 1, Research:  
 - Create a bill of materials BOM for your flight computer. This should include all components of the PCB including sensors, resistors capacitors and MCUs reguardless of whether they are present in the lab or need to be ordered.
 
 - Read the datasheet for sensor hardware that will be integrated. Look carefully for the communication protocol the deviceswill use to communicate to other devices such as the MCU. 
