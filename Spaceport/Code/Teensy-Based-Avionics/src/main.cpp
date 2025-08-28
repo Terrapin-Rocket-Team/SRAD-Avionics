@@ -1,125 +1,206 @@
+/* Teensy 4.1 “Quick FC” — matches rocket_tool/serial_link.py
+   Protocol:
+     HELLO\n  -> OK\n
+     LIST\n   -> <id1,id2,...>\n
+     GET <n>\n -> See envelope:
+       BEGIN <n>\n
+       FILE <name> <size>\n
+       <raw bytes...>
+       [repeat FILE blocks...]
+       END\n
+*/
+
 #include <Arduino.h>
-#include <MMFS.h>
-#include "AvionicsState.h"
-#include "AvionicsKF.h"
-#include "AviEventListener.h"
-#include "Pi.h"
-#include "Si4463.h"
+#include <SD.h>
 
-#define RPI_PWR 0
-#define RPI_VIDEO 1
+// ---------- Config ----------
+static const unsigned long STARTUP_WAIT_MS = 5000;  // wait for host
+static const uint32_t BAUD = 115200;
+static const size_t CMD_BUFSZ = 128;
+static const size_t IO_BUFSZ  = 1024;  // file streaming chunk
 
-using namespace mmfs;
+// If your card is large/fast you can bump IO_BUFSZ (e.g., 4096)
+static char cmdBuf[CMD_BUFSZ];
 
-
-MAX_M10S m;
-DPS310 d;
-BMI088andLIS3MDL b;
-
-Sensor *s[] = {&m, &d, &b};
-AvionicsKF fk;
-AvionicsState t(s, sizeof(s) / 4, &fk);
-
-
-
-APRSConfig aprsConfig = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
-uint8_t encoding[] = {7, 4, 4};
-APRSTelem aprs(aprsConfig);
-Message msg;
-
-Si4463HardwareConfig hwcfg = {
-    MOD_2GFSK, // modulation
-    DR_500b,   // data rate
-    433e6,     // frequency (Hz)
-    5,       // tx power (127 = ~20dBm)
-    48,        // preamble length
-    16,        // required received valid preamble
-};
-
-Si4463PinConfig pincfg = {
-    &SPI, // spi bus to use
-    10,   // cs
-    20,   // sdn
-    23,   // irq
-    22,   // gpio0
-    21,   // gpio1
-    36,   // random pin - gpio2 is not connected
-    37,   // random pin - gpio3 is not connected
-};
-
-Si4463 radio(hwcfg, pincfg);
-uint32_t radioTimer = millis();
-Pi rpi(RPI_PWR, RPI_VIDEO);
-
-extern unsigned long _heap_start;
-extern unsigned long _heap_end;
-extern char *__brkval;
-
-void FreeMem()
-{
-    void *heapTop = malloc(500);
-    Serial.print((long)heapTop);
-    Serial.print("\n");
-    free(heapTop);
+// ---------- Helpers ----------
+static bool startsWith(const char* s, const char* pref) {
+  while (*pref) {
+    if (*s++ != *pref++) return false;
+  }
+  return true;
 }
 
-MMFSConfig a = MMFSConfig()
-                   .withBBAsync(true, 50)
-                   .withBBPin(LED_BUILTIN)
-                   .withBBPin(32)
-                   .withUsingSensorBiasCorrection(true)
-                   .withUpdateRate(10)
-                   .withState(&t);
-MMFSSystem sys(&a);
-
-AviEventLister listener;
-
-void setup()
-{
-    sys.init();
-    bb.aonoff(32, *(new BBPattern(200, 1)), true); // blink a status LED (until GPS fix)
-    getLogger().recordLogData(INFO_, "Initialization Complete");
+static void trimCRLF(char* s) {
+  size_t n = strlen(s);
+  while (n > 0 && (s[n-1] == '\r' || s[n-1] == '\n')) {
+    s[--n] = '\0';
+  }
 }
-double radio_last;
 
-void loop()
-{
-    if (sys.update())
-    {
+static int parseIntAfter(const char* s, const char* after) {
+  // e.g., s="GET 149", after="GET " -> returns 149 or -1 on failure
+  const char* p = strstr(s, after);
+  if (!p) return -1;
+  p += strlen(after);
+  while (*p == ' ') p++;
+  if (!isdigit(*p) && *p != '-') return -1;
+  return atoi(p);
+}
+
+// Extract leading integer before first underscore in a filename like "149_FlightData.csv"
+static int idFromFilename(const char* name) {
+  // Find first '_' and ensure all characters before are digits
+  const char* us = strchr(name, '_');
+  if (!us) return -1;
+  int id = 0;
+  const char* p = name;
+  if (!isdigit(*p) && *p != '-') return -1;
+  bool neg = false;
+  if (*p == '-') { neg = true; p++; }
+  if (!isdigit(*p)) return -1;
+  while (p < us) {
+    if (!isdigit(*p)) return -1;
+    id = id * 10 + (*p - '0');
+    p++;
+  }
+  return neg ? -id : id;
+}
+
+static void sendFile(const char* path, const char* printableName) {
+  File f = SD.open(path, FILE_READ);
+  if (!f) return;  // silently skip if missing
+
+  // Header
+  Serial.print("FILE ");
+  Serial.print(printableName);
+  Serial.print(" ");
+  Serial.println((uint32_t)f.size());
+
+  static uint8_t buf[IO_BUFSZ];
+  while (true) {
+    int n = f.read(buf, sizeof(buf));
+    if (n <= 0) break;
+    Serial.write(buf, n);
+  }
+  f.close();
+}
+
+// LIST: scan root for * _FlightData.csv, collect unique IDs, print CSV then \n
+static void handleLIST() {
+  // Teensy SD root iteration
+  File dir = SD.open("/");
+  if (!dir) { Serial.println(); return; }
+
+  // Store up to 256 IDs (adjust if you expect more)
+  const size_t MAX_IDS = 256;
+  int ids[MAX_IDS];
+  size_t count = 0;
+
+  while (true) {
+    File ent = dir.openNextFile();
+    if (!ent) break;
+    if (!ent.isDirectory()) {
+      const char* nm = ent.name();  // short 8.3 or long name; Teensy returns long
+      // We only consider files ending with _FlightData.csv
+      const char* suffix = "_FlightData.csv";
+      size_t ln = strlen(nm), ls = strlen(suffix);
+      if (ln > ls && strcmp(nm + (ln - ls), suffix) == 0) {
+        int id = idFromFilename(nm);
+        if (id >= 0) {
+          // de-dup
+          bool seen = false;
+          for (size_t i = 0; i < count; ++i) if (ids[i] == id) { seen = true; break; }
+          if (!seen && count < MAX_IDS) {
+            ids[count++] = id;
+          }
+        }
+      }
     }
-    double time = millis();
-    if (time - radio_last < 1000)
-        return;
+    ent.close();
+  }
+  dir.close();
 
-    radio_last = time;
-    msg.clear();
+  // Print CSV list
+  for (size_t i = 0; i < count; ++i) {
+    Serial.print(ids[i]);
+    if (i + 1 < count) Serial.print(",");
+  }
+  Serial.println();
+}
 
-    /// printf("%f\n", baro1.getAGLAltFt());
-    aprs.alt = d.getAGLAltFt();
-    // printf("%f\n", gps.getHeading());
-    aprs.hdg = m.getHeading();
-    // printf("%f\n", gps.getPos().x());
-    aprs.lat = m.getPos().x();
-    // printf("%f\n", gps.getPos().y());
-    aprs.lng = m.getPos().y();
-    // printf("%f\n", computer.getVelocity().z());
-    aprs.spd = t.getVelocity().z();
-    // printf("%f\n", bno.getAngularVelocity().x());
-    aprs.orient[0] = b.getAngularVelocity().x();
-    // printf("%f\n", bno.getAngularVelocity().y());
-    aprs.orient[1] = b.getAngularVelocity().y();
-    // printf("%f\n", bno.getAngularVelocity().z());
-    aprs.orient[2] = b.getAngularVelocity().z();
-    aprs.stateFlags.setEncoding(encoding, 3);
+static void handleGET(int id) {
+  if (id < 0) {
+    Serial.println("END");  // no-op but terminate cleanly
+    return;
+  }
+  Serial.print("BEGIN ");
+  Serial.println(id);
 
-    uint8_t arr[] = {(uint8_t)(int)d.getTemp(), (uint8_t)t.getStage(), (uint8_t)m.getFixQual()};
-    aprs.stateFlags.pack(arr);
-    // aprs.stateFlags = (uint8_t) computer.getStage();
-    msg.encode(&aprs);
-    // radio.send(aprs);
-    Serial.printf("%0.3f - Sent APRS Message; %f   |   %d\n", time / 1000.0, d.getAGLAltFt(), m.getFixQual());
-    bb.aonoff(BUZZER, 50);
-    // Serial1.write(msg.buf, msg.size);
-    // Serial1.write('\n');
+  // Build file names expected on the SD root
+  //  <id>_FlightData.csv
+  //  <id>_Log.txt
+  //  <id>_PreFlightData.csv
+  char path[64];
+  char name[64];
 
+  snprintf(path, sizeof(path), "/%d_FlightData.csv", id);
+  snprintf(name, sizeof(name), "%d_FlightData.csv", id);
+  sendFile(path, name);
+
+  snprintf(path, sizeof(path), "/%d_Log.txt", id);
+  snprintf(name, sizeof(name), "%d_Log.txt", id);
+  sendFile(path, name);
+
+  snprintf(path, sizeof(path), "/%d_PreFlightData.csv", id);
+  snprintf(name, sizeof(name), "%d_PreFlightData.csv", id);
+  sendFile(path, name);
+
+  Serial.println("END");
+}
+
+// ---------- Arduino ----------
+void setup() {
+  Serial.begin(BAUD);
+  unsigned long t0 = millis();
+  while (!Serial && (millis() - t0 < STARTUP_WAIT_MS)) {
+    // wait briefly for host to open the port
+  }
+
+  // Teensy 4.1 built-in SD
+  if (!SD.begin(BUILTIN_SDCARD)) {
+    // If SD fails to mount, we still answer HELLO/LIST/GET (LIST empty, GET END)
+  }
+}
+
+void loop() {
+  // Read one line command (ending with '\n'), ignore empty lines
+  if (Serial.available()) {
+    size_t n = Serial.readBytesUntil('\n', cmdBuf, CMD_BUFSZ - 1);
+    cmdBuf[n] = '\0';
+    trimCRLF(cmdBuf);
+    if (cmdBuf[0] == '\0') {
+      return;
+    }
+
+    // Commands
+    if (strcmp(cmdBuf, "HELLO") == 0) {
+      Serial.println("OK");
+      return;
+    }
+
+    if (strcmp(cmdBuf, "LIST") == 0) {
+      handleLIST();
+      return;
+    }
+
+    if (startsWith(cmdBuf, "GET")) {
+      int id = parseIntAfter(cmdBuf, "GET");
+      handleGET(id);
+      return;
+    }
+
+    // Unknown -> minimal feedback line
+    Serial.print("ERR unknown: ");
+    Serial.println(cmdBuf);
+  }
 }
