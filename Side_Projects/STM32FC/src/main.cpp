@@ -35,7 +35,6 @@ void setup()
   Serial.setTx(PB6_ALT2);
   Serial.setRx(PB7_ALT1);
   Serial.begin(115200);
-  Logger l = getLogger();
   sys.init();
 }
 
