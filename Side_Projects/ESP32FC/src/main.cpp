@@ -1,13 +1,27 @@
+<<<<<<< Updated upstream
 #include <RadioLib.h>
 SPIClass spi(HSPI);
 LR1121 radio = new Module(14, 36, 38, 37, spi);
 
+=======
+
+#include <RadioLib.h>
+
+SPIClass spi(HSPI);
+LR1121 radio = new Module(14, 36, 38, 37, spi); // CS,DIO1,RST,BUSY
+
+// NOTE: idk what these values should be, this is probably my issue. But I can;t find any info about them for the Murata Type 2GT
+>>>>>>> Stashed changes
 static const uint32_t rfswitch_dio_pins[] = {
     RADIOLIB_LR11X0_DIO5, RADIOLIB_LR11X0_DIO6,
     RADIOLIB_LR11X0_DIO7, RADIOLIB_NC, RADIOLIB_NC};
 
 static const Module::RfSwitchMode_t rfswitch_table[] = {
+<<<<<<< Updated upstream
     // mode                  DIO5  DIO6  DIO7
+=======
+    // mode                  DIO5  DIO6
+>>>>>>> Stashed changes
     {LR11x0::MODE_STBY, {LOW, LOW, LOW}},
     {LR11x0::MODE_RX, {LOW, LOW, HIGH}},
     {LR11x0::MODE_TX, {LOW, HIGH, LOW}},
@@ -15,6 +29,7 @@ static const Module::RfSwitchMode_t rfswitch_table[] = {
     END_OF_MODE_TABLE,
 };
 
+<<<<<<< Updated upstream
 // save transmission states between loops
 int transmissionState = RADIOLIB_ERR_NONE;
 
@@ -34,6 +49,41 @@ volatile bool operationDone = false;
 void setFlag(void) {
   // we sent or received a packet, set the flag
   operationDone = true;
+=======
+void setup()
+{
+    USBSerial.begin(9600);
+    delay(5000);
+    // initialize LR1110 with default settings
+    USBSerial.print(F("[LR1110] Initializing ... "));
+    spi.begin(13, 12, 11, /*SS*/ 14);
+    int state = radio.begin();
+    if (state == RADIOLIB_ERR_NONE)
+    {
+        USBSerial.println(F("success!"));
+    }
+    else
+    {
+        USBSerial.print(F("failed, code "));
+        USBSerial.println(state);
+        delay(1000);
+        while (true)
+        {
+            delay(10);
+        }
+    }
+    radio.setFrequency(915.0);
+    radio.setBandwidth(125.0);   // kHzAC
+    radio.setSpreadingFactor(7); // SF7
+    radio.setCodingRate(5);      // 4/5
+    radio.setPreambleLength(8);
+    radio.setCRC(true);
+    radio.setSyncWord(0x34); // “public” LoRa sync word
+    radio.explicitHeader();
+    radio.invertIQ(false); // public sync
+    // set RF switch control configuration
+    radio.setRfSwitchTable(rfswitch_dio_pins, rfswitch_table);
+>>>>>>> Stashed changes
 }
 
 void setup() {
