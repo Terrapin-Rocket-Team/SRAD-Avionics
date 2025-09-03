@@ -8,6 +8,7 @@ class RCRState : public mmfs::State{
     public:
     using State::State;
 
+    private: 
     void determineStage() override {}
     
 };

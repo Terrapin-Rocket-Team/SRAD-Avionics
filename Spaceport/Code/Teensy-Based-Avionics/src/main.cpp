@@ -8,9 +8,4 @@ void loop(){
     if(Serial1.available()){
         Serial.println(Serial1.readStringUntil('\n'));
     }
-    // else{
-    //     Serial.print('.');
-    //     delay(100);
-    // }
-
 }
