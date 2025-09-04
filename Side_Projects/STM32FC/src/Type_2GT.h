@@ -14,12 +14,13 @@ class Type2GT{
 public:
     Type2GT(uint8_t cs, uint8_t irq, uint8_t rst, uint8_t busy, SPIClass &spi);
     int begin();
-    int recieve();
-    bool transmit(const char *str);
     void onIrq(void (*func)(void));
+    int recieve();
+    int transmit(const char *str); // was bool
     bool hasData();
     void readData(char *str, int len);
     void respondToIrq();
+
 private:
     LR1121 rad;
     RAD_STATE state = IDLE;
