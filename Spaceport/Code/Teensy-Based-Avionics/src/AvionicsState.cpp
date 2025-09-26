@@ -6,10 +6,7 @@ using namespace mmfs;
 AvionicsState::AvionicsState(Sensor **sensors, int numSensors, LinearKalmanFilter *kfilter) : State(sensors, numSensors, kfilter),
                                                                                               ahrs(1.5, 0.002),
                                                                                               lkf(
-                                                                                                  Matrix(3, 6, new double[18]{
-                                                                                                        1, 0, 0, 0, 0, 0,
-                                                                                                        0, 1, 0, 0, 0, 0,
-                                                                                                        0, 0, 1, 0, 0, 0}),
+                                                                                                  Matrix(3, 6, new double[18]{1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0}),
                                                                                                   Matrix::ident(3) * 0.01,
                                                                                                   0.2 // m/s² accel noise
                                                                                                   ),
@@ -33,12 +30,15 @@ bool AvionicsState::init()
     bool b = State::init(); // Call the base class init to initialize sensors and columns
     Accel *a1 = reinterpret_cast<Accel *>(getSensor("Accelerometer"_i, 1));
     Gyro *g = reinterpret_cast<Gyro *>(getSensor("Gyroscope"_i));
-    for (int i = 0; i < 200; i++)
+    if (a1 && g)
     {
-        a1->update();
-        g->update();
-        ahrs.calibrate(a1->getAccel(), g->getAngVel());
-        delay(20);
+        for (int i = 0; i < 200; i++)
+        {
+            a1->update();
+            g->update();
+            ahrs.calibrate(a1->getAccel(), g->getAngVel());
+            delay(20);
+        }
     }
     ahrs.initialize();
     getLogger().recordLogData(LOG_, 100, "Mahony initialized with WXYZ orientation %f, %f, %f, %f",
@@ -97,13 +97,13 @@ void AvionicsState::updateVariables()
     else
     {
         acc = Vector<3>(0, 0, 9.81); // No accelerometers available
+        return;
     }
-
     Vector<3> gyro = g->getAngVel();
     ahrs.update(acc, gyro, dt);
     Quaternion q = ahrs.getQuaternion();
     Vector<3> accelNed = ahrs.toEarthFrame(acc);
-    accelNed.z() -= 9.81; // remove gravity
+    accelNed.z() -= 9.81;                         // remove gravity
     double alt = (b && *b) ? b->getAGLAltM() : 0; // Use AGL altitude if barometer is available
 
     if (stage == 0)
@@ -132,9 +132,9 @@ void AvionicsState::updateVariables()
 
     position = Vector<3>(state[0], state[1], state[2]); // x, y, z in m
     velocity = Vector<3>(state[3], state[4], state[5]);
-    acceleration = accelNed; // in m/s²
+    acceleration = accelNed;                    // in m/s²
     orientation = ahrs.getAbsoluteQuaternion(); // in quaternion
-    orientationFromInitial = q; // save the initial orientation for stage detection
+    orientationFromInitial = q;                 // save the initial orientation for stage detection
 }
 
 void AvionicsState::determineStage()
