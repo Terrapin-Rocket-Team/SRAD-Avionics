@@ -34,10 +34,11 @@ class Tx:
 
 test = Tx()
 test.modulate()
-x = [ele.real for ele in test.imaginaryForm_np_array]
-y = [ele.imag for ele in test.imaginaryForm_np_array]
+print(test.imaginaryForm_np_array)
+# x = [ele.real for ele in test.imaginaryForm_np_array]
+# y = [ele.imag for ele in test.imaginaryForm_np_array]
 
-plt.scatter(x, y)
-plt.ylabel('Imaginary')
-plt.xlabel('Real')
-plt.show()
+# plt.scatter(x, y)
+# plt.ylabel('Imaginary')
+# plt.xlabel('Real')
+# plt.show()
