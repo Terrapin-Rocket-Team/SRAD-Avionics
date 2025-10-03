@@ -10,9 +10,9 @@ from ConvertToBinary import ConvertToBinary
 
 class Tx:
 
-    def __init__(self, data):
+    def __init__(self, data = "frequency"):
         tempObj = ConvertToBinary()
-        self.data_str_8b = tempObj.strToBinary(data)
+        self.data_str_8b = tempObj.strToBinary(data)[0]
         self.imaginaryForm_np_array = []
 
     def modulate(self, sampleRate = 10**6):
@@ -25,12 +25,13 @@ class Tx:
             elif bit == 1:
                 phaseShift = np.pi
             
-            print(np.exp(
+            self.imaginaryForm_np_array.append(np.exp(
                 1j *
                 (2*np.pi) *
                 (433 * (10**6)) * 
                 ((len(self.data_str_8b)) / sampleRate) + phaseShift
             ))
 
-test = Tx("0101")
+test = Tx()
 test.modulate()
+print(test.imaginaryForm_np_array)
