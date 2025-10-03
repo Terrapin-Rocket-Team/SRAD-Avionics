@@ -27,11 +27,12 @@ class Tx:
             
             self.imaginaryForm_np_array.append(np.exp(
                 1j *
-                (2*np.pi) *
+                ((2*np.pi) *
                 (433 * (10**6)) * 
-                ((len(self.data_str_8b)) / sampleRate) + phaseShift
+                ((len(self.data_str_8b)) / sampleRate) + phaseShift)
             ))
 
 test = Tx()
 test.modulate()
-print(test.imaginaryForm_np_array)
+for val in test.imaginaryForm_np_array:
+    print(val)
