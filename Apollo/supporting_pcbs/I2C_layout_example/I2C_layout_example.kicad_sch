@@ -2600,6 +2600,12 @@
 		(uuid "553f67be-8d5e-4adb-ac6b-82469333fa92")
 	)
 	(junction
+		(at 147.32 102.87)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "5ee5cf8c-2cc5-4b3f-8c95-2f255c31ee30")
+	)
+	(junction
 		(at 115.57 67.31)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -2795,6 +2801,16 @@
 	)
 	(wire
 		(pts
+			(xy 147.32 109.22) (xy 147.32 102.87)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1837e824-60bd-40b5-aeb2-348143fa833e")
+	)
+	(wire
+		(pts
 			(xy 107.95 81.28) (xy 107.95 85.09)
 		)
 		(stroke
@@ -2932,6 +2948,16 @@
 			(type default)
 		)
 		(uuid "7a59a7df-9e8d-4630-ac7d-c071538577a5")
+	)
+	(wire
+		(pts
+			(xy 151.13 109.22) (xy 147.32 109.22)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7afb09a1-3116-4886-9ef1-17fa4e9e7f9b")
 	)
 	(wire
 		(pts
@@ -4414,6 +4440,82 @@
 			(project ""
 				(path "/9c58061d-6cfc-41b0-97d1-c34c539f6e39"
 					(reference "U1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector_Generic:Conn_01x04")
+		(at 232.41 107.95 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "a4799c6f-58cb-4567-97cf-3e228e635704")
+		(property "Reference" "J4"
+			(at 234.95 107.9499 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "Conn_01x04"
+			(at 234.95 110.4899 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 232.41 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 232.41 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 232.41 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "f1a78848-3890-4d99-9cf2-e5237ea55391")
+		)
+		(pin "2"
+			(uuid "59941586-8591-40fa-8cd9-91c34cc7203b")
+		)
+		(pin "4"
+			(uuid "ff7ba578-4ad7-4c8c-9eb0-7e7023c59bbb")
+		)
+		(pin "3"
+			(uuid "00c1a7bf-d551-45a8-a580-08bd3a5a8eb3")
+		)
+		(instances
+			(project ""
+				(path "/9c58061d-6cfc-41b0-97d1-c34c539f6e39"
+					(reference "J4")
 					(unit 1)
 				)
 			)
