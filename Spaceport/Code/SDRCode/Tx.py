@@ -20,11 +20,11 @@ class Tx:
         phaseShift = 0
 
         for bit in self.data_str_8b:
-            if bit == 0:
+            if bit == "0":
                 phaseShift = 0
-            elif bit == 1:
+            elif bit == "1":
                 phaseShift = np.pi
-            
+        
             self.imaginaryForm_np_array.append(np.exp(
                 1j *
                 ((2*np.pi) *
@@ -34,5 +34,10 @@ class Tx:
 
 test = Tx()
 test.modulate()
-for val in test.imaginaryForm_np_array:
-    print(val)
+x = [ele.real for ele in test.imaginaryForm_np_array]
+y = [ele.imag for ele in test.imaginaryForm_np_array]
+
+plt.scatter(x, y)
+plt.ylabel('Imaginary')
+plt.xlabel('Real')
+plt.show()
