@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-#from hackrf import HackRF
-from Bitdelay import bitDelayed
+import time
+from python_hackrf import pyhackrf
 from ConvertToBinary import ConvertToBinary
 
 # CENTER_FREQ = 1250000000    # Hz
@@ -32,15 +32,22 @@ class Tx:
                 ( (np.array(range( int((bit / 10**4 * 10**6)), int(((bit+1) / 10**4 * 10**6)) ))) / (10**6))  + phaseShift)
             ))
 
-test = Tx()
-test.modulate()
-print(test.imaginaryForm_np_array)
-x = [ele.real for ele in test.imaginaryForm_np_array]
-y = [ele.imag for ele in test.imaginaryForm_np_array]
+class hackrf_interface:
+    def __init__(self, transmit_gain=30, sample_rate=1e6, center_freq=433e6):
+        self.hackrf = pyhackrf.HackRF()
+        
 
-plt.scatter(x, y)
-plt.xlim(-2, 2)
-plt.ylim(-0.001, 0.001)
-plt.ylabel('Imaginary')
-plt.xlabel('Real')
-plt.show()
+# 
+# test = Tx()
+# test.modulate()
+# print(test.imaginaryForm_np_array)
+# x = [ele.real for ele in test.imaginaryForm_np_array]
+# y = [ele.imag for ele in test.imaginaryForm_np_array]
+# 
+# plt.scatter(x, y)
+# plt.xlim(-2, 2)
+# plt.ylim(-0.001, 0.001)
+# plt.ylabel('Imaginary')
+# plt.xlabel('Real')
+# plt.show()
+# 
