@@ -19,26 +19,28 @@ class Tx:
 
         phaseShift = 0
 
-        for bit in self.data_str_8b:
-            if bit == "0":
+        for bit in range(len(self.data_str_8b)):
+            if self.data_str_8b[bit] == "0":
                 phaseShift = 0
-            elif bit == "1":
+            elif self.data_str_8b[bit] == "1":
                 phaseShift = np.pi
         
             self.imaginaryForm_np_array.append(np.exp(
                 1j *
                 ((2*np.pi) *
                 (433 * (10**6)) * 
-                ((len(self.data_str_8b)) / sampleRate) + phaseShift)
+                ( (np.array(range( int((bit / 10**4 * 10**6)), int(((bit+1) / 10**4 * 10**6)) ))) / (10**6))  + phaseShift)
             ))
 
 test = Tx()
 test.modulate()
 print(test.imaginaryForm_np_array)
-# x = [ele.real for ele in test.imaginaryForm_np_array]
-# y = [ele.imag for ele in test.imaginaryForm_np_array]
+x = [ele.real for ele in test.imaginaryForm_np_array]
+y = [ele.imag for ele in test.imaginaryForm_np_array]
 
-# plt.scatter(x, y)
-# plt.ylabel('Imaginary')
-# plt.xlabel('Real')
-# plt.show()
+plt.scatter(x, y)
+plt.xlim(-2, 2)
+plt.ylim(-0.001, 0.001)
+plt.ylabel('Imaginary')
+plt.xlabel('Real')
+plt.show()
