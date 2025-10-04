@@ -8,7 +8,7 @@ def bitDelayed(strToChange):
     bit_delayed_str = ""
 
     for i in range(len(final_binary_str)):
-        next_bit = int(final_binary_str[i]) ^ other_bit
+        next_bit = int(final_binary_str[i] ^ other_bit)
         bit_delayed_str += next_bit
         other_bit = next_bit
 
