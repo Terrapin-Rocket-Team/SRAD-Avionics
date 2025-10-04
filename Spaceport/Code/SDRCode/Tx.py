@@ -12,7 +12,7 @@ class Tx:
 
     def __init__(self, data = "frequency"):
         tempObj = ConvertToBinary()
-        self.data_str_8b = tempObj.strToBinary(data)[0]
+        self.data_str_8b = tempObj.encodeString(tempObj.strToBinary(data)[0])
         self.imaginaryForm_np_array = []
 
     def modulate(self, sampleRate = 10**6):
