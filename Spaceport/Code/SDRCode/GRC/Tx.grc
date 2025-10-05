@@ -137,9 +137,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [200, 312.0]
+    coordinate: [120, 472.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: blocks_null_sink_0
   id: blocks_null_sink
   parameters:
@@ -154,7 +154,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [512, 520.0]
+    coordinate: [1000, 728.0]
     rotation: 0
     state: enabled
 - name: blocks_null_source_0
@@ -173,7 +173,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [120, 520.0]
+    coordinate: [608, 728.0]
     rotation: 0
     state: enabled
 - name: blocks_throttle2_0
@@ -195,6 +195,21 @@ blocks:
     bus_source: false
     bus_structure: null
     coordinate: [688, 336.0]
+    rotation: 0
+    state: enabled
+- name: customModule_UART_FC_INTERFACE_2_0
+  id: customModule_UART_FC_INTERFACE_2
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [96, 352.0]
     rotation: 0
     state: enabled
 - name: digital_constellation_modulator_0
@@ -264,7 +279,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [264, 512.0]
+    coordinate: [752, 720.0]
     rotation: 0
     state: enabled
 - name: epy_module_0
@@ -738,6 +753,7 @@ connections:
 - [blocks_file_source_0, '0', digital_constellation_modulator_0, '0']
 - [blocks_null_source_0, '0', epy_block_0, '0']
 - [blocks_throttle2_0, '0', fir_filter_xxx_0, '0']
+- [customModule_UART_FC_INTERFACE_2_0, '0', digital_constellation_modulator_0, '0']
 - [digital_constellation_modulator_0, '0', blocks_throttle2_0, '0']
 - [digital_constellation_modulator_0, '0', qtgui_const_sink_x_0, '0']
 - [epy_block_0, '0', blocks_null_sink_0, '0']
