@@ -1,6 +1,6 @@
 #include "AvionicsKF.h"
 
-namespace mmfs {
+namespace astra {
 
 // Define the measurement size, control size, and state size
 AvionicsKF::AvionicsKF() : LinearKalmanFilter(3, 3, 6) {}
@@ -59,4 +59,4 @@ Matrix AvionicsKF::getQ(double dt) {
     return Matrix(6, 6, data);
 }
 
-} // namespace mmfs
+} // namespace astra
