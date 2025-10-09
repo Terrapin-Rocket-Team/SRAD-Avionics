@@ -4,7 +4,7 @@
 
 File file;
 int count = 0;
-
+bool ping = false;
 // increments log and telemetry messages
 String getMessages(){
   
@@ -28,7 +28,18 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  // get ping
+  if (!ping && Serial1.available()) {
+    String incoming = Serial1.readStringUntil('\n');
+    incoming.trim();
+
+    if (incoming.equalsIgnoreCase("ping")) {
+      Serial1.write("pong");
+      ping = true;
+    }
+  }
+
+  // write messages
   Serial1.write(getMessages().c_str());
 
   // send at 50 hz
