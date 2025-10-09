@@ -31,16 +31,18 @@ void loop() {
   // get ping
   if (!ping && Serial1.available()) {
     String incoming = Serial1.readStringUntil('\n');
-    incoming.trim();
+    incoming.trim();f
 
     if (incoming.equalsIgnoreCase("ping")) {
-      Serial1.write("pong");
+      const char* pongMsg = "pong";
+      Serial1.write((const uint8_t*)pongMsg, strlen(pongMsg));
       ping = true;
     }
   }
 
   // write messages
-  Serial1.write(getMessages().c_str());
+  String msg = getMessages();
+  Serial1.write((const uint8_t*)msg.c_str(), msg.length()); 
 
   // send at 50 hz
   delay(20);
