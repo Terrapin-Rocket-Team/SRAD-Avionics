@@ -53,7 +53,7 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
                         log_file.write(string+"\n")
                 else:
                     with open("telem.txt", "a") as telem_file:
-                        telem_file.write("test")
+                        telem_file.write(string+"\n")
 
             # determine the rate of sending
             time.sleep(0.02) #50 hZ

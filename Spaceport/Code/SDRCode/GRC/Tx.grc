@@ -50,7 +50,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [256, 4.0]
+    coordinate: [304, 12.0]
     rotation: 0
     state: enabled
 - name: freq
@@ -62,7 +62,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [416, 8.0]
+    coordinate: [480, 16.0]
     rotation: 0
     state: enabled
 - name: rrc_taps
@@ -79,7 +79,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [632, 8.0]
+    coordinate: [680, 8.0]
     rotation: 0
     state: enabled
 - name: samp_rate
@@ -103,7 +103,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [112, 88.0]
+    coordinate: [136, 120.0]
     rotation: 0
     state: enabled
 - name: variable_0
@@ -115,7 +115,27 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [8, 96.0]
+    coordinate: [0, 136.0]
+    rotation: 0
+    state: enabled
+- name: analog_random_source_x_0
+  id: analog_random_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    max: '2'
+    maxoutbuf: '0'
+    min: '0'
+    minoutbuf: '0'
+    num_samps: '1000'
+    repeat: 'True'
+    type: byte
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [272, 544.0]
     rotation: 0
     state: enabled
 - name: blocks_file_source_0
@@ -137,7 +157,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [120, 472.0]
+    coordinate: [88, 440.0]
     rotation: 0
     state: disabled
 - name: blocks_null_sink_0
@@ -156,7 +176,7 @@ blocks:
     bus_structure: null
     coordinate: [1000, 728.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: blocks_null_source_0
   id: blocks_null_source
   parameters:
@@ -175,7 +195,7 @@ blocks:
     bus_structure: null
     coordinate: [608, 728.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: blocks_throttle2_0
   id: blocks_throttle2
   parameters:
@@ -209,9 +229,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [96, 352.0]
+    coordinate: [168, 264.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: digital_constellation_modulator_0
   id: digital_constellation_modulator
   parameters:
@@ -281,7 +301,7 @@ blocks:
     bus_structure: null
     coordinate: [752, 720.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: epy_module_0
   id: epy_module
   parameters:
@@ -292,7 +312,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [512, 8.0]
+    coordinate: [576, 16.0]
     rotation: 0
     state: enabled
 - name: fir_filter_xxx_0
@@ -572,7 +592,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1120, 260.0]
+    coordinate: [1160, 260.0]
     rotation: 0
     state: enabled
 - name: qtgui_const_sink_x_0
@@ -750,6 +770,7 @@ blocks:
     state: enabled
 
 connections:
+- [analog_random_source_x_0, '0', digital_constellation_modulator_0, '0']
 - [blocks_file_source_0, '0', digital_constellation_modulator_0, '0']
 - [blocks_null_source_0, '0', epy_block_0, '0']
 - [blocks_throttle2_0, '0', fir_filter_xxx_0, '0']

@@ -11,7 +11,7 @@
 from PyQt5 import Qt
 from gnuradio import qtgui
 from gnuradio import blocks
-import numpy
+from gnuradio import customModule
 from gnuradio import digital
 from gnuradio import filter
 from gnuradio.filter import firdes
@@ -23,6 +23,7 @@ from PyQt5 import Qt
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
+import Tx_epy_block_0 as epy_block_0  # embedded python block
 import Tx_epy_module_0 as epy_module_0  # embedded python module
 import osmosdr
 import time
@@ -174,6 +175,7 @@ class Tx(gr.top_block, Qt.QWidget):
         self.osmosdr_sink_0.set_bandwidth(1e6, 0)
         self.fir_filter_xxx_0 = filter.fir_filter_ccc(1, rrc_taps)
         self.fir_filter_xxx_0.declare_sample_delay(0)
+        self.epy_block_0 = epy_block_0.blk(port='/dev/ttyS0')
         self.digital_constellation_modulator_0 = digital.generic_mod(
             constellation=BPSK,
             differential=True,
@@ -184,16 +186,20 @@ class Tx(gr.top_block, Qt.QWidget):
             log=False,
             truncate=False)
         self.blocks_throttle2_0 = blocks.throttle( gr.sizeof_gr_complex*1, samp_rate, True, 0 if "auto" == "auto" else max( int(float(0.1) * samp_rate) if "auto" == "time" else int(0.1), 1) )
-        self.analog_random_source_x_0 = blocks.vector_source_b(list(map(int, numpy.random.randint(0, 2, 1000))), True)
+        self.blocks_null_source_0 = blocks.null_source(gr.sizeof_gr_complex*1)
+        self.blocks_null_sink_0 = blocks.null_sink(gr.sizeof_gr_complex*1)
+        self.UART_FC_INTERFACE_2_0 = customModule.UART_FC_INTERFACE_2()
 
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.analog_random_source_x_0, 0), (self.digital_constellation_modulator_0, 0))
+        self.connect((self.UART_FC_INTERFACE_2_0, 0), (self.digital_constellation_modulator_0, 0))
+        self.connect((self.blocks_null_source_0, 0), (self.epy_block_0, 0))
         self.connect((self.blocks_throttle2_0, 0), (self.fir_filter_xxx_0, 0))
         self.connect((self.digital_constellation_modulator_0, 0), (self.blocks_throttle2_0, 0))
         self.connect((self.digital_constellation_modulator_0, 0), (self.qtgui_const_sink_x_0, 0))
+        self.connect((self.epy_block_0, 0), (self.blocks_null_sink_0, 0))
         self.connect((self.fir_filter_xxx_0, 0), (self.osmosdr_sink_0, 0))
         self.connect((self.fir_filter_xxx_0, 0), (self.qtgui_freq_sink_x_0, 0))
 

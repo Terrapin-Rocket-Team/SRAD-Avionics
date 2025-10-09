@@ -28,7 +28,7 @@ options:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [8, 8]
+    coordinate: [0, 0.0]
     rotation: 0
     state: enabled
 
@@ -50,7 +50,49 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [360, 4.0]
+    coordinate: [352, 0.0]
+    rotation: 0
+    state: enabled
+- name: Loop_BW_Slider
+  id: variable_qtgui_range
+  parameters:
+    comment: ''
+    gui_hint: ''
+    label: ''
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: float
+    start: '0'
+    step: '.001'
+    stop: 2*3.14159265*.09
+    value: '0'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [768, 8.0]
+    rotation: 0
+    state: enabled
+- name: TED_Gain_Slider
+  id: variable_qtgui_range
+  parameters:
+    comment: ''
+    gui_hint: ''
+    label: ''
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: float
+    start: '0'
+    step: '.001'
+    stop: '1'
+    value: '0.001'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [640, 8.0]
     rotation: 0
     state: enabled
 - name: freq
@@ -62,7 +104,24 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [264, 8.0]
+    coordinate: [256, 0.0]
+    rotation: 0
+    state: enabled
+- name: rrc_taps
+  id: variable_rrc_filter_taps
+  parameters:
+    alpha: '0.35'
+    comment: ''
+    gain: '1.0'
+    ntaps: '1000'
+    samp_rate: samp_rate
+    sym_rate: sps
+    value: ''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [512, 0.0]
     rotation: 0
     state: enabled
 - name: samp_rate
@@ -74,7 +133,19 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [168, 8.0]
+    coordinate: [160, 0.0]
+    rotation: 0
+    state: enabled
+- name: sps
+  id: variable
+  parameters:
+    comment: ''
+    value: '500'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [168, 72.0]
     rotation: 0
     state: enabled
 - name: blocks_file_sink_0
@@ -92,7 +163,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1320, 192.0]
+    coordinate: [1344, 192.0]
     rotation: 0
     state: enabled
 - name: digital_constellation_decoder_cb_0
@@ -108,7 +179,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [880, 208.0]
+    coordinate: [872, 208.0]
     rotation: 0
     state: enabled
 - name: digital_costas_loop_cc_0
@@ -121,12 +192,12 @@ blocks:
     minoutbuf: '0'
     order: '2'
     use_snr: 'False'
-    w: '60000000'
+    w: 60e6
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [608, 232.0]
+    coordinate: [576, 240.0]
     rotation: 0
     state: enabled
 - name: digital_diff_decoder_bb_0
@@ -143,30 +214,34 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1096, 208.0]
+    coordinate: [1104, 200.0]
     rotation: 0
     state: enabled
-- name: digital_pfb_clock_sync_xxx_0
-  id: digital_pfb_clock_sync_xxx
+- name: digital_symbol_sync_xx_0
+  id: digital_symbol_sync_xx
   parameters:
     affinity: ''
     alias: ''
     comment: ''
-    filter_size: '32'
-    init_phase: '16'
-    loop_bw: '60000'
+    constellation: digital.constellation_bpsk().base()
+    damping: '1.0'
+    loop_bw: '0.2513274123'
     max_dev: '1.5'
     maxoutbuf: '0'
     minoutbuf: '0'
+    nfilters: '128'
     osps: '1'
-    sps: '10'
-    taps: '100'
-    type: ccf
+    pfb_mf_taps: '[]'
+    resamp_type: digital.IR_MMSE_8TAP
+    sps: sps
+    ted_gain: '.5'
+    ted_type: digital.TED_MUELLER_AND_MULLER
+    type: cc
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [304, 244.0]
+    coordinate: [296, 404.0]
     rotation: 0
     state: enabled
 - name: qtgui_const_sink_x_0
@@ -184,7 +259,7 @@ blocks:
     alpha7: '1.0'
     alpha8: '1.0'
     alpha9: '1.0'
-    autoscale: 'False'
+    autoscale: 'True'
     axislabels: 'True'
     color1: '"blue"'
     color10: '"dark blue"'
@@ -258,7 +333,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [880, 288.0]
+    coordinate: [872, 280.0]
     rotation: 0
     state: enabled
 - name: qtgui_freq_sink_x_0
@@ -339,50 +414,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [880, 368.0]
-    rotation: 0
-    state: enabled
-- name: soapy_hackrf_sink_0
-  id: soapy_hackrf_sink
-  parameters:
-    affinity: ''
-    alias: ''
-    amp: 'False'
-    bandwidth: '0'
-    center_freq: freq
-    comment: ''
-    dev_args: ''
-    samp_rate: samp_rate
-    type: fc32
-    vga: '16'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [952, 560.0]
-    rotation: 0
-    state: enabled
-- name: soapy_hackrf_source_0
-  id: soapy_hackrf_source
-  parameters:
-    affinity: ''
-    alias: ''
-    amp: 'False'
-    bandwidth: '0'
-    center_freq: freq
-    comment: ''
-    dev_args: ''
-    gain: '16'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    samp_rate: samp_rate
-    type: fc32
-    vga: '16'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [568, 480.0]
+    coordinate: [872, 376.0]
     rotation: 0
     state: enabled
 - name: soapy_limesdr_source_0
@@ -390,7 +422,7 @@ blocks:
   parameters:
     affinity: ''
     alias: ''
-    bandwidth: '1000000'
+    bandwidth: '0.0'
     center_freq: freq
     comment: ''
     dev_args: ''
@@ -404,7 +436,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [48, 256.0]
+    coordinate: [32, 400.0]
     rotation: 0
     state: enabled
 
@@ -414,8 +446,8 @@ connections:
 - [digital_costas_loop_cc_0, '0', qtgui_const_sink_x_0, '0']
 - [digital_costas_loop_cc_0, '0', qtgui_freq_sink_x_0, '0']
 - [digital_diff_decoder_bb_0, '0', blocks_file_sink_0, '0']
-- [digital_pfb_clock_sync_xxx_0, '0', digital_costas_loop_cc_0, '0']
-- [soapy_limesdr_source_0, '0', digital_pfb_clock_sync_xxx_0, '0']
+- [digital_symbol_sync_xx_0, '0', digital_costas_loop_cc_0, '0']
+- [soapy_limesdr_source_0, '0', digital_symbol_sync_xx_0, '0']
 
 metadata:
   file_format: 1
