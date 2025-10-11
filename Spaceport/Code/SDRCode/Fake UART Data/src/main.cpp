@@ -8,7 +8,7 @@ bool ping = false;
 // increments log and telemetry messages
 String getMessages(){
   
-  file = SD.open("log.txt"); 
+  file = SD.open("fake_log.txt"); 
 
   // go to count th line
   for(int i=0;i<count;i++){
@@ -24,16 +24,21 @@ String getMessages(){
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
+  Serial1.begin(115200);
   SD.begin(SD_CS_PIN);
+  pinMode(13, OUTPUT);
+  digitalWrite(13, HIGH);
 }
 
 void loop() {
   // get ping
   if (!ping && Serial1.available()) {
     String incoming = Serial1.readStringUntil('\n');
-    incoming.trim();f
+    Serial.print(incoming);
+    incoming.trim();
 
     if (incoming.equalsIgnoreCase("ping")) {
+      Serial.print("Recieved ping");
       const char* pongMsg = "pong";
       Serial1.write((const uint8_t*)pongMsg, strlen(pongMsg));
       ping = true;
