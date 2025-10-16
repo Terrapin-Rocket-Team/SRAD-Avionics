@@ -1,33 +1,23 @@
 #include <Arduino.h>
 #include <SD.h>
-#define SD_CS_PIN 10 //change to SD card CS pin
 
 File file;
 int count = 0;
 bool ping = false;
 // increments log and telemetry messages
 String getMessages(){
-  
-  file = SD.open("fake_log.txt"); 
-
-  // go to count th line
-  for(int i=0;i<count;i++){
-    String line = file.readStringUntil('\n');
-  }
-  
-  String logMessage = file.readStringUntil('\n');
-  count++;
-
-  return logMessage;
+  return file.readStringUntil('\n');
 }
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
   Serial1.begin(115200);
-  SD.begin(SD_CS_PIN);
+  SD.begin(BUILTIN_SDCARD);
   pinMode(13, OUTPUT);
   digitalWrite(13, HIGH);
+
+  file = SD.open("fake_log.txt"); 
 }
 
 void loop() {
@@ -39,16 +29,24 @@ void loop() {
 
     if (incoming.equalsIgnoreCase("ping")) {
       Serial.print("Recieved ping");
-      const char* pongMsg = "pong";
-      Serial1.write((const uint8_t*)pongMsg, strlen(pongMsg));
+      Serial1.println("pong");
       ping = true;
     }
   }
 
-  // write messages
-  String msg = getMessages();
-  Serial1.write((const uint8_t*)msg.c_str(), msg.length()); 
+  if (ping) {
+    // write messages
+    String msg = getMessages();
+    Serial1.println(msg); 
+    Serial.println(msg); 
+    Serial.flush();
+    Serial1.flush();
 
-  // send at 50 hz
-  delay(20);
+    // (const uint8_t*)msg.c_str(), msg.length()
+
+    // send at 50 hz
+    delay(20);
+  }
+
+
 }
