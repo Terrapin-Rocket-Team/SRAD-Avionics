@@ -540,6 +540,36 @@
 			(embedded_fonts no)
 		)
 	)
+	(text "The 7-bit slave address (SAD) associated to the LPS22DF is 101110xb. The SDO/SA0 pin can be used to modify\nthe less significant bit of the device address. If the SA0 pin is connected to the voltage supply, LSb is 1 (7-bit\naddress 1011101b=5Dh), otherwise if the SA0 pin is connected to ground, the LSb value is 0 (7-bit address\n1011100b=5Ch)\n"
+		(exclude_from_sim no)
+		(at 108.204 54.356 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "29ca662b-29f4-4718-ae4c-a882567d43f8")
+	)
+	(text "This has been checked over and should be good"
+		(exclude_from_sim no)
+		(at 81.026 85.852 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "d5e7e61e-ff0e-4144-861a-b0d2227e061e")
+	)
+	(text "Accurate within .702 ft"
+		(exclude_from_sim no)
+		(at 83.566 94.488 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "d954e386-46c0-437a-905b-3919cc82539b")
+	)
 	(junction
 		(at 160.02 107.95)
 		(diameter 0)
@@ -547,10 +577,30 @@
 		(uuid "038d21db-7e84-43f7-b2fb-81bd29f88e69")
 	)
 	(junction
+		(at 160.02 105.41)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "53177d89-a009-4d1c-bcbd-e8d4801c2690")
+	)
+	(junction
+		(at 160.02 72.39)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "8f20240f-1622-406c-ad96-19578e120fd1")
+	)
+	(junction
 		(at 160.02 82.55)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "e41ae5a6-13ad-4b25-ab03-2d73b2e37cac")
+	)
+	(no_connect
+		(at 160.02 95.25)
+		(uuid "0aa091a7-08ef-4da8-9bf9-4f4dbf49e622")
+	)
+	(no_connect
+		(at 119.38 95.25)
+		(uuid "350790ea-b0cb-4a34-8f42-120b56722cc9")
 	)
 	(wire
 		(pts
@@ -564,6 +614,26 @@
 	)
 	(wire
 		(pts
+			(xy 160.02 72.39) (xy 160.02 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "808e9729-7d1a-4a65-b7a5-88d8ce9c4f6e")
+	)
+	(wire
+		(pts
+			(xy 160.02 71.12) (xy 160.02 72.39)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9258105c-08ea-4543-a606-bbda3cbf8f4e")
+	)
+	(wire
+		(pts
 			(xy 160.02 82.55) (xy 160.02 85.09)
 		)
 		(stroke
@@ -571,6 +641,36 @@
 			(type default)
 		)
 		(uuid "a568609c-4f8c-4202-91b8-8241f075bcfa")
+	)
+	(wire
+		(pts
+			(xy 119.38 72.39) (xy 160.02 72.39)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "dade1fde-131a-4ee8-9897-c01802e54ad3")
+	)
+	(wire
+		(pts
+			(xy 160.02 100.33) (xy 160.02 105.41)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e8e535b6-4016-4453-92c1-cda95e5deff7")
+	)
+	(wire
+		(pts
+			(xy 119.38 90.17) (xy 119.38 72.39)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ed98252c-1493-4882-9b19-339802231cd5")
 	)
 	(global_label "SCL"
 		(shape input)
@@ -837,7 +937,7 @@
 	)
 	(symbol
 		(lib_id "power:+3V3")
-		(at 160.02 82.55 0)
+		(at 160.02 71.12 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -846,7 +946,7 @@
 		(fields_autoplaced yes)
 		(uuid "3e42c81b-5024-4002-b30a-7eb7bd437029")
 		(property "Reference" "#PWR04"
-			(at 160.02 86.36 0)
+			(at 160.02 74.93 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -855,7 +955,7 @@
 			)
 		)
 		(property "Value" "+3V3"
-			(at 160.02 77.47 0)
+			(at 160.02 66.04 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -863,7 +963,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 160.02 82.55 0)
+			(at 160.02 71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -872,7 +972,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 160.02 82.55 0)
+			(at 160.02 71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -881,7 +981,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3V3\""
-			(at 160.02 82.55 0)
+			(at 160.02 71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
