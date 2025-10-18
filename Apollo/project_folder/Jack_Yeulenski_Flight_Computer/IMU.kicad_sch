@@ -791,7 +791,7 @@
 			(embedded_fonts no)
 		)
 	)
-	(text "Default I2C address: 0100101b (0x29)\nAlternate I2C address: 0101000b (0x28)\nCOM3 is used to switch adress"
+	(text "Default I2C address (COM3 HIGH): 0100101b (0x29)\nAlternate I2C address (COM3 LOW): 0101000b (0x28)\nCOM3 is used to switch adress"
 		(exclude_from_sim no)
 		(at 79.502 61.214 0)
 		(effects
@@ -876,10 +876,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "fb99f52b-73d2-40ac-8f15-9e43774a8df8")
-	)
-	(no_connect
-		(at 101.6 100.33)
-		(uuid "02b52b65-762b-4f0a-a93d-bde7e86fbe17")
 	)
 	(no_connect
 		(at 142.24 95.25)
@@ -1320,6 +1316,73 @@
 			(project ""
 				(path "/0e457dee-ab7a-4947-acac-685db257dbd9/ac8308a5-c176-4748-bfbf-484ade2f530b"
 					(reference "C1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3V3")
+		(at 101.6 100.33 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "6954d2af-a075-4101-bf7c-9ba99e697fcb")
+		(property "Reference" "#PWR019"
+			(at 105.41 100.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3V3"
+			(at 97.79 100.3299 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 101.6 100.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 101.6 100.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3V3\""
+			(at 101.6 100.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "d2530937-fb5b-495c-b56a-b7fbadb5e083")
+		)
+		(instances
+			(project ""
+				(path "/0e457dee-ab7a-4947-acac-685db257dbd9/ac8308a5-c176-4748-bfbf-484ade2f530b"
+					(reference "#PWR019")
 					(unit 1)
 				)
 			)
