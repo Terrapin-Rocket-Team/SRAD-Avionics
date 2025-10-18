@@ -1,5 +1,5 @@
 function Pr = calcReceivedPower(f, GS_lat, GS_long, GS_alt, TX_ant_eff, TX_ant_gain, TX_ant_type, TX_pow, ...
-    RX_ant_eff, RX_ant_gain, RX_ant_type, alt_scale_factor, flightDataFile, orientDataFile)
+    RX_ant_eff, RX_ant_gain, RX_ant_type, pointing_angle_err, alt_scale_factor, flightDataFile, orientDataFile)
 
 flightData = table2array(struct2table(load(flightDataFile + '.mat')));
 orientData = table2array(struct2table(load(orientDataFile + '.mat')));
@@ -18,7 +18,8 @@ rocket_quat_z = table2array(orientData(:,4));
 
 lambda = physconst('LightSpeed')/f;
 
-L = zeros(size(flightData,1), 1);
+L = zeros(size(flightData,1), 1); % fspl
+OL = zeros(size(flightData,1), 1); % obstruction loss
 R = zeros(size(flightData,1), 1);
 ant_angles = zeros(size(flightData,1), 1);
 
@@ -33,7 +34,8 @@ Ant_norm = quatrotate([rocket_quat_w, rocket_quat_x, rocket_quat_y, rocket_quat_
 for k = 1:size(flightData,1)
 
     R(k) = computeDistance(GS_lat, GS_long, GS_alt, rocket_lat(k,1), rocket_long(k,1), abs(rocket_alt(k,1)))*1e3;
-    L(k) = fspl(R(k),lambda);
+    L(k) = -fspl(R(k),lambda);
+    OL(k) = obstructionLoss(f, GS_alt*1/ftTom, 6+abs(rocket_alt(k,1))*1/ftTom, R(k)*10^-3*0.6213712);
     
     [xR,yR,zR] = geodetic2ned(GS_lat, GS_long, GS_alt, rocket_lat(k,1), rocket_long(k,1), rocket_alt(k,1), s);
     GS_norm = cross([yR,-xR,0], [xR,yR,zR]);
@@ -42,8 +44,10 @@ end
 
 % polarization loss
 polloss_guess = polarizationLoss(ant_angles, TX_ant_type, RX_ant_type);
+pointing_loss = pointingLoss(lambda, RX_ant_eff, RX_ant_gain, pointing_angle_err);
 
 % final result
-Pr = TX_pow + 10*log(TX_ant_eff) + TX_ant_gain + RX_ant_gain - L + 10*log(RX_ant_eff) + polloss_guess;
+Pr = TX_pow + 10*log(TX_ant_eff) + TX_ant_gain + RX_ant_gain + L + ...
+10*log(RX_ant_eff) + polloss_guess + OL + pointing_loss;
 
 end

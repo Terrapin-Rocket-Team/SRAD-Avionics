@@ -2,26 +2,33 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Edit these values only
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+margin = 10; % dB
+sensitivity = -90; % dBm
+
 % values for 30K
 
 % signal settings
-f = 433e6; % hz
+f = 1.27e9; % hz
 bitrate = 500e3; % bits per second, should be divisible by 2
 mod_index_2FSK = 0.5;
 mod_index_4FSK = 0.5;
 
 % ground station location
-GS_alt = 0; % meters, AGL (Spaceport data)
+GS_alt = 1.8288; % meters, AGL (Spaceport data)
 GS_lat = 32.940012; % degrees (Spaceport data)
 GS_long = -106.920470; % degrees (Spaceport data)
 
+% ground station specs
+pointing_angle_error = 5; % degrees
+
 % hardware specs
-TX_ant_eff = 0.80; % percent
+TX_ant_eff = 0.50; % percent
 TX_ant_gain = 0; % dBi
 TX_ant_type = "linear"; % linear, RHCP, or LHCP
-TX_pow = 33; % dBm
-RX_ant_eff = 0.70; % percent
-RX_ant_gain = 6; % dBi
+TX_pow = 30; % dBm
+RX_ant_eff = 0.60; % percent
+RX_ant_gain = 20.25; % dBi
 RX_ant_type = "RHCP"; % linear, RHCP, or LHCP
 
 
@@ -30,7 +37,7 @@ componentNoiseFigures = [4.8, 0.35, 3]; % dBm
 additionalLosses = []; % dBm
 
 % FEC settings
-doFECSim = true;
+doFECSim = false;
 N = 255; % block size
 k = 245; % data size
 flightTime = 60; % seconds
@@ -57,18 +64,34 @@ for l = 1:length(additionalLosses)
 end
 
 Pr = calcReceivedPower(f, GS_lat, GS_long, GS_alt, TX_ant_eff, TX_ant_gain, TX_ant_type, TX_pow, ...
-    RX_ant_eff, RX_ant_gain, RX_ant_type, 3, "SACFlightData", "SACOrientQuat");
+    RX_ant_eff, RX_ant_gain, RX_ant_type, pointing_angle_error, 3, "SACFlightData", "SACOrientQuat");
 Pr = Pr - additionalLoss;
+
+calcMargin = min(Pr) - sensitivity - margin;
+if (calcMargin > 0)
+    fprintf("Pass base sensitivity check with margin: %f dB\n", calcMargin + margin)
+else
+    fprintf("Fail base sensitivity check with margin: %f dB\n", calcMargin + margin)
+end
+
+flightData = table2array(struct2table(load('SACFlightData.mat')));
+rocket_alt = table2array(flightData(:,1).*3);
 
 figure(1)
 hold on;
-plot(0:0.1:(length(Pr)-1)/10, Pr + 97)
-plot(0:0.1:(length(Pr)-1)/10, Pr + 88)
-plot(0:0.1:(length(Pr)-1)/10, Pr + 109)
-xlabel("Time (s)")
-ylabel("Magnitude (dBm)")
+yyaxis left;
+ylabel("Power (dBm)")
+plot(0:0.1:(length(Pr)-1)/10, Pr - sensitivity)
+yyaxis right;
+plot(0:0.1:(length(Pr)-1)/10, rocket_alt, "--k")
+ylabel("Altitude (ft)")
+ax = gca;
+ax.YAxis(1).Color = 'k';
+ax.YAxis(2).Color = 'k';
+ylim([0, inf])
+xlabel("time (s)")
 title("Link margin (sensitivity)")
-legend("Link margin 500 kbps", "Link margin 1 Mbps", "Link margin 9.6 kbps (telemetry)")
+legend("Link margin", "Rocket altitude")
 
 % calcs for 2FSK
 N_2FSK = calcNoise(symbolRate2FSK, 2, mod_index_2FSK, addedComponentNoise);
