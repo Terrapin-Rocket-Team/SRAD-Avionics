@@ -4,17 +4,54 @@
 #include <Arduino.h>
 #include "Math/Quaternion.h"
 #include "Math/Vector.h"
+#include "Eigen/Dense"
+#include <vector>
+
+// need to add magnetomater to Mahony filter to correct accumulated gyrscope drift. Magnetometer spits 
+// out strenght of Earth magnetic field in x, y, z components. Needs its own calibration process with 
+// soft and hard iron dependencies. Calibration: MOtioncal (program from pjrc)
+
 
 using namespace mmfs;
 
 class MahonyAHRS
 {
 public:
+
+
     MahonyAHRS(double Kp = 0.1, double Ki = 0.0005)
         : _Kp(Kp), _Ki(Ki), _biasX(0.0), _biasY(0.0), _biasZ(0.0),
-          _sumAccel(), _sumGyro(), _calibSamples(0), _q(1.0, 0, 0, 0), _q0(1.0, 0.0, 0.0, 0.0), _initialized(false)
+          _sumAccel(), _sumGyro(), _sumMag(), _calibSamples(0), _q(1.0, 0, 0, 0) /*0 rotation quaternion*/, 
+          _q0(1.0, 0.0, 0.0, 0.0)/*0 rotation quaternion, but with floats*/, _initialized(false)
     {
     }
+    //mag needs its own calibration because it needs dynamic, 3D rotation; static samples aren't enough.
+    //using eigen matrices to perform c++ calculation of calibrations, cannot seem to find a way to offload the calibration math.
+    //found algorithm to calculate the matrices at: https://github.com/TonyPhh/magnetometer-calibration/blob/master/magnetometer_calibrate.cpp
+    //Note: I have downloaded a large repo (Eigen) in order to perform the array/matrices/etc. calculations. It is heavy for 
+    //teensy, but it only needs to call it once. If there is another way, please let me know. 
+  void calibratedMag( Vector<Vector<3>> &raw) {
+    //have not finished implementing the algorithm that spits out the calibration matrices
+    int num = raw.size();
+    if(num == 0){
+        return Vector<3> {0, 0, 0};
+    }
+    Vector<3> temp;
+
+    // Apply hard-iron offset
+    temp.x = raw.x - hard_iron[0];
+    temp.y = raw.y - hard_iron[1];
+    temp.z = raw.z - hard_iron[2];
+
+    // Apply soft-iron correction
+    Vector<3> corrected;
+    corrected.x = soft_iron[0][0]*temp.x + soft_iron[0][1]*temp.y + soft_iron[0][2]*temp.z;
+    corrected.y = soft_iron[1][0]*temp.x + soft_iron[1][1]*temp.y + soft_iron[1][2]*temp.z;
+    corrected.z = soft_iron[2][0]*temp.x + soft_iron[2][1]*temp.y + soft_iron[2][2]*temp.z;
+
+    return corrected;
+}
+
 
     // Collect static samples before launch
     void calibrate(const Vector<3> &accel, const Vector<3> &gyro)
@@ -69,7 +106,8 @@ public:
      * @param dt    : time step (s)
      */
     void update(const Vector<3> &accel,
-                const Vector<3> &gyro,
+                const Vector<3> &gyro, 
+                const Vector<3> &mag,
                 double dt)
     {
         if (!_initialized)
@@ -126,11 +164,11 @@ public:
     bool isInitialized() const { return _initialized; }
 
 private:
-    double _Kp, _Ki;
-    double _biasX, _biasY, _biasZ;
-    Quaternion _q, _q0;
-    Vector<3> _sumAccel, _sumGyro;
-    int _calibSamples;
+    double _Kp, _Ki; //tuning parameters for mahony filter
+    double _biasX, _biasY, _biasZ; //biases?
+    Quaternion _q, _q0; //rotation quaternion 
+    Vector<3> _sumAccel, _sumGyro, _sumMag; //vectors 
+    int _calibSamples; //number of samples?
     bool _initialized;
 };
 

@@ -10,11 +10,11 @@ void FreeMem();
 
 using namespace mmfs;
 
-MAX_M10S m;
+MAX_M10S m; //gps
 
 DPS368 d;
-BMI088Gyro g;
-BMI088Accel a;
+BMI088Gyro g; //gyro
+BMI088Accel a; //accelerometer
 mmfs::LIS3MDL l;
 // VoltageSensor vsfc(A0, 47000, 4700, "Flight Computer Voltage");
 // ADXL375 accel;
