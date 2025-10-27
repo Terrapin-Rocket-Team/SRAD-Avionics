@@ -815,6 +815,89 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Mechanical:MountingHole"
+			(pin_names
+				(offset 1.016)
+			)
+			(exclude_from_sim no)
+			(in_bom no)
+			(on_board yes)
+			(property "Reference" "H"
+				(at 0 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "MountingHole"
+				(at 0 3.175 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Mounting Hole without connection"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "mounting hole"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "MountingHole*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "MountingHole_0_1"
+				(circle
+					(center 0 0)
+					(radius 1.27)
+					(stroke
+						(width 1.27)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "New_Library:Teensy4.1"
 			(exclude_from_sim no)
 			(in_bom yes)
@@ -2368,7 +2451,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Diode_SMD:D_0603_1608Metric"
 			(at 90.932 128.27 90)
 			(effects
 				(font
@@ -2420,7 +2503,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "0b41ec6c-e62f-4a2a-935c-e639f897964d")
-		(property "Reference" "#PWR020"
+		(property "Reference" "#PWR01"
 			(at 82.55 138.43 0)
 			(effects
 				(font
@@ -2470,7 +2553,7 @@
 		(instances
 			(project "Jack_Yeulenski_Flight_Computer"
 				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
-					(reference "#PWR020")
+					(reference "#PWR01")
 					(unit 1)
 				)
 			)
@@ -2486,7 +2569,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "1e839421-c6fe-4c46-81f3-57c55fb908a3")
-		(property "Reference" "#PWR016"
+		(property "Reference" "#PWR04"
 			(at 102.87 138.43 0)
 			(effects
 				(font
@@ -2536,7 +2619,74 @@
 		(instances
 			(project ""
 				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
-					(reference "#PWR016")
+					(reference "#PWR04")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3V3")
+		(at 91.44 81.28 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "22d4a9b8-ed18-4136-96b3-15b7cc317786")
+		(property "Reference" "#PWR021"
+			(at 95.25 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3V3"
+			(at 87.63 81.2799 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 91.44 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 91.44 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3V3\""
+			(at 91.44 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "1127e2f6-f060-41cb-a6b7-c7d92382dfe6")
+		)
+		(instances
+			(project ""
+				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
+					(reference "#PWR021")
 					(unit 1)
 				)
 			)
@@ -2552,7 +2702,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "24a76e72-adcd-4c37-a9a2-731e3ec8a924")
-		(property "Reference" "#PWR013"
+		(property "Reference" "#PWR010"
 			(at 143.51 100.33 0)
 			(effects
 				(font
@@ -2602,7 +2752,7 @@
 		(instances
 			(project ""
 				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
-					(reference "#PWR013")
+					(reference "#PWR010")
 					(unit 1)
 				)
 			)
@@ -2618,7 +2768,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "277f98c1-aa82-4481-9868-28dfc370bd8a")
-		(property "Reference" "#PWR018"
+		(property "Reference" "#PWR02"
 			(at 92.71 138.43 0)
 			(effects
 				(font
@@ -2668,7 +2818,71 @@
 		(instances
 			(project "Jack_Yeulenski_Flight_Computer"
 				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
-					(reference "#PWR018")
+					(reference "#PWR02")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole")
+		(at 177.8 154.94 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "2f59bb13-4c89-48bb-bcf3-0d04fe4c412d")
+		(property "Reference" "H3"
+			(at 180.34 153.6699 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole"
+			(at 180.34 156.2099 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3"
+			(at 177.8 154.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 177.8 154.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole without connection"
+			(at 177.8 154.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(instances
+			(project "Jack_Yeulenski_Flight_Computer"
+				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
+					(reference "H3")
 					(unit 1)
 				)
 			)
@@ -2684,7 +2898,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "32e26c67-75b0-46f9-ba33-decd91544d48")
-		(property "Reference" "#PWR015"
+		(property "Reference" "#PWR03"
 			(at 102.87 120.65 0)
 			(effects
 				(font
@@ -2734,7 +2948,7 @@
 		(instances
 			(project ""
 				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
-					(reference "#PWR015")
+					(reference "#PWR03")
 					(unit 1)
 				)
 			)
@@ -2832,7 +3046,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 129.54 65.278 90)
 			(effects
 				(font
@@ -3090,7 +3304,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "537a5422-c5e5-4902-83b3-b9e5cc591e16")
-		(property "Reference" "#PWR05"
+		(property "Reference" "#PWR09"
 			(at 135.89 67.31 0)
 			(effects
 				(font
@@ -3140,7 +3354,7 @@
 		(instances
 			(project ""
 				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
-					(reference "#PWR05")
+					(reference "#PWR09")
 					(unit 1)
 				)
 			)
@@ -3156,7 +3370,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "5a89e314-9fe6-4598-b5bc-b09e6318a464")
-		(property "Reference" "#PWR01"
+		(property "Reference" "#PWR05"
 			(at 123.19 48.26 0)
 			(effects
 				(font
@@ -3207,7 +3421,7 @@
 		(instances
 			(project ""
 				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
-					(reference "#PWR01")
+					(reference "#PWR05")
 					(unit 1)
 				)
 			)
@@ -3241,7 +3455,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "adaafruitBuzzer:Adafruit_Buzzer"
 			(at 118.745 104.14 90)
 			(effects
 				(font
@@ -3293,7 +3507,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "6b45ac53-65c1-42b3-82f6-f89f61ea9413")
-		(property "Reference" "#PWR09"
+		(property "Reference" "#PWR014"
 			(at 143.51 146.05 0)
 			(effects
 				(font
@@ -3343,7 +3557,7 @@
 		(instances
 			(project ""
 				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
-					(reference "#PWR09")
+					(reference "#PWR014")
 					(unit 1)
 				)
 			)
@@ -3359,7 +3573,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "8d6342c9-8628-45a5-a665-e67d9b0b50c6")
-		(property "Reference" "R6"
+		(property "Reference" "R4"
 			(at 132.08 77.47 90)
 			(effects
 				(font
@@ -3375,7 +3589,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 132.08 85.598 90)
 			(effects
 				(font
@@ -3411,7 +3625,7 @@
 		(instances
 			(project ""
 				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
-					(reference "R6")
+					(reference "R4")
 					(unit 1)
 				)
 			)
@@ -3427,7 +3641,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "95daaa0f-0342-4530-ac78-9ae496c83b73")
-		(property "Reference" "R4"
+		(property "Reference" "R5"
 			(at 139.7 77.47 90)
 			(effects
 				(font
@@ -3443,7 +3657,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 139.7 85.598 90)
 			(effects
 				(font
@@ -3479,7 +3693,7 @@
 		(instances
 			(project ""
 				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
-					(reference "R4")
+					(reference "R5")
 					(unit 1)
 				)
 			)
@@ -3495,7 +3709,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "9608c0c3-8114-4db0-a2b2-afc04ead9a04")
-		(property "Reference" "#PWR02"
+		(property "Reference" "#PWR06"
 			(at 113.03 50.8 0)
 			(effects
 				(font
@@ -3546,7 +3760,7 @@
 		(instances
 			(project ""
 				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
-					(reference "#PWR02")
+					(reference "#PWR06")
 					(unit 1)
 				)
 			)
@@ -3562,7 +3776,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a11a00c0-4322-446e-b763-15c2f93f1238")
-		(property "Reference" "#PWR014"
+		(property "Reference" "#PWR07"
 			(at 116.84 115.57 0)
 			(effects
 				(font
@@ -3612,7 +3826,7 @@
 		(instances
 			(project ""
 				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
-					(reference "#PWR014")
+					(reference "#PWR07")
 					(unit 1)
 				)
 			)
@@ -3628,7 +3842,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a3292ae7-1c2f-45d2-bdc2-dbf14c74e0d5")
-		(property "Reference" "R1"
+		(property "Reference" "R3"
 			(at 105.41 126.9999 0)
 			(effects
 				(font
@@ -3646,7 +3860,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 101.092 128.27 90)
 			(effects
 				(font
@@ -3682,7 +3896,7 @@
 		(instances
 			(project ""
 				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
-					(reference "R1")
+					(reference "R3")
 					(unit 1)
 				)
 			)
@@ -3698,7 +3912,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a6e74ec6-e6c8-42ca-b980-2ef50f815795")
-		(property "Reference" "J4"
+		(property "Reference" "J1"
 			(at 151.13 78.7399 0)
 			(effects
 				(font
@@ -3716,7 +3930,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_JST:JST_XH_S2B-XH-A_1x02_P2.50mm_Horizontal"
 			(at 148.59 78.74 0)
 			(effects
 				(font
@@ -3752,7 +3966,7 @@
 		(instances
 			(project "Jack_Yeulenski_Flight_Computer"
 				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
-					(reference "J4")
+					(reference "J1")
 					(unit 1)
 				)
 			)
@@ -3786,7 +4000,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0805_2012Metric"
 			(at 92.71 120.65 0)
 			(effects
 				(font
@@ -3847,7 +4061,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "afa92f6f-5c7e-4000-9c0b-1d3ea7f55612")
-		(property "Reference" "J1"
+		(property "Reference" "J4"
 			(at 151.13 134.6199 0)
 			(effects
 				(font
@@ -3865,7 +4079,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_JST:JST_XH_S4B-XH-A_1x04_P2.50mm_Horizontal"
 			(at 148.59 134.62 0)
 			(effects
 				(font
@@ -3907,7 +4121,7 @@
 		(instances
 			(project ""
 				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
-					(reference "J1")
+					(reference "J4")
 					(unit 1)
 				)
 			)
@@ -3989,7 +4203,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "b90b6fa4-759c-49a1-9466-1650c8cc5437")
-		(property "Reference" "J2"
+		(property "Reference" "J3"
 			(at 151.13 111.7599 0)
 			(effects
 				(font
@@ -4007,7 +4221,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_JST:JST_XH_S4B-XH-A_1x04_P2.50mm_Horizontal"
 			(at 148.59 111.76 0)
 			(effects
 				(font
@@ -4049,7 +4263,7 @@
 		(instances
 			(project "Jack_Yeulenski_Flight_Computer"
 				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
-					(reference "J2")
+					(reference "J3")
 					(unit 1)
 				)
 			)
@@ -4065,7 +4279,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "bafbf1fa-09ca-4b51-a13e-90d6ea7117a6")
-		(property "Reference" "J3"
+		(property "Reference" "J2"
 			(at 151.13 91.4399 0)
 			(effects
 				(font
@@ -4083,7 +4297,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_JST:JST_XH_S2B-XH-A_1x02_P2.50mm_Horizontal"
 			(at 148.59 91.44 0)
 			(effects
 				(font
@@ -4119,7 +4333,71 @@
 		(instances
 			(project ""
 				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
-					(reference "J3")
+					(reference "J2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole")
+		(at 78.74 151.13 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "cdc2ed84-b206-4fcd-a778-66339ead49e5")
+		(property "Reference" "H2"
+			(at 81.28 149.8599 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole"
+			(at 81.28 152.3999 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3"
+			(at 78.74 151.13 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 78.74 151.13 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole without connection"
+			(at 78.74 151.13 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(instances
+			(project "Jack_Yeulenski_Flight_Computer"
+				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
+					(reference "H2")
 					(unit 1)
 				)
 			)
@@ -4135,7 +4413,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "dcc63fbb-7b0f-499c-8d80-33f90a164607")
-		(property "Reference" "D3"
+		(property "Reference" "D1"
 			(at 86.36 120.9674 90)
 			(effects
 				(font
@@ -4153,7 +4431,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0805_2012Metric"
 			(at 82.55 120.65 0)
 			(effects
 				(font
@@ -4198,7 +4476,71 @@
 		(instances
 			(project "Jack_Yeulenski_Flight_Computer"
 				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
-					(reference "D3")
+					(reference "D1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole")
+		(at 68.58 36.83 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "e0bcc450-ddea-40c9-a2e0-514e6056eeff")
+		(property "Reference" "H1"
+			(at 71.12 35.5599 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole"
+			(at 71.12 38.0999 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3"
+			(at 68.58 36.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 68.58 36.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole without connection"
+			(at 68.58 36.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(instances
+			(project ""
+				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
+					(reference "H1")
 					(unit 1)
 				)
 			)
@@ -4214,7 +4556,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e13bbe26-9c6c-4499-9ba5-9f737ff30727")
-		(property "Reference" "R3"
+		(property "Reference" "R1"
 			(at 85.09 126.9999 0)
 			(effects
 				(font
@@ -4232,7 +4574,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 80.772 128.27 90)
 			(effects
 				(font
@@ -4268,7 +4610,7 @@
 		(instances
 			(project "Jack_Yeulenski_Flight_Computer"
 				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
-					(reference "R3")
+					(reference "R1")
 					(unit 1)
 				)
 			)
@@ -4299,7 +4641,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 129.54 67.818 90)
 			(effects
 				(font
@@ -4351,7 +4693,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e8ce3382-ed34-4b04-986b-2450501162bc")
-		(property "Reference" "D1"
+		(property "Reference" "D3"
 			(at 106.68 120.9674 90)
 			(effects
 				(font
@@ -4369,7 +4711,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0805_2012Metric"
 			(at 102.87 120.65 0)
 			(effects
 				(font
@@ -4414,7 +4756,71 @@
 		(instances
 			(project ""
 				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
-					(reference "D1")
+					(reference "D3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole")
+		(at 167.64 38.1 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "f0c67be4-ed92-478f-850c-2f318e12bea0")
+		(property "Reference" "H4"
+			(at 170.18 36.8299 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole"
+			(at 170.18 39.3699 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3"
+			(at 167.64 38.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 167.64 38.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole without connection"
+			(at 167.64 38.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(instances
+			(project "Jack_Yeulenski_Flight_Computer"
+				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
+					(reference "H4")
 					(unit 1)
 				)
 			)
@@ -4430,7 +4836,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "f8b08be0-b27a-4c18-9fef-6356470fed84")
-		(property "Reference" "#PWR010"
+		(property "Reference" "#PWR013"
 			(at 143.51 135.89 0)
 			(effects
 				(font
@@ -4480,7 +4886,7 @@
 		(instances
 			(project ""
 				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
-					(reference "#PWR010")
+					(reference "#PWR013")
 					(unit 1)
 				)
 			)
@@ -4496,7 +4902,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "fece59ae-5896-4ee1-89a7-baee3f9aab5c")
-		(property "Reference" "#PWR017"
+		(property "Reference" "#PWR08"
 			(at 128.27 90.17 0)
 			(effects
 				(font
@@ -4546,7 +4952,7 @@
 		(instances
 			(project ""
 				(path "/0e457dee-ab7a-4947-acac-685db257dbd9"
-					(reference "#PWR017")
+					(reference "#PWR08")
 					(unit 1)
 				)
 			)

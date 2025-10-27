@@ -440,6 +440,7 @@
       "single_global_label": "ignore",
       "unannotated": "error",
       "unconnected_wire_endpoint": "warning",
+      "undefined_netclass": "error",
       "unit_value_mismatch": "error",
       "unresolved_variable": "error",
       "wire_dangling": "error"
@@ -450,7 +451,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "Jack_Yeulenski_Flight_Computer.kicad_pro",
+    "filename": "Krish_Flight_Computer.kicad_pro",
     "version": 3
   },
   "net_settings": {
@@ -472,6 +473,13 @@
         "via_diameter": 0.6,
         "via_drill": 0.3,
         "wire_width": 6
+      },
+      {
+        "name": "VBAT",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 0,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.5
       }
     ],
     "meta": {
@@ -497,7 +505,7 @@
   },
   "schematic": {
     "annotate_start_num": 0,
-    "bom_export_filename": "Jack_Yeulenski_L1FC.csv",
+    "bom_export_filename": "${PROJECTNAME}.csv",
     "bom_fmt_presets": [],
     "bom_fmt_settings": {
       "field_delimiter": ",",
@@ -562,44 +570,8 @@
         },
         {
           "group_by": false,
-          "label": "MANUFACTURER",
-          "name": "MANUFACTURER",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "MAXIMUM_PACKAGE_HEIGHT",
-          "name": "MAXIMUM_PACKAGE_HEIGHT",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "PARTREV",
-          "name": "PARTREV",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "STANDARD",
-          "name": "STANDARD",
-          "show": false
-        },
-        {
-          "group_by": false,
           "label": "Sim.Pins",
           "name": "Sim.Pins",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "VERIFIER",
-          "name": "VERIFIER",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "CREATOR",
-          "name": "CREATOR",
           "show": false
         },
         {
@@ -664,16 +636,12 @@
   },
   "sheets": [
     [
-      "0e457dee-ab7a-4947-acac-685db257dbd9",
+      "77b6412a-4086-4723-9d0a-66b993621516",
       "Root"
     ],
     [
-      "90dbbe8f-d831-457a-80e5-86785cc75e56",
-      "Barometer"
-    ],
-    [
-      "ac8308a5-c176-4748-bfbf-484ade2f530b",
-      "IMU"
+      "cdf56937-bd07-49c7-8c64-b0efe1b18dd8",
+      "Sensors"
     ]
   ],
   "text_variables": {}
