@@ -3405,6 +3405,16 @@
 	)
 	(wire
 		(pts
+			(xy 48.26 149.86) (xy 48.26 151.13)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2d78bdff-6ea3-4c90-acfa-38594cb54da4")
+	)
+	(wire
+		(pts
 			(xy 99.06 106.68) (xy 99.06 99.06)
 		)
 		(stroke
@@ -3865,6 +3875,16 @@
 	)
 	(wire
 		(pts
+			(xy 69.85 149.86) (xy 48.26 149.86)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d68709e3-3016-44e3-9c24-8905b109e439")
+	)
+	(wire
+		(pts
 			(xy 240.03 63.5) (xy 243.84 63.5)
 		)
 		(stroke
@@ -3902,6 +3922,16 @@
 			(type default)
 		)
 		(uuid "dbd091e3-2ab0-4d40-acf7-f4d738ab4c35")
+	)
+	(wire
+		(pts
+			(xy 59.69 152.4) (xy 69.85 152.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e3a13f25-e385-467d-945e-095e2d56075f")
 	)
 	(wire
 		(pts
@@ -4505,6 +4535,72 @@
 	)
 	(symbol
 		(lib_id "power:GND")
+		(at 59.69 167.64 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "10128984-131e-421f-a29b-299aac559767")
+		(property "Reference" "#PWR024"
+			(at 59.69 173.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 59.69 172.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 59.69 167.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 59.69 167.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 59.69 167.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "2f03b9cc-cf70-4232-be43-feee08305911")
+		)
+		(instances
+			(project "flight_cmptr_1"
+				(path "/26742f4c-6a6a-4df2-987a-4f0c4c6bb61e"
+					(reference "#PWR024")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
 		(at 210.82 31.75 270)
 		(unit 1)
 		(exclude_from_sim no)
@@ -4635,6 +4731,85 @@
 			(project ""
 				(path "/26742f4c-6a6a-4df2-987a-4f0c4c6bb61e"
 					(reference "R1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:LED")
+		(at 48.26 154.94 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "1fb6632b-6b89-4e76-a4e3-3e67fda27310")
+		(property "Reference" "D3"
+			(at 52.07 155.2574 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "LED"
+			(at 52.07 157.7974 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" ""
+			(at 48.26 154.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 48.26 154.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Light emitting diode"
+			(at 48.26 154.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Sim.Pins" "1=K 2=A"
+			(at 48.26 154.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "a4a65319-bdac-45d8-945b-d61a7a6263ca")
+		)
+		(pin "2"
+			(uuid "a1373965-1c99-4225-b621-f689f9ec0476")
+		)
+		(instances
+			(project "flight_cmptr_1"
+				(path "/26742f4c-6a6a-4df2-987a-4f0c4c6bb61e"
+					(reference "D3")
 					(unit 1)
 				)
 			)
@@ -5051,6 +5226,76 @@
 			(project "flight_cmptr_1"
 				(path "/26742f4c-6a6a-4df2-987a-4f0c4c6bb61e"
 					(reference "#PWR013")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 59.69 163.83 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "5ba6c8c1-545a-4967-a834-bd03becad9e3")
+		(property "Reference" "R6"
+			(at 62.23 162.5599 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "560"
+			(at 62.23 165.0999 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 57.912 163.83 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 59.69 163.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 59.69 163.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "9305fbdf-d3b4-4b3c-938b-04cba1b10cb9")
+		)
+		(pin "1"
+			(uuid "0123c25b-d56e-485f-952a-c45d547e9d93")
+		)
+		(instances
+			(project "flight_cmptr_1"
+				(path "/26742f4c-6a6a-4df2-987a-4f0c4c6bb61e"
+					(reference "R6")
 					(unit 1)
 				)
 			)
@@ -6503,6 +6748,76 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:R")
+		(at 48.26 162.56 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "cedbe28e-556a-4b9c-a683-1a036f8c1030")
+		(property "Reference" "R7"
+			(at 50.8 161.2899 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "560"
+			(at 50.8 163.8299 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 46.482 162.56 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 48.26 162.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 48.26 162.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "15fd46b6-8af0-4a7b-9c80-9e6ec13eeee4")
+		)
+		(pin "1"
+			(uuid "aa94f441-9883-49ca-98df-048ef936fb82")
+		)
+		(instances
+			(project "flight_cmptr_1"
+				(path "/26742f4c-6a6a-4df2-987a-4f0c4c6bb61e"
+					(reference "R7")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:C")
 		(at 240.03 72.39 180)
 		(unit 1)
@@ -6637,6 +6952,72 @@
 			(project ""
 				(path "/26742f4c-6a6a-4df2-987a-4f0c4c6bb61e"
 					(reference "BZ1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 48.26 166.37 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "d58b57de-0223-4e8d-9ec5-ca9a7e3ec88f")
+		(property "Reference" "#PWR023"
+			(at 48.26 172.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 48.26 171.45 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 48.26 166.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 48.26 166.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 48.26 166.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "46f7bb88-00ee-4020-ad07-d4028e291dab")
+		)
+		(instances
+			(project "flight_cmptr_1"
+				(path "/26742f4c-6a6a-4df2-987a-4f0c4c6bb61e"
+					(reference "#PWR023")
 					(unit 1)
 				)
 			)
@@ -7107,6 +7488,85 @@
 			(project "flight_cmptr_1"
 				(path "/26742f4c-6a6a-4df2-987a-4f0c4c6bb61e"
 					(reference "#PWR022")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:LED")
+		(at 59.69 156.21 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "f1e79a8a-eb06-4975-8771-b813f04344fd")
+		(property "Reference" "D2"
+			(at 63.5 156.5274 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "LED"
+			(at 63.5 159.0674 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" ""
+			(at 59.69 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 59.69 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Light emitting diode"
+			(at 59.69 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Sim.Pins" "1=K 2=A"
+			(at 59.69 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "40ceb3f8-fc8e-4f9e-874f-51b8cca41e13")
+		)
+		(pin "2"
+			(uuid "3b374528-b908-44f4-9ef1-4b16a40eefca")
+		)
+		(instances
+			(project "flight_cmptr_1"
+				(path "/26742f4c-6a6a-4df2-987a-4f0c4c6bb61e"
+					(reference "D2")
 					(unit 1)
 				)
 			)
