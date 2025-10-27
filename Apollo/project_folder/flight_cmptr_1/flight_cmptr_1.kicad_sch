@@ -3144,6 +3144,12 @@
 		(uuid "9d9cc8ba-29fd-41ce-95dc-1d441136cf9f")
 	)
 	(junction
+		(at 204.47 48.26)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "a24c9a49-9358-4bf2-af9a-b4c9cf4e2163")
+	)
+	(junction
 		(at 119.38 96.52)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -3234,10 +3240,6 @@
 		(uuid "59da23d5-7656-480c-8cd6-a8cefbbddd2e")
 	)
 	(no_connect
-		(at 205.74 48.26)
-		(uuid "5e3de017-48be-4d38-907e-b7aef0651f61")
-	)
-	(no_connect
 		(at 69.85 129.54)
 		(uuid "6393f3ea-a845-495c-9bcf-b7abf4105673")
 	)
@@ -3258,10 +3260,6 @@
 		(uuid "78e1e093-e88f-4c8e-8a90-b440a0ac46f6")
 	)
 	(no_connect
-		(at 205.74 43.18)
-		(uuid "797222aa-c980-4253-a579-085a2ee2840b")
-	)
-	(no_connect
 		(at 95.25 147.32)
 		(uuid "7d04eb4f-2180-4788-8b21-a1017d9be32b")
 	)
@@ -3280,6 +3278,10 @@
 	(no_connect
 		(at 95.25 149.86)
 		(uuid "918d44b1-90c2-4715-b7a0-db78eafd859b")
+	)
+	(no_connect
+		(at 69.85 147.32)
+		(uuid "92dfcc54-eb11-4989-8ad7-de2778d5667c")
 	)
 	(no_connect
 		(at 95.25 104.14)
@@ -3355,6 +3357,16 @@
 	)
 	(wire
 		(pts
+			(xy 204.47 43.18) (xy 204.47 48.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "025b6e24-1f37-41dd-9c58-8eb93796497a")
+	)
+	(wire
+		(pts
 			(xy 115.57 93.98) (xy 116.84 93.98)
 		)
 		(stroke
@@ -3362,6 +3374,16 @@
 			(type default)
 		)
 		(uuid "108624bf-b416-42de-a3a1-1bb614e081fe")
+	)
+	(wire
+		(pts
+			(xy 205.74 43.18) (xy 204.47 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "116676e8-2300-4546-9dea-33e3fb84f6fc")
 	)
 	(wire
 		(pts
@@ -3402,6 +3424,16 @@
 			(type default)
 		)
 		(uuid "2866a0e5-c57a-4ba0-a2ba-0bbb943bf7a0")
+	)
+	(wire
+		(pts
+			(xy 204.47 48.26) (xy 205.74 48.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2b1e9676-c403-4f43-a782-2d4457c3128c")
 	)
 	(wire
 		(pts
@@ -3532,16 +3564,6 @@
 			(type default)
 		)
 		(uuid "535a887a-1691-4b6f-9567-e1cbd53bcd40")
-	)
-	(wire
-		(pts
-			(xy 218.44 31.75) (xy 218.44 36.83)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "61f6244b-574f-4956-b5c2-358a3d32617a")
 	)
 	(wire
 		(pts
@@ -3715,6 +3737,16 @@
 	)
 	(wire
 		(pts
+			(xy 218.44 31.75) (xy 218.44 36.83)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9c5e3f76-3045-4607-befd-f12c4a2a309b")
+	)
+	(wire
+		(pts
 			(xy 72.39 66.04) (xy 74.93 66.04)
 		)
 		(stroke
@@ -3792,6 +3824,16 @@
 			(type default)
 		)
 		(uuid "b90212c9-7284-4a39-b153-f0eb3fe78a4b")
+	)
+	(wire
+		(pts
+			(xy 201.93 48.26) (xy 204.47 48.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bb35e622-4d54-4869-bd9d-9787e278bfcb")
 	)
 	(wire
 		(pts
@@ -5857,7 +5899,7 @@
 				)
 			)
 		)
-		(property "Value" "C"
+		(property "Value" "100nF"
 			(at 214.63 26.67 90)
 			(effects
 				(font
@@ -6472,7 +6514,6 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "b6c595ac-a4f7-49fb-9bd0-63150054881e")
 		(property "Reference" "C1"
 			(at 222.25 24.13 90)
@@ -6482,8 +6523,8 @@
 				)
 			)
 		)
-		(property "Value" "C"
-			(at 222.25 26.67 90)
+		(property "Value" "100nF"
+			(at 224.536 27.94 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6597,6 +6638,72 @@
 			(project "flight_cmptr_1"
 				(path "/26742f4c-6a6a-4df2-987a-4f0c4c6bb61e"
 					(reference "R3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
+		(at 201.93 48.26 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "c53e2049-78cb-4d00-8c47-fa3c2f86424d")
+		(property "Reference" "#PWR025"
+			(at 201.93 52.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 201.93 43.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 201.93 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 201.93 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 201.93 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "d20b6c9e-ed4c-48d5-b5e1-e4bd27b3db36")
+		)
+		(instances
+			(project "flight_cmptr_1"
+				(path "/26742f4c-6a6a-4df2-987a-4f0c4c6bb61e"
+					(reference "#PWR025")
 					(unit 1)
 				)
 			)
