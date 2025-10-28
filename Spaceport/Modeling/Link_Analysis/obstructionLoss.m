@@ -3,8 +3,8 @@
 function loss = obstructionLoss(f, h_1, h_2, d)
 % f in Hz, h_1, h_2 in ft, d in miles
 a_e = 8500; % km, standard value
-h_1 = h_1*0.3048; % km (converted from ft)
-h_2 = h_2*0.3048; % km (converted from ft)
+h_1 = h_1*0.3048; % m (converted from ft)
+h_2 = h_2*0.3048; % m (converted from ft)
 d = d*(1/0.6213712); % km (converted from mi)
 
 f = f*10^-9; % GHz
@@ -13,8 +13,9 @@ lambda = c/(f*10^9); % m
 
 Beta = 1; % assume high frequency (>300MHz)
 
-d_LOS = sqrt(2*a_e)*(sqrt(h_1)+sqrt(h_2))*0.6213712; % convert km to mi
+d_LOS = sqrt(2*a_e)*(sqrt(0.001*h_1)+sqrt(0.001*h_2))*0.6213712; % convert km to mi
 a_em = 500*(d/(sqrt(h_1)+sqrt(h_2)))^2;
+%a_em = 8500;
 
 %ep_r = 22;
 %sig = 5; % S/m

@@ -1,12 +1,22 @@
-function noise = calcNoise(symbolRate, order, modIndex, noiseFig)
+function noise = calcNoise(bw, noiseFigs, gains, TA)
     % may need to make this higher for high temp at spaceport
     % i.e. 273 + 40 = 313
     T0 = 290; % K
-    systemNoisePower = physconst("Boltzmann") * T0 * occupiedBW(symbolRate, order, modIndex);
+    noiseFactors = 10.^(noiseFigs./10);
+    powerGains = 10.^(gains./10);
+    F = 0;
+    for k=1:length(noiseFactors)
+        G = 1;
+        for l=1:(k-1)
+            G = G * powerGains(l);
+        end
+        F = F + noiseFactors(k)/G;
+    end
+    TE = T0 * (F - 1); % K
+    TS = TA + TE; % K
+    systemNoisePower = physconst("Boltzmann") * TS * bw; % W
 
-    systemNoiseTemp = (systemNoisePower / occupiedBW(symbolRate, order, modIndex)) * (1 / physconst("Boltzmann"));
-
-    % add noise of everything else
-    noise = 10*log10(systemNoisePower*1000) + noiseFig + systemNoiseTemp;
+    % convert to dBm
+    noise = 10*log10(systemNoisePower*1000);
 
 end
