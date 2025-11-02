@@ -276,6 +276,28 @@ blocks:
     coordinate: [528, 1128.0]
     rotation: 0
     state: disabled
+- name: blocks_file_source_0
+  id: blocks_file_source
+  parameters:
+    affinity: ''
+    alias: ''
+    begin_tag: pmt.PMT_NIL
+    comment: ''
+    file: ''
+    length: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    repeat: 'True'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 224.0]
+    rotation: 0
+    state: enabled
 - name: blocks_repack_bits_bb_0
   id: blocks_repack_bits_bb
   parameters:
@@ -530,9 +552,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [40, 228.0]
+    coordinate: [32, 380.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: osmosdr_sink_0
   id: osmosdr_sink
   parameters:
@@ -849,6 +871,7 @@ blocks:
 
 connections:
 - [analog_random_source_x_0, '0', digital_constellation_modulator_0, '0']
+- [blocks_file_source_0, '0', digital_constellation_modulator_0, '0']
 - [blocks_repack_bits_bb_0, '0', blocks_file_sink_2, '0']
 - [digital_constellation_decoder_cb_0, '0', digital_diff_decoder_bb_0, '0']
 - [digital_constellation_modulator_0, '0', osmosdr_sink_0, '0']

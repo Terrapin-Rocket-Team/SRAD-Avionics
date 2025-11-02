@@ -11,6 +11,8 @@
 
 from PyQt5 import Qt
 from gnuradio import qtgui
+from gnuradio import blocks
+import pmt
 from gnuradio import digital
 from gnuradio import gr
 from gnuradio.filter import firdes
@@ -23,7 +25,6 @@ from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
 import osmosdr
 import time
-import qpsk_stage6_ss_epy_block_0 as epy_block_0  # embedded python block
 
 
 
@@ -89,7 +90,6 @@ class qpsk_stage6_ss(gr.top_block, Qt.QWidget):
         self.osmosdr_sink_0.set_bb_gain(20, 0)
         self.osmosdr_sink_0.set_antenna('', 0)
         self.osmosdr_sink_0.set_bandwidth(10e3, 0)
-        self.epy_block_0 = epy_block_0.blk(path="/dev/serial0", mode="serial", baud=115200, repeat=True, chunk=15, timeout_ms=200, text=False, encoding="utf-8", normalize_nl=True)
         self.digital_constellation_modulator_0 = digital.generic_mod(
             constellation=qpsk,
             differential=True,
@@ -99,13 +99,15 @@ class qpsk_stage6_ss(gr.top_block, Qt.QWidget):
             verbose=False,
             log=False,
             truncate=False)
+        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_char*1, '', True, 0, 0)
+        self.blocks_file_source_0.set_begin_tag(pmt.PMT_NIL)
 
 
         ##################################################
         # Connections
         ##################################################
+        self.connect((self.blocks_file_source_0, 0), (self.digital_constellation_modulator_0, 0))
         self.connect((self.digital_constellation_modulator_0, 0), (self.osmosdr_sink_0, 0))
-        self.connect((self.epy_block_0, 0), (self.digital_constellation_modulator_0, 0))
 
 
     def closeEvent(self, event):
