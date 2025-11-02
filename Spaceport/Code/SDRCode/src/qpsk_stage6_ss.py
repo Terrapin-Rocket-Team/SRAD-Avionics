@@ -12,7 +12,7 @@
 from PyQt5 import Qt
 from gnuradio import qtgui
 from gnuradio import blocks
-import numpy
+import pmt
 from gnuradio import digital
 from gnuradio import gr
 from gnuradio.filter import firdes
@@ -100,13 +100,14 @@ class qpsk_stage6_ss(gr.top_block, Qt.QWidget):
             log=False,
             truncate=False)
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_cc(center_freq)
-        self.analog_random_source_x_0 = blocks.vector_source_b(list(map(int, numpy.random.randint(0, 2, 1000))), True)
+        self.blocks_file_source_0 = blocks.file_source(gr.sizeof_char*1, '', True, 0, 0)
+        self.blocks_file_source_0.set_begin_tag(pmt.PMT_NIL)
 
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.analog_random_source_x_0, 0), (self.digital_constellation_modulator_0, 0))
+        self.connect((self.blocks_file_source_0, 0), (self.digital_constellation_modulator_0, 0))
         self.connect((self.blocks_multiply_const_vxx_0, 0), (self.osmosdr_sink_0, 0))
         self.connect((self.digital_constellation_modulator_0, 0), (self.blocks_multiply_const_vxx_0, 0))
 
