@@ -11,7 +11,6 @@
 
 from PyQt5 import Qt
 from gnuradio import qtgui
-from PyQt5 import QtCore
 from gnuradio import blocks
 from gnuradio import digital
 from gnuradio import filter
@@ -25,7 +24,6 @@ from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
 import qpsk_stage6_ss_epy_block_0 as epy_block_0  # embedded python block
-import sip
 
 
 
@@ -69,88 +67,18 @@ class qpsk_stage6_ss(gr.top_block, Qt.QWidget):
         4, 2, 2, 1, 1).base()
         self.nfilts = nfilts = 32
         self.variable_adaptive_algorithm_0 = variable_adaptive_algorithm_0 = digital.adaptive_algorithm_cma( qpsk, .0001, 4).base()
-        self.time_offset = time_offset = 1.0005
         self.samp_rate = samp_rate = 100e3
         self.rrc_taps = rrc_taps = firdes.root_raised_cosine(nfilts, nfilts, 1.0/float(sps), 0.35, 11*sps*nfilts)
         self.phase_bw = phase_bw = 0.0628
-        self.noise_volt = noise_volt = 0.2
-        self.freq_offset = freq_offset = 0.025
         self.excess_bw = excess_bw = 0.35
-        self.delay = delay = 50
         self.center_freq = center_freq = 433e6
 
         ##################################################
         # Blocks
         ##################################################
 
-        self._time_offset_range = qtgui.Range(0.999, 1.001, 0.0001, 1.0005, 200)
-        self._time_offset_win = qtgui.RangeWidget(self._time_offset_range, self.set_time_offset, "Channel: Timing Offset", "counter_slider", float, QtCore.Qt.Horizontal)
-        self.top_grid_layout.addWidget(self._time_offset_win, 0, 1, 1, 1)
-        for r in range(0, 1):
-            self.top_grid_layout.setRowStretch(r, 1)
-        for c in range(1, 2):
-            self.top_grid_layout.setColumnStretch(c, 1)
         self.test_bytes = blocks.file_sink(gr.sizeof_char*1, 'ThisIsTransmit.txt', False)
         self.test_bytes.set_unbuffered(False)
-        self.qtgui_const_sink_x_0 = qtgui.const_sink_c(
-            1024, #size
-            '', #name
-            1, #number of inputs
-            None # parent
-        )
-        self.qtgui_const_sink_x_0.set_update_time(0.10)
-        self.qtgui_const_sink_x_0.set_y_axis((-2), 2)
-        self.qtgui_const_sink_x_0.set_x_axis((-2), 2)
-        self.qtgui_const_sink_x_0.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, "")
-        self.qtgui_const_sink_x_0.enable_autoscale(False)
-        self.qtgui_const_sink_x_0.enable_grid(False)
-        self.qtgui_const_sink_x_0.enable_axis_labels(True)
-
-
-        labels = ['', '', '', '', '',
-            '', '', '', '', '']
-        widths = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-        colors = ["blue", "red", "red", "red", "red",
-            "red", "red", "red", "red", "red"]
-        styles = [0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0]
-        markers = [0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0]
-        alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
-            1.0, 1.0, 1.0, 1.0, 1.0]
-
-        for i in range(1):
-            if len(labels[i]) == 0:
-                self.qtgui_const_sink_x_0.set_line_label(i, "Data {0}".format(i))
-            else:
-                self.qtgui_const_sink_x_0.set_line_label(i, labels[i])
-            self.qtgui_const_sink_x_0.set_line_width(i, widths[i])
-            self.qtgui_const_sink_x_0.set_line_color(i, colors[i])
-            self.qtgui_const_sink_x_0.set_line_style(i, styles[i])
-            self.qtgui_const_sink_x_0.set_line_marker(i, markers[i])
-            self.qtgui_const_sink_x_0.set_line_alpha(i, alphas[i])
-
-        self._qtgui_const_sink_x_0_win = sip.wrapinstance(self.qtgui_const_sink_x_0.qwidget(), Qt.QWidget)
-        self.top_grid_layout.addWidget(self._qtgui_const_sink_x_0_win, 1, 0, 1, 2)
-        for r in range(1, 2):
-            self.top_grid_layout.setRowStretch(r, 1)
-        for c in range(0, 2):
-            self.top_grid_layout.setColumnStretch(c, 1)
-        self._noise_volt_range = qtgui.Range(0, 1, 0.01, 0.2, 200)
-        self._noise_volt_win = qtgui.RangeWidget(self._noise_volt_range, self.set_noise_volt, "Channel: Noise Voltage", "counter_slider", float, QtCore.Qt.Horizontal)
-        self.top_grid_layout.addWidget(self._noise_volt_win, 0, 0, 1, 1)
-        for r in range(0, 1):
-            self.top_grid_layout.setRowStretch(r, 1)
-        for c in range(0, 1):
-            self.top_grid_layout.setColumnStretch(c, 1)
-        self._freq_offset_range = qtgui.Range(-0.1, 0.1, 0.001, 0.025, 200)
-        self._freq_offset_win = qtgui.RangeWidget(self._freq_offset_range, self.set_freq_offset, "Channel: Frequency Offset", "counter_slider", float, QtCore.Qt.Horizontal)
-        self.top_grid_layout.addWidget(self._freq_offset_win, 0, 2, 1, 1)
-        for r in range(0, 1):
-            self.top_grid_layout.setRowStretch(r, 1)
-        for c in range(2, 3):
-            self.top_grid_layout.setColumnStretch(c, 1)
         self.epy_block_0 = epy_block_0.blk(path="/dev/serial0", mode="serial", baud=115200, repeat=True, chunk=15, timeout_ms=200, text=False, encoding="utf-8", normalize_nl=True)
         self.digital_symbol_sync_xx_0 = digital.symbol_sync_cc(
             digital.TED_SIGNAL_TIMES_SLOPE_ML,
@@ -178,13 +106,6 @@ class qpsk_stage6_ss(gr.top_block, Qt.QWidget):
             log=False,
             truncate=False)
         self.digital_constellation_decoder_cb_0 = digital.constellation_decoder_cb(qpsk)
-        self._delay_range = qtgui.Range(0, 200, 1, 50, 200)
-        self._delay_win = qtgui.RangeWidget(self._delay_range, self.set_delay, "Delay", "counter_slider", float, QtCore.Qt.Horizontal)
-        self.top_grid_layout.addWidget(self._delay_win, 0, 3, 1, 1)
-        for r in range(0, 1):
-            self.top_grid_layout.setRowStretch(r, 1)
-        for c in range(3, 4):
-            self.top_grid_layout.setColumnStretch(c, 1)
         self.blocks_throttle2_0 = blocks.throttle( gr.sizeof_gr_complex*1, samp_rate, True, 0 if "auto" == "auto" else max( int(float(0.1) * samp_rate) if "auto" == "time" else int(0.1), 1) )
         self.blocks_repack_bits_bb_0 = blocks.repack_bits_bb(2, 8, "", False, gr.GR_MSB_FIRST)
         self.blocks_file_sink_2 = blocks.file_sink(gr.sizeof_char*1, 'ThisIsRecieve.txt', False)
@@ -199,7 +120,6 @@ class qpsk_stage6_ss(gr.top_block, Qt.QWidget):
         self.connect((self.digital_constellation_decoder_cb_0, 0), (self.digital_diff_decoder_bb_0, 0))
         self.connect((self.digital_constellation_modulator_0, 0), (self.blocks_throttle2_0, 0))
         self.connect((self.digital_costas_loop_cc_0, 0), (self.digital_constellation_decoder_cb_0, 0))
-        self.connect((self.digital_costas_loop_cc_0, 0), (self.qtgui_const_sink_x_0, 0))
         self.connect((self.digital_diff_decoder_bb_0, 0), (self.digital_map_bb_0, 0))
         self.connect((self.digital_linear_equalizer_0, 0), (self.digital_costas_loop_cc_0, 0))
         self.connect((self.digital_map_bb_0, 0), (self.blocks_repack_bits_bb_0, 0))
@@ -244,12 +164,6 @@ class qpsk_stage6_ss(gr.top_block, Qt.QWidget):
     def set_variable_adaptive_algorithm_0(self, variable_adaptive_algorithm_0):
         self.variable_adaptive_algorithm_0 = variable_adaptive_algorithm_0
 
-    def get_time_offset(self):
-        return self.time_offset
-
-    def set_time_offset(self, time_offset):
-        self.time_offset = time_offset
-
     def get_samp_rate(self):
         return self.samp_rate
 
@@ -271,29 +185,11 @@ class qpsk_stage6_ss(gr.top_block, Qt.QWidget):
         self.digital_costas_loop_cc_0.set_loop_bandwidth(self.phase_bw)
         self.digital_symbol_sync_xx_0.set_loop_bandwidth(self.phase_bw)
 
-    def get_noise_volt(self):
-        return self.noise_volt
-
-    def set_noise_volt(self, noise_volt):
-        self.noise_volt = noise_volt
-
-    def get_freq_offset(self):
-        return self.freq_offset
-
-    def set_freq_offset(self, freq_offset):
-        self.freq_offset = freq_offset
-
     def get_excess_bw(self):
         return self.excess_bw
 
     def set_excess_bw(self, excess_bw):
         self.excess_bw = excess_bw
-
-    def get_delay(self):
-        return self.delay
-
-    def set_delay(self, delay):
-        self.delay = delay
 
     def get_center_freq(self):
         return self.center_freq
