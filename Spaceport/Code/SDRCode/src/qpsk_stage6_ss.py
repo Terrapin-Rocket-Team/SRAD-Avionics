@@ -11,6 +11,7 @@
 
 from PyQt5 import Qt
 from gnuradio import qtgui
+from gnuradio import blocks
 from gnuradio import digital
 from gnuradio import gr
 from gnuradio.filter import firdes
@@ -99,13 +100,15 @@ class qpsk_stage6_ss(gr.top_block, Qt.QWidget):
             verbose=False,
             log=False,
             truncate=False)
+        self.blocks_throttle2_0 = blocks.throttle( gr.sizeof_char*1, samp_rate, True, 0 if "auto" == "auto" else max( int(float(0.1) * samp_rate) if "auto" == "time" else int(0.1), 1) )
 
 
         ##################################################
         # Connections
         ##################################################
+        self.connect((self.blocks_throttle2_0, 0), (self.digital_constellation_modulator_0, 0))
         self.connect((self.digital_constellation_modulator_0, 0), (self.osmosdr_sink_0, 0))
-        self.connect((self.epy_block_0, 0), (self.digital_constellation_modulator_0, 0))
+        self.connect((self.epy_block_0, 0), (self.blocks_throttle2_0, 0))
 
 
     def closeEvent(self, event):
@@ -147,6 +150,7 @@ class qpsk_stage6_ss(gr.top_block, Qt.QWidget):
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
+        self.blocks_throttle2_0.set_sample_rate(self.samp_rate)
         self.osmosdr_sink_0.set_sample_rate(self.samp_rate)
 
     def get_rrc_taps(self):
