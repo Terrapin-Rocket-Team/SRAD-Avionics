@@ -85,15 +85,15 @@ class Recieve(gr.top_block, Qt.QWidget):
         self.soapy_limesdr_source_0 = soapy.source(dev, "fc32", 1, '',
                                   stream_args, tune_args, settings)
         self.soapy_limesdr_source_0.set_sample_rate(0, samp_rate)
-        self.soapy_limesdr_source_0.set_bandwidth(0, 0.0)
+        self.soapy_limesdr_source_0.set_bandwidth(0, 10e6)
         self.soapy_limesdr_source_0.set_frequency(0, center_freq)
         self.soapy_limesdr_source_0.set_frequency_correction(0, 0)
-        self.soapy_limesdr_source_0.set_gain(0, min(max(20.0, -12.0), 61.0))
+        self.soapy_limesdr_source_0.set_gain(0, min(max(30, -12.0), 61.0))
         self.qtgui_freq_sink_x_0 = qtgui.freq_sink_c(
             1024, #size
             window.WIN_BLACKMAN_hARRIS, #wintype
             center_freq, #fc
-            3e6, #bw
+            1e6, #bw
             "Receiver", #name
             1,
             None # parent
@@ -102,7 +102,7 @@ class Recieve(gr.top_block, Qt.QWidget):
         self.qtgui_freq_sink_x_0.set_y_axis((-140), 10)
         self.qtgui_freq_sink_x_0.set_y_label('Relative Gain', 'dB')
         self.qtgui_freq_sink_x_0.set_trigger_mode(qtgui.TRIG_MODE_FREE, 0.0, 0, "")
-        self.qtgui_freq_sink_x_0.enable_autoscale(True)
+        self.qtgui_freq_sink_x_0.enable_autoscale(False)
         self.qtgui_freq_sink_x_0.enable_grid(True)
         self.qtgui_freq_sink_x_0.set_fft_average(1.0)
         self.qtgui_freq_sink_x_0.enable_axis_labels(True)
@@ -190,7 +190,7 @@ class Recieve(gr.top_block, Qt.QWidget):
         self.digital_costas_loop_cc_0 = digital.costas_loop_cc(phase_bw, 4, False)
         self.digital_constellation_decoder_cb_0 = digital.constellation_decoder_cb(qpsk)
         self.blocks_repack_bits_bb_0 = blocks.repack_bits_bb(2, 8, "", False, gr.GR_MSB_FIRST)
-        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_char*1, '/home/kc3ykx/repos/SRAD-Avionics/Spaceport/Code/SDRCode/src/Recieve(ThisOne).tx', False)
+        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_char*1, '/home/kc3ykx/repos/SRAD-Avionics/Spaceport/Code/SDRCode/src/launch_receive.txt', False)
         self.blocks_file_sink_0.set_unbuffered(False)
 
 
@@ -264,7 +264,7 @@ class Recieve(gr.top_block, Qt.QWidget):
 
     def set_center_freq(self, center_freq):
         self.center_freq = center_freq
-        self.qtgui_freq_sink_x_0.set_frequency_range(self.center_freq, 3e6)
+        self.qtgui_freq_sink_x_0.set_frequency_range(self.center_freq, 1e6)
         self.soapy_limesdr_source_0.set_frequency(0, self.center_freq)
 
     def get_AdaptiveAlgorithm(self):
