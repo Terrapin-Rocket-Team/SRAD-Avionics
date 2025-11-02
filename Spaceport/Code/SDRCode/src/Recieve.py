@@ -66,7 +66,7 @@ class Recieve(gr.top_block, Qt.QWidget):
         self.qpsk = qpsk = digital.constellation_rect([-1-1j, -1+1j, 1+1j, 1-1j], [0, 1, 2, 3],
         4, 2, 2, 1, 1).base()
         self.nfilts = nfilts = 32
-        self.samp_rate = samp_rate = 32000
+        self.samp_rate = samp_rate = 100e3
         self.rrc_taps = rrc_taps = firdes.root_raised_cosine(nfilts, nfilts, 1.0/float(sps), 0.35, 11*sps*nfilts)
         self.phase_bw = phase_bw = 0.0628
         self.center_freq = center_freq = 433e6
@@ -190,7 +190,7 @@ class Recieve(gr.top_block, Qt.QWidget):
         self.digital_costas_loop_cc_0 = digital.costas_loop_cc(phase_bw, 4, False)
         self.digital_constellation_decoder_cb_0 = digital.constellation_decoder_cb(qpsk)
         self.blocks_repack_bits_bb_0 = blocks.repack_bits_bb(2, 8, "", False, gr.GR_MSB_FIRST)
-        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_char*1, 'Recieve(ThisOne).tx', False)
+        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_char*1, '/home/kc3ykx/repos/SRAD-Avionics/Spaceport/Code/SDRCode/src/Recieve(ThisOne).tx', False)
         self.blocks_file_sink_0.set_unbuffered(False)
 
 

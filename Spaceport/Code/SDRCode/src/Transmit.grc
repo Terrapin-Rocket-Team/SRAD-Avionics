@@ -238,6 +238,26 @@ blocks:
     coordinate: [1072, 12.0]
     rotation: 0
     state: enabled
+- name: analog_random_source_x_0
+  id: analog_random_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    max: '2'
+    maxoutbuf: '0'
+    min: '0'
+    minoutbuf: '0'
+    num_samps: '1000'
+    repeat: 'True'
+    type: byte
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 592.0]
+    rotation: 0
+    state: enabled
 - name: blocks_file_sink_2
   id: blocks_file_sink
   parameters:
@@ -255,7 +275,7 @@ blocks:
     bus_structure: null
     coordinate: [528, 1128.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: blocks_repack_bits_bb_0
   id: blocks_repack_bits_bb
   parameters:
@@ -275,7 +295,7 @@ blocks:
     bus_structure: null
     coordinate: [280, 1136.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: blocks_throttle2_0
   id: blocks_throttle2
   parameters:
@@ -312,7 +332,7 @@ blocks:
     bus_structure: null
     coordinate: [792, 936.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: digital_constellation_modulator_0
   id: digital_constellation_modulator
   parameters:
@@ -352,7 +372,7 @@ blocks:
     bus_structure: null
     coordinate: [488, 952.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: digital_diff_decoder_bb_0
   id: digital_diff_decoder_bb
   parameters:
@@ -369,7 +389,7 @@ blocks:
     bus_structure: null
     coordinate: [1016, 928.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: digital_linear_equalizer_0
   id: digital_linear_equalizer
   parameters:
@@ -388,9 +408,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1272, 616.0]
+    coordinate: [1848, 944.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: digital_map_bb_0
   id: digital_map_bb
   parameters:
@@ -406,7 +426,7 @@ blocks:
     bus_structure: null
     coordinate: [1208, 936.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: digital_symbol_sync_xx_0
   id: digital_symbol_sync_xx
   parameters:
@@ -431,9 +451,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [888, 604.0]
+    coordinate: [1464, 932.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: epy_block_0
   id: epy_block
   parameters:
@@ -533,7 +553,7 @@ blocks:
     bus_structure: null
     coordinate: [0, 172.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: osmosdr_sink_0
   id: osmosdr_sink
   parameters:
@@ -794,7 +814,88 @@ blocks:
     bus_structure: null
     coordinate: [816, 260.0]
     rotation: 0
-    state: disabled
+    state: enabled
+- name: qtgui_freq_sink_x_0
+  id: qtgui_freq_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    average: '1.0'
+    axislabels: 'True'
+    bw: samp_rate
+    color1: '"blue"'
+    color10: '"dark blue"'
+    color2: '"red"'
+    color3: '"green"'
+    color4: '"black"'
+    color5: '"cyan"'
+    color6: '"magenta"'
+    color7: '"yellow"'
+    color8: '"dark red"'
+    color9: '"dark green"'
+    comment: ''
+    ctrlpanel: 'False'
+    fc: '0'
+    fftsize: '1024'
+    freqhalf: 'True'
+    grid: 'False'
+    gui_hint: ''
+    label: Relative Gain
+    label1: ''
+    label10: ''''''
+    label2: ''''''
+    label3: ''''''
+    label4: ''''''
+    label5: ''''''
+    label6: ''''''
+    label7: ''''''
+    label8: ''''''
+    label9: ''''''
+    legend: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    name: '""'
+    nconnections: '1'
+    norm_window: 'False'
+    showports: 'False'
+    tr_chan: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_tag: '""'
+    type: complex
+    units: dB
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    wintype: window.WIN_BLACKMAN_hARRIS
+    ymax: '10'
+    ymin: '-140'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [816, 456.0]
+    rotation: 0
+    state: enabled
 - name: test_bytes
   id: blocks_file_sink
   parameters:
@@ -810,9 +911,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [208, 448.0]
+    coordinate: [256, 448.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: virtual_sink_0
   id: virtual_sink
   parameters:
@@ -823,9 +924,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1360, 728.0]
+    coordinate: [1936, 1056.0]
     rotation: 180
-    state: enabled
+    state: disabled
 - name: virtual_sink_1
   id: virtual_sink
   parameters:
@@ -838,7 +939,7 @@ blocks:
     bus_structure: null
     coordinate: [1352, 936.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: virtual_source_0
   id: virtual_source
   parameters:
@@ -851,7 +952,7 @@ blocks:
     bus_structure: null
     coordinate: [248, 968.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: virtual_source_1
   id: virtual_source
   parameters:
@@ -864,12 +965,14 @@ blocks:
     bus_structure: null
     coordinate: [64, 1144.0]
     rotation: 0
-    state: enabled
+    state: disabled
 
 connections:
+- [analog_random_source_x_0, '0', digital_constellation_modulator_0, '0']
 - [blocks_repack_bits_bb_0, '0', blocks_file_sink_2, '0']
 - [blocks_throttle2_0, '0', digital_symbol_sync_xx_0, '0']
 - [blocks_throttle2_0, '0', osmosdr_sink_0, '0']
+- [blocks_throttle2_0, '0', qtgui_freq_sink_x_0, '0']
 - [digital_constellation_decoder_cb_0, '0', digital_diff_decoder_bb_0, '0']
 - [digital_constellation_modulator_0, '0', blocks_throttle2_0, '0']
 - [digital_costas_loop_cc_0, '0', digital_constellation_decoder_cb_0, '0']
