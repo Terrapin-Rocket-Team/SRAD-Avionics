@@ -88,7 +88,7 @@ class qpsk_stage6_ss(gr.top_block, Qt.QWidget):
         self.osmosdr_sink_0.set_if_gain(20, 0)
         self.osmosdr_sink_0.set_bb_gain(20, 0)
         self.osmosdr_sink_0.set_antenna('', 0)
-        self.osmosdr_sink_0.set_bandwidth(0, 0)
+        self.osmosdr_sink_0.set_bandwidth(10e6, 0)
         self.epy_block_0 = epy_block_0.blk(path="/dev/serial0", mode="serial", baud=115200, repeat=True, chunk=15, timeout_ms=200, text=False, encoding="utf-8", normalize_nl=True)
         self.digital_constellation_modulator_0 = digital.generic_mod(
             constellation=qpsk,
