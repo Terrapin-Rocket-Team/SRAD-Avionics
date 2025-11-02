@@ -11,8 +11,6 @@
 
 from PyQt5 import Qt
 from gnuradio import qtgui
-from gnuradio import blocks
-import numpy
 from gnuradio import digital
 from gnuradio import gr
 from gnuradio.filter import firdes
@@ -25,7 +23,7 @@ from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
 import osmosdr
 import time
-import sip
+import qpsk_stage6_ss_epy_block_0 as epy_block_0  # embedded python block
 
 
 
@@ -69,7 +67,7 @@ class qpsk_stage6_ss(gr.top_block, Qt.QWidget):
         4, 2, 2, 1, 1).base()
         self.nfilts = nfilts = 32
         self.variable_adaptive_algorithm_0 = variable_adaptive_algorithm_0 = digital.adaptive_algorithm_cma( qpsk, .0001, 4).base()
-        self.samp_rate = samp_rate = 100e3
+        self.samp_rate = samp_rate = 32e3
         self.rrc_taps = rrc_taps = firdes.root_raised_cosine(nfilts, nfilts, 1.0/float(sps), 0.35, 11*sps*nfilts)
         self.phase_bw = phase_bw = 0.0628
         self.excess_bw = excess_bw = 0.35
@@ -79,48 +77,6 @@ class qpsk_stage6_ss(gr.top_block, Qt.QWidget):
         # Blocks
         ##################################################
 
-        self.qtgui_freq_sink_x_0 = qtgui.freq_sink_c(
-            1024, #size
-            window.WIN_BLACKMAN_hARRIS, #wintype
-            0, #fc
-            samp_rate, #bw
-            "", #name
-            1,
-            None # parent
-        )
-        self.qtgui_freq_sink_x_0.set_update_time(0.10)
-        self.qtgui_freq_sink_x_0.set_y_axis((-140), 10)
-        self.qtgui_freq_sink_x_0.set_y_label('Relative Gain', 'dB')
-        self.qtgui_freq_sink_x_0.set_trigger_mode(qtgui.TRIG_MODE_FREE, 0.0, 0, "")
-        self.qtgui_freq_sink_x_0.enable_autoscale(False)
-        self.qtgui_freq_sink_x_0.enable_grid(False)
-        self.qtgui_freq_sink_x_0.set_fft_average(1.0)
-        self.qtgui_freq_sink_x_0.enable_axis_labels(True)
-        self.qtgui_freq_sink_x_0.enable_control_panel(False)
-        self.qtgui_freq_sink_x_0.set_fft_window_normalized(False)
-
-
-
-        labels = ['', '', '', '', '',
-            '', '', '', '', '']
-        widths = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-        colors = ["blue", "red", "green", "black", "cyan",
-            "magenta", "yellow", "dark red", "dark green", "dark blue"]
-        alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
-            1.0, 1.0, 1.0, 1.0, 1.0]
-
-        for i in range(1):
-            if len(labels[i]) == 0:
-                self.qtgui_freq_sink_x_0.set_line_label(i, "Data {0}".format(i))
-            else:
-                self.qtgui_freq_sink_x_0.set_line_label(i, labels[i])
-            self.qtgui_freq_sink_x_0.set_line_width(i, widths[i])
-            self.qtgui_freq_sink_x_0.set_line_color(i, colors[i])
-            self.qtgui_freq_sink_x_0.set_line_alpha(i, alphas[i])
-
-        self._qtgui_freq_sink_x_0_win = sip.wrapinstance(self.qtgui_freq_sink_x_0.qwidget(), Qt.QWidget)
-        self.top_layout.addWidget(self._qtgui_freq_sink_x_0_win)
         self.osmosdr_sink_0 = osmosdr.sink(
             args="numchan=" + str(1) + " " + ""
         )
@@ -133,6 +89,7 @@ class qpsk_stage6_ss(gr.top_block, Qt.QWidget):
         self.osmosdr_sink_0.set_bb_gain(20, 0)
         self.osmosdr_sink_0.set_antenna('', 0)
         self.osmosdr_sink_0.set_bandwidth(0, 0)
+        self.epy_block_0 = epy_block_0.blk(path="/dev/serial0", mode="serial", baud=115200, repeat=True, chunk=15, timeout_ms=200, text=False, encoding="utf-8", normalize_nl=True)
         self.digital_constellation_modulator_0 = digital.generic_mod(
             constellation=qpsk,
             differential=True,
@@ -142,17 +99,13 @@ class qpsk_stage6_ss(gr.top_block, Qt.QWidget):
             verbose=False,
             log=False,
             truncate=False)
-        self.blocks_throttle2_0 = blocks.throttle( gr.sizeof_gr_complex*1, samp_rate, True, 0 if "auto" == "auto" else max( int(float(0.1) * samp_rate) if "auto" == "time" else int(0.1), 1) )
-        self.analog_random_source_x_0 = blocks.vector_source_b(list(map(int, numpy.random.randint(0, 2, 1000))), True)
 
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.analog_random_source_x_0, 0), (self.digital_constellation_modulator_0, 0))
-        self.connect((self.blocks_throttle2_0, 0), (self.osmosdr_sink_0, 0))
-        self.connect((self.blocks_throttle2_0, 0), (self.qtgui_freq_sink_x_0, 0))
-        self.connect((self.digital_constellation_modulator_0, 0), (self.blocks_throttle2_0, 0))
+        self.connect((self.digital_constellation_modulator_0, 0), (self.osmosdr_sink_0, 0))
+        self.connect((self.epy_block_0, 0), (self.digital_constellation_modulator_0, 0))
 
 
     def closeEvent(self, event):
@@ -194,9 +147,7 @@ class qpsk_stage6_ss(gr.top_block, Qt.QWidget):
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
-        self.blocks_throttle2_0.set_sample_rate(self.samp_rate)
         self.osmosdr_sink_0.set_sample_rate(self.samp_rate)
-        self.qtgui_freq_sink_x_0.set_frequency_range(0, self.samp_rate)
 
     def get_rrc_taps(self):
         return self.rrc_taps
