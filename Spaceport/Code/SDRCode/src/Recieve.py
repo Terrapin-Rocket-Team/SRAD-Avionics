@@ -85,7 +85,7 @@ class Recieve(gr.top_block, Qt.QWidget):
         self.soapy_limesdr_source_0 = soapy.source(dev, "fc32", 1, '',
                                   stream_args, tune_args, settings)
         self.soapy_limesdr_source_0.set_sample_rate(0, samp_rate)
-        self.soapy_limesdr_source_0.set_bandwidth(0, 10e6)
+        self.soapy_limesdr_source_0.set_bandwidth(0, 1e6)
         self.soapy_limesdr_source_0.set_frequency(0, center_freq)
         self.soapy_limesdr_source_0.set_frequency_correction(0, 0)
         self.soapy_limesdr_source_0.set_gain(0, min(max(30, -12.0), 61.0))
