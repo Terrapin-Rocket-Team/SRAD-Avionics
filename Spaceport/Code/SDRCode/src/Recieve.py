@@ -88,7 +88,7 @@ class Recieve(gr.top_block, Qt.QWidget):
         self.soapy_limesdr_source_0.set_bandwidth(0, 10e6)
         self.soapy_limesdr_source_0.set_frequency(0, center_freq)
         self.soapy_limesdr_source_0.set_frequency_correction(0, 0)
-        self.soapy_limesdr_source_0.set_gain(0, min(max(30, -12.0), 61.0))
+        self.soapy_limesdr_source_0.set_gain(0, min(max(20, -12.0), 61.0))
         self.qtgui_freq_sink_x_0 = qtgui.freq_sink_c(
             1024, #size
             window.WIN_BLACKMAN_hARRIS, #wintype
