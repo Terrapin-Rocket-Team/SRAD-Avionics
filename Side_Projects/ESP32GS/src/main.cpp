@@ -146,7 +146,7 @@ void setup()
   SensorUart.begin(UART_BAUD, SERIAL_8N1, UART_RX_GPIO, UART_TX_GPIO);
 
   // BLE init
-  NimBLEDevice::init("ESP32-NUS-1");
+  NimBLEDevice::init("ESP32-NUS-3");
   NimBLEDevice::setPower(7); // dBm
   NimBLEDevice::setMTU(247); // allow longer packets
 
@@ -172,7 +172,7 @@ void setup()
   adv->setAdvertisementData(ad);
 
   NimBLEAdvertisementData sd;
-  sd.setName("ESP32-NUS-1");
+  sd.setName("ESP32-NUS-3");
   adv->setScanResponseData(sd);
   adv->start();
 }
