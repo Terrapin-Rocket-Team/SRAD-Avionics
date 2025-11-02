@@ -108,7 +108,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [184, 76.0]
+    coordinate: [184, 80.0]
     rotation: 0
     state: enabled
 - name: noise_volt
@@ -161,7 +161,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1272, 140.0]
+    coordinate: [1272, 180.0]
     rotation: 0
     state: enabled
 - name: rrc_taps
@@ -173,7 +173,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [256, 76.0]
+    coordinate: [264, 80.0]
     rotation: 0
     state: enabled
 - name: samp_rate
@@ -352,7 +352,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [360, 224.0]
+    coordinate: [312, 272.0]
     rotation: 0
     state: enabled
 - name: digital_costas_loop_cc_0
@@ -551,7 +551,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [0, 180.0]
+    coordinate: [40, 228.0]
     rotation: 0
     state: enabled
 - name: osmosdr_sink_0
@@ -624,7 +624,7 @@ blocks:
     bb_gain7: '20'
     bb_gain8: '20'
     bb_gain9: '20'
-    bw0: 1e6
+    bw0: '0'
     bw1: '0'
     bw10: '0'
     bw11: '0'
@@ -729,7 +729,7 @@ blocks:
     freq7: 100e6
     freq8: 100e6
     freq9: 100e6
-    gain0: '30'
+    gain0: '20'
     gain1: '10'
     gain10: '10'
     gain11: '10'
@@ -812,7 +812,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [792, 164.0]
+    coordinate: [640, 220.0]
     rotation: 0
     state: enabled
 - name: qtgui_freq_sink_x_0
@@ -893,7 +893,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [792, 408.0]
+    coordinate: [784, 448.0]
     rotation: 0
     state: disabled
 - name: test_bytes
@@ -976,7 +976,6 @@ connections:
 - [digital_constellation_decoder_cb_0, '0', digital_diff_decoder_bb_0, '0']
 - [digital_constellation_modulator_0, '0', blocks_throttle2_0, '0']
 - [digital_constellation_modulator_0, '0', osmosdr_sink_0, '0']
-- [digital_constellation_modulator_0, '0', qtgui_freq_sink_x_0, '0']
 - [digital_costas_loop_cc_0, '0', digital_constellation_decoder_cb_0, '0']
 - [digital_diff_decoder_bb_0, '0', digital_map_bb_0, '0']
 - [digital_linear_equalizer_0, '0', virtual_sink_0, '0']

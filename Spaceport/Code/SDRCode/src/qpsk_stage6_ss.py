@@ -67,7 +67,7 @@ class qpsk_stage6_ss(gr.top_block, Qt.QWidget):
         4, 2, 2, 1, 1).base()
         self.nfilts = nfilts = 32
         self.variable_adaptive_algorithm_0 = variable_adaptive_algorithm_0 = digital.adaptive_algorithm_cma( qpsk, .0001, 4).base()
-        self.samp_rate = samp_rate = 50e6
+        self.samp_rate = samp_rate = 50e3
         self.rrc_taps = rrc_taps = firdes.root_raised_cosine(nfilts, nfilts, 1.0/float(sps), 0.35, 11*sps*nfilts)
         self.phase_bw = phase_bw = 0.0628
         self.excess_bw = excess_bw = 0.35
@@ -84,11 +84,11 @@ class qpsk_stage6_ss(gr.top_block, Qt.QWidget):
         self.osmosdr_sink_0.set_sample_rate(samp_rate)
         self.osmosdr_sink_0.set_center_freq(center_freq, 0)
         self.osmosdr_sink_0.set_freq_corr(0, 0)
-        self.osmosdr_sink_0.set_gain(30, 0)
+        self.osmosdr_sink_0.set_gain(20, 0)
         self.osmosdr_sink_0.set_if_gain(20, 0)
         self.osmosdr_sink_0.set_bb_gain(20, 0)
         self.osmosdr_sink_0.set_antenna('', 0)
-        self.osmosdr_sink_0.set_bandwidth(1e6, 0)
+        self.osmosdr_sink_0.set_bandwidth(0, 0)
         self.epy_block_0 = epy_block_0.blk(path="/dev/serial0", mode="serial", baud=115200, repeat=True, chunk=15, timeout_ms=200, text=False, encoding="utf-8", normalize_nl=True)
         self.digital_constellation_modulator_0 = digital.generic_mod(
             constellation=qpsk,
