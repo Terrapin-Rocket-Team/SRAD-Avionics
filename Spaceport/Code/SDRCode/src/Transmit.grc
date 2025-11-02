@@ -1,0 +1,686 @@
+options:
+  parameters:
+    author: Barry Duggan
+    catch_exceptions: 'True'
+    category: Custom
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: qt_gui
+    hier_block_src_path: '.:'
+    id: qpsk_stage6_ss
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: qpsk_stage6_ss
+    window_size: 2000,2000
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 12.0]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: delay
+  id: variable_qtgui_range
+  parameters:
+    comment: 0,3,1,1
+    gui_hint: 0,3,1,1
+    label: Delay
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: float
+    start: '0'
+    step: '1'
+    stop: '200'
+    value: '50'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [952, 12.0]
+    rotation: 0
+    state: enabled
+- name: excess_bw
+  id: variable
+  parameters:
+    comment: ''
+    value: '0.35'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [352, 12.0]
+    rotation: 0
+    state: enabled
+- name: freq_offset
+  id: variable_qtgui_range
+  parameters:
+    comment: 0,2,1,1
+    gui_hint: 0,2,1,1
+    label: 'Channel: Frequency Offset'
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: float
+    start: '-0.1'
+    step: '0.001'
+    stop: '0.1'
+    value: '0.025'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [784, 12.0]
+    rotation: 0
+    state: enabled
+- name: nfilts
+  id: variable
+  parameters:
+    comment: ''
+    value: '32'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [184, 76.0]
+    rotation: 0
+    state: enabled
+- name: noise_volt
+  id: variable_qtgui_range
+  parameters:
+    comment: 0,0,1,1
+    gui_hint: 0,0,1,1
+    label: 'Channel: Noise Voltage'
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: float
+    start: '0'
+    step: '0.01'
+    stop: '1'
+    value: '0.2'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [448, 12.0]
+    rotation: 0
+    state: enabled
+- name: phase_bw
+  id: variable
+  parameters:
+    comment: ''
+    value: '0.0628'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1240, 12.0]
+    rotation: 0
+    state: enabled
+- name: qpsk
+  id: variable_constellation_rect
+  parameters:
+    comment: ''
+    const_points: '[-1-1j, -1+1j, 1+1j, 1-1j]'
+    imag_sect: '2'
+    precision: '8'
+    real_sect: '2'
+    rot_sym: '4'
+    soft_dec_lut: None
+    sym_map: '[0, 1, 2, 3]'
+    w_imag_sect: '1'
+    w_real_sect: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 404.0]
+    rotation: 0
+    state: enabled
+- name: rrc_taps
+  id: variable
+  parameters:
+    comment: ''
+    value: firdes.root_raised_cosine(nfilts, nfilts, 1.0/float(sps), 0.35, 11*sps*nfilts)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [256, 76.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: '32000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [184, 12.0]
+    rotation: 0
+    state: enabled
+- name: sps
+  id: variable
+  parameters:
+    comment: ''
+    value: '4'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [280, 4.0]
+    rotation: 0
+    state: enabled
+- name: time_offset
+  id: variable_qtgui_range
+  parameters:
+    comment: 0,1,1,1
+    gui_hint: 0,1,1,1
+    label: 'Channel: Timing Offset'
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: float
+    start: '0.999'
+    step: '0.0001'
+    stop: '1.001'
+    value: '1.0005'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [616, 12.0]
+    rotation: 0
+    state: enabled
+- name: variable_adaptive_algorithm_0
+  id: variable_adaptive_algorithm
+  parameters:
+    comment: ''
+    cons: qpsk
+    delta: '10.0'
+    ffactor: '0.99'
+    modulus: '4'
+    step_size: '.0001'
+    type: cma
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1072, 12.0]
+    rotation: 0
+    state: enabled
+- name: blocks_file_sink_2
+  id: blocks_file_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    append: 'False'
+    comment: ''
+    file: c.txt
+    type: byte
+    unbuffered: 'False'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [480, 604.0]
+    rotation: 0
+    state: disabled
+- name: blocks_repack_bits_bb_0
+  id: blocks_repack_bits_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    align_output: 'False'
+    comment: ''
+    endianness: gr.GR_MSB_FIRST
+    k: '2'
+    l: '8'
+    len_tag_key: '""'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [232, 612.0]
+    rotation: 0
+    state: disabled
+- name: blocks_throttle2_0
+  id: blocks_throttle2
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    ignoretag: 'True'
+    limit: auto
+    maximum: '0.1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samples_per_second: samp_rate
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [440, 236.0]
+    rotation: 0
+    state: enabled
+- name: digital_constellation_decoder_cb_0
+  id: digital_constellation_decoder_cb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    constellation: qpsk
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [632, 428.0]
+    rotation: 0
+    state: disabled
+- name: digital_constellation_modulator_0
+  id: digital_constellation_modulator
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    constellation: qpsk
+    differential: 'True'
+    excess_bw: excess_bw
+    log: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samples_per_symbol: sps
+    truncate: 'False'
+    verbose: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [200, 220.0]
+    rotation: 0
+    state: enabled
+- name: digital_costas_loop_cc_0
+  id: digital_costas_loop_cc
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    order: '4'
+    use_snr: 'False'
+    w: phase_bw
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [376, 432.0]
+    rotation: 0
+    state: disabled
+- name: digital_diff_decoder_bb_0
+  id: digital_diff_decoder_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    coding: digital.DIFF_DIFFERENTIAL
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    modulus: '4'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [856, 420.0]
+    rotation: 0
+    state: disabled
+- name: digital_linear_equalizer_0
+  id: digital_linear_equalizer
+  parameters:
+    adapt_after_training: 'True'
+    affinity: ''
+    alg: variable_adaptive_algorithm_0
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_taps: '15'
+    sps: '2'
+    training_sequence: '[ ]'
+    training_start_tag: corr_est
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1168, 184.0]
+    rotation: 0
+    state: disabled
+- name: digital_map_bb_0
+  id: digital_map_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    map: '[0,1,2,3]'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1048, 428.0]
+    rotation: 0
+    state: disabled
+- name: digital_symbol_sync_xx_0
+  id: digital_symbol_sync_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    constellation: digital.constellation_bpsk().base()
+    damping: '1.0'
+    loop_bw: phase_bw
+    max_dev: '1.5'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nfilters: '32'
+    osps: '2'
+    pfb_mf_taps: rrc_taps
+    resamp_type: digital.IR_PFB_MF
+    sps: sps
+    ted_gain: '1.0'
+    ted_type: digital.TED_SIGNAL_TIMES_SLOPE_ML
+    type: cc
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [784, 188.0]
+    rotation: 0
+    state: disabled
+- name: epy_block_0
+  id: epy_block
+  parameters:
+    _source_code: "import os, io, time\nimport numpy as np\nfrom gnuradio import gr\n\
+      \ntry:\n    import serial\nexcept Exception:\n    serial = None\n\nclass blk(gr.sync_block):\n\
+      \    \"\"\"\n    Byte stream source for GNU Radio (file or serial/UART)\n\n\
+      \    Parameters:\n      path        : \"/dev/ttyACM0\" (serial) or \"/path/to/file.txt\"\
+      \n      mode        : \"serial\" or \"file\"\n      baud        : serial baud\
+      \ (ignored for file)\n      repeat      : loop file on EOF (files only)\n  \
+      \    chunk       : max bytes per work() attempt\n      timeout_ms  : serial\
+      \ read timeout (0 = non-blocking)\n      text        : if True and mode=\"file\"\
+      , open in text mode and encode to bytes\n      encoding    : text encoding (e.g.,\
+      \ \"utf-8\", \"latin-1\"); only used when text=True\n      normalize_nl: if\
+      \ True (text mode), convert all newlines to '\\n'\n    \"\"\"\n    def __init__(self,\
+      \ path=\"/dev/ttyACM0\", mode=\"serial\", baud=115200,\n                 repeat=False,\
+      \ chunk=4096, timeout_ms=0,\n                 text=False, encoding=\"utf-8\"\
+      , normalize_nl=True):\n        gr.sync_block.__init__(\n            self, name=\"\
+      byte_stream_source\", in_sig=None, out_sig=[np.uint8]\n        )\n        self.path\
+      \ = str(path)\n        self.mode = str(mode).lower()\n        self.baud = int(baud)\n\
+      \        self.repeat = bool(repeat)\n        self.timeout = max(0, int(timeout_ms))\n\
+      \n        self.text = bool(text)\n        self.encoding = str(encoding)\n  \
+      \      self.normalize_nl = bool(normalize_nl)\n\n        self._fh = None\n \
+      \       self._is_serial = (self.mode == \"serial\")\n        self._eof = False\n\
+      \n    def start(self):\n        if self._is_serial:\n            if serial is\
+      \ None:\n                raise RuntimeError(\"pyserial not available; install\
+      \ it or use mode='file'\")\n            self._fh = serial.Serial(\n        \
+      \        self.path, self.baud,\n                timeout=self.timeout / 1000.0\n\
+      \            )\n            time.sleep(0.500)\n            self._fh.write(\"\
+      ping\\n\".encode())\n            time.sleep(0.5)\n            if(self._fh.in_waiting\
+      \ > 0):\n                a = self._fh.readline().decode().strip()\n        \
+      \        print(a)\n                if(a == 'pong'):\n                    print('Recieved\
+      \ Handshake!')\n                else:\n                    print('No Pong')\n\
+      \            else:\n                print('No Response')    \n            self._fh.reset_input_buffer()\n\
+      \        else:\n            if self.text:\n                # newline=None enables\
+      \ universal newlines; we'll optionally normalize\n                self._fh =\
+      \ open(self.path, \"r\", encoding=self.encoding, newline=None)\n           \
+      \ else:\n                self._fh = open(self.path, \"rb\", buffering=0)\n \
+      \           self._eof = False\n        return super().start()\n\n    def stop(self):\n\
+      \        try:\n            if self._fh is not None:\n                self._fh.close()\n\
+      \        finally:\n            self._fh = None\n        return super().stop()\n\
+      \n    def _read_line(self):\n        if self._is_serial:\n            return\
+      \ self._fh.readline()\n        else:\n            if self._eof and not self.repeat:\n\
+      \                return b\"\"\n            if self.text:\n                #\
+      \ Read chars, encode to bytes\n                s = self._fh.readline()  # chars,\
+      \ not bytes\n                if not s:\n                    if self.repeat:\n\
+      \                        try:\n                            self._fh.seek(0)\n\
+      \                            s = self._fh.readline()\n                     \
+      \       self._eof = False\n                        except Exception:\n     \
+      \                       self._eof = True\n                    else:\n      \
+      \                  self._eof = True\n                        return b\"\"\n\
+      \                if s and self.normalize_nl:\n                    s = s.replace(\"\
+      \\r\\n\", \"\\n\").replace(\"\\r\", \"\\n\")\n                return s.encode(self.encoding,\
+      \ errors=\"replace\")\n            else:\n                buf = self._fh.readline()\n\
+      \                if not buf:\n                    if self.repeat:\n        \
+      \                try:\n                            self._fh.seek(0)\n      \
+      \                      buf = self._fh.readline()\n                         \
+      \   self._eof = False\n                        except Exception:\n         \
+      \                   self._eof = True\n                    else:\n          \
+      \              self._eof = True\n                return buf\n\n    def work(self,\
+      \ input_items, output_items):\n        out = output_items[0]\n        if self._fh\
+      \ is None:\n            return 0\n\n        attempts = 0\n        while attempts\
+      \ < 4:\n            chunk = self._read_line()\n            if chunk:\n     \
+      \           n = len(chunk)\n                out[0:n] = np.frombuffer(chunk,\
+      \ dtype=np.uint8, count=n)\n                break\n            else:\n     \
+      \           attempts += 1\n                time.sleep(0.001)\n        return\
+      \ n\n"
+    affinity: ''
+    alias: ''
+    baud: '115200'
+    chunk: '15'
+    comment: ''
+    encoding: '"utf-8"'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    mode: '"serial"'
+    normalize_nl: 'True'
+    path: '"/dev/serial0"'
+    repeat: 'True'
+    text: 'False'
+    timeout_ms: '200'
+  states:
+    _io_cache: '(''byte_stream_source'', ''blk'', [(''path'', "''/dev/ttyACM0''"),
+      (''mode'', "''serial''"), (''baud'', ''115200''), (''repeat'', ''False''), (''chunk'',
+      ''4096''), (''timeout_ms'', ''0''), (''text'', ''False''), (''encoding'', "''utf-8''"),
+      (''normalize_nl'', ''True'')], [], [(''0'', ''byte'', 1)], ''\n    Byte stream
+      source for GNU Radio (file or serial/UART)\n\n    Parameters:\n      path        :
+      "/dev/ttyACM0" (serial) or "/path/to/file.txt"\n      mode        : "serial"
+      or "file"\n      baud        : serial baud (ignored for file)\n      repeat      :
+      loop file on EOF (files only)\n      chunk       : max bytes per work() attempt\n      timeout_ms  :
+      serial read timeout (0 = non-blocking)\n      text        : if True and mode="file",
+      open in text mode and encode to bytes\n      encoding    : text encoding (e.g.,
+      "utf-8", "latin-1"); only used when text=True\n      normalize_nl: if True (text
+      mode), convert all newlines to \''\n\''\n    '', [''baud'', ''encoding'', ''mode'',
+      ''normalize_nl'', ''path'', ''repeat'', ''text''])'
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [0, 180.0]
+    rotation: 0
+    state: enabled
+- name: qtgui_const_sink_x_0
+  id: qtgui_const_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    axislabels: 'True'
+    color1: '"blue"'
+    color10: '"red"'
+    color2: '"red"'
+    color3: '"red"'
+    color4: '"red"'
+    color5: '"red"'
+    color6: '"red"'
+    color7: '"red"'
+    color8: '"red"'
+    color9: '"red"'
+    comment: 1,0,1,2
+    grid: 'False'
+    gui_hint: 1,0,1,2
+    label1: ''
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    legend: 'True'
+    marker1: '0'
+    marker10: '0'
+    marker2: '0'
+    marker3: '0'
+    marker4: '0'
+    marker5: '0'
+    marker6: '0'
+    marker7: '0'
+    marker8: '0'
+    marker9: '0'
+    name: ''
+    nconnections: '1'
+    size: '1024'
+    style1: '0'
+    style10: '0'
+    style2: '0'
+    style3: '0'
+    style4: '0'
+    style5: '0'
+    style6: '0'
+    style7: '0'
+    style8: '0'
+    style9: '0'
+    tr_chan: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_slope: qtgui.TRIG_SLOPE_POS
+    tr_tag: '""'
+    type: complex
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    xmax: '2'
+    xmin: '-2'
+    ymax: '2'
+    ymin: '-2'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [352, 372.0]
+    rotation: 180
+    state: disabled
+- name: virtual_sink_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: r1
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1256, 292.0]
+    rotation: 180
+    state: disabled
+- name: virtual_sink_1
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: r2
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1192, 428.0]
+    rotation: 0
+    state: disabled
+- name: virtual_source_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: r1
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [200, 460.0]
+    rotation: 0
+    state: disabled
+- name: virtual_source_1
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: r2
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [48, 620.0]
+    rotation: 0
+    state: disabled
+
+connections:
+- [blocks_repack_bits_bb_0, '0', blocks_file_sink_2, '0']
+- [digital_constellation_decoder_cb_0, '0', digital_diff_decoder_bb_0, '0']
+- [digital_constellation_modulator_0, '0', blocks_throttle2_0, '0']
+- [digital_costas_loop_cc_0, '0', digital_constellation_decoder_cb_0, '0']
+- [digital_costas_loop_cc_0, '0', qtgui_const_sink_x_0, '0']
+- [digital_diff_decoder_bb_0, '0', digital_map_bb_0, '0']
+- [digital_linear_equalizer_0, '0', virtual_sink_0, '0']
+- [digital_map_bb_0, '0', virtual_sink_1, '0']
+- [digital_symbol_sync_xx_0, '0', digital_linear_equalizer_0, '0']
+- [epy_block_0, '0', digital_constellation_modulator_0, '0']
+- [virtual_source_0, '0', digital_costas_loop_cc_0, '0']
+- [virtual_source_1, '0', blocks_repack_bits_bb_0, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0

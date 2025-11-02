@@ -1,0 +1,318 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: '[GRC Hier Blocks]'
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: qt_gui
+    hier_block_src_path: '.:'
+    id: Recieve
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Recieve
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: AdaptiveAlgorithm
+  id: variable_adaptive_algorithm
+  parameters:
+    comment: ''
+    cons: qpsk
+    delta: '10.0'
+    ffactor: '0.99'
+    modulus: '4'
+    step_size: '.0001'
+    type: cma
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [584, 12.0]
+    rotation: 0
+    state: enabled
+- name: nfilts
+  id: variable
+  parameters:
+    comment: ''
+    value: '32'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [432, 12.0]
+    rotation: 0
+    state: enabled
+- name: phase_bw
+  id: variable
+  parameters:
+    comment: ''
+    value: '0.0628'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [896, 12.0]
+    rotation: 0
+    state: enabled
+- name: qpsk
+  id: variable_constellation_rect
+  parameters:
+    comment: ''
+    const_points: '[-1-1j, -1+1j, 1+1j, 1-1j]'
+    imag_sect: '2'
+    precision: '8'
+    real_sect: '2'
+    rot_sym: '4'
+    soft_dec_lut: None
+    sym_map: '[0, 1, 2, 3]'
+    w_imag_sect: '1'
+    w_real_sect: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [720, 12.0]
+    rotation: 0
+    state: enabled
+- name: rrc_taps
+  id: variable
+  parameters:
+    comment: ''
+    value: firdes.root_raised_cosine(nfilts, nfilts, 1.0/float(sps), 0.35, 11*sps*nfilts)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [280, 12.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: '32000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [176, 12.0]
+    rotation: 0
+    state: enabled
+- name: sps
+  id: variable
+  parameters:
+    comment: ''
+    value: '4'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [512, 12.0]
+    rotation: 0
+    state: enabled
+- name: blocks_file_sink_0
+  id: blocks_file_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    append: 'False'
+    comment: ''
+    file: Recieve(ThisOne).txt
+    type: byte
+    unbuffered: 'False'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1824, 276.0]
+    rotation: 0
+    state: enabled
+- name: blocks_null_source_0
+  id: blocks_null_source
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_source: '[[0,],]'
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_outputs: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 408.0]
+    rotation: 0
+    state: enabled
+- name: blocks_repack_bits_bb_0
+  id: blocks_repack_bits_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    align_output: 'False'
+    comment: ''
+    endianness: gr.GR_MSB_FIRST
+    k: '2'
+    l: '8'
+    len_tag_key: '""'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1616, 284.0]
+    rotation: 0
+    state: enabled
+- name: digital_constellation_decoder_cb_0
+  id: digital_constellation_decoder_cb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    constellation: qpsk
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1048, 292.0]
+    rotation: 0
+    state: enabled
+- name: digital_costas_loop_cc_0
+  id: digital_costas_loop_cc
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    order: '4'
+    use_snr: 'False'
+    w: phase_bw
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [808, 296.0]
+    rotation: 0
+    state: enabled
+- name: digital_diff_decoder_bb_0
+  id: digital_diff_decoder_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    coding: digital.DIFF_DIFFERENTIAL
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    modulus: '4'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1264, 284.0]
+    rotation: 0
+    state: enabled
+- name: digital_linear_equalizer_0
+  id: digital_linear_equalizer
+  parameters:
+    adapt_after_training: 'True'
+    affinity: ''
+    alg: AdaptiveAlgorithm
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_taps: '15'
+    sps: '2'
+    training_sequence: '[ ]'
+    training_start_tag: corr_est
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [528, 328.0]
+    rotation: 0
+    state: enabled
+- name: digital_map_bb_0
+  id: digital_map_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    map: '[0,1,2,3]'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1464, 292.0]
+    rotation: 0
+    state: enabled
+- name: digital_symbol_sync_xx_0
+  id: digital_symbol_sync_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    constellation: digital.constellation_bpsk().base()
+    damping: '1.0'
+    loop_bw: '0.0628'
+    max_dev: '1.5'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nfilters: '32'
+    osps: '2'
+    pfb_mf_taps: rrc_taps
+    resamp_type: digital.IR_PFB_MF
+    sps: sps
+    ted_gain: '1.0'
+    ted_type: digital.TED_SIGNAL_TIMES_SLOPE_ML
+    type: cc
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [168, 332.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [blocks_null_source_0, '0', digital_symbol_sync_xx_0, '0']
+- [blocks_repack_bits_bb_0, '0', blocks_file_sink_0, '0']
+- [digital_constellation_decoder_cb_0, '0', digital_diff_decoder_bb_0, '0']
+- [digital_costas_loop_cc_0, '0', digital_constellation_decoder_cb_0, '0']
+- [digital_diff_decoder_bb_0, '0', digital_map_bb_0, '0']
+- [digital_linear_equalizer_0, '0', digital_costas_loop_cc_0, '0']
+- [digital_map_bb_0, '0', blocks_repack_bits_bb_0, '0']
+- [digital_symbol_sync_xx_0, '0', digital_linear_equalizer_0, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0
