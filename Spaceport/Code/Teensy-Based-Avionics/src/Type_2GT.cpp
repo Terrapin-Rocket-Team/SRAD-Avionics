@@ -71,12 +71,13 @@ bool Type2GT::hasData()
     return state == HAS_DATA;
 }
 
-void Type2GT::readData(char *str, int len)
+int Type2GT::readData(char *str, int len)
 {
     int n = rad.readData((uint8_t *)str, len);
     Serial.printf("DBG: readData -> %d\n", n);
     if (n < 0 || !rad.available())
         state = IDLE;
+    return n;
 }
 
 void Type2GT::respondToIrq()

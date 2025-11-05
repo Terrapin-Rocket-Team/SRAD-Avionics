@@ -348,45 +348,8 @@ void loop()
           break;
       }
       bytesAvail = USBSerial.available();
-
-      if (commandMsg.size >= GSData::headerLen)
-      {
-        // we can decode the header
-        uint8_t type, id, deviceId = 0;
-        GSData::decodeHeader(commandMsg.buf, type, id, deviceId, commandSize);
-        if (type != APRSCmd::type || id == 0 || commandSize == 0)
-        {
-          // this is not an APRSCmd, ignore it
-          currState = NONE;
-        }
-      }
-
-      if (commandMsg.size - GSData::headerLen > commandSize && commandSize != 0)
-      {
-        // remove the extra bytes and put them in the serial buffer in case they are part of a different message
-        uint16_t removed = (commandMsg.size - GSData::headerLen) - commandSize;
-        commandMsg.pop((uint8_t *)serialBuf, removed);
-        serialBufLength += removed;
-      }
-      if (commandMsg.size - GSData::headerLen == commandSize && commandSize != 0)
-      {
-        // we have the full command, so decode it
-        GSData multiplexedCommand;
-        commandMsg.decode(&multiplexedCommand);
-        // send the actual command data
-        commandMsg.clear();
-        commandMsg.fill(multiplexedCommand.buf, multiplexedCommand.size);
-        APRSCmd cmd;
-        commandMsg.decode(&cmd);
-        cmd.config = commandConfig;
-        commandMsg.encode(&cmd);
-        // ===============================================
-        // send command via radio
-        radio.transmit((const char *)commandMsg.buf, commandMsg.size);
-        // commandMsg.write(Serial); // TODO: log for now, need to send to radio
-        // we are now finished handling the radio command on the Serial side
+        radio.transmit("CMD/boop\n", sizeof("CMD/boop\n"));2 
         currState = NONE;
-      }
     }
     }
     // 1 Hz heartbeat with states

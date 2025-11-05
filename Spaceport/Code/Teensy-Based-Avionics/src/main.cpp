@@ -11,7 +11,6 @@
 #include "RecordData/Logging/DataLogger.h"
 #include "Type_2GT.h"
 #include "Sensors/GPS/MAX_M10S.h"
-
 using namespace astra;
 
 const int BUZZER_PIN = 33;
@@ -40,17 +39,19 @@ AstraConfig config = AstraConfig()
                          .withBuzzerPin(BUZZER_PIN)
                          .withDataLogs(logs, 2)
                          .withState(&avionicsState);
-
 Astra sys(&config);
 
 int startAlt = 0;
 uint32_t startTime = 0;
 bool pin24Enabled = false;
 
+// Command reception flag
+volatile bool g_radioRxDone = false;
+
 void radInt(void)
 {
   rad.respondToIrq();
-//   bb.off(LED_BUILTIN);
+  g_radioRxDone = true;
 }
 
 void setup()
@@ -106,7 +107,31 @@ void loop()
     bb.clearQueue(LED_GPS);
     bb.on(LED_GPS);
   }
-
+  
+  // Handle radio command reception
+  if (g_radioRxDone)
+  {
+    g_radioRxDone = false;
+    
+    char payload[100];
+    int st = rad.readData(payload, sizeof(payload));
+    
+    if (st == RADIOLIB_ERR_NONE && st > 0)
+    {
+      // Print received command
+      Serial.print("CMD RX: ");
+      Serial.println(payload);
+      
+      // Set pin 7 high
+      digitalWrite(PIN_24_ENABLE, HIGH);
+      pin24Enabled = true;
+      LOGI("Pin 7 set HIGH - Command received");
+    }
+    
+    // Return to receive mode
+    rad.recieve();
+  }
+  
   if (!handshake)
     if (Serial8.available())
     {
@@ -135,7 +160,7 @@ void loop()
     snprintf(str, 200, "TELEM2/%.3f,%.2f,%.2f,%.2f,%.7f,%.7f\n", 
              now / 1000.0f, 
              baro.getASLAltFt() - startAlt, 
-            10.00,//  avionicsState.getVelocity().magnitude(), 
+             10.00,//  avionicsState.getVelocity().magnitude(), 
              acc.getAccel().magnitude(), 
              g.getPos().x(), 
              g.getPos().y());

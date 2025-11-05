@@ -12,7 +12,7 @@ public:
     int recieve();
     int transmit(const char *str);
     bool hasData();
-    void readData(char *str, int len);
+    int readData(char *str, int len);
     void respondToIrq();
 
 private:
