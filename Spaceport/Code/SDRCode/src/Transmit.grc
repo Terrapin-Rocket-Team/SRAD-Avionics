@@ -313,9 +313,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [600, 304.0]
+    coordinate: [552, 504.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: blocks_repack_bits_bb_0
   id: blocks_repack_bits_bb
   parameters:
@@ -831,7 +831,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [920, 92.0]
+    coordinate: [872, 212.0]
     rotation: 0
     state: enabled
 - name: qtgui_freq_sink_x_0
@@ -912,7 +912,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [920, 304.0]
+    coordinate: [944, 448.0]
     rotation: 0
     state: disabled
 - name: virtual_sink_0
@@ -977,6 +977,7 @@ connections:
 - [digital_constellation_decoder_cb_0, '0', digital_diff_decoder_bb_0, '0']
 - [digital_constellation_modulator_0, '0', blocks_multiply_const_vxx_0, '0']
 - [digital_constellation_modulator_0, '0', digital_symbol_sync_xx_0, '0']
+- [digital_constellation_modulator_0, '0', osmosdr_sink_0, '0']
 - [digital_costas_loop_cc_0, '0', digital_constellation_decoder_cb_0, '0']
 - [digital_diff_decoder_bb_0, '0', digital_map_bb_0, '0']
 - [digital_linear_equalizer_0, '0', virtual_sink_0, '0']

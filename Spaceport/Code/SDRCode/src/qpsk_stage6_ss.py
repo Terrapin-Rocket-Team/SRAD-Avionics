@@ -99,7 +99,6 @@ class qpsk_stage6_ss(gr.top_block, Qt.QWidget):
             verbose=False,
             log=False,
             truncate=False)
-        self.blocks_multiply_const_vxx_0 = blocks.multiply_const_cc(center_freq)
         self.blocks_file_source_0 = blocks.file_source(gr.sizeof_char*1, '', True, 0, 0)
         self.blocks_file_source_0.set_begin_tag(pmt.PMT_NIL)
 
@@ -108,8 +107,7 @@ class qpsk_stage6_ss(gr.top_block, Qt.QWidget):
         # Connections
         ##################################################
         self.connect((self.blocks_file_source_0, 0), (self.digital_constellation_modulator_0, 0))
-        self.connect((self.blocks_multiply_const_vxx_0, 0), (self.osmosdr_sink_0, 0))
-        self.connect((self.digital_constellation_modulator_0, 0), (self.blocks_multiply_const_vxx_0, 0))
+        self.connect((self.digital_constellation_modulator_0, 0), (self.osmosdr_sink_0, 0))
 
 
     def closeEvent(self, event):
@@ -176,7 +174,6 @@ class qpsk_stage6_ss(gr.top_block, Qt.QWidget):
 
     def set_center_freq(self, center_freq):
         self.center_freq = center_freq
-        self.blocks_multiply_const_vxx_0.set_k(self.center_freq)
         self.osmosdr_sink_0.set_center_freq(self.center_freq, 0)
 
 
