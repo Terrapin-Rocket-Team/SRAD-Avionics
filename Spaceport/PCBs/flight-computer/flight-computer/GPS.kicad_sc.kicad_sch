@@ -622,7 +622,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "power:+3.3V"
+		(symbol "power:+3V3"
 			(power)
 			(pin_numbers
 				(hide yes)
@@ -643,7 +643,7 @@
 					(hide yes)
 				)
 			)
-			(property "Value" "+3.3V"
+			(property "Value" "+3V3"
 				(at 0 3.556 0)
 				(effects
 					(font
@@ -669,7 +669,7 @@
 					(hide yes)
 				)
 			)
-			(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(property "Description" "Power symbol creates a global label with name \"+3V3\""
 				(at 0 0 0)
 				(effects
 					(font
@@ -687,7 +687,7 @@
 					(hide yes)
 				)
 			)
-			(symbol "+3.3V_0_1"
+			(symbol "+3V3_0_1"
 				(polyline
 					(pts
 						(xy -0.762 1.27) (xy 0 2.54)
@@ -725,7 +725,7 @@
 					)
 				)
 			)
-			(symbol "+3.3V_1_1"
+			(symbol "+3V3_1_1"
 				(pin power_in line
 					(at 0 0 90)
 					(length 0)
@@ -977,6 +977,16 @@
 	)
 	(wire
 		(pts
+			(xy 148.59 69.85) (xy 153.67 69.85)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "21aa7c31-7878-495b-bb6f-d2262496d20e")
+	)
+	(wire
+		(pts
 			(xy 138.43 113.03) (xy 142.24 113.03)
 		)
 		(stroke
@@ -1147,13 +1157,13 @@
 	)
 	(wire
 		(pts
-			(xy 148.59 69.85) (xy 148.59 95.25)
+			(xy 153.67 69.85) (xy 153.67 95.25)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "c5177698-6b5e-4ce0-a7c6-83012dd9f289")
+		(uuid "c7d6b7e2-a20a-4112-8365-bab1580ffd7d")
 	)
 	(wire
 		(pts
@@ -1177,7 +1187,7 @@
 	)
 	(wire
 		(pts
-			(xy 148.59 95.25) (xy 142.24 95.25)
+			(xy 142.24 95.25) (xy 153.67 95.25)
 		)
 		(stroke
 			(width 0)
@@ -1366,6 +1376,72 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+3V3")
+		(at 146.05 60.96 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "2566b0e4-47b7-4ce7-a7e2-4a35e082599d")
+		(property "Reference" "#PWR049"
+			(at 146.05 64.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3V3"
+			(at 146.05 55.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 146.05 60.96 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 146.05 60.96 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3V3\""
+			(at 146.05 60.96 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "160da84f-72a1-4904-9a05-ef8855f1c8e8")
+		)
+		(instances
+			(project ""
+				(path "/b419aaf0-5349-42bc-a414-d94cafbe45e9/d5f88fd8-f77f-45f2-a5f4-fb1e7853b7c3"
+					(reference "#PWR049")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "SAM-M10Q-00B:SAM-M10Q-00B")
 		(at 115.57 80.01 0)
 		(unit 1)
@@ -1539,77 +1615,6 @@
 			(project "flight-computer"
 				(path "/b419aaf0-5349-42bc-a414-d94cafbe45e9/d5f88fd8-f77f-45f2-a5f4-fb1e7853b7c3"
 					(reference "U?")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:+3.3V")
-		(at 146.05 60.96 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "a5b93ae5-f07c-4302-91b5-c11439950fd2")
-		(property "Reference" "#PWR0102"
-			(at 146.05 64.77 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+3.3V"
-			(at 146.05 55.88 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 146.05 60.96 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 146.05 60.96 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 146.05 60.96 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "6c4a8de5-ca1d-4396-91f1-3a616bb3eb8a")
-		)
-		(instances
-			(project "GPS.kicad_sc"
-				(path "/13dbe8fb-eb72-456b-8450-e5b1c8c3b2c0"
-					(reference "#PWR03")
-					(unit 1)
-				)
-			)
-			(project "flight-computer"
-				(path "/b419aaf0-5349-42bc-a414-d94cafbe45e9/d5f88fd8-f77f-45f2-a5f4-fb1e7853b7c3"
-					(reference "#PWR0102")
 					(unit 1)
 				)
 			)
