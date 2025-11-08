@@ -3768,16 +3768,6 @@
 	)
 	(wire
 		(pts
-			(xy 133.35 184.15) (xy 133.35 194.31)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "363928a9-7db8-4e2d-998f-5b82e272eeff")
-	)
-	(wire
-		(pts
 			(xy 133.35 184.15) (xy 138.43 184.15)
 		)
 		(stroke
@@ -3965,6 +3955,16 @@
 			(type default)
 		)
 		(uuid "7b6ddaf5-a2f4-4251-8762-14ff82e36e61")
+	)
+	(wire
+		(pts
+			(xy 133.35 189.23) (xy 133.35 194.31)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7c9bf437-9720-4f67-901b-ccc67be2bc35")
 	)
 	(wire
 		(pts
@@ -5281,6 +5281,73 @@
 			(project "Pratheek_Ramakrishna_Flight_Computer"
 				(path "/604ace33-b057-47cc-b937-1126519f732b"
 					(reference "#PWR03")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R_Small_US")
+		(at 133.35 186.69 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "474d28b3-7afb-4a9f-87b9-d49f77667d6d")
+		(property "Reference" "R2"
+			(at 128.524 186.69 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "10k"
+			(at 131.064 186.69 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 133.35 186.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 133.35 186.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor, small US symbol"
+			(at 133.35 186.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5880171f-5030-4d03-acec-5d9635cfcb34")
+		)
+		(pin "2"
+			(uuid "9587c496-1688-4c60-ba3e-460113e95834")
+		)
+		(instances
+			(project "Pratheek_Ramakrishna_Flight_Computer"
+				(path "/604ace33-b057-47cc-b937-1126519f732b"
+					(reference "R2")
 					(unit 1)
 				)
 			)
