@@ -1,4 +1,4 @@
-cimport pyserial as serial
+import pyserial as serial
 from pyhackrf import HackRF 
 import time
 
