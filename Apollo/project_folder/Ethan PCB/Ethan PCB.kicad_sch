@@ -1738,6 +1738,89 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Mechanical:MountingHole"
+			(pin_names
+				(offset 1.016)
+			)
+			(exclude_from_sim no)
+			(in_bom no)
+			(on_board yes)
+			(property "Reference" "H"
+				(at 0 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "MountingHole"
+				(at 0 3.175 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Mounting Hole without connection"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "mounting hole"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "MountingHole*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "MountingHole_0_1"
+				(circle
+					(center 0 0)
+					(radius 1.27)
+					(stroke
+						(width 1.27)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "New IMU:BMI088"
 			(pin_names
 				(offset 1.016)
@@ -4403,16 +4486,6 @@
 	)
 	(wire
 		(pts
-			(xy 62.23 97.79) (xy 62.23 101.6)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "1475eecc-1bbd-4eac-9d16-758b4ef11a6f")
-	)
-	(wire
-		(pts
 			(xy 165.1 82.55) (xy 167.64 82.55)
 		)
 		(stroke
@@ -4653,16 +4726,6 @@
 	)
 	(wire
 		(pts
-			(xy 27.94 165.1) (xy 34.29 165.1)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "47ec788a-13ef-47a9-a0f7-d905028c8343")
-	)
-	(wire
-		(pts
 			(xy 78.74 137.16) (xy 78.74 129.54)
 		)
 		(stroke
@@ -4713,16 +4776,6 @@
 	)
 	(wire
 		(pts
-			(xy 20.32 165.1) (xy 19.05 165.1)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "5346b3d6-054a-4fa9-9f7e-0fc2b616b641")
-	)
-	(wire
-		(pts
 			(xy 81.28 171.45) (xy 83.82 171.45)
 		)
 		(stroke
@@ -4730,6 +4783,16 @@
 			(type default)
 		)
 		(uuid "56a061b9-c985-424b-adee-7c173fc1d6bc")
+	)
+	(wire
+		(pts
+			(xy 62.23 102.87) (xy 62.23 109.22)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "58b50556-d3cb-45f1-8642-6532a6e32431")
 	)
 	(wire
 		(pts
@@ -6127,7 +6190,7 @@
 	)
 	(symbol
 		(lib_id "Device:LED")
-		(at 62.23 105.41 270)
+		(at 54.61 99.06 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -6136,25 +6199,27 @@
 		(fields_autoplaced yes)
 		(uuid "0c79477b-b6d2-45c2-85a9-8ec42bef88a4")
 		(property "Reference" "D1"
-			(at 64.77 102.5524 90)
+			(at 57.15 96.2024 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
 			)
 		)
 		(property "Value" "LED"
-			(at 64.77 105.0924 90)
+			(at 57.15 98.7424 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_0805_2012Metric"
-			(at 62.23 105.41 0)
+			(at 54.61 99.06 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6163,7 +6228,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 62.23 105.41 0)
+			(at 54.61 99.06 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6172,7 +6237,7 @@
 			)
 		)
 		(property "Description" "Light emitting diode"
-			(at 62.23 105.41 0)
+			(at 54.61 99.06 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6181,7 +6246,7 @@
 			)
 		)
 		(property "Sim.Pins" "1=K 2=A"
-			(at 62.23 105.41 0)
+			(at 54.61 99.06 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6540,7 +6605,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 62.23 97.79 90)
+		(at 54.61 95.25 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -6549,7 +6614,7 @@
 		(fields_autoplaced yes)
 		(uuid "1c5f01d7-dded-4992-b626-affddaa8d477")
 		(property "Reference" "#PWR035"
-			(at 68.58 97.79 0)
+			(at 60.96 95.25 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6558,7 +6623,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 67.31 97.79 0)
+			(at 59.69 95.25 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6567,7 +6632,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 62.23 97.79 0)
+			(at 54.61 95.25 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6576,7 +6641,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 62.23 97.79 0)
+			(at 54.61 95.25 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6585,7 +6650,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 62.23 97.79 0)
+			(at 54.61 95.25 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6950,6 +7015,70 @@
 			(project ""
 				(path "/b60e38c9-78a5-477d-b7d7-2487833dc2fd"
 					(reference "J1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole")
+		(at 86.36 46.99 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "414f0dc4-273f-4a0a-b831-651ebe454c04")
+		(property "Reference" "H1"
+			(at 88.9 45.7199 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole"
+			(at 88.9 48.2599 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3"
+			(at 86.36 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 86.36 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole without connection"
+			(at 86.36 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(instances
+			(project ""
+				(path "/b60e38c9-78a5-477d-b7d7-2487833dc2fd"
+					(reference "H1")
 					(unit 1)
 				)
 			)
@@ -8489,6 +8618,70 @@
 		)
 	)
 	(symbol
+		(lib_id "Mechanical:MountingHole")
+		(at 110.49 46.99 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "898bd80e-bec6-43b2-a37f-a8d079090aaa")
+		(property "Reference" "H2"
+			(at 113.03 45.7199 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole"
+			(at 113.03 48.2599 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3"
+			(at 110.49 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 110.49 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole without connection"
+			(at 110.49 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(instances
+			(project ""
+				(path "/b60e38c9-78a5-477d-b7d7-2487833dc2fd"
+					(reference "H2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:+3.3V")
 		(at 78.74 129.54 270)
 		(unit 1)
@@ -8903,7 +9096,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Connector_JST:JST_XH_B2B-XH-AM_1x02_P2.50mm_Vertical"
+		(property "Footprint" "Connector_JST:JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical"
 			(at 68.58 102.87 0)
 			(effects
 				(font
@@ -9281,7 +9474,7 @@
 	)
 	(symbol
 		(lib_id "Device:LED")
-		(at 24.13 165.1 0)
+		(at 22.86 165.1 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -9290,7 +9483,7 @@
 		(fields_autoplaced yes)
 		(uuid "b49c3909-90c6-41aa-9257-83dbaf97b38d")
 		(property "Reference" "D2"
-			(at 22.5425 158.75 0)
+			(at 21.2725 158.75 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9298,7 +9491,7 @@
 			)
 		)
 		(property "Value" "LED"
-			(at 22.5425 161.29 0)
+			(at 21.2725 161.29 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9306,7 +9499,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_0805_2012Metric"
-			(at 24.13 165.1 0)
+			(at 22.86 165.1 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9315,7 +9508,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 24.13 165.1 0)
+			(at 22.86 165.1 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9324,7 +9517,7 @@
 			)
 		)
 		(property "Description" "Light emitting diode"
-			(at 24.13 165.1 0)
+			(at 22.86 165.1 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9333,7 +9526,7 @@
 			)
 		)
 		(property "Sim.Pins" "1=K 2=A"
-			(at 24.13 165.1 0)
+			(at 22.86 165.1 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10215,6 +10408,75 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:R")
+		(at 58.42 102.87 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "da0b29f2-80fd-4408-af5e-a434d3d77a6d")
+		(property "Reference" "R5"
+			(at 58.42 96.52 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "560"
+			(at 58.42 99.06 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 58.42 104.648 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 58.42 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 58.42 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "dff81488-92e8-4cab-8a6a-1bdbd727efd2")
+		)
+		(pin "1"
+			(uuid "da575710-2f32-493f-bf90-36ec2236e3d5")
+		)
+		(instances
+			(project "Ethan PCB"
+				(path "/b60e38c9-78a5-477d-b7d7-2487833dc2fd"
+					(reference "R5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 144.78 74.93 0)
 		(unit 1)
@@ -10649,6 +10911,74 @@
 			(project ""
 				(path "/b60e38c9-78a5-477d-b7d7-2487833dc2fd"
 					(reference "#PWR02")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 30.48 165.1 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "ffef7278-2216-4fbd-897e-b0bdbc423e72")
+		(property "Reference" "R4"
+			(at 30.48 158.75 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "560"
+			(at 30.48 161.29 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 30.48 166.878 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 30.48 165.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 30.48 165.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "fc2a94d8-248e-4cf0-89ba-59a0130d2e41")
+		)
+		(pin "1"
+			(uuid "57df3ac5-6b49-43c1-b6da-57d796598294")
+		)
+		(instances
+			(project ""
+				(path "/b60e38c9-78a5-477d-b7d7-2487833dc2fd"
+					(reference "R4")
 					(unit 1)
 				)
 			)
