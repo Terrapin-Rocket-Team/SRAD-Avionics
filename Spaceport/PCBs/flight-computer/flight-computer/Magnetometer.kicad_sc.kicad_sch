@@ -573,25 +573,15 @@
 			(embedded_fonts no)
 		)
 	)
-	(text "DS: https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/333/MMC5603NJ_RevB_7-12-18.pdf"
+	(text "I2C 0x30"
 		(exclude_from_sim no)
-		(at 153.924 113.538 0)
+		(at 126.238 96.774 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 		)
-		(uuid "0139d105-75bf-432b-863d-ba7536694cb7")
-	)
-	(text "The MEMSIC device 7-bit device address is [0110000]"
-		(exclude_from_sim no)
-		(at 126.492 109.474 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "15b9b10a-47cf-4467-b4a2-e5a5bede1bf1")
+		(uuid "913dd219-4b95-46c5-94d8-d16506abc0ac")
 	)
 	(text "Schematic by Jack Yeulenski"
 		(exclude_from_sim no)
@@ -611,16 +601,6 @@
 	)
 	(wire
 		(pts
-			(xy 180.34 92.71) (xy 180.34 90.17)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "58c98d68-aeb1-4653-93e6-a79e1369d940")
-	)
-	(wire
-		(pts
 			(xy 168.91 92.71) (xy 170.18 92.71)
 		)
 		(stroke
@@ -631,7 +611,7 @@
 	)
 	(wire
 		(pts
-			(xy 170.18 92.71) (xy 180.34 92.71)
+			(xy 170.18 92.71) (xy 187.96 92.71)
 		)
 		(stroke
 			(width 0)
@@ -641,7 +621,7 @@
 	)
 	(global_label "I2C1_SDA"
 		(shape input)
-		(at 168.91 90.17 90)
+		(at 168.91 90.17 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -651,7 +631,7 @@
 		)
 		(uuid "3f93bfd5-5244-4a95-927d-a7613594b3d7")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 168.91 78.3553 90)
+			(at 180.7247 90.17 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -663,7 +643,7 @@
 	)
 	(global_label "I2C1_SCL"
 		(shape input)
-		(at 128.27 92.71 270)
+		(at 128.27 92.71 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -673,7 +653,7 @@
 		)
 		(uuid "96a4eab7-c34d-4aba-91f4-3b9eaa8cd8e7")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 128.27 104.4642 90)
+			(at 116.5158 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -821,7 +801,7 @@
 	)
 	(symbol
 		(lib_id "power:+3V3")
-		(at 180.34 90.17 0)
+		(at 187.96 92.71 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -830,7 +810,7 @@
 		(fields_autoplaced yes)
 		(uuid "98bf8e6e-81c9-480a-8fe3-6dc9894e7506")
 		(property "Reference" "#PWR012"
-			(at 180.34 93.98 0)
+			(at 184.15 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -838,16 +818,17 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "+3V3"
-			(at 180.34 85.09 0)
+		(property "Value" "+3V3A"
+			(at 191.77 92.7099 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify left)
 			)
 		)
 		(property "Footprint" ""
-			(at 180.34 90.17 0)
+			(at 187.96 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -856,7 +837,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 180.34 90.17 0)
+			(at 187.96 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -865,7 +846,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3V3\""
-			(at 180.34 90.17 0)
+			(at 187.96 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -877,7 +858,7 @@
 			(uuid "72582bd4-5b15-417a-891c-82beaa8adef3")
 		)
 		(instances
-			(project ""
+			(project "flight-computer"
 				(path "/b419aaf0-5349-42bc-a414-d94cafbe45e9/59137cc8-27c9-41ae-9820-03727e90c02e"
 					(reference "#PWR012")
 					(unit 1)

@@ -603,30 +603,24 @@
 			(embedded_fonts no)
 		)
 	)
-	(rectangle
-		(start 102.87 93.98)
-		(end 167.64 107.95)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(fill
-			(type none)
-		)
-		(uuid 6dc8e047-316b-4b81-a593-2ea7b08f9c83)
-	)
-	(text "Setting CSB HIGH (VDD) will set the i2c address to 0x77, \nwhile setting it LOW (GND) will set the i2c address to 0x76"
+	(text "I2C 0X77\n\n"
 		(exclude_from_sim no)
-		(at 134.366 100.838 0)
+		(at 133.858 83.82 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 		)
-		(uuid "41b296a7-66b4-41c2-add4-f225e7a970f4")
+		(uuid "535e9c0b-7aea-40e2-80c1-3dc448ed73a2")
 	)
 	(junction
-		(at 127 59.69)
+		(at 127 58.42)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "3706c3cb-9b83-457b-95c3-c4f4960070e5")
+	)
+	(junction
+		(at 127 55.88)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "4fb51b9d-9922-4453-95d9-0e827bf71dc3")
@@ -643,13 +637,33 @@
 	)
 	(wire
 		(pts
-			(xy 127 59.69) (xy 127 60.96)
+			(xy 137.16 58.42) (xy 138.43 58.42)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "022e5a95-295a-4b7a-b4e0-be754fb918f8")
+	)
+	(wire
+		(pts
+			(xy 127 55.88) (xy 127 58.42)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "285cddc6-a7c4-4376-a5cc-a5028cc20dd6")
+	)
+	(wire
+		(pts
+			(xy 127 58.42) (xy 127 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "374e967a-b531-4d49-abfc-a9249ec9df14")
 	)
 	(wire
 		(pts
@@ -663,16 +677,6 @@
 	)
 	(wire
 		(pts
-			(xy 151.13 86.36) (xy 127 86.36)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "6cf9a1e8-368d-4f1d-bca9-4da164a6bc15")
-	)
-	(wire
-		(pts
 			(xy 116.84 86.36) (xy 127 86.36)
 		)
 		(stroke
@@ -683,7 +687,7 @@
 	)
 	(wire
 		(pts
-			(xy 116.84 66.04) (xy 116.84 59.69)
+			(xy 116.84 66.04) (xy 116.84 55.88)
 		)
 		(stroke
 			(width 0)
@@ -693,7 +697,7 @@
 	)
 	(wire
 		(pts
-			(xy 127 58.42) (xy 127 59.69)
+			(xy 127 54.61) (xy 127 55.88)
 		)
 		(stroke
 			(width 0)
@@ -703,37 +707,17 @@
 	)
 	(wire
 		(pts
-			(xy 151.13 59.69) (xy 151.13 86.36)
+			(xy 127 58.42) (xy 132.08 58.42)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "8cb6188a-7e54-443f-af07-3e2134e5bfbc")
+		(uuid "975dfafa-2be5-4e9d-ae74-66cf514728e9")
 	)
 	(wire
 		(pts
-			(xy 127 59.69) (xy 132.08 59.69)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "9c6f1499-8069-44e2-917c-5a374e768e67")
-	)
-	(wire
-		(pts
-			(xy 137.16 59.69) (xy 151.13 59.69)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "be978272-fcc3-43a7-8525-e7c64c2f6801")
-	)
-	(wire
-		(pts
-			(xy 116.84 59.69) (xy 127 59.69)
+			(xy 116.84 55.88) (xy 127 55.88)
 		)
 		(stroke
 			(width 0)
@@ -796,17 +780,17 @@
 		)
 	)
 	(symbol
-		(lib_id "power:+3V3")
-		(at 127 58.42 0)
+		(lib_id "power:GND")
+		(at 138.43 58.42 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(fields_autoplaced yes)
-		(uuid "80a09025-e4a5-4892-a79b-01a89a67eb98")
-		(property "Reference" "#PWR01"
-			(at 127 62.23 0)
+		(uuid "3458f183-5841-4d34-a1c1-8aa84370521e")
+		(property "Reference" "#PWR089"
+			(at 144.78 58.42 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -814,16 +798,17 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "+3V3"
-			(at 127 53.34 0)
+		(property "Value" "GND"
+			(at 142.24 58.4199 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify right)
 			)
 		)
 		(property "Footprint" ""
-			(at 127 58.42 0)
+			(at 138.43 58.42 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -832,6 +817,45 @@
 			)
 		)
 		(property "Datasheet" ""
+			(at 138.43 58.42 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 138.43 58.42 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "d426bc9e-3504-425b-b583-5921fe1372d0")
+		)
+		(instances
+			(project "flight-computer"
+				(path "/b419aaf0-5349-42bc-a414-d94cafbe45e9/f857b9c9-761d-4a7f-a2fa-b1edff240511"
+					(reference "#PWR089")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3V3")
+		(at 127 54.61 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "80a09025-e4a5-4892-a79b-01a89a67eb98")
+		(property "Reference" "#PWR01"
 			(at 127 58.42 0)
 			(effects
 				(font
@@ -840,8 +864,35 @@
 				(hide yes)
 			)
 		)
+		(property "Value" "+3V3A"
+			(at 118.872 53.086 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 127 54.61 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 127 54.61 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(property "Description" "Power symbol creates a global label with name \"+3V3\""
-			(at 127 58.42 0)
+			(at 127 54.61 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1017,7 +1068,7 @@
 	)
 	(symbol
 		(lib_id "Device:C_Small")
-		(at 134.62 59.69 90)
+		(at 134.62 58.42 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1026,7 +1077,7 @@
 		(fields_autoplaced yes)
 		(uuid "f87fd61c-a13e-41a7-aeb3-c8b35d218019")
 		(property "Reference" "C1"
-			(at 134.6263 53.34 90)
+			(at 134.6263 52.07 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1034,7 +1085,7 @@
 			)
 		)
 		(property "Value" "100 nF"
-			(at 134.6263 55.88 90)
+			(at 134.6263 54.61 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1042,7 +1093,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 134.62 59.69 0)
+			(at 134.62 58.42 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1051,7 +1102,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 134.62 59.69 0)
+			(at 134.62 58.42 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1060,7 +1111,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor, MUST be ceramic"
-			(at 134.62 59.69 0)
+			(at 134.62 58.42 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1075,7 +1126,7 @@
 			(uuid "cb80aaac-e673-4b40-b6a8-dc49e6931779")
 		)
 		(instances
-			(project ""
+			(project "flight-computer"
 				(path "/b419aaf0-5349-42bc-a414-d94cafbe45e9/f857b9c9-761d-4a7f-a2fa-b1edff240511"
 					(reference "C1")
 					(unit 1)

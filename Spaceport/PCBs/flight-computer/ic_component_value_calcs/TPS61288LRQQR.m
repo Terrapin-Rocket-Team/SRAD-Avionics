@@ -1,4 +1,4 @@
-%%
+%% BOOST CONVERTER
 clc; close all; clear
 
 % Some params form Ti power designer:
@@ -7,9 +7,12 @@ clc; close all; clear
 
 %% R1 calcs
 V_REF = .6; % TYP
-V_OUT = 5;
+V_OUT = 5.1;
 R2 = 15e3;
-R1 = ((V_OUT - V_REF) * R2) / V_REF
+% R1 = ((V_OUT - V_REF) * R2) / V_REF
+
+R1 = 111e3;
+V_OUT = V_REF * (1 + (R1 / R2))
 
 %%  I_DC calcs
 V_in_max = 4.2;
@@ -26,8 +29,6 @@ I_PP = (L * (1/ (V_OUT - V_in_min)) + (1 / V_in_min) * f_sw )^-1;
 % The saturaion current rating of the inductor should also be higher than
 % this figure as well.
 I_LPEAK = I_DC + (I_PP / 2); 
-
-%% ;
 
 %% R_C calcs
 C_O = 22e-6;
