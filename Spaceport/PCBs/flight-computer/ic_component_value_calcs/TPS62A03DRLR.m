@@ -1,7 +1,7 @@
-%%
+%% BUCK CONVERTER
 clc; close all; clear
 
-V_OUT = 4.5; % 3.3V + V_DROPOUT (= 1.2V)
+V_OUT = 3.6; % 3.3V + V_DROPOUT (= 1.2V)
 R2 = 100e3;
 V_FB = .6;
 
