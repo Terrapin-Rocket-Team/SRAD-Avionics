@@ -823,6 +823,12 @@
 		(uuid "7a094ede-c0b0-40b7-8f97-769df7a10253")
 	)
 	(junction
+		(at 170.18 95.25)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "a359256f-b9b7-4f8c-8802-f3696de963d9")
+	)
+	(junction
 		(at 170.18 115.57)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -845,20 +851,8 @@
 		(uuid "a0f6cd3a-b969-47c0-9f09-f3e92ee70960")
 	)
 	(no_connect
-		(at 170.18 92.71)
-		(uuid "a26aefcc-0652-43d5-a7cc-153d9040ff19")
-	)
-	(no_connect
-		(at 134.62 110.49)
-		(uuid "dab4cd40-5e91-458a-9d36-a2dd897ceec4")
-	)
-	(no_connect
 		(at 134.62 97.79)
 		(uuid "e4ed537c-81fa-418d-80e2-520704d5b00c")
-	)
-	(no_connect
-		(at 170.18 95.25)
-		(uuid "eb1933f9-7fb4-4faf-bbf5-69a925769199")
 	)
 	(wire
 		(pts
@@ -942,6 +936,16 @@
 	)
 	(wire
 		(pts
+			(xy 172.72 95.25) (xy 170.18 95.25)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "59c5d4c8-0b15-49fd-a0ca-54ca0e903877")
+	)
+	(wire
+		(pts
 			(xy 187.96 85.09) (xy 190.5 85.09)
 		)
 		(stroke
@@ -979,6 +983,16 @@
 			(type default)
 		)
 		(uuid "9b34649c-a53a-439d-8561-56da3ce40bd5")
+	)
+	(wire
+		(pts
+			(xy 170.18 95.25) (xy 170.18 92.71)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a97301a7-cbc1-4f9a-b376-be1dd1ed7a31")
 	)
 	(global_label "I2C1_SCL"
 		(shape input)
@@ -1289,6 +1303,73 @@
 			(project "flight-computer"
 				(path "/b419aaf0-5349-42bc-a414-d94cafbe45e9/759fe36f-7c9c-4239-abc1-10f13c7a223d"
 					(reference "C3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 134.62 110.49 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "8e40660c-c14c-4c4d-b561-4a297e249acc")
+		(property "Reference" "#PWR095"
+			(at 128.27 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 130.81 110.4899 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" ""
+			(at 134.62 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 134.62 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 134.62 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "7014f80b-05f6-4871-aa30-e6a81fa223eb")
+		)
+		(instances
+			(project "flight-computer"
+				(path "/b419aaf0-5349-42bc-a414-d94cafbe45e9/759fe36f-7c9c-4239-abc1-10f13c7a223d"
+					(reference "#PWR095")
 					(unit 1)
 				)
 			)
@@ -1606,6 +1687,73 @@
 			(project ""
 				(path "/b419aaf0-5349-42bc-a414-d94cafbe45e9/759fe36f-7c9c-4239-abc1-10f13c7a223d"
 					(reference "C2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 172.72 95.25 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "ddf7c800-b76c-4d21-8946-7d6f67e6b4f6")
+		(property "Reference" "#PWR094"
+			(at 179.07 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 176.53 95.2499 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" ""
+			(at 172.72 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 172.72 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 172.72 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "fa78e6f2-9067-4acd-b2d8-c0b01b47cdbc")
+		)
+		(instances
+			(project "flight-computer"
+				(path "/b419aaf0-5349-42bc-a414-d94cafbe45e9/759fe36f-7c9c-4239-abc1-10f13c7a223d"
+					(reference "#PWR094")
 					(unit 1)
 				)
 			)
