@@ -1669,6 +1669,12 @@
 		(uuid "5b433182-c702-4e5d-a69e-09aa30c9c995")
 	)
 	(junction
+		(at 186.69 48.26)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "652f7ea7-3356-44f4-a5d1-c0f9e3b17e8f")
+	)
+	(junction
 		(at 140.97 109.22)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -2044,6 +2050,16 @@
 	)
 	(wire
 		(pts
+			(xy 186.69 45.72) (xy 186.69 48.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9234f1c2-1afe-41b6-9cdf-a83b1445c22e")
+	)
+	(wire
+		(pts
 			(xy 134.62 83.82) (xy 137.16 83.82)
 		)
 		(stroke
@@ -2051,16 +2067,6 @@
 			(type default)
 		)
 		(uuid "966110b1-466f-4e6b-9e4d-4e977f54cbcb")
-	)
-	(wire
-		(pts
-			(xy 186.69 45.72) (xy 186.69 43.18)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "97a2fb5b-bb27-4afc-9920-2353b60b7ead")
 	)
 	(wire
 		(pts
@@ -2324,7 +2330,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
 			(at 126.492 124.46 90)
 			(effects
 				(font
@@ -2457,7 +2463,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Diode_SMD:D_0805_2012Metric_Pad1.15x1.40mm_HandSolder"
 			(at 82.55 142.24 0)
 			(effects
 				(font
@@ -2589,7 +2595,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
 			(at 140.97 102.362 90)
 			(effects
 				(font
@@ -2788,7 +2794,7 @@
 				)
 			)
 		)
-		(property "Footprint" "BQ25606RGER:QFN50P400X400X100-25N"
+		(property "Footprint" "Package_DFN_QFN:Texas_RGE0024H_VQFN-24-1EP_4x4mm_P0.5mm_EP2.7x2.7mm"
 			(at 165.1 99.06 0)
 			(effects
 				(font
@@ -2985,7 +2991,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
 			(at 140.97 85.598 90)
 			(effects
 				(font
@@ -3185,7 +3191,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0805_2012Metric_Pad1.15x1.40mm_HandSolder"
 			(at 130.81 104.14 0)
 			(effects
 				(font
@@ -3393,7 +3399,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0805_2012Metric_Pad1.15x1.40mm_HandSolder"
 			(at 133.35 50.8 0)
 			(effects
 				(font
@@ -3445,71 +3451,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:GND")
-		(at 186.69 43.18 180)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "5f45aca6-d5e8-48c7-bf54-a56806860f58")
-		(property "Reference" "#PWR068"
-			(at 186.69 36.83 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 186.69 38.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 186.69 43.18 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 186.69 43.18 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 186.69 43.18 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "3f7ad38b-1891-4b5e-bafb-9e12fd4c0445")
-		)
-		(instances
-			(project "flight-computer"
-				(path "/b419aaf0-5349-42bc-a414-d94cafbe45e9/ca918ab3-79cf-4935-ba61-b4831ae6cb6b"
-					(reference "#PWR068")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:C")
 		(at 128.27 99.06 270)
 		(unit 1)
@@ -3534,7 +3475,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
 			(at 124.46 100.0252 0)
 			(effects
 				(font
@@ -3604,7 +3545,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
 			(at 133.0452 147.32 0)
 			(effects
 				(font
@@ -3803,7 +3744,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
 			(at 143.51 49.022 90)
 			(effects
 				(font
@@ -3873,7 +3814,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
 			(at 88.5952 116.84 0)
 			(effects
 				(font
@@ -3940,7 +3881,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
 			(at 132.08 93.0148 0)
 			(effects
 				(font
@@ -4010,7 +3951,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
 			(at 103.1748 46.99 0)
 			(effects
 				(font
@@ -4077,7 +4018,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
 			(at 140.97 80.518 90)
 			(effects
 				(font
@@ -4210,7 +4151,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Inductor_SMD:L_0805_2012Metric_Pad1.05x1.20mm_HandSolder"
 			(at 101.6 109.22 0)
 			(effects
 				(font
@@ -4346,7 +4287,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
 			(at 107.6452 107.95 0)
 			(effects
 				(font
@@ -4480,7 +4421,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Connector_JST:JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical"
 			(at 69.85 142.24 0)
 			(effects
 				(font
@@ -4616,7 +4557,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_1210_3225Metric_Pad1.33x2.70mm_HandSolder"
 			(at 112.7252 127 0)
 			(effects
 				(font
@@ -4751,7 +4692,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
 			(at 126.492 134.62 90)
 			(effects
 				(font
