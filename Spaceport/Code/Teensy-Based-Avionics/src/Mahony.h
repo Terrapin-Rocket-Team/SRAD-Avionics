@@ -8,7 +8,7 @@
 #include <vector>
 
 // need to add magnetomater to Mahony filter to correct accumulated gyrscope drift. Magnetometer spits 
-// out strenght of Earth magnetic field in x, y, z components. Needs its own calibration process with 
+// out strenght of Earth magnetic field in x, y, z components. Has its own calibration process with 
 // soft and hard iron dependencies. Calibration: MOtioncal (program from pjrc)
 
 
