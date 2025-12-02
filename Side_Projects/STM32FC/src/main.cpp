@@ -1,120 +1,181 @@
 #include <Arduino.h>
-#include "RCRState.h"
-#include <Sensors/GPS/SAM_M8Q.h>
-#include <BlinkBuzz/BlinkBuzz.h>
-#include "Type_2GT.h"
+#include "../tests/test_menu.h"
+#include "../tests/test_emmc.h"
+#include "../tests/test_buzzer.h"
+#include "../tests/test_leds.h"
+#include "../tests/test_pyrotechnics.h"
+#include "../tests/test_i2c.h"
+#include "../tests/test_uart_bt.h"
+#include "../tests/test_usb.h"
+#include "../tests/test_battery.h"
+#include "../tests/test_radio.h"
 
-using namespace mmfs;
+// USB CDC is now the primary console interface
+// Console is defined in test_menu.h as 'Serial' (USB CDC)
 
-BlinkBuzz bb;
-SAM_M8Q g("SAM-M8Q");
-// cs, irq, rst, bsy
-Type2GT rad(PA15, PA2, PA6, PA7, SPI);
-int LED_GPS = PB12;
-int LED_SENS = PB11;
+// Test state
+TestID currentTest = TEST_NONE;
+bool testInitialized = false;
 
-int leds[] = {LED_GPS, LED_SENS};
-
-void radInt(void)
-{
-  rad.respondToIrq();
-  bb.off(LED_SENS);
+void setupTest(TestID test) {
+    switch (test) {
+        case TEST_EMMC:
+            TestMenu::printHeader("EMMC Test");
+            EMMCTest::setup();
+            break;
+        case TEST_BUZZER:
+            TestMenu::printHeader("Buzzer Test");
+            BuzzerTest::setup();
+            break;
+        case TEST_LEDS:
+            TestMenu::printHeader("LED Test");
+            LEDTest::setup();
+            break;
+        case TEST_PYROTECHNICS:
+            TestMenu::printHeader("Pyrotechnics Test");
+            PyrotechnicsTest::setup();
+            break;
+        case TEST_I2C_SENSORS:
+            TestMenu::printHeader("I2C Sensors Test");
+            I2CTest::setup();
+            break;
+        case TEST_UART_BT:
+            TestMenu::printHeader("UART Bluetooth Test");
+            UARTBTTest::setup();
+            break;
+        case TEST_USB:
+            TestMenu::printHeader("USB CDC Test");
+            USBTest::setup();
+            break;
+        case TEST_BATTERY:
+            TestMenu::printHeader("Battery Voltage Test");
+            BatteryTest::setup();
+            break;
+        case TEST_RADIO:
+            TestMenu::printHeader("Radio Test");
+            RadioTest::setup();
+            break;
+        case TEST_ALL:
+            TestMenu::printHeader("All Tests");
+            Console.println("Initializing all test modules...\n");
+            EMMCTest::setup();
+            BuzzerTest::setup();
+            LEDTest::setup();
+            PyrotechnicsTest::setup();
+            I2CTest::setup();
+            UARTBTTest::setup();
+            USBTest::setup();
+            BatteryTest::setup();
+            RadioTest::setup();
+            break;
+        default:
+            break;
+    }
 }
 
-void setup()
-{
-  Serial.setTx(PB6_ALT2);
-  Serial.setRx(PB7_ALT1);
-  Serial.begin(115200);
-  Serial.println("Init...");
-
-  Wire.setSDA(PB9);
-  Wire.setSCL(PB8);
-  Wire.begin();
-
-  SPI.setMISO(PB4);
-  SPI.setSCLK(PB3);
-  SPI.setMOSI(PD7);
-  SPI.begin();
-
-  int r = rad.begin();
-  if (r == RADIOLIB_ERR_NONE)
-    Serial.println("Radio Init OK");
-  else
-    Serial.printf("Radio Init FAIL %d\n", r);
-
-  rad.onIrq(radInt);
-  // Optional: prime RX so IRQ path is exercised even before first TX
-  rad.recieve();
-
-  if (g.begin())
-    Serial.println("GPS Init!");
-  else
-    Serial.println("No GPS!");
-
-  bb.init(leds, 2, true);
-  bb.aonoff(LED_GPS, BBPattern(200, 1), true);
+void runTest(TestID test) {
+    switch (test) {
+        case TEST_EMMC:
+            EMMCTest::run();
+            break;
+        case TEST_BUZZER:
+            BuzzerTest::run();
+            break;
+        case TEST_LEDS:
+            LEDTest::run();
+            break;
+        case TEST_PYROTECHNICS:
+            PyrotechnicsTest::run();
+            break;
+        case TEST_I2C_SENSORS:
+            I2CTest::run();
+            break;
+        case TEST_UART_BT:
+            UARTBTTest::run();
+            break;
+        case TEST_USB:
+            USBTest::run();
+            break;
+        case TEST_BATTERY:
+            BatteryTest::run();
+            break;
+        case TEST_RADIO:
+            RadioTest::run();
+            break;
+        case TEST_ALL:
+            Console.println("\n=== Running All Tests ===\n");
+            EMMCTest::run();
+            delay(1000);
+            BuzzerTest::run();
+            delay(1000);
+            LEDTest::run();
+            delay(1000);
+            PyrotechnicsTest::run();
+            delay(1000);
+            I2CTest::run();
+            delay(1000);
+            UARTBTTest::run();
+            delay(1000);
+            USBTest::run();
+            delay(1000);
+            BatteryTest::run();
+            delay(1000);
+            RadioTest::run();
+            Console.println("\n=== All Tests Complete ===");
+            Console.println("Press '0' for menu.\n");
+            break;
+        default:
+            break;
+    }
 }
 
-double last = 0;
-bool hasFix = false;
+void setup() {
+    // Initialize USB CDC
+    Console.begin(115200);
 
-void pumpBtToLoRa()
-{
-  static char buf[256]; // slightly bigger – you’ll want to see truncation if it happens
-  while (Serial.available())
-  {
-    bb.on(LED_SENS);
-    size_t n = Serial.readBytesUntil('\n', buf, sizeof(buf) - 1);
-    if (n == 0)
-      break;
-    buf[n] = '\0';
+    // Wait for USB serial connection (with timeout)
+    unsigned long startTime = millis();
+    while (!Console && (millis() - startTime < 3000)) {
+        delay(10);
+    }
 
-    if (strncmp(buf, "LoRa", 4) == 0)
-    {
-      int rc = rad.transmit(buf);
-      Serial.printf("DBG: transmit rc=%d (len=%u)\n", rc, (unsigned)strlen(buf + 3));
-      // optional: flash LED_SENS briefly so you can see TX attempts
-      bb.off(LED_SENS);
-    }
-    else
-    {
-      Serial.printf("DBG: ignoring line: %s\n", buf);
-      bb.off(LED_SENS);
-    }
-  }
+    // Small delay to allow terminal to stabilize
+    delay(100);
+
+    Console.println("\n\n");
+    Console.println("╔════════════════════════════════════════╗");
+    Console.println("║  STM32H723 Hardware Test Framework     ║");
+    Console.println("║  USB CDC Direct Connection             ║");
+    Console.println("╚════════════════════════════════════════╝");
+    Console.println();
+    Console.println("✓ USB CDC initialized on PA11/PA12");
+    Console.println("✓ System ready!");
+    Console.println();
+
+    // Display the menu
+    TestMenu::displayMenu();
 }
 
-uint32_t last_ms = 0;
+void loop() {
+    // Check for test selection
+    TestID selectedTest = TestMenu::getSelectedTest();
 
-void loop()
-{
-  bb.update();
+    if (selectedTest != TEST_NONE) {
+        // If we're switching tests or starting a new test
+        if (selectedTest != currentTest || !testInitialized) {
+            currentTest = selectedTest;
+            setupTest(currentTest);
+            testInitialized = true;
+        }
 
-  const uint32_t now = millis();
-  if ((uint32_t)(now - last_ms) >= 500)
-  {
-    last_ms = now;
-    g.update();
+        // Run the test
+        runTest(currentTest);
 
-    // Emit a single, parseable line with newline
-    Serial.printf("GPS,%.7f,%.7f,%.2f,%u\n",
-                  g.getPos().x(), g.getPos().y(), g.getPos().z(), g.getFixQual());
-
-    // LED state
-    const bool fix = g.getHasFix();
-    if (!hasFix && fix)
-    {
-      bb.on(LED_GPS);
-      hasFix = true;
+        // Reset test state so it can be run again if selected
+        testInitialized = false;
+        currentTest = TEST_NONE;
     }
-    else if (hasFix && !fix)
-    {
-      bb.aonoff(LED_GPS, BBPattern(200, 1), true);
-      hasFix = false;
-    }
-  }
 
-  // Non-blocking RX from BT
-  pumpBtToLoRa();
+    // Small delay to prevent serial buffer overflow
+    delay(10);
 }
