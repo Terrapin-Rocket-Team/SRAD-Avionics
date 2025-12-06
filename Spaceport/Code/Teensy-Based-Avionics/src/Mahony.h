@@ -53,6 +53,9 @@ void computeMagCalibration() {
     if (data_nums < 100) {
         return;
     }
+
+    hard_iron = []; //store hard iron biases
+    soft_iron = [][]; //store soft iron biases 
     
     // Convert vector buffer to Eigen matrix for computation
     Eigen::MatrixXd data(data_nums, 3);
