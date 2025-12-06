@@ -912,25 +912,23 @@
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "U"
-				(at -12.7 56.88 0)
+			(property "Reference" "U8"
+				(at 0 60.96 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left bottom)
 				)
 			)
 			(property "Value" "BQ25606RGER"
-				(at -12.7 -59.88 0)
+				(at 0 58.42 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left bottom)
 				)
 			)
-			(property "Footprint" "BQ25606RGER:QFN50P400X400X100-25N"
+			(property "Footprint" "Package_DFN_QFN:Texas_RGE0024H_VQFN-24-1EP_4x4mm_P0.5mm_EP2.7x2.7mm"
 				(at 0 0 0)
 				(effects
 					(font
@@ -1385,6 +1383,26 @@
 					)
 				)
 			)
+			(symbol "BQ25606RGER_1_1"
+				(pin input line
+					(at 15.24 45.72 180)
+					(length 2.54)
+					(name "PAD"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "25"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
 			(embedded_fonts no)
 		)
 		(symbol "power:+5V"
@@ -1681,6 +1699,12 @@
 		(uuid "7c9ea143-8d15-4043-99d0-7d5c7eaaaf08")
 	)
 	(junction
+		(at 186.69 50.8)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "819d0f1b-7158-466e-a138-e62c1ae93042")
+	)
+	(junction
 		(at 97.79 109.22)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -1777,6 +1801,16 @@
 			(type default)
 		)
 		(uuid "0dd38bb9-450b-4ae8-a1ae-e6dd9565a829")
+	)
+	(wire
+		(pts
+			(xy 181.61 53.34) (xy 181.61 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0f2e4843-3026-4509-993d-2fc4fca6d5cf")
 	)
 	(wire
 		(pts
@@ -1947,6 +1981,16 @@
 			(type default)
 		)
 		(uuid "6c4ea36c-efbd-4866-bc52-c390e34e3c0b")
+	)
+	(wire
+		(pts
+			(xy 181.61 50.8) (xy 186.69 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6d4f42bd-ab36-4455-a24d-8f5d8dc6cadf")
 	)
 	(wire
 		(pts
@@ -2127,6 +2171,16 @@
 			(type default)
 		)
 		(uuid "b6425b0f-cfd9-4306-afef-fc6c4c97cf0a")
+	)
+	(wire
+		(pts
+			(xy 180.34 53.34) (xy 181.61 53.34)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b685cb8d-f786-4fa0-b2f1-52b08f0bfda7")
 	)
 	(wire
 		(pts
@@ -2890,6 +2944,9 @@
 		)
 		(pin "8"
 			(uuid "6fa18deb-4865-4fef-978e-8407742f927c")
+		)
+		(pin "25"
+			(uuid "7b3f85f4-a607-4200-bdec-90b020dd76ca")
 		)
 		(instances
 			(project ""
@@ -4557,7 +4614,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_1210_3225Metric_Pad1.33x2.70mm_HandSolder"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
 			(at 112.7252 127 0)
 			(effects
 				(font
