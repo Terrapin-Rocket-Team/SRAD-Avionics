@@ -3,9 +3,29 @@
 
 #include <Arduino.h>
 
-// USB CDC as primary console
-// Use 'Serial' which is USB CDC when USBCON is defined
-#define Console Serial
+// Console configuration
+// Select console based on compile-time flags
+#if defined(USE_UART_CONSOLE)
+    // UART Console on PB6 (TX) and PB7 (RX)
+    // Serial1 is typically used for hardware UART on STM32
+    #define Console Serial1
+    #define CONSOLE_BAUD 115200
+    #define CONSOLE_TYPE "UART"
+    #define CONSOLE_PINS "PB6/PB7"
+#elif defined(USE_USB_CONSOLE)
+    // USB CDC Console on PA11/PA12
+    #define Console Serial
+    #define CONSOLE_BAUD 115200
+    #define CONSOLE_TYPE "USB CDC"
+    #define CONSOLE_PINS "PA11/PA12"
+#else
+    // Default to USB if nothing specified
+    #define Console Serial
+    #define CONSOLE_BAUD 115200
+    #define CONSOLE_TYPE "USB CDC (default)"
+    #define CONSOLE_PINS "PA11/PA12"
+    #warning "No console type defined, defaulting to USB CDC"
+#endif
 
 // Test IDs
 enum TestID {

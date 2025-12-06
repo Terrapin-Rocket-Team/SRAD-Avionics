@@ -10,8 +10,9 @@
 #include "../tests/test_battery.h"
 #include "../tests/test_radio.h"
 
-// USB CDC is now the primary console interface
-// Console is defined in test_menu.h as 'Serial' (USB CDC)
+// Console interface can be configured to use either USB CDC or UART
+// Configure in platformio.ini: USE_USB_CONSOLE or USE_UART_CONSOLE
+// Console is defined in test_menu.h based on compile-time flags
 
 // Test state
 TestID currentTest = TEST_NONE;
@@ -130,14 +131,19 @@ void runTest(TestID test) {
 }
 
 void setup() {
-    // Initialize USB CDC
-    Console.begin(115200);
+    // Initialize console (USB CDC or UART based on compile-time config)
+    Console.begin(CONSOLE_BAUD);
 
+#if defined(USE_USB_CONSOLE)
     // Wait for USB serial connection (with timeout)
     unsigned long startTime = millis();
     while (!Console && (millis() - startTime < 3000)) {
         delay(10);
     }
+#elif defined(USE_UART_CONSOLE)
+    // For UART, just give it a short delay to stabilize
+    delay(100);
+#endif
 
     // Small delay to allow terminal to stabilize
     delay(100);
@@ -145,10 +151,18 @@ void setup() {
     Console.println("\n\n");
     Console.println("╔════════════════════════════════════════╗");
     Console.println("║  STM32H723 Hardware Test Framework     ║");
-    Console.println("║  USB CDC Direct Connection             ║");
+    Console.print("║  Console: ");
+    Console.print(CONSOLE_TYPE);
+    // Pad the line to align the border
+    int padding = 28 - strlen(CONSOLE_TYPE);
+    for (int i = 0; i < padding; i++) {
+        Console.print(" ");
+    }
+    Console.println("║");
     Console.println("╚════════════════════════════════════════╝");
     Console.println();
-    Console.println("✓ USB CDC initialized on PA11/PA12");
+    Console.print("✓ Console initialized on ");
+    Console.println(CONSOLE_PINS);
     Console.println("✓ System ready!");
     Console.println();
 
