@@ -8,7 +8,6 @@
 #include "Sensors/Gyro/BMI088Gyro.h"
 #include "State/State.h"
 #include "Utils/Astra.h"
-#include "RetrieveData/SerialHandler.h"
 #include "RecordData/Logging/EventLogger.h"
 #include "RecordData/Logging/DataLogger.h"
 #include "Type_2GT.h"
@@ -74,67 +73,67 @@ void setup()
   // Optional: prime RX so IRQ path is exercised even before first TX
   rad.recieve();
 
-  Serial.println("Starting up");
+  // Serial.println("Starting up");
 
-  EventLogger::configure(bufLogs, 1);
+  // EventLogger::configure(bufLogs, 1);
 
-  sys.init();
-  bb.init(leds, 2, true);
-  bb.aonoff(LED_GPS, BBPattern(200, 1), true);
+  // sys.init();
+  // bb.init(leds, 2, true);
+  // bb.aonoff(LED_GPS, BBPattern(200, 1), true);
 
-  for (int i = 0; i < 25; i++)
-  {
-    baro.update();
-    delay(20);
-  }
-  startAlt = baro.getASLAltFt();
-  LOGI("Start Altitude: %.2f ft", startAlt);
+  // for (int i = 0; i < 25; i++)
+  // {
+  //   baro.update();
+  //   delay(20);
+  // }
+  // startAlt = baro.getASLAltFt();
+  // LOGI("Start Altitude: %.2f ft", startAlt);
 }
 bool handshake = false;
 bool hasFix = false;
 uint32_t last_ms = 0;
 void loop()
 {
-  sys.update();
-  if (!handshake)
-    if (Serial1.available())
-    {
-      String s = Serial1.readStringUntil('\n');
-      s.trim();
-      if (s == "PING")
-      {
-        Serial1.println("PONG");
-        handshake = true;
-        EventLogger::configure(logs, 1);
-        buf.transfer(uLog);
-        LOGI("Pi Handshake Complete.");
-      }
-    }
-  const uint32_t now = millis();
+  // sys.update();
+  // if (!handshake)
+  //   if (Serial1.available())
+  //   {
+  //     String s = Serial1.readStringUntil('\n');
+  //     s.trim();
+  //     if (s == "PING")
+  //     {
+  //       Serial1.println("PONG");
+  //       handshake = true;
+  //       EventLogger::configure(logs, 1);
+  //       buf.transfer(uLog);
+  //       LOGI("Pi Handshake Complete.");
+  //     }
+  //   }
+  // const uint32_t now = millis();
 
-  if ((uint32_t)(now - last_ms) >= 500)
-  {
-    last_ms = now;
-    g.update();
+  // if ((uint32_t)(now - last_ms) >= 500)
+  // {
+  //   last_ms = now;
+  //   g.update();
 
-    // Emit a single, parseable line with newline
-    char str[200];
-    // send alt, speed, acc, and time.
-    snprintf(str, 200, "TELEM2/%.3f,%.2f,%.2f,%.2f,%.7f, %.7f\n", now / 1000.0f, baro.getASLAltFt() - startAlt, avionicsState.getVelocity().magnitude(), acc.getAccel().magnitude(), g.getPos().x(), g.getPos().y());
-    Serial.print(str);
+  //   // Emit a single, parseable line with newline
+  //   char str[200];
+  //   // send alt, speed, acc, and time.
+  //   snprintf(str, 200, "TELEM2/%.3f,%.2f,%.2f,%.2f,%.7f, %.7f\n", now / 1000.0f, baro.getASLAltFt() - startAlt, avionicsState.getVelocity().magnitude(), acc.getAccel().magnitude(), g.getPos().x(), g.getPos().y());
+  //   Serial.print(str);
 
-    rad.transmit(str);
-    // LED state
-    const bool fix = g.getHasFix();
-    if (!hasFix && fix)
-    {
-      bb.on(LED_GPS);
-      hasFix = true;
-    }
-    else if (hasFix && !fix)
-    {
-      bb.aonoff(LED_GPS, BBPattern(200, 1), true);
-      hasFix = false;
-    }
-  }
+  //   rad.transmit(str);
+  //   // LED state
+  //   const bool fix = g.getHasFix();
+  //   if (!hasFix && fix)
+  //   {
+  //     bb.on(LED_GPS);
+  //     hasFix = true;
+  //   }
+  //   else if (hasFix && !fix)
+  //   {
+  //     bb.aonoff(LED_GPS, BBPattern(200, 1), true);
+  //     hasFix = false;
+  //   }
+  // }
 }

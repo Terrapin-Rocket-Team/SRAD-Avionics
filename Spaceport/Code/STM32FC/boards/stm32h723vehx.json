@@ -2,25 +2,25 @@
   "name": "STM32H723VEHx Custom Board",
   "url": "https://www.st.com/en/microcontrollers-microprocessors/stm32h723ve.html",
   "vendor": "STMicroelectronics",
-
   "build": {
     "core": "stm32",
     "cpu": "cortex-m7",
-    "extra_flags": "-DSTM32H723xx",
+    "extra_flags": "-DSTM32H7 -DSTM32H7xx -DSTM32H723xx",
     "f_cpu": "550000000L",
     "mcu": "stm32h723vehx",
-    "variant": "STM32H7xx/H723V(E-G)(H-T)_H730VB(H-T)_H733VG(H-T)"
+    "variant": "stm32h723vehx"
   },
-
-  "frameworks": ["arduino"],
-
+  "frameworks": [
+    "arduino"
+  ],
   "upload": {
     "protocol": "stlink",
     "maximum_size": 524288,
     "maximum_ram_size": 577536,
-    "protocols": ["stlink"]
+    "protocols": [
+      "stlink"
+    ]
   },
-
   "debug": {
     "openocd_target": "stm32h7x"
   }
