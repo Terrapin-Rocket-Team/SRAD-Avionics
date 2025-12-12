@@ -25,25 +25,24 @@ void radInt(void)
   digitalWrite(STATUS_LED, LOW);
 }
 
-
 void setup()
 {
 
   // Serial1 (USART) pins
   Serial.setRx(PB7_ALT1); // alt pin defs
   Serial.setTx(PB6_ALT2);
-
+  Serial.setTimeout(5000);
   Serial.begin(115200);
 
   pinMode(STATUS_LED, OUTPUT);
   int radio_init_statuscode = radio.begin();
   if (radio_init_statuscode != RADIOLIB_ERR_NONE)
   {
-    Serial.printf("Error: Radio not initialized, Error code %d\n", radio_init_statuscode);
+    Serial.printf("RAD/Error: Radio not initialized, Error code %d\n", radio_init_statuscode);
   }
   else
   {
-    Serial.println("Info: Radio Initialized");
+    Serial.println("RAD/Info: Radio Initialized");
     digitalWrite(STATUS_LED, HIGH);
     delay(100);
   }
@@ -54,14 +53,22 @@ void setup()
 void loop()
 {
   // 2 kb buffer
-  char *buf = new char[2048];
-  if(Serial.available()){
+  char buf[2048];
+  if (Serial.available())
+  {
     digitalWrite(STATUS_LED, HIGH);
-    Serial.readBytesUntil('\0', buf, sizeof(buf));
-    radio.transmit(buf);
+    int i = Serial.readBytesUntil('\n', buf, 2048);  // Fixed: use actual buffer size
+    buf[i] = '\0';
+    if (!strncmp(buf, "RAD/PING", 8))
+    {
+      Serial.println("RAD/PONG");
+    }
+    else
+    {
+      radio.transmit(buf);
+    }
   }
   digitalWrite(STATUS_LED, LOW);
-
 }
 #endif
 /*
@@ -81,13 +88,15 @@ void setup()
 void loop()
 {
 
-  if(Serial1.available()){
+  if (Serial1.available())
+  {
     Serial.write((char)Serial1.read());
     delay(20);
   }
 
   unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= interval) {
+  if (currentMillis - previousMillis >= interval)
+  {
     previousMillis = currentMillis;
 
     Serial1.write("Some Data");
