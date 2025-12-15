@@ -348,7 +348,7 @@ void loop()
           break;
       }
       bytesAvail = USBSerial.available();
-        radio.transmit("CMD/boop\n", sizeof("CMD/boop\n"));2 
+        radio.transmit("CMD/boop\n", sizeof("CMD/boop\n"));
         currState = NONE;
     }
     }
