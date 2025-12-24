@@ -160,11 +160,11 @@ bool Si4463::tx(const uint8_t *message, int len)
     if (len > Si4463::MAX_LEN)
         return false; // Error: the packet is too long
 
-    // Serial.println(this->state);
+    Serial.println(this->state);
     //  prefill fifo in idle state
     if (this->state == STATE_IDLE || this->state == STATE_RX || this->state == STATE_RX_COMPLETE)
     {
-        // Serial.println("tx");
+        Serial.println("tx");
         // add the message to the internal buffer
         this->length = len;
         this->availLen = len;
@@ -174,8 +174,8 @@ bool Si4463::tx(const uint8_t *message, int len)
         this->available = false;
 
         //  enter idle state
-        uint8_t cIdleArgs[1] = {0b00000011};
-        this->sendCommandC(C_CHANGE_STATE, 1, cIdleArgs);
+        // uint8_t cIdleArgs[1] = {0b00000011};
+        // this->sendCommandC(C_CHANGE_STATE, 1, cIdleArgs);
 
         // clear fifo
         uint8_t cClearFIFO[1] = {0b00000011};
@@ -198,14 +198,14 @@ bool Si4463::tx(const uint8_t *message, int len)
         while (count++ < FIFO_LENGTH - 2 && this->xfrd < this->length)
         {
             this->spi->transfer(this->buf[this->xfrd++]);
-            // Serial.print((char)this->buf[this->xfrd - 1]);
+            Serial.print((char)this->buf[this->xfrd - 1]);
         }
-        // Serial.println();
+        Serial.println();
 
         digitalWrite(this->_cs, HIGH);
 
         // set packet length for variable length packets
-        this->setProperty(G_PKT, 2, P_PKT_FIELD_2_LENGTH2, mLen);
+        // this->setProperty(G_PKT, 2, P_PKT_FIELD_2_LENGTH2, mLen);
 
         // start tx
         // enter rx state after tx
@@ -537,6 +537,8 @@ uint16_t Si4463::readRXBuf(uint8_t *data, uint16_t len)
     {
         if (this->state == STATE_RX && this->availLen + len > this->xfrd)
             len = this->xfrd - this->availLen;
+        else if ((this->state == STATE_IDLE || this->state == STATE_RX_COMPLETE) && this->availLen + len > this->length)
+            len = this->length - this->availLen;
         // copy from the internal buf into the array
         memcpy(data, this->buf + this->availLen, len);
         this->availLen += len;
@@ -581,7 +583,7 @@ void Si4463::update()
         {
             this->state = STATE_RX;
         }
-        if (status == 3) // ready state
+        else if (status > 8 || status == 3) // ready state
         {
             this->state = STATE_IDLE;
         }
@@ -590,11 +592,11 @@ void Si4463::update()
     if (this->state == STATE_RX_COMPLETE)
     {
         uint8_t status = this->readFRR(0);
-        if (status == 8) // RX state
-        {
-            this->state = STATE_RX;
-        }
-        if (status == 3) // ready state
+        // if (status == 8) // RX state
+        // {
+        //     this->state = STATE_RX;
+        // }
+        if (status > 8 || status == 3) // ready state
         {
             this->state = STATE_IDLE;
         }
@@ -849,8 +851,8 @@ void Si4463::setPacketConfig(Si4463Mod mod, uint8_t preambleLength, uint8_t prea
     // setup all packet fields
     this->setProperty(G_PKT, P_PKT_CONFIG1, pktConfArgs);
     // turn on data whitening for fields 1 and 2
-    this->setProperty(G_PKT, P_PKT_FIELD_1_CONFIG, 0x06 | pktConfArgs);
-    this->setProperty(G_PKT, P_PKT_FIELD_2_CONFIG, 0x02 | pktConfArgs);
+    this->setProperty(G_PKT, P_PKT_FIELD_1_CONFIG, 0x06 | pktFieldConfArgs);
+    this->setProperty(G_PKT, P_PKT_FIELD_2_CONFIG, 0x02 | pktFieldConfArgs);
 
     // enable variable length packets
     this->setProperty(G_PKT, P_PKT_LEN, 0b00111010);
