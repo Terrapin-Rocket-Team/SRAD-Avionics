@@ -1,4 +1,4 @@
-function bandwidth = occupiedBW(symbolRate, order, modIndex)
+function bandwidth = occupiedBWFSK(symbolRate, order, modIndex)
     % only works for FSK
     if (order == 2)
         bandwidth = symbolRate * (modIndex + 1);

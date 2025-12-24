@@ -1,0 +1,46 @@
+%% BOOST CONVERTER
+clc; close all; clear
+
+% Some params form Ti power designer:
+% Vin = 2V to 4.2V, IOUT = 3A, Temp = 30c
+% Params calcualted at VIN = 4.2V
+
+%% R1 calcs
+V_REF = .6; % TYP
+V_OUT = 5.1;
+R2 = 15e3;
+% R1 = ((V_OUT - V_REF) * R2) / V_REF
+
+R1 = 111e3;
+V_OUT = V_REF * (1 + (R1 / R2))
+
+%%  I_DC calcs
+V_in_max = 4.2;
+V_in_min = 2.5;
+power_conversion_efficiency = .97; 
+I_OUT = 3; 
+f_sw = 500e3; % Switching frequency 
+L = 2.2e-9; % Selected inductor  
+
+I_DC = (V_OUT * I_OUT) / (V_in_min * power_conversion_efficiency);
+I_PP = (L * (1/ (V_OUT - V_in_min)) + (1 / V_in_min) * f_sw )^-1;
+
+% Chosen inductor should be able to handle this much current. 
+% The saturaion current rating of the inductor should also be higher than
+% this figure as well.
+I_LPEAK = I_DC + (I_PP / 2); 
+
+%% R_C calcs
+C_O = 22e-6;
+f_C = f_sw / 10;
+G_EA = 180e-6;
+D = .1708; % Param from Ti power designer
+K_COMP = 13.5;
+R_O = 5 / 3; % Output resistance 
+
+R_ESR = 0.015; % Maximum according to wikipedia
+
+format default
+R_C = (2 * pi * V_OUT * C_O * f_C) / ((1 - D) * V_REF * G_EA * K_COMP)
+C_C = ((R_O * C_O) / (2 * R_C)) * 10^12
+C_P = (R_ESR * C_O) / R_C * 1e9; % Leave open if < 10pF
