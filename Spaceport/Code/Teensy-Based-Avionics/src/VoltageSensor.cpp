@@ -1,7 +1,7 @@
 #include "VoltageSensor.h"
 #include <Arduino.h>
 
-VoltageSensor::VoltageSensor(int pin, int r1, int r2, const char *name){
+VoltageSensor::VoltageSensor(int pin, int r1, int r2, const char *name) : Sensor (name) {
     setName(name);
     this->pin = pin;
     this->ratio = 1.0 / (r2 / ( 1.0 * r1 + r2));
@@ -17,7 +17,8 @@ bool VoltageSensor::init(){
 }
 
 void VoltageSensor::read(){
-    rawV = analogRead(pin) * 3.3 / 1023; //values from analogRead range from 0 to 1023 (0 to 3.3v)
+    result = analogRead(pin);
+    rawV =  result * 3.3 / 1023; //values from analogRead range from 0 to 1023 (0 to 3.3v)
     realV = rawV * ratio;
 }
 

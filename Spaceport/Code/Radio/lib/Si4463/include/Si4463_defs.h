@@ -69,6 +69,7 @@ enum Si4463Power : uint8_t
     POWER_HP_20dBm = 8,
     POWER_HP_23dBm = 11,
     POWER_LP_20dBm = 127,
+    POWER_COTS_30dBm = 127,
 };
 
 // pin settings
