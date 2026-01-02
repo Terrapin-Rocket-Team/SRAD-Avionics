@@ -31,7 +31,6 @@ void setup()
   // Serial1 (USART) pins
   Serial.setRx(PB7_ALT1); // alt pin defs
   Serial.setTx(PB6_ALT2);
-  Serial.setTimeout(5000);
   Serial.begin(115200);
 
   pinMode(STATUS_LED, OUTPUT);
@@ -91,15 +90,11 @@ void loop()
   if (Serial1.available())
   {
     Serial.write((char)Serial1.read());
-    delay(20);
   }
 
-  unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= interval)
+    if (Serial.available())
   {
-    previousMillis = currentMillis;
-
-    Serial1.write("Some Data");
+    Serial1.write((char)Serial.read());
   }
 }
 

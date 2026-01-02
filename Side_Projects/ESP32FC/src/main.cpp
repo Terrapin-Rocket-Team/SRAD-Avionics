@@ -6,21 +6,21 @@
 // =============== Debug helpers (USB CDC on ESP32-S3) ===============
 static void dbgHex(const uint8_t *d, size_t n)
 {
-    // for (size_t i = 0; i < n; ++i)
-    // {
-    //     if ((i & 0x0F) == 0)
-    //         USBSerial.printf("\n  %04u: ", (unsigned)i);
-    //     USBSerial.printf("%02X ", d[i]);
-    // }
-    // USBSerial.println();
+    for (size_t i = 0; i < n; ++i)
+    {
+        if ((i & 0x0F) == 0)
+            USBSerial.printf("\n  %04u: ", (unsigned)i);
+        USBSerial.printf("%02X ", d[i]);
+    }
+    USBSerial.println();
 }
 
 static void dbgBanner(const char *step, int code = 0)
 {
-    // if (code == 0)
-    //     USBSerial.printf("[DBG] %s\n", step);
-    // else
-    //     USBSerial.printf("[DBG] %s -> code=%d\n", step, code);
+    if (code == 0)
+        USBSerial.printf("[DBG] %s\n", step);
+    else
+        USBSerial.printf("[DBG] %s -> code=%d\n", step, code);
 }
 
 // ======================= LoRa (LR11x0) =========================
@@ -66,20 +66,24 @@ static void ble_notify_chunked(const char *data, size_t len)
 {
     if (!g_hasClient || !g_notifyEnabled || !g_txChar || len == 0)
     {
-        // USBSerial.printf("[BLE] notify skip (client=%d notify=%d char=%p len=%u)\n",
-        //                  (int)g_hasClient, (int)g_notifyEnabled, (void *)g_txChar, (unsigned)len);
+        USBSerial.printf("[BLE] notify skip (client=%d notify=%d char=%p len=%u)\n",
+                         (int)g_hasClient, (int)g_notifyEnabled, (void *)g_txChar, (unsigned)len);
         return;
     }
     const uint16_t mtu = NimBLEDevice::getMTU();          // 23..247
     const size_t maxPayload = (mtu > 3) ? (mtu - 3) : 20; // ATT notif payload
-    // USBSerial.printf("[BLE] notify len=%u mtu=%u chunk=%u\n",
-    //                  (unsigned)len, (unsigned)mtu, (unsigned)maxPayload);
+    USBSerial.printf("[BLE] notify len=%u mtu=%u chunk=%u\n",
+                     (unsigned)len, (unsigned)mtu, (unsigned)maxPayload);
 
     for (size_t off = 0; off < len; off += maxPayload)
     {
         const size_t n = ((len - off) > maxPayload) ? maxPayload : (len - off);
         g_txChar->setValue((uint8_t *)(data + off), n);
         g_txChar->notify();
+        if (off + n < len) {
+            // Small delay between chunks to prevent BLE buffer overflow
+            delayMicroseconds(500);  // 0.5ms delay between chunks
+        }
     }
 }
 class RxCallbacks : public NimBLECharacteristicCallbacks
@@ -87,7 +91,7 @@ class RxCallbacks : public NimBLECharacteristicCallbacks
     void onWrite(NimBLECharacteristic *c, NimBLEConnInfo &) override
     {
         const std::string &v = c->getValue();
-        // USBSerial.printf("[BLE] RX wrote %u bytes\n", (unsigned)v.size());
+        USBSerial.printf("[BLE] RX wrote %u bytes\n", (unsigned)v.size());
         // no further action
     }
 };
@@ -97,7 +101,7 @@ class TxCallbacks : public NimBLECharacteristicCallbacks
     void onSubscribe(NimBLECharacteristic *, NimBLEConnInfo &, uint16_t subValue) override
     {
         g_notifyEnabled = (subValue & 0x0001);
-        // USBSerial.printf("[BLE] TX subscribe 0x%04X -> notify=%d\n", subValue, (int)g_notifyEnabled);
+        USBSerial.printf("[BLE] TX subscribe 0x%04X -> notify=%d\n", subValue, (int)g_notifyEnabled);
     }
 };
 
@@ -106,11 +110,11 @@ class ServerCallbacks : public NimBLEServerCallbacks
     void onConnect(NimBLEServer *, NimBLEConnInfo &) override
     {
         g_hasClient = true;
-        // USBSerial.println("[BLE] client connected");
+        USBSerial.println("[BLE] client connected");
     }
     void onDisconnect(NimBLEServer *, NimBLEConnInfo &, int) override
     {
-        // USBSerial.println("[BLE] client disconnected -> re-adv");
+        USBSerial.println("[BLE] client disconnected -> re-adv");
         g_hasClient = false;
         g_notifyEnabled = false;
         NimBLEDevice::startAdvertising();
@@ -123,7 +127,7 @@ void setup()
     // USB CDC debug
     USBSerial.begin(115200);
     delay(3000);
-    // USBSerial.println("\n=== LoRa RX -> BLE NUS Bridge (verbose) ===");
+    USBSerial.println("\n=== LoRa RX -> BLE NUS Bridge (verbose) ===");
 
     // ---- BLE ----
     dbgBanner("BLE init");
@@ -132,7 +136,7 @@ void setup()
     NimBLEDevice::setMTU(247);
 
     std::string addr = NimBLEDevice::getAddress().toString();
-    // USBSerial.printf("[BLE] addr=%s\n", addr.c_str());
+    USBSerial.printf("[BLE] addr=%s\n", addr.c_str());
 
     dbgBanner("create server");
     NimBLEServer *server = NimBLEDevice::createServer();
@@ -167,57 +171,57 @@ void setup()
     sd.setName("ESP32-NUS-3");
     adv->setScanResponseData(sd);
     adv->start();
-    // USBSerial.println("[BLE] advertising started (look for 'ESP32-NUS-3')");
+    USBSerial.println("[BLE] advertising started (look for 'ESP32-NUS-3')");
 
     // ---- LoRa (LR11x0) ----
-    // USBSerial.println("[LORA] SPI begin");
+    USBSerial.println("[LORA] SPI begin");
     // sck, miso, mosi, ss — keep your working pins
     spi.begin(/*sck*/ 13, /*miso*/ 12, /*mosi*/ 11, /*ss*/ 14);
 
-    // USBSerial.print("[LORA] radio.begin ... ");
+    USBSerial.print("[LORA] radio.begin ... ");
     int st = radio.begin();
-    // USBSerial.printf("ret=%d\n", st);
+    USBSerial.printf("ret=%d\n", st);
     if (st != RADIOLIB_ERR_NONE)
     {
-        // USBSerial.println("[LORA] FATAL: radio.begin failed");
+        USBSerial.println("[LORA] FATAL: radio.begin failed");
     }
     // after radio.begin(), before startReceive/startTransmit:
 
     int rc;
     rc = radio.setFrequency(915.0);
-    // USBSerial.printf("[LORA] setFrequency -> %d\n", rc);
+    USBSerial.printf("[LORA] setFrequency -> %d\n", rc);
     rc = radio.setSpreadingFactor(7);
-    // USBSerial.printf("[LORA] setSF -> %d\n", rc); // SF7
+    USBSerial.printf("[LORA] setSF -> %d\n", rc); // SF7
     rc = radio.setBandwidth(125.0);
-    // USBSerial.printf("[LORA] setBW -> %d\n", rc); // 125 kHz
+    USBSerial.printf("[LORA] setBW -> %d\n", rc); // 125 kHz
     rc = radio.setCodingRate(5);
-    // USBSerial.printf("[LORA] setCR -> %d\n", rc); // 4/5
-    rc = radio.setSyncWord(0x34);
-    // USBSerial.printf("[LORA] setSync -> %d\n", rc); // classic LoRa
+    USBSerial.printf("[LORA] setCR -> %d\n", rc); // 4/5
+    rc = radio.setSyncWord(0x12);
+    USBSerial.printf("[LORA] setSync -> %d\n", rc); // classic LoRa
     rc = radio.setPreambleLength(8);
-    // USBSerial.printf("[LORA] setPreamble -> %d\n", rc);
+    USBSerial.printf("[LORA] setPreamble -> %d\n", rc);
     rc = radio.setCRC(true);
-    // USBSerial.printf("[LORA] setCRC -> %d\n", rc);
+    USBSerial.printf("[LORA] setCRC -> %d\n", rc);
     // optional but nice:
     rc = radio.setOutputPower(14);
-    // USBSerial.printf("[LORA] setPower -> %d\n", rc); // TX side only
+    USBSerial.printf("[LORA] setPower -> %d\n", rc); // TX side only
 
-    // USBSerial.println("[LORA] set RF switch table");
+    USBSerial.println("[LORA] set RF switch table");
     radio.setRfSwitchTable(rfswitch_dio_pins, rfswitch_table);
 
-    // USBSerial.println("[LORA] set regulator DCDC");
+    USBSerial.println("[LORA] set regulator DCDC");
     radio.setRegulatorDCDC();
 
-    // USBSerial.println("[LORA] set IRQ action");
+    USBSerial.println("[LORA] set IRQ action");
     radio.setIrqAction(onLoraIrq);
     radio.explicitHeader();
     radio.invertIQ(false);
-    // USBSerial.print("[LORA] startReceive ... ");
+    USBSerial.print("[LORA] startReceive ... ");
     st = radio.startReceive();
-    // USBSerial.printf("ret=%d\n", st);
+    USBSerial.printf("ret=%d\n", st);
     if (st != RADIOLIB_ERR_NONE)
     {
-        // USBSerial.println("[LORA] WARNING: startReceive failed");
+        USBSerial.println("[LORA] WARNING: startReceive failed");
     }
 }
 bool foundNewline = false;
@@ -358,9 +362,9 @@ void loop()
     if (now - lastHb >= 1000)
     {
         lastHb = now;
-        // USBSerial.printf("[HB] heap=%u client=%d notify=%d irqCount=%u\n",
-        //                  (unsigned)ESP.getFreeHeap(), (int)g_hasClient,
-        //                  (int)g_notifyEnabled, (unsigned)g_irqCount);
+        USBSerial.printf("[HB] heap=%u client=%d notify=%d irqCount=%u\n",
+                         (unsigned)ESP.getFreeHeap(), (int)g_hasClient,
+                         (int)g_notifyEnabled, (unsigned)g_irqCount);
     }
 
     // LoRa packet arrived
@@ -370,19 +374,19 @@ void loop()
 
         String payload;
         int st = radio.readData(payload);
-        // USBSerial.printf("[LORA] readData ret=%d len=%u\n", st, (unsigned)payload.length());
+        USBSerial.printf("[LORA] readData ret=%d len=%u\n", st, (unsigned)payload.length());
 
         if (st == RADIOLIB_ERR_NONE)
         {
             // Debug RF metrics
             float rssi = radio.getRSSI();
             float snr = radio.getSNR();
-            // USBSerial.printf("[LORA] RSSI=%.1f dBm SNR=%.1f dB\n", rssi, snr);
+            USBSerial.printf("[LORA] RSSI=%.1f dBm SNR=%.1f dB\n", rssi, snr);
 
             // USB hex (in case of control chars)
             if (payload.length())
             {
-                // USBSerial.print("[LORA] payload (hex):");
+                USBSerial.print("[LORA] payload (hex):");
                 dbgHex((const uint8_t *)payload.c_str(), payload.length());
             }
 
@@ -393,16 +397,22 @@ void loop()
             }
             ble_notify_chunked(payload.c_str(), payload.length());
 
-            double time, alt, vel, acc, x, y;
-            sscanf(payload.c_str(), "TELEM2/%lf,%lf,%lf,%lf,%lf,%lf", &time, &alt, &vel, &acc, &y, &x);
-            // USBSerial.printf("[LORA] parsed: time=%.2f alt=%.2f vel=%.2f acc=%.2f x=%.2f y=%.2f\n",
-            //                  time, alt, vel, acc, y, x);
+            // Parse the new TELEM format - actual column positions from real data:
+            // 0=time, 1=stage, 8-10=accel, 15=baro_pres, 16=baro_temp, 17=baro_alt, 18=gps_lat, 19=gps_lon, 20=gps_alt
+            double time = 0, baro_alt = 0, gps_lat = 0, gps_lon = 0, gps_alt = 0, ax = 0, ay = 0, az = 0;
+            int matched = sscanf(payload.c_str(), "TELEM/%lf,%*d,%*f,%*f,%*f,%*f,%*f,%*f,%lf,%lf,%lf,%*f,%*f,%*f,%*f,%*f,%*f,%lf,%lf,%lf,%lf",
+                                &time, &ax, &ay, &az, &baro_alt, &gps_lat, &gps_lon, &gps_alt);
+            double acc_mag = sqrt(ax*ax + ay*ay + az*az);
+            // Use GPS alt if baro alt is 0
+            double alt = (baro_alt != 0.0) ? baro_alt : gps_alt;
+            USBSerial.printf("[LORA] parsed: time=%.2f alt=%.2f lat=%.6f lon=%.6f acc=%.2f (matched=%d)\n",
+                             time, alt, gps_lat, gps_lon, acc_mag, matched);
             APRSConfig con = {"N0CALL", "APRS", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '/', 0x5C};
-            APRSTelem telem(con, y, x, alt, vel, 0.0, arr, 0x00000001);
+            APRSTelem telem(con, gps_lat, gps_lon, alt, acc_mag, 0.0, arr, 0x00000001);
 
             m.encode(&telem);
-            // USBSerial.printf("[LORA] telem size=%u encoded size=%u\n",
-            //                  (unsigned)m.size, (unsigned)m.size);
+            USBSerial.printf("[LORA] telem size=%u encoded size=%u\n",
+                             (unsigned)m.size, (unsigned)m.size);
             // update metrics
             // telemMetrics.update(m.size, millis(), radioTelem.RSSI());
             // set the flag to transmit data
@@ -410,12 +420,12 @@ void loop()
         }
         else
         {
-            // USBSerial.println("[LORA] readData failed");
+            USBSerial.println("[LORA] readData failed");
         }
 
         // Return to RX (log result)
         st = radio.startReceive();
-        // USBSerial.printf("[LORA] restart RX ret=%d\n", st);
+        USBSerial.printf("[LORA] restart RX ret=%d\n", st);
         if (handshakeSuccess ||
          true)
         {
@@ -426,8 +436,8 @@ void loop()
                 avionicsData.fill(m.buf, m.size);
                 // encode for multplexing
                 m.encode(&avionicsData);
-                // USBSerial.printf("[AVIONICS] telem size=%u encoded size=%u\n",
-                                //  (unsigned)avionicsData.size, (unsigned)m.size);
+                USBSerial.printf("[AVIONICS] telem size=%u encoded size=%u\n",
+                                 (unsigned)avionicsData.size, (unsigned)m.size);
                 // write
                 // log("Avionics data: ", (const char *)m.buf);
                 USBSerial.write(m.buf, m.size);
@@ -437,3 +447,21 @@ void loop()
         }
     }
 }
+
+
+
+
+
+
+
+
+// #include <Arduino.h>
+
+// void setup(){
+//     USBSerial.begin(115200);
+// }
+
+// void loop(){
+//     USBSerial.println("Loop");
+//     delay(500);
+// }
