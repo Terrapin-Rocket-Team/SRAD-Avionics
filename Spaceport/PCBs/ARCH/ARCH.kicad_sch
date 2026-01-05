@@ -5579,6 +5579,182 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Switch:SW_SPDT"
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "SW"
+				(at 0 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "SW_SPDT"
+				(at 0 -5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 -7.62 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Switch, single pole double throw"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "switch single-pole double-throw spdt ON-ON"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "SW_SPDT_0_1"
+				(circle
+					(center -2.032 0)
+					(radius 0.4572)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.651 0.254) (xy 1.651 2.286)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 2.032 2.54)
+					(radius 0.4572)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 2.032 -2.54)
+					(radius 0.4572)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "SW_SPDT_1_1"
+				(rectangle
+					(start -3.175 3.81)
+					(end 3.175 -3.81)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(pin passive line
+					(at -5.08 0 0)
+					(length 2.54)
+					(name "B"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 5.08 2.54 180)
+					(length 2.54)
+					(name "A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 5.08 -2.54 180)
+					(length 2.54)
+					(name "C"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "power:+5V"
 			(power)
 			(pin_numbers
@@ -5985,7 +6161,7 @@
 	)
 	(rectangle
 		(start 133.604 12.954)
-		(end 218.44 72.644)
+		(end 218.44 88.9)
 		(stroke
 			(width 0.254)
 			(type dot)
@@ -6071,6 +6247,16 @@
 			)
 		)
 		(uuid "4ec1ae8b-0dd4-45d4-98e7-ecf2e5d0f916")
+	)
+	(text "Charger\n"
+		(exclude_from_sim no)
+		(at 271.018 101.854 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "65c6ffaa-0476-4361-a7ba-0a87ad37078c")
 	)
 	(text "Charging"
 		(exclude_from_sim no)
@@ -6255,6 +6441,12 @@
 		(uuid "67714a95-8716-4a2e-b721-0a8b6f984441")
 	)
 	(junction
+		(at 173.99 38.1)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "70bf1977-c893-4805-9c74-dec6dae7cbb9")
+	)
+	(junction
 		(at 78.74 35.56)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -6331,12 +6523,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "b3769b8c-eddb-465b-b020-b17e65b5ca32")
-	)
-	(junction
-		(at 168.91 49.53)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "b5541c3a-a5f8-479c-b0ac-90db48b5cee2")
 	)
 	(junction
 		(at 240.03 64.77)
@@ -6728,7 +6914,7 @@
 	)
 	(wire
 		(pts
-			(xy 156.21 38.1) (xy 196.85 38.1)
+			(xy 156.21 38.1) (xy 173.99 38.1)
 		)
 		(stroke
 			(width 0)
@@ -7068,6 +7254,16 @@
 	)
 	(wire
 		(pts
+			(xy 173.99 72.39) (xy 171.45 72.39)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "608ccc74-5400-49b8-8a96-b4f26f0a8ef4")
+	)
+	(wire
+		(pts
 			(xy 151.13 25.4) (xy 151.13 38.1)
 		)
 		(stroke
@@ -7145,6 +7341,16 @@
 			(type default)
 		)
 		(uuid "6d0b6c07-3a31-4a60-b9ac-4f29e8c8bca4")
+	)
+	(wire
+		(pts
+			(xy 173.99 38.1) (xy 173.99 72.39)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6d64d220-f648-4274-aeeb-f2185d24bac1")
 	)
 	(wire
 		(pts
@@ -7648,6 +7854,16 @@
 	)
 	(wire
 		(pts
+			(xy 173.99 38.1) (xy 196.85 38.1)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "efcf0191-e4ec-42ab-bd1b-98e75dd84622")
+	)
+	(wire
+		(pts
 			(xy 48.26 168.91) (xy 48.26 171.45)
 		)
 		(stroke
@@ -7957,6 +8173,28 @@
 		(uuid "2d2c958c-da9c-491e-b74d-edea28efff6e")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 192.7763 101.6 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "EN"
+		(shape input)
+		(at 161.29 69.85 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "312edfcd-dedd-46b6-81d1-e1c444d56678")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 161.29 75.3147 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10985,6 +11223,146 @@
 		)
 	)
 	(symbol
+		(lib_id "Switch:SW_SPDT")
+		(at 166.37 69.85 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "238a8d88-480b-4b7e-96e6-91612f6e8d96")
+		(property "Reference" "SW1"
+			(at 166.37 60.96 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "SW_SPDT"
+			(at 166.37 63.5 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Avionics:SLW-66527511-SMT-TR_CUD"
+			(at 166.37 69.85 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 166.37 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Switch, single pole double throw"
+			(at 166.37 69.85 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "538aaad7-0fb3-4bda-801e-b4a80cd24013")
+		)
+		(pin "1"
+			(uuid "9daa2585-b79e-4f4c-a9fc-d8651ba54172")
+		)
+		(pin "3"
+			(uuid "9e9c5bb7-39d8-4f9f-b6d0-0a0f5c001da1")
+		)
+		(instances
+			(project ""
+				(path "/8015fa41-3749-4a4c-9a37-5e6c4c4c807d"
+					(reference "SW1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector_Generic:Conn_01x02")
+		(at 262.89 101.6 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "242b28a2-4c9d-426d-990b-2523c4c04df2")
+		(property "Reference" "J3"
+			(at 258.318 95.758 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "Conn_01x02"
+			(at 258.318 98.298 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Connector_JST:JST_XH_S2B-XH-A_1x02_P2.50mm_Horizontal"
+			(at 262.89 101.6 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 262.89 101.6 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 262.89 101.6 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "342fa1d6-51e9-46f3-8509-809e866a0265")
+		)
+		(pin "1"
+			(uuid "e677559d-759a-4574-b47a-7a250f110782")
+		)
+		(instances
+			(project "ARCH"
+				(path "/8015fa41-3749-4a4c-9a37-5e6c4c4c807d"
+					(reference "J3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:C_Polarized")
 		(at 121.92 49.53 0)
 		(unit 1)
@@ -12489,7 +12867,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "100n"
+		(property "Value" "100nF"
 			(at 96.52 146.0499 0)
 			(effects
 				(font
@@ -12498,7 +12876,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 91.7448 140.97 0)
 			(effects
 				(font
@@ -14186,7 +14564,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 168.91 57.15 0)
+		(at 171.45 74.93 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -14195,7 +14573,7 @@
 		(fields_autoplaced yes)
 		(uuid "7949eec7-e85f-48ad-981b-9afbd582bef9")
 		(property "Reference" "#PWR029"
-			(at 168.91 63.5 0)
+			(at 171.45 81.28 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14204,7 +14582,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 168.91 62.23 0)
+			(at 171.45 80.01 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14212,7 +14590,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 168.91 57.15 0)
+			(at 171.45 74.93 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14221,7 +14599,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 168.91 57.15 0)
+			(at 171.45 74.93 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14230,7 +14608,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 168.91 57.15 0)
+			(at 171.45 74.93 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15475,7 +15853,7 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 168.91 53.34 0)
+		(at 171.45 71.12 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -15483,7 +15861,7 @@
 		(dnp no)
 		(uuid "9e689ca7-d660-4c9c-a552-e69e7e06457d")
 		(property "Reference" "R11"
-			(at 171.704 50.546 0)
+			(at 174.244 68.326 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15492,7 +15870,7 @@
 			)
 		)
 		(property "Value" "2k"
-			(at 171.704 53.086 0)
+			(at 174.244 70.866 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15501,7 +15879,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
-			(at 167.132 53.34 90)
+			(at 169.672 71.12 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15510,7 +15888,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 168.91 53.34 0)
+			(at 171.45 71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15519,7 +15897,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 168.91 53.34 0)
+			(at 171.45 71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -16308,7 +16686,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "4.7u"
+		(property "Value" "4.7uF"
 			(at 86.36 146.0499 0)
 			(effects
 				(font
@@ -16317,7 +16695,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 81.5848 140.97 0)
 			(effects
 				(font
@@ -17361,74 +17739,6 @@
 			(project "live-video-multi-function-board"
 				(path "/8015fa41-3749-4a4c-9a37-5e6c4c4c807d"
 					(reference "R13")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector_Generic:Conn_01x02")
-		(at 262.89 101.6 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "c85ada9a-e944-4011-8873-d87aba65f6e4")
-		(property "Reference" "J12"
-			(at 271.78 101.6 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "Charge"
-			(at 269.24 101.6 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Connector_JST:JST_XH_S2B-XH-A_1x02_P2.50mm_Horizontal"
-			(at 262.89 101.6 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 262.89 101.6 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 262.89 101.6 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "70fc987b-70d3-475e-a578-e35b8b302db2")
-		)
-		(pin "2"
-			(uuid "acdf3364-2c35-4b4f-b8ce-d0f28a9ea873")
-		)
-		(instances
-			(project "ARCH"
-				(path "/8015fa41-3749-4a4c-9a37-5e6c4c4c807d"
-					(reference "J12")
 					(unit 1)
 				)
 			)
