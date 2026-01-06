@@ -9,7 +9,7 @@ NUS_NOTIFY_UUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"  # TX notify
 LINE_PREFIX = "TELEM/"
 
 # Rolling buffers (~20s at 50 Hz; adjust as needed)
-WINDOW_SECS = 60
+WINDOW_SECS = 180  # 3 minutes
 ASSUMED_RATE_HZ = 2
 MAX_POINTS = WINDOW_SECS * ASSUMED_RATE_HZ
 
@@ -21,22 +21,24 @@ acc_z = deque(maxlen=MAX_POINTS)  # Vertical acceleration
 vel_z = deque(maxlen=MAX_POINTS)  # Vertical velocity
 state_pz = deque(maxlen=MAX_POINTS)  # State position Z
 motor_angle = deque(maxlen=MAX_POINTS)  # Motor angle
+flight_stage = deque(maxlen=MAX_POINTS)  # Flight stage
+motor_bat_v = deque(maxlen=MAX_POINTS)  # Motor battery voltage
+comp_bat_v = deque(maxlen=MAX_POINTS)  # Computer battery voltage
 
-# CSV logger
+# CSV logger - save raw telemetry lines
 log_path = f"telemetry_{int(time.time())}.csv"
 log_file = open(log_path, "w", newline="")
-csvw = csv.writer(log_file)
-csvw.writerow(["t_s", "alt_m_asl", "lat_deg", "lon_deg", "acc_z_m_s2", "vel_z_m_s", "state_pz_m", "motor_angle_deg"])  # header
 
 # Notification line-assembler
 _line_buf = bytearray()
 
 def _parse_line(line: str):
-    # Expect: TELEM/<time>,<stage>,<px>,<py>,<pz>,<vx>,<vy>,<vz>,<ax>,<ay>,<az>,<apogee>,...,<baro_pres>,<baro_temp>,<baro_alt>,...,<gps_lat>,<gps_lon>,<gps_alt>,...,<motor_pos>,<motor_vel>
-    # Column indices:
-    # 0=time, 1=stage, 2=px, 3=py, 4=pz, 5=vx, 6=vy, 7=vz, 8=ax, 9=ay, 10=az
-    # 15=baro_pres, 16=baro_temp, 17=baro_alt, 18=gps_lat, 19=gps_lon, 20=gps_alt
-    # 35=motor_pos, 36=motor_vel
+    # New header format:
+    # 0=time, 1=stage, 2=px, 3=py, 4=pz, 5=vx, 6=vy, 7=vz, 8=ax, 9=ay, 10=az, 11=apogee, 12=time_to_apogee, 13=off_vert, 14=time_in_stage
+    # 15=baro_pres, 16=baro_temp, 17=baro_alt
+    # 18=gps_lat, 19=gps_lon, 20=gps_alt, 21=gps_vN, 22=gps_vE, 23=gps_vD, 24=gps_fix, 25=gps_time
+    # 26=imu_acc_x, 27=imu_acc_y, 28=imu_acc_z, 29=imu_gyro_x, 30=imu_gyro_y, 31=imu_gyro_z
+    # 32=motor_pos, 33=motor_angle, 34=motor_vel, 35=motor_battery, 36=bat_voltage
     if not line.startswith(LINE_PREFIX):
         return None
     try:
@@ -45,19 +47,24 @@ def _parse_line(line: str):
 
         # Debug: print first parse attempt
         if len(parts) >= 20:
-            print(f"[DEBUG] Parsing {len(parts)} columns: time={parts[0]}, pz={parts[4]}, vz={parts[7]}, az={parts[10]}")
+            print(f"[DEBUG] Parsing {len(parts)} columns: time={parts[0]}, stage={parts[1]}, pz={parts[4]}, vz={parts[7]}, az={parts[10]}")
+
+        # Warn about unexpected column counts
+        if len(parts) < 37 and len(parts) >= 20:
+            print(f"[WARNING] Expected 37 columns, got {len(parts)} - telemetry format may be incomplete")
 
         if len(parts) < 20:  # need at least 20 columns
             print(f"[DEBUG] Skipping: only {len(parts)} columns")
             return None
 
         ts = float(parts[0])          # Time (s)
+        stage = int(parts[1])         # Flight Stage
         state_pz = float(parts[4])    # State Position Z (m)
         vel_z_val = float(parts[7])   # State Velocity Z (m/s)
         acc_z_val = float(parts[10])  # State Acceleration Z (m/s^2)
 
         # Try column 17 for barometer alt, but if it's 0, use GPS alt from column 20
-        baro_alt = float(parts[17])   # Barometer Alt ASL (m)
+        baro_alt = float(parts[17])   # MS5611 Alt ASL (m)
         if baro_alt == 0.0 and len(parts) > 20:
             baro_alt = float(parts[20])  # Fall back to GPS altitude
             print(f"[DEBUG] Using GPS alt {baro_alt} instead of baro (was 0)")
@@ -65,10 +72,14 @@ def _parse_line(line: str):
         latitude = float(parts[18])   # GPS Lat (deg)
         longitude = float(parts[19])  # GPS Lon (deg)
 
-        # Motor angle (column 35 if available)
-        motor_pos = float(parts[35]) if len(parts) > 35 else 0.0
+        # Motor angle (column 33)
+        motor_angle = float(parts[33]) if len(parts) > 33 else 0.0
 
-        return ts, baro_alt, latitude, longitude, acc_z_val, vel_z_val, state_pz, motor_pos
+        # Battery voltages (columns 35 and 36)
+        motor_bat_voltage = float(parts[35]) if len(parts) > 35 else 0.0
+        comp_bat_voltage = float(parts[36]) if len(parts) > 36 else 0.0
+
+        return ts, stage, baro_alt, latitude, longitude, acc_z_val, vel_z_val, state_pz, motor_angle, motor_bat_voltage, comp_bat_voltage
     except (ValueError, IndexError) as e:
         # Debug parse errors
         print(f"[DEBUG] Parse error: {e} on line: {line[:100]}...")
@@ -87,12 +98,19 @@ def _on_notify(_, data: bytes):
         if len(ln) < 10:  # Skip tiny fragments
             print(f"[BLE] Skipping fragment: {ln[:20]}")
             continue
-        print(f"[BLE LINE] {ln[:80]}...")  # Show first 80 chars
+        print(f"[BLE LINE] {ln}...")  # Show first 80 chars
+
+        # Save complete raw telemetry line to CSV (if it's a TELEM line)
+        if ln.startswith(LINE_PREFIX):
+            log_file.write(ln[len(LINE_PREFIX):] + "\n")
+            log_file.flush()
+
         parsed = _parse_line(ln)
         if parsed:
-            ts, alt, latitude, longitude, az, vz, pz, motor = parsed
-            print(f"[PARSED OK] t={ts:.2f} alt={alt:.2f} pz={pz:.2f} vz={vz:.2f} az={az:.2f} motor={motor:.1f}°")
+            ts, stage, alt, latitude, longitude, az, vz, pz, motor, motor_bat, comp_bat = parsed
+            print(f"[PARSED OK] t={ts:.2f} stage={stage} alt={alt:.2f} pz={pz:.2f} vz={vz:.2f} az={az:.2f} motor={motor:.1f}° mbat={motor_bat:.2f}V cbat={comp_bat:.2f}V")
             t.append(ts)
+            flight_stage.append(stage)
             alt_m.append(alt)
             lat.append(latitude)
             lon.append(longitude)
@@ -100,8 +118,8 @@ def _on_notify(_, data: bytes):
             vel_z.append(vz)
             state_pz.append(pz)
             motor_angle.append(motor)
-            csvw.writerow([ts, alt, latitude, longitude, az, vz, pz, motor])
-            log_file.flush()  # Ensure CSV is written immediately
+            motor_bat_v.append(motor_bat)
+            comp_bat_v.append(comp_bat)
 
 async def _find_device(name: str):
     devs = await BleakScanner.discover(timeout=6.0)
@@ -117,22 +135,25 @@ import matplotlib
 # If needed: matplotlib.use("TkAgg")  # or "QtAgg"
 import matplotlib.pyplot as plt
 
-MIN_Y_SPAN = 10.0  # <- never zoom in more than this
-
 # Optional unit labels (edit to taste)
 UNIT_ALT = "m"
 UNIT_VEL = "m/s"
 UNIT_ACC = "m/s²"
 UNIT_MOTOR = "deg"
 
-def _enforce_min_ylim(ax, min_span: float):
-    y0, y1 = ax.get_ylim()
-    span = y1 - y0
-    if span < min_span:
-        mid = (y0 + y1) / 2.0
-        ax.set_ylim(mid - min_span/2.0, mid + min_span/2.0)
+# Flight stage names
+STAGE_NAMES = {
+    0: "IDLE",
+    1: "PAD",
+    2: "BOOST",
+    3: "COAST",
+    4: "APOGEE",
+    5: "DROGUE",
+    6: "MAIN",
+    7: "LANDED"
+}
 
-async def _plot_updater(fig, axes, lines, anns, window_secs, running_flag):
+async def _plot_updater(fig, axes, lines, anns, status_overlay, window_secs, running_flag):
     ax1, ax2, ax3, ax4, ax5 = axes
     ln_alt_baro, ln_alt_state, ln_path, ln_current, ln_vel, ln_acc, ln_motor = lines
     ann_alt, ann_latlon, ann_vel, ann_acc, ann_motor = anns
@@ -176,10 +197,23 @@ async def _plot_updater(fig, axes, lines, anns, window_secs, running_flag):
             ax4.set_xlim(xmin, xmax)
             ax5.set_xlim(xmin, xmax)
 
-            # autoscale all time-series plots with min span
-            for ax in (ax1, ax3, ax4, ax5):
-                ax.relim(); ax.autoscale_view(True, True, True)
-                _enforce_min_ylim(ax, MIN_Y_SPAN)
+            # autoscale Y-axis for time-series plots based on visible data
+            # Altitude (ax1) - consider both baro and state data
+            if xs and (y_alt_baro or y_alt_state):
+                all_alt_vals = y_alt_baro + y_alt_state
+                ax1.set_ylim(min(all_alt_vals) - 5, max(all_alt_vals) + 5)
+
+            # Velocity (ax3)
+            if xs and y_vel:
+                ax3.set_ylim(min(y_vel) - 5, max(y_vel) + 5)
+
+            # Acceleration (ax4)
+            if xs and y_acc:
+                ax4.set_ylim(min(y_acc) - 5, max(y_acc) + 5)
+
+            # Motor angle (ax5)
+            if xs and y_motor:
+                ax5.set_ylim(min(y_motor) - 10, max(y_motor) + 10)
 
             # autoscale the map view
             if y_lon and y_lat:
@@ -205,6 +239,16 @@ async def _plot_updater(fig, axes, lines, anns, window_secs, running_flag):
             ann_vel.set_text(f"{y_vel[-1]:.2f} {UNIT_VEL}".strip())
             ann_acc.set_text(f"{y_acc[-1]:.2f} {UNIT_ACC}".strip())
             ann_motor.set_text(f"{y_motor[-1]:.1f} {UNIT_MOTOR}".strip())
+
+            # Update status overlay (stage, time, battery)
+            current_stage = list(flight_stage)[-1] if flight_stage else 0
+            current_time = t[-1] if t else 0.0
+            current_motor_bat = list(motor_bat_v)[-1] if motor_bat_v else 0.0
+            current_comp_bat = list(comp_bat_v)[-1] if comp_bat_v else 0.0
+            stage_name = STAGE_NAMES.get(current_stage, f"UNKNOWN({current_stage})")
+            status_overlay.set_text(
+                f"Stage: {stage_name} | FC Time: {current_time:.1f}s | Motor Bat: {current_motor_bat:.2f}V | Comp Bat: {current_comp_bat:.2f}V"
+            )
 
             fig.canvas.draw_idle()
             plt.pause(0.001)  # let GUI process events
@@ -280,6 +324,10 @@ async def main():
         ann_acc = ax4.text(0.98, 0.92, "", transform=ax4.transAxes, ha="right", va="top", **badge)
         ann_motor = ax5.text(0.98, 0.92, "", transform=ax5.transAxes, ha="right", va="top", **badge)
 
+        # Status overlay at top of figure (stage, time, battery)
+        status_overlay = fig.text(0.5, 0.98, "", ha="center", va="top", fontsize=12, fontweight="bold",
+                                  bbox=dict(boxstyle="round,pad=0.5", facecolor="yellow", alpha=0.9, edgecolor="black"))
+
         plt.tight_layout()
         plt.show(block=False)
 
@@ -292,6 +340,7 @@ async def main():
             _plot_updater(fig, (ax1, ax2, ax3, ax4, ax5),
                           (ln_alt_baro, ln_alt_state, ln_path, ln_current, ln_vel, ln_acc, ln_motor),
                           (ann_alt, ann_latlon, ann_vel, ann_acc, ann_motor),
+                          status_overlay,
                           WINDOW_SECS, running)
         )
 
