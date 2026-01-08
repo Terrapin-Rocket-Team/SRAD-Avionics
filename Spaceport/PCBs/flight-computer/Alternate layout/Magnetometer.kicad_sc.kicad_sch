@@ -267,6 +267,24 @@
 						)
 					)
 				)
+				(pin bidirectional line
+					(at 10.16 17.78 270)
+					(length 2.54)
+					(name "SDA/MOSI"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
 				(pin no_connect line
 					(at 10.16 -7.62 90)
 					(length 2.54)
@@ -393,6 +411,24 @@
 						)
 					)
 				)
+				(pin power_in line
+					(at 20.32 -7.62 90)
+					(length 2.54)
+					(name "GND"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "17"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
 				(pin no_connect line
 					(at 25.4 7.62 180)
 					(length 2.54)
@@ -458,26 +494,6 @@
 						)
 					)
 					(number "12"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(symbol "MLX90393ELW-ABA-xxx-xx_1_0"
-				(pin bidirectional line
-					(at 10.16 17.78 270)
-					(length 2.54)
-					(name "SDA/MOSI"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "5"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -745,6 +761,12 @@
 		(uuid "0f7b4ed2-334a-41c8-b138-a65f4553ab8a")
 	)
 	(junction
+		(at 161.29 109.22)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "25f3b878-f036-416f-9586-68be59ef7a94")
+	)
+	(junction
 		(at 153.67 101.6)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -848,6 +870,16 @@
 	)
 	(wire
 		(pts
+			(xy 161.29 109.22) (xy 158.75 109.22)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "55626d56-8be4-4926-b58c-c579998da18e")
+	)
+	(wire
+		(pts
 			(xy 158.75 99.06) (xy 158.75 101.6)
 		)
 		(stroke
@@ -898,13 +930,23 @@
 	)
 	(wire
 		(pts
-			(xy 168.91 109.22) (xy 158.75 109.22)
+			(xy 168.91 109.22) (xy 161.29 109.22)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "9fb500f8-157c-43dd-814b-489a1536258e")
+	)
+	(wire
+		(pts
+			(xy 161.29 99.06) (xy 161.29 109.22)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a232e739-98fc-4fa3-8964-82afea4cfdf0")
 	)
 	(wire
 		(pts
@@ -1370,6 +1412,9 @@
 		)
 		(pin "12"
 			(uuid "b6759de5-ad7b-447b-b666-233147894b68")
+		)
+		(pin "17"
+			(uuid "f9653d86-cc7f-482d-975f-029765dcf588")
 		)
 		(instances
 			(project ""
