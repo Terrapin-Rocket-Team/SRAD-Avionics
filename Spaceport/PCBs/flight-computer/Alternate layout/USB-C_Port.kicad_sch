@@ -1456,7 +1456,7 @@
 	)
 	(text "0402"
 		(exclude_from_sim no)
-		(at 149.86 86.36 0)
+		(at 155.956 74.93 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1466,19 +1466,13 @@
 	)
 	(text "0402"
 		(exclude_from_sim no)
-		(at 137.922 86.106 0)
+		(at 156.464 78.74 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 		)
 		(uuid "8a099942-2018-4d67-aa4c-6357ab0241d5")
-	)
-	(junction
-		(at 134.62 91.44)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "31e9ff29-b5ca-4e82-8d42-d5f25d952588")
 	)
 	(junction
 		(at 134.62 95.25)
@@ -1517,16 +1511,6 @@
 	(no_connect
 		(at 132.08 114.3)
 		(uuid "e54a5571-001d-40a3-891e-1e64c17f84d2")
-	)
-	(wire
-		(pts
-			(xy 134.62 88.9) (xy 134.62 91.44)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "0534420c-443a-4def-8f23-b8696c6932bd")
 	)
 	(wire
 		(pts
@@ -1610,7 +1594,7 @@
 	)
 	(wire
 		(pts
-			(xy 132.08 88.9) (xy 134.62 88.9)
+			(xy 132.08 88.9) (xy 140.97 88.9)
 		)
 		(stroke
 			(width 0)
@@ -1680,6 +1664,16 @@
 	)
 	(wire
 		(pts
+			(xy 140.97 88.9) (xy 140.97 86.36)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c02dd231-ed56-4c4e-b622-1eb198f6a6f3")
+	)
+	(wire
+		(pts
 			(xy 132.08 99.06) (xy 132.08 96.52)
 		)
 		(stroke
@@ -1700,23 +1694,13 @@
 	)
 	(wire
 		(pts
-			(xy 134.62 91.44) (xy 144.78 91.44)
+			(xy 132.08 91.44) (xy 144.78 91.44)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "ca880cad-fcde-44d1-902c-efce98163700")
-	)
-	(wire
-		(pts
-			(xy 132.08 91.44) (xy 134.62 91.44)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d8e51211-9f88-402a-acfd-c468ddd98a8b")
 	)
 	(wire
 		(pts
@@ -1926,6 +1910,72 @@
 	)
 	(symbol
 		(lib_id "power:GND")
+		(at 140.97 78.74 0)
+		(mirror x)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "3928a70a-385f-42a0-bceb-17d98b3e75ca")
+		(property "Reference" "#PWR020"
+			(at 140.97 72.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 138.684 76.962 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 140.97 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 140.97 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 140.97 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "d9648713-32de-43db-9f47-d876a05841d8")
+		)
+		(instances
+			(project "flight-computer"
+				(path "/b419aaf0-5349-42bc-a414-d94cafbe45e9/a1bca55b-9ebb-46d1-8af6-d9ef3faeda59"
+					(reference "#PWR020")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
 		(at 144.78 78.74 180)
 		(unit 1)
 		(exclude_from_sim no)
@@ -2120,6 +2170,76 @@
 			(project "flight-computer"
 				(path "/b419aaf0-5349-42bc-a414-d94cafbe45e9/a1bca55b-9ebb-46d1-8af6-d9ef3faeda59"
 					(reference "D2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 140.97 82.55 0)
+		(mirror y)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "9f0bb809-1df6-4adb-99db-4f97170663a4")
+		(property "Reference" "R18"
+			(at 138.43 81.2799 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "5.1 kΩ"
+			(at 138.938 83.566 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
+			(at 142.748 82.55 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 140.97 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 140.97 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "9b10adc5-c749-46a4-8b2f-094a790ab4dd")
+		)
+		(pin "2"
+			(uuid "4179b31e-85ab-407a-ae5f-79cf3a68f995")
+		)
+		(instances
+			(project "flight-computer"
+				(path "/b419aaf0-5349-42bc-a414-d94cafbe45e9/a1bca55b-9ebb-46d1-8af6-d9ef3faeda59"
+					(reference "R18")
 					(unit 1)
 				)
 			)
