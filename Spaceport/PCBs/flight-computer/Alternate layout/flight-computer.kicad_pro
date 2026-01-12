@@ -37,9 +37,9 @@
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 0.8,
-          "height": 1.27,
-          "width": 2.54
+          "drill": 3.2,
+          "height": 3.2,
+          "width": 3.2
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -48,7 +48,7 @@
         "silk_text_thickness": 0.1,
         "silk_text_upright": false,
         "zones": {
-          "min_clearance": 0.5
+          "min_clearance": 0.2
         }
       },
       "diff_pair_dimensions": [
@@ -77,7 +77,7 @@
         "extra_footprint": "warning",
         "footprint": "error",
         "footprint_filters_mismatch": "ignore",
-        "footprint_symbol_mismatch": "warning",
+        "footprint_symbol_mismatch": "ignore",
         "footprint_type_mismatch": "ignore",
         "hole_clearance": "error",
         "hole_to_hole": "warning",
@@ -88,13 +88,13 @@
         "items_not_allowed": "error",
         "length_out_of_range": "error",
         "lib_footprint_issues": "warning",
-        "lib_footprint_mismatch": "warning",
+        "lib_footprint_mismatch": "ignore",
         "malformed_courtyard": "error",
         "microvia_drill_out_of_range": "error",
         "mirrored_text_on_front_layer": "warning",
         "missing_courtyard": "ignore",
         "missing_footprint": "warning",
-        "net_conflict": "warning",
+        "net_conflict": "ignore",
         "nonmirrored_text_on_back_layer": "warning",
         "npth_inside_courtyard": "ignore",
         "padstack": "warning",
@@ -127,7 +127,7 @@
         "min_connection": 0.0,
         "min_copper_edge_clearance": 0.5,
         "min_groove_width": 0.0,
-        "min_hole_clearance": 0.25,
+        "min_hole_clearance": 0.1,
         "min_hole_to_hole": 0.25,
         "min_microvia_diameter": 0.2,
         "min_microvia_drill": 0.1,
@@ -135,10 +135,10 @@
         "min_silk_clearance": 0.0,
         "min_text_height": 0.8,
         "min_text_thickness": 0.08,
-        "min_through_hole_diameter": 0.3,
+        "min_through_hole_diameter": 0.1,
         "min_track_width": 0.0,
         "min_via_annular_width": 0.1,
-        "min_via_diameter": 0.5,
+        "min_via_diameter": 0.3,
         "solder_mask_to_copper_clearance": 0.0,
         "use_height_for_length_calcs": true
       },
@@ -187,12 +187,7 @@
         }
       ],
       "track_widths": [
-        0.0,
-        0.15,
-        0.2,
-        0.3,
-        0.5,
-        1.0
+        0.0
       ],
       "tuning_pattern_settings": {
         "diff_pair_defaults": {
@@ -224,18 +219,6 @@
         {
           "diameter": 0.0,
           "drill": 0.0
-        },
-        {
-          "diameter": 0.7,
-          "drill": 0.25
-        },
-        {
-          "diameter": 0.7,
-          "drill": 0.3
-        },
-        {
-          "diameter": 0.9,
-          "drill": 0.4
         }
       ],
       "zones_allow_external_fillets": false
@@ -481,7 +464,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "nick_egorov_flight_computer.kicad_pro",
+    "filename": "flight-computer.kicad_pro",
     "version": 3
   },
   "net_settings": {
@@ -505,40 +488,18 @@
         "wire_width": 6
       },
       {
-        "bus_width": 12,
-        "line_style": 0,
-        "name": "GND",
-        "pcb_color": "rgb(200, 202, 197)",
-        "priority": 3,
-        "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "wire_width": 6
-      },
-      {
-        "bus_width": 12,
-        "line_style": 0,
-        "name": "PWR",
-        "pcb_color": "rgb(255, 216, 0)",
-        "priority": 2,
-        "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "wire_width": 6
-      },
-      {
-        "bus_width": 12,
-        "line_style": 0,
-        "name": "SCL",
-        "pcb_color": "rgb(44, 255, 0)",
+        "clearance": 0.4,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "Battery Power",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
         "priority": 0,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "wire_width": 6
-      },
-      {
-        "bus_width": 12,
-        "line_style": 0,
-        "name": "SDA",
-        "pcb_color": "rgb(3, 5, 255)",
-        "priority": 1,
-        "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "wire_width": 6
+        "track_width": 0.7,
+        "via_diameter": 0.8,
+        "via_drill": 0.4
       }
     ],
     "meta": {
@@ -546,31 +507,14 @@
     },
     "net_colors": null,
     "netclass_assignments": null,
-    "netclass_patterns": [
-      {
-        "netclass": "GND",
-        "pattern": "GND"
-      },
-      {
-        "netclass": "PWR",
-        "pattern": "+*"
-      },
-      {
-        "netclass": "SDA",
-        "pattern": "SDA"
-      },
-      {
-        "netclass": "SCL",
-        "pattern": "SCL"
-      }
-    ]
+    "netclass_patterns": []
   },
   "pcbnew": {
     "last_paths": {
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "plot": "./gerbers",
+      "plot": "",
       "pos_files": "",
       "specctra_dsn": "",
       "step": "",
@@ -615,19 +559,19 @@
           "show": true
         },
         {
-          "group_by": true,
+          "group_by": false,
           "label": "DNP",
           "name": "${DNP}",
           "show": true
         },
         {
-          "group_by": true,
+          "group_by": false,
           "label": "Exclude from BOM",
           "name": "${EXCLUDE_FROM_BOM}",
           "show": true
         },
         {
-          "group_by": true,
+          "group_by": false,
           "label": "Exclude from Board",
           "name": "${EXCLUDE_FROM_BOARD}",
           "show": true
@@ -643,12 +587,138 @@
           "label": "Datasheet",
           "name": "Datasheet",
           "show": true
+        },
+        {
+          "group_by": false,
+          "label": "DESCRIPTION",
+          "name": "DESCRIPTION",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Height",
+          "name": "Height",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "MANUFACTURER",
+          "name": "MANUFACTURER",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "MAXIMUM_PACKAGE_HEIGHT",
+          "name": "MAXIMUM_PACKAGE_HEIGHT",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "MF",
+          "name": "MF",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "MP",
+          "name": "MP",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Manufacturer_Name",
+          "name": "Manufacturer_Name",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Manufacturer_Part_Number",
+          "name": "Manufacturer_Part_Number",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Mouser Part Number",
+          "name": "Mouser Part Number",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Mouser Price/Stock",
+          "name": "Mouser Price/Stock",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "PACKAGE",
+          "name": "PACKAGE",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "PARTREV",
+          "name": "PARTREV",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "PRICE",
+          "name": "PRICE",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "PURCHASE-URL",
+          "name": "PURCHASE-URL",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "SNAPEDA_PACKAGE_ID",
+          "name": "SNAPEDA_PACKAGE_ID",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "SNAPEDA_PN",
+          "name": "SNAPEDA_PN",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "STANDARD",
+          "name": "STANDARD",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Sim.Pins",
+          "name": "Sim.Pins",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "AVAILABILITY",
+          "name": "AVAILABILITY",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Description",
+          "name": "Description",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "#",
+          "name": "${ITEM_NUMBER}",
+          "show": false
         }
       ],
       "filter_string": "",
       "group_symbols": true,
       "include_excluded_from_bom": true,
-      "name": "Default Editing",
+      "name": "",
       "sort_asc": true,
       "sort_field": "Reference"
     },
@@ -694,8 +764,48 @@
   },
   "sheets": [
     [
-      "21b9cfc2-9663-4ae4-be0b-a3f691e58723",
+      "b419aaf0-5349-42bc-a414-d94cafbe45e9",
       "Root"
+    ],
+    [
+      "d5f88fd8-f77f-45f2-a5f4-fb1e7853b7c3",
+      "GPS"
+    ],
+    [
+      "759fe36f-7c9c-4239-abc1-10f13c7a223d",
+      "IMU"
+    ],
+    [
+      "59137cc8-27c9-41ae-9820-03727e90c02e",
+      "Magnetometer"
+    ],
+    [
+      "0684f220-5f81-452d-8be8-e5333505c1f8",
+      "High-g-IMU"
+    ],
+    [
+      "f857b9c9-761d-4a7f-a2fa-b1edff240511",
+      "Barometer"
+    ],
+    [
+      "ca918ab3-79cf-4935-ba61-b4831ae6cb6b",
+      "Battery Charger"
+    ],
+    [
+      "a1bca55b-9ebb-46d1-8af6-d9ef3faeda59",
+      "USB-C_Port"
+    ],
+    [
+      "551958d2-abef-4077-bb30-14cb500b1ed6",
+      "Power"
+    ],
+    [
+      "cb89a847-e69c-468f-9129-87ce7a9bc840",
+      "ESP32"
+    ],
+    [
+      "cf915fab-afce-462a-afc9-9be0ef6a3002",
+      "SDCard"
     ]
   ],
   "text_variables": {}
