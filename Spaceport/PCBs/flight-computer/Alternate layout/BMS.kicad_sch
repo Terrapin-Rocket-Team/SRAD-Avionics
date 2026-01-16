@@ -1741,10 +1741,6 @@
 		(uuid "fcc22a62-8ed5-4675-b9a6-1bd9021bf04c")
 	)
 	(no_connect
-		(at 147.32 144.78)
-		(uuid "3b40e694-a34d-4ae5-ad7b-7875da1b11e7")
-	)
-	(no_connect
 		(at 147.32 73.66)
 		(uuid "6e5bf43a-220a-4673-8798-66f79c3c2983")
 	)
@@ -1821,6 +1817,16 @@
 			(type default)
 		)
 		(uuid "1429cb40-c788-45a9-80cb-48579d504d00")
+	)
+	(wire
+		(pts
+			(xy 142.24 144.78) (xy 147.32 144.78)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "19b15b04-5542-4221-8cb4-ea94281e81d7")
 	)
 	(wire
 		(pts
@@ -1901,6 +1907,16 @@
 			(type default)
 		)
 		(uuid "2f75ff60-fa1e-46c9-a1e4-51a439874dbf")
+	)
+	(wire
+		(pts
+			(xy 142.24 151.13) (xy 142.24 144.78)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2fe96066-85b5-4d60-b0f3-325d41247c61")
 	)
 	(wire
 		(pts
@@ -2001,6 +2017,16 @@
 			(type default)
 		)
 		(uuid "7847a44e-2e68-429e-8e3c-cbaa6d6e5015")
+	)
+	(wire
+		(pts
+			(xy 142.24 158.75) (xy 142.24 162.56)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7a010f8b-20b5-4cfc-8f38-4659e8e41b18")
 	)
 	(wire
 		(pts
@@ -3508,6 +3534,72 @@
 		)
 	)
 	(symbol
+		(lib_id "power:GND")
+		(at 142.24 162.56 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "672d25dc-43dc-4988-be79-d8b43c0a3c5c")
+		(property "Reference" "#PWR088"
+			(at 142.24 168.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 142.24 167.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 142.24 162.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 142.24 162.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 142.24 162.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "822fb05a-13b0-4c45-a13f-07ec02a3c8f4")
+		)
+		(instances
+			(project "flight-computer"
+				(path "/b419aaf0-5349-42bc-a414-d94cafbe45e9/ca918ab3-79cf-4935-ba61-b4831ae6cb6b"
+					(reference "#PWR088")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:C")
 		(at 128.27 99.06 270)
 		(unit 1)
@@ -3705,6 +3797,76 @@
 			(project "flight-computer"
 				(path "/b419aaf0-5349-42bc-a414-d94cafbe45e9/ca918ab3-79cf-4935-ba61-b4831ae6cb6b"
 					(reference "#PWR069")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 142.24 154.94 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "789973b2-0942-41a6-a7a1-f6f053fc2980")
+		(property "Reference" "R27"
+			(at 144.78 153.6699 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "60K"
+			(at 144.78 156.2099 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
+			(at 140.462 154.94 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 142.24 154.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 142.24 154.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "06493a0e-5628-47dd-9428-40a5444112d6")
+		)
+		(pin "2"
+			(uuid "d378b496-4fcb-47f7-96e6-9dc22ff617fb")
+		)
+		(instances
+			(project ""
+				(path "/b419aaf0-5349-42bc-a414-d94cafbe45e9/ca918ab3-79cf-4935-ba61-b4831ae6cb6b"
+					(reference "R27")
 					(unit 1)
 				)
 			)
