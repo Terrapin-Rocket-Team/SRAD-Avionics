@@ -582,27 +582,6 @@
 			(embedded_fonts no)
 		)
 	)
-	(text "I doubt we need external pull-up resistors. Here is what it says: Each STM32 GPIO offers the possibility to select internal pull-up and pull-down (typical\nvalue = 40 kOhm). Some STM32 applications may require to use an external pull-up\nresistor. This section presents output and input levels compatibility and the way to calculate\nthe appropriate pull-up resistor when the STM32 GPIO open-drain output is connected to an\nexternal device."
-		(exclude_from_sim no)
-		(at 87.63 119.38 0)
-		(effects
-			(font
-				(size 0.635 0.635)
-			)
-			(justify left)
-		)
-		(uuid "2ad1be5c-72c4-44e1-92da-3d018e585828")
-	)
-	(text "KV 11/25 - Symbol/footprint change"
-		(exclude_from_sim no)
-		(at 111.252 69.85 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "4c36c3d0-3a83-427a-bfd2-3227b4bbf95f")
-	)
 	(wire
 		(pts
 			(xy 156.21 107.95) (xy 156.21 110.49)
@@ -643,137 +622,71 @@
 		)
 		(uuid "b9f66f26-fc03-4a03-bfae-758a8dace47e")
 	)
-	(global_label "SDMMC1_D3"
-		(shape input)
-		(at 113.03 87.63 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "177b20b2-3171-49b0-82fb-3376ecc48c06")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 98.7359 87.63 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "SDMMC1_CK"
-		(shape input)
-		(at 113.03 95.25 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "33cdb385-9bb3-47f4-ae8a-1e08197af419")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 98.6754 95.25 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "SDMMC1_D2"
-		(shape input)
+	(hierarchical_label "D2"
+		(shape bidirectional)
 		(at 113.03 85.09 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right)
 		)
-		(uuid "5117e630-e29a-4f6a-9a5e-7597033f6728")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 98.7359 85.09 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
+		(uuid "0d1dc139-9ad1-456e-9601-05ae7316c106")
 	)
-	(global_label "SDMMC1_D0"
-		(shape input)
-		(at 113.03 100.33 180)
-		(fields_autoplaced yes)
+	(hierarchical_label "D3"
+		(shape bidirectional)
+		(at 113.03 87.63 180)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right)
 		)
-		(uuid "80748e03-e6b9-45e6-8ea0-acd66695a97c")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 98.7359 100.33 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
+		(uuid "13eef85a-d8f9-4324-9545-74cf4d89ab6d")
 	)
-	(global_label "SDMMC1_CMD"
+	(hierarchical_label "CMD"
 		(shape input)
 		(at 113.03 90.17 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right)
 		)
-		(uuid "8d02dde2-7e73-4949-b698-8e9d2c4a0a73")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 97.224 90.17 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
+		(uuid "5c291c4e-f0bb-4659-bc21-318d820ff028")
 	)
-	(global_label "SDMMC1_D1"
-		(shape input)
+	(hierarchical_label "D1"
+		(shape bidirectional)
 		(at 113.03 102.87 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right)
 		)
-		(uuid "e804ce30-c9ef-471c-917d-3f6dce61f08c")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 98.7359 102.87 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
+		(uuid "7a1e084b-52df-4b10-af46-aace8dc0490d")
+	)
+	(hierarchical_label "D0"
+		(shape bidirectional)
+		(at 113.03 100.33 180)
+		(effects
+			(font
+				(size 1.27 1.27)
 			)
+			(justify right)
 		)
+		(uuid "a3cece83-a868-471a-96cf-e79992037e2d")
+	)
+	(hierarchical_label "SCLK"
+		(shape input)
+		(at 113.03 95.25 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "fa15bb7e-70c9-4a66-8625-63335eaf52f7")
 	)
 	(symbol
 		(lib_id "power:+3V3")
