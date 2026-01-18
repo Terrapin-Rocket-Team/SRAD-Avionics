@@ -1215,49 +1215,27 @@
 		)
 		(uuid "f9ee2bbe-3044-4dc5-947c-c778b40d4536")
 	)
-	(global_label "I2C1_SDA"
-		(shape input)
-		(at 138.43 80.01 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "33dfd831-8d0b-487c-a589-b4ebce2b5442")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 150.2447 80.01 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "I2C1_SCL"
+	(hierarchical_label "I2C_SCL"
 		(shape input)
 		(at 138.43 82.55 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify left)
 		)
-		(uuid "c69b3553-e4f5-46db-a0d0-ccd183699e33")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 150.1842 82.55 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
+		(uuid "0876f448-cf53-4277-9796-7d16b56e20e5")
+	)
+	(hierarchical_label "I2C_SDA"
+		(shape bidirectional)
+		(at 138.43 80.01 0)
+		(effects
+			(font
+				(size 1.27 1.27)
 			)
+			(justify left)
 		)
+		(uuid "63fd99b3-69d9-41ca-b6ad-6cbe62b9c9e3")
 	)
 	(symbol
 		(lib_id "Device:C")

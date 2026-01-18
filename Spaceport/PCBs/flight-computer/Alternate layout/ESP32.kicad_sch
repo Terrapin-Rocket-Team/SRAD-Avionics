@@ -2640,6 +2640,16 @@
 	)
 	(wire
 		(pts
+			(xy 151.13 43.18) (xy 158.75 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "895a2b66-7e23-4d7d-bbd8-911bd1726bd2")
+	)
+	(wire
+		(pts
 			(xy 151.13 167.64) (xy 151.13 170.18)
 		)
 		(stroke
@@ -2820,6 +2830,16 @@
 	)
 	(wire
 		(pts
+			(xy 151.13 45.72) (xy 158.75 45.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ed93eafd-1421-44c1-bc03-d460f91cfe57")
+	)
+	(wire
+		(pts
 			(xy 151.13 119.38) (xy 151.13 121.92)
 		)
 		(stroke
@@ -2827,6 +2847,16 @@
 			(type default)
 		)
 		(uuid "ff12c787-ce5e-4255-859a-d4ce11f4f520")
+	)
+	(label "TX"
+		(at 189.23 49.53 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "0bae98b1-1609-46c6-bc05-2a8912277b0d")
 	)
 	(label "EN"
 		(at 115.57 43.18 180)
@@ -2837,6 +2867,36 @@
 			(justify right bottom)
 		)
 		(uuid "14d17cb3-42b6-483b-ba79-ea1e93fd5f0d")
+	)
+	(label "RX"
+		(at 151.13 45.72 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "2f96ffaa-9c47-4a84-bd68-664f33227e78")
+	)
+	(label "TX"
+		(at 151.13 43.18 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "7c84c322-ac6e-43e2-b6e1-31e5762bce78")
+	)
+	(label "RX"
+		(at 189.23 52.07 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "9b2e71cc-6963-4f28-a23b-e51533ba5656")
 	)
 	(label "IO0"
 		(at 120.65 50.8 180)
@@ -2868,93 +2928,27 @@
 		)
 		(uuid "fd971807-7e67-47d0-8b44-27c4379e9003")
 	)
-	(global_label "ESP_TX"
-		(shape input)
-		(at 189.23 49.53 0)
-		(fields_autoplaced yes)
+	(hierarchical_label "TX"
+		(shape output)
+		(at 158.75 43.18 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify left)
 		)
-		(uuid "775ef700-ec00-4537-8bb3-63073e6dee48")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 198.9884 49.53 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
+		(uuid "5dd266cc-b8e5-4991-936c-ffd6fd965680")
 	)
-	(global_label "ESP_TX"
+	(hierarchical_label "RX"
 		(shape input)
-		(at 151.13 43.18 0)
-		(fields_autoplaced yes)
+		(at 158.75 45.72 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify left)
 		)
-		(uuid "c249e996-bd6a-47ee-a33b-344252f3c13f")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 160.8884 43.18 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "ESP_RX"
-		(shape input)
-		(at 151.13 45.72 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "d8264be2-5354-42fb-a8d2-d92b6ea63692")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 161.1908 45.72 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "ESP_RX"
-		(shape input)
-		(at 189.23 52.07 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "f22b62e8-794e-4366-a719-830c6a5e23fa")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 199.2908 52.07 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
+		(uuid "65b956c5-878e-4dfd-9dde-a2779388821d")
 	)
 	(symbol
 		(lib_id "power:+3V3")
