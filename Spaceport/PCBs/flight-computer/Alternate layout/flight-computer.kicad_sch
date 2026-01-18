@@ -5965,7 +5965,7 @@
 	)
 	(wire
 		(pts
-			(xy 113.03 82.55) (xy 121.92 82.55)
+			(xy 104.14 193.04) (xy 113.03 193.04)
 		)
 		(stroke
 			(width 0)
@@ -6152,6 +6152,16 @@
 			(type default)
 		)
 		(uuid "4fd7467e-99a5-4f59-9944-c3608208b5e1")
+	)
+	(wire
+		(pts
+			(xy 123.19 193.04) (xy 134.62 193.04)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "50a2fff5-fe96-4d5e-af23-aa24fbd96b5d")
 	)
 	(wire
 		(pts
@@ -7215,7 +7225,7 @@
 	)
 	(wire
 		(pts
-			(xy 134.62 87.63) (xy 138.43 87.63)
+			(xy 147.32 198.12) (xy 151.13 198.12)
 		)
 		(stroke
 			(width 0)
@@ -7334,7 +7344,7 @@
 		(uuid "6a4b61dd-dbdd-4a18-91cf-76f3e3b2adc8")
 	)
 	(label "VSENSE"
-		(at 138.43 87.63 0)
+		(at 151.13 198.12 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -7532,6 +7542,16 @@
 			(justify left bottom)
 		)
 		(uuid "e9c41ccf-d5bd-4f43-b327-f5987931c10e")
+	)
+	(label "CSENSE"
+		(at 140.97 152.4 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "f1b68640-2bcf-4619-8457-ad6d2c52ce0f")
 	)
 	(label "EXT_UART_TX"
 		(at 45.72 44.45 0)
@@ -12728,7 +12748,7 @@
 		)
 	)
 	(sheet
-		(at 100.33 78.74)
+		(at 91.44 189.23)
 		(size 12.7 12.7)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -12744,7 +12764,7 @@
 		)
 		(uuid "551958d2-abef-4077-bb30-14cb500b1ed6")
 		(property "Sheetname" "Power"
-			(at 100.33 78.0284 0)
+			(at 91.44 188.5184 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12753,7 +12773,7 @@
 			)
 		)
 		(property "Sheetfile" "Power.kicad_sch"
-			(at 100.33 92.0246 0)
+			(at 91.44 202.5146 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12763,7 +12783,7 @@
 			)
 		)
 		(pin "BAT_IN" input
-			(at 113.03 82.55 0)
+			(at 104.14 193.04 0)
 			(uuid "c7346b61-65e0-478e-a128-6c055285e902")
 			(effects
 				(font
@@ -12970,7 +12990,7 @@
 		)
 	)
 	(sheet
-		(at 121.92 78.74)
+		(at 134.62 189.23)
 		(size 12.7 12.7)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -12986,7 +13006,7 @@
 		)
 		(uuid "ca918ab3-79cf-4935-ba61-b4831ae6cb6b")
 		(property "Sheetname" "Battery Charger"
-			(at 121.92 78.0284 0)
+			(at 134.62 188.5184 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12995,7 +13015,7 @@
 			)
 		)
 		(property "Sheetfile" "BMS.kicad_sch"
-			(at 121.92 92.0246 0)
+			(at 134.62 202.5146 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13005,7 +13025,7 @@
 			)
 		)
 		(pin "BAT_OUT" output
-			(at 121.92 82.55 180)
+			(at 134.62 193.04 180)
 			(uuid "029c214d-4305-4842-a128-efe3ad0fc4d4")
 			(effects
 				(font
@@ -13014,8 +13034,8 @@
 				(justify left)
 			)
 		)
-		(pin "VSENSE" output
-			(at 134.62 87.63 0)
+		(pin "BAT+" output
+			(at 147.32 198.12 0)
 			(uuid "5ae92219-bbdf-4c7b-9586-a0f20f86fbed")
 			(effects
 				(font
