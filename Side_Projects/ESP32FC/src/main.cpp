@@ -2,6 +2,7 @@
 #include <NimBLEDevice.h>
 #include <RadioLib.h>
 #include <RadioMessage.h>
+#include "GSInterface.h"
 
 // =============== Debug helpers (USB CDC on ESP32-S3) ===============
 static void dbgHex(const uint8_t *d, size_t n)
@@ -101,6 +102,10 @@ class TxCallbacks : public NimBLECharacteristicCallbacks
     }
 };
 
+
+Message commandMsg;
+APRSConfig commandConfig = {"KC3UTM", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
+APRSCmd cmd;
 class ServerCallbacks : public NimBLEServerCallbacks
 {
     void onConnect(NimBLEServer *, NimBLEConnInfo &) override
@@ -117,11 +122,41 @@ class ServerCallbacks : public NimBLEServerCallbacks
     }
 };
 
+GSInterface gsi(115200);
+
+GSStream telemAvi = gsi.createStream(APRSTelem::type, 3);
+
+bool dataCB(GSMessage *m)
+{
+  if (m->dataType == APRSCmd::type)
+  {
+    m->decode(&cmd);
+    cmd.config = commandConfig;
+    commandMsg.encode(&cmd);
+    gsi.logM(LL_DEBUG, (char *)commandMsg.buf);
+    // send commandMsg to radio here
+    return true; // return true because we successfully handled the data
+  }
+
+  return false; // return false if the data was not successfully handled
+}
+
+
 // ======================= Setup / Loop ==========================
 void setup()
 {
     // USB CDC debug
-    USBSerial.begin(115200);
+    // USBSerial.begin(115200);
+
+    if(gsi.begin(&USBSerial))
+    {
+        USBSerial.println("[GSInterface] initialized successfully");
+    }
+    else
+    {
+        USBSerial.println("[GSInterface] FAILED to initialize");
+    }
+
     delay(3000);
     // USBSerial.println("\n=== LoRa RX -> BLE NUS Bridge (verbose) ===");
 
@@ -220,147 +255,13 @@ void setup()
         // USBSerial.println("[LORA] WARNING: startReceive failed");
     }
 }
-bool foundNewline = false;
-int bytesAvail = 0;
-char serialBuf[Message::maxSize] = {0};
-int serialBufLength = 0;
-Message commandMsg;
-APRSConfig commandConfig = {"KD3BBD", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
-uint16_t commandSize = 0;
-enum InputState
-{
-    HANDSHAKE,
-    COMMAND,
-    // add additional states as necessary
-    NONE
-};
 
-InputState currState = NONE;
-GSData avionicsData(APRSTelem::type, 1, 3);
-bool handshakeSuccess = false;
-bool hasDataHeader = false;
-bool hasAvionicsTelem = false;
-Message m;
-double arr[3] = {0.0, 0.0, 0.0};
 void loop()
 {
 
-    if (((bytesAvail = USBSerial.available()) > 0))
+    if(gsi.run())
     {
-        // check if a command is being sent
-        if (currState == NONE)
-        {
-            //   log("buf");
-            for (int i = 0; i < bytesAvail; i++)
-            {
-                char c = USBSerial.read();
-                if (c == '\n')
-                {
-                    serialBuf[serialBufLength] = 0;
-                    foundNewline = true;
-                    break;
-                }
-                if (c != '\0')
-                {
-                    serialBuf[serialBufLength] = c;
-                    serialBufLength++;
-                    if (serialBufLength >= (int)sizeof(serialBuf))
-                        break;
-                }
-            }
-            bytesAvail = USBSerial.available();
-
-            if (foundNewline)
-            {
-                // log("newline command ", serialBuf);
-                if (strcmp(serialBuf, "handshake") == 0)
-                {
-                    //   log("Starting handshake");
-                    // begin the handshake
-                    handshakeSuccess = false;
-                    currState = HANDSHAKE;
-                }
-                else if (strcmp(serialBuf, "handshake succeeded") == 0)
-                {
-                    //   log("Successful handshake");
-                    // the handshake was successful
-                    handshakeSuccess = true;
-                    // we will start sending data, so set up metrics
-                    //   telemMetrics.setInitialTime(millis());
-                }
-                else if (strcmp(serialBuf, "handshake failed") == 0)
-                {
-                    //   log("Failed handshake");
-                    // the handshake was not successful
-                    handshakeSuccess = false;
-                }
-                else if (strcmp(serialBuf, "command") == 0)
-                {
-                    //   log("Ready for radio command");
-                    // the next text will be a radio command
-                    commandMsg.clear();
-                    currState = COMMAND;
-                }
-                // add additional commands as required
-
-                // reset serial buffer
-                memset(serialBuf, 0, sizeof(serialBuf));
-                serialBufLength = 0;
-                foundNewline = false;
-            }
-        }
-        // complete the handshake
-    if (currState == HANDSHAKE)
-    {
-      for (int i = 0; i < bytesAvail; i++)
-      {
-        char c = USBSerial.read();
-        // log("read:");
-        // skip odd characters that accidently get added
-        if (c != 0xff && c != 0)
-        {
-          USBSerial.write(c);
-          if (c == '\n')
-          {
-            // log("newline handshake");
-            foundNewline = true;
-            break;
-          }
-        }
-      }
-      bytesAvail = USBSerial.available();
-
-      if (foundNewline)
-      {
-        foundNewline = false;
-        currState = NONE;
-      }
-    }
-
-    // receive the radio command
-    if (currState == COMMAND)
-    {
-      // read into serial buffer
-      for (int i = 0; i < bytesAvail; i++)
-      {
-        commandMsg.append(USBSerial.read());
-        if (commandMsg.size >= Message::maxSize)
-          break;
-      }
-      bytesAvail = USBSerial.available();
-        radio.transmit("CMD/boop\n", sizeof("CMD/boop\n"));
-        currState = NONE;
-    }
-    }
-    // 1 Hz heartbeat with states
-    static uint32_t lastHb = 0;
-    uint32_t now = millis();
-    if (now - lastHb >= 1000)
-    {
-        lastHb = now;
-        // USBSerial.printf("[HB] heap=%u client=%d notify=%d irqCount=%u\n",
-        //                  (unsigned)ESP.getFreeHeap(), (int)g_hasClient,
-        //                  (int)g_notifyEnabled, (unsigned)g_irqCount);
+        // USBSerial.println("[GSInterface] run successful");
     }
 
     // LoRa packet arrived
@@ -398,15 +299,12 @@ void loop()
             // USBSerial.printf("[LORA] parsed: time=%.2f alt=%.2f vel=%.2f acc=%.2f x=%.2f y=%.2f\n",
             //                  time, alt, vel, acc, y, x);
             APRSConfig con = {"N0CALL", "APRS", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '/', 0x5C};
-            APRSTelem telem(con, y, x, alt, vel, 0.0, arr, 0x00000001);
+            double arr[3]{1.0,1.0,1.0};
+            APRSTelem telem(con, y, x, alt, vel, 0.0,arr, 0x00000001);
 
-            m.encode(&telem);
-            // USBSerial.printf("[LORA] telem size=%u encoded size=%u\n",
-            //                  (unsigned)m.size, (unsigned)m.size);
-            // update metrics
-            // telemMetrics.update(m.size, millis(), radioTelem.RSSI());
-            // set the flag to transmit data
-            hasAvionicsTelem = true;
+            if(gsi.isReady())
+                gsi.writeStream(&telemAvi, &telem, rssi);
+            
         }
         else
         {
@@ -416,24 +314,5 @@ void loop()
         // Return to RX (log result)
         st = radio.startReceive();
         // USBSerial.printf("[LORA] restart RX ret=%d\n", st);
-        if (handshakeSuccess ||
-         true)
-        {
-            // output goes here
-            if (hasAvionicsTelem)
-            {
-                // fill GSData with message
-                avionicsData.fill(m.buf, m.size);
-                // encode for multplexing
-                m.encode(&avionicsData);
-                // USBSerial.printf("[AVIONICS] telem size=%u encoded size=%u\n",
-                                //  (unsigned)avionicsData.size, (unsigned)m.size);
-                // write
-                // log("Avionics data: ", (const char *)m.buf);
-                USBSerial.write(m.buf, m.size);
-                // reset flag
-                hasAvionicsTelem = false;
-            }
-        }
     }
 }
