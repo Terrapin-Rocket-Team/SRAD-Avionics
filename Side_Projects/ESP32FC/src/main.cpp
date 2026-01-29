@@ -151,6 +151,7 @@ void setup()
     if(gsi.begin(&USBSerial))
     {
         USBSerial.println("[GSInterface] initialized successfully");
+        gsi.setUserDataHandler(dataCB);
     }
     else
     {

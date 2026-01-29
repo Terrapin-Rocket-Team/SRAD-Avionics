@@ -1,195 +1,158 @@
 #include <Arduino.h>
-#include "../tests/test_menu.h"
-#include "../tests/test_emmc.h"
-#include "../tests/test_buzzer.h"
-#include "../tests/test_leds.h"
-#include "../tests/test_pyrotechnics.h"
-#include "../tests/test_i2c.h"
-#include "../tests/test_uart_bt.h"
-#include "../tests/test_usb.h"
-#include "../tests/test_battery.h"
-#include "../tests/test_radio.h"
 
-// Console interface can be configured to use either USB CDC or UART
-// Configure in platformio.ini: USE_USB_CONSOLE or USE_UART_CONSOLE
-// Console is defined in test_menu.h based on compile-time flags
+#ifdef STM32
 
-// Test state
-TestID currentTest = TEST_NONE;
-bool testInitialized = false;
+#include <RadioLib.h>
 
-void setupTest(TestID test) {
-    switch (test) {
-        case TEST_EMMC:
-            TestMenu::printHeader("EMMC Test");
-            EMMCTest::setup();
-            break;
-        case TEST_BUZZER:
-            TestMenu::printHeader("Buzzer Test");
-            BuzzerTest::setup();
-            break;
-        case TEST_LEDS:
-            TestMenu::printHeader("LED Test");
-            LEDTest::setup();
-            break;
-        case TEST_PYROTECHNICS:
-            TestMenu::printHeader("Pyrotechnics Test");
-            PyrotechnicsTest::setup();
-            break;
-        case TEST_I2C_SENSORS:
-            TestMenu::printHeader("I2C Sensors Test");
-            I2CTest::setup();
-            break;
-        case TEST_UART_BT:
-            TestMenu::printHeader("UART Bluetooth Test");
-            UARTBTTest::setup();
-            break;
-        case TEST_USB:
-            TestMenu::printHeader("USB CDC Test");
-            USBTest::setup();
-            break;
-        case TEST_BATTERY:
-            TestMenu::printHeader("Battery Voltage Test");
-            BatteryTest::setup();
-            break;
-        case TEST_RADIO:
-            TestMenu::printHeader("Radio Test");
-            RadioTest::setup();
-            break;
-        case TEST_ALL:
-            TestMenu::printHeader("All Tests");
-            Console.println("Initializing all test modules...\n");
-            EMMCTest::setup();
-            BuzzerTest::setup();
-            LEDTest::setup();
-            PyrotechnicsTest::setup();
-            I2CTest::setup();
-            UARTBTTest::setup();
-            USBTest::setup();
-            BatteryTest::setup();
-            RadioTest::setup();
-            break;
-        default:
-            break;
+// ==================== PIN DEFINITIONS ====================
+#define STATUS_LED PB12
+
+// Radio pins
+#define RADIO_NRST PC13
+#define RADIO_BUSY PE3
+#define RADIO_NCS PA15
+#define RADIO_IO9 PE2  // IRQ pin
+#define RADIO_MOSI PD7
+#define RADIO_MISO PB4
+#define RADIO_SCK PB3
+
+// ==================== RADIO SETUP ====================
+SPIClass Radio_SPI(RADIO_MOSI, RADIO_MISO, RADIO_SCK);
+LR1121 radio = new Module(RADIO_NCS, RADIO_IO9, RADIO_NRST, RADIO_BUSY, Radio_SPI);
+
+// RF switch configuration for LR1121
+static const uint32_t rfswitch_dio_pins[] = {
+    RADIOLIB_LR11X0_DIO5, RADIOLIB_LR11X0_DIO6,
+    RADIOLIB_LR11X0_DIO7, RADIOLIB_NC, RADIOLIB_NC};
+
+static const Module::RfSwitchMode_t rfswitch_table[] = {
+    {LR11x0::MODE_STBY, {LOW, LOW, LOW}},
+    {LR11x0::MODE_RX, {LOW, LOW, HIGH}},
+    {LR11x0::MODE_TX, {LOW, HIGH, LOW}},
+    {LR11x0::MODE_TX_HP, {HIGH, LOW, LOW}},
+    END_OF_MODE_TABLE,
+};
+
+volatile bool radioTransmitFlag = false;
+
+void radioIrqHandler() {
+    radioTransmitFlag = true;
+}
+
+// ==================== TELEMETRY VARIABLES ====================
+unsigned long lastTelemetryTime = 0;
+const unsigned long TELEMETRY_INTERVAL = 100;  // Send telemetry every 100ms (10 Hz)
+uint32_t telemetryCounter = 0;
+
+// ==================== RADIO INITIALIZATION ====================
+void setupRadio() {
+    Serial.println("Initializing LR1121 radio...");
+
+    int rc = radio.begin();
+    if (rc != RADIOLIB_ERR_NONE) {
+        Serial.print("Radio init failed, code: ");
+        Serial.println(rc);
+        return;
+    }
+
+    // Configure RF switch
+    radio.setRfSwitchTable(rfswitch_dio_pins, rfswitch_table);
+    radio.setRegulatorDCDC();
+
+    // Configure radio to match ESP32FC ground station settings
+    radio.setFrequency(915.0);
+    radio.setSpreadingFactor(7);
+    radio.setBandwidth(125.0);
+    radio.setCodingRate(5);           // 4/5
+    radio.setSyncWord(0x34);          // Match ESP32FC sync word
+    radio.setPreambleLength(8);
+    radio.setCRC(true);
+    radio.setOutputPower(14);         // 14 dBm
+    radio.explicitHeader();
+    radio.invertIQ(false);
+
+    // Set up IRQ handler
+    radio.setIrqAction(radioIrqHandler);
+
+    Serial.println("Radio initialized successfully!");
+}
+
+// ==================== TELEM2 TRANSMISSION ====================
+void sendTelemetry() {
+    // Generate pseudo-random telemetry data
+    float flightTime = millis() / 1000.0;
+    float altitude = random(0, 10000) / 10.0;     // 0-1000 feet
+    float velocity = random(000, 500) / 10.0;    // -50 to 50 knots
+    float acceleration = random(-100, 400) / 10.0; // -10 to 40 m/s²
+    double latitude = random(38999000, 39000000) / 1000000.0;   // ~38-39 degrees
+    double longitude = random(-78000000, -77999000) / 1000000.0; // ~-78 to -77 degrees
+
+    // Format TELEM2 packet: "TELEM2/time,alt,vel,acc,lat,lon"
+    char telemetryPacket[128];
+    snprintf(telemetryPacket, sizeof(telemetryPacket),
+             "TELEM2/%.2f,%.2f,%.2f,%.2f,%.6f,%.6f",
+             flightTime, altitude, velocity, acceleration, latitude, longitude);
+
+    // Transmit via LoRa
+    int rc = radio.startTransmit(telemetryPacket);
+    if (rc == RADIOLIB_ERR_NONE) {
+        digitalWrite(STATUS_LED, HIGH);
+        telemetryCounter++;
+
+        // Print to serial for debugging
+        Serial.print("TX [");
+        Serial.print(telemetryCounter);
+        Serial.print("]: ");
+        Serial.println(telemetryPacket);
+    } else {
+        Serial.print("TX failed, code: ");
+        Serial.println(rc);
     }
 }
 
-void runTest(TestID test) {
-    switch (test) {
-        case TEST_EMMC:
-            EMMCTest::run();
-            break;
-        case TEST_BUZZER:
-            BuzzerTest::run();
-            break;
-        case TEST_LEDS:
-            LEDTest::run();
-            break;
-        case TEST_PYROTECHNICS:
-            PyrotechnicsTest::run();
-            break;
-        case TEST_I2C_SENSORS:
-            I2CTest::run();
-            break;
-        case TEST_UART_BT:
-            UARTBTTest::run();
-            break;
-        case TEST_USB:
-            USBTest::run();
-            break;
-        case TEST_BATTERY:
-            BatteryTest::run();
-            break;
-        case TEST_RADIO:
-            RadioTest::run();
-            break;
-        case TEST_ALL:
-            Console.println("\n=== Running All Tests ===\n");
-            EMMCTest::run();
-            delay(1000);
-            BuzzerTest::run();
-            delay(1000);
-            LEDTest::run();
-            delay(1000);
-            PyrotechnicsTest::run();
-            delay(1000);
-            I2CTest::run();
-            delay(1000);
-            UARTBTTest::run();
-            delay(1000);
-            USBTest::run();
-            delay(1000);
-            BatteryTest::run();
-            delay(1000);
-            RadioTest::run();
-            Console.println("\n=== All Tests Complete ===");
-            Console.println("Press '0' for menu.\n");
-            break;
-        default:
-            break;
-    }
-}
-
+// ==================== SETUP ====================
 void setup() {
-    // Initialize console (USB CDC or UART based on compile-time config)
-    Console.begin(CONSOLE_BAUD);
+    // Initialize status LED
+    pinMode(STATUS_LED, OUTPUT);
+    digitalWrite(STATUS_LED, LOW);
 
-#if defined(USE_USB_CONSOLE)
-    // Wait for USB serial connection (with timeout)
-    unsigned long startTime = millis();
-    while (!Console && (millis() - startTime < 3000)) {
-        delay(10);
-    }
-#elif defined(USE_UART_CONSOLE)
-    // For UART, just give it a short delay to stabilize
-    delay(100);
-#endif
+    // Initialize Serial
+    Serial.begin(115200);
+    delay(2000);
 
-    // Small delay to allow terminal to stabilize
-    delay(100);
+    Serial.println("\n\n========================================");
+    Serial.println("  STM32 LoRa Telemetry Test");
+    Serial.println("  Pseudo-Random Data");
+    Serial.println("========================================\n");
 
-    Console.println("\n\n");
-    Console.println("╔════════════════════════════════════════╗");
-    Console.println("║  STM32H723 Hardware Test Framework     ║");
-    Console.print("║  Console: ");
-    Console.print(CONSOLE_TYPE);
-    // Pad the line to align the border
-    int padding = 28 - strlen(CONSOLE_TYPE);
-    for (int i = 0; i < padding; i++) {
-        Console.print(" ");
-    }
-    Console.println("║");
-    Console.println("╚════════════════════════════════════════╝");
-    Console.println();
-    Console.print("✓ Console initialized on ");
-    Console.println(CONSOLE_PINS);
-    Console.println("✓ System ready!");
-    Console.println();
+    // Initialize radio
+    setupRadio();
+    delay(500);
 
-    // Display the menu
-    TestMenu::displayMenu();
+    Serial.println("\nTransmitter ready!");
+    Serial.println("Sending telemetry packets...\n");
+
+    digitalWrite(STATUS_LED, HIGH);
+    delay(200);
+    digitalWrite(STATUS_LED, LOW);
 }
 
+// ==================== MAIN LOOP ====================
 void loop() {
-    // Check for test selection
-    TestID selectedTest = TestMenu::getSelectedTest();
-
-    if (selectedTest != TEST_NONE) {
-        // If we're switching tests or starting a new test
-        if (selectedTest != currentTest || !testInitialized) {
-            currentTest = selectedTest;
-            setupTest(currentTest);
-            testInitialized = true;
-        }
-
-        // Run the test
-        runTest(currentTest);
-
-        // Reset test state so it can be run again if selected
-        testInitialized = false;
-        currentTest = TEST_NONE;
+    // Handle radio IRQ
+    if (radioTransmitFlag) {
+        radioTransmitFlag = false;
+        digitalWrite(STATUS_LED, LOW);
     }
 
-    // Small delay to prevent serial buffer overflow
+    // Send telemetry at regular intervals
+    unsigned long currentTime = millis();
+    if (currentTime - lastTelemetryTime >= TELEMETRY_INTERVAL) {
+        lastTelemetryTime = currentTime;
+        sendTelemetry();
+    }
+
     delay(10);
 }
+
+#endif  // STM32
