@@ -1,5 +1,7 @@
 #!/bin/bash
 
+GET_AV1=0
+
 echo " --------------------------------------------------"
 echo " | Starting ARC Setup Script v2.0                 |"
 echo " --------------------------------------------------"
@@ -95,6 +97,8 @@ else
     echo "Found"
 fi
 
+if [[ $GET_AV1 -eq 1 ]]
+then
 echo "Getting AV1 encoder..."
 sleep 1
 
@@ -129,6 +133,7 @@ sleep 1
 make install
 
 cd ../../
+fi
 
 echo "Building teensy interface..."
 sleep 1
@@ -145,11 +150,30 @@ chmod +x tests/*
 chmod +x ARC_controller.py
 chmod +x setup-user.sh
 
-# add wifi
-nmcli connection add type wifi con-name ARC-1 autoconnect yes ssid TRT-ARC-1 802-11-wireless-security.key-mgmt WPA-PSK 802-11-wireless-security.psk IREC2025!
-nmcli connection add type wifi con-name ARC-2 autoconnect yes ssid TRT-ARC-2 802-11-wireless-security.key-mgmt WPA-PSK 802-11-wireless-security.psk IREC2025!
-nmcli connection add type wifi con-name ARC-3 autoconnect yes ssid TRT-ARC-3 802-11-wireless-security.key-mgmt WPA-PSK 802-11-wireless-security.psk IREC2025!
+# add test wifi
+if [[ $(nmcli con show | grep -o ARC-1) != "ARC-1" ]]
+then
+nmcli connection add type wifi con-name ARC-1 autoconnect yes ssid TRT-ARC-1 connection.autoconnect-priority 10 wifi-sec.key-mgmt WPA-PSK wifi-sec.psk IREC2025!
+fi
+if [[ $(nmcli con show | grep -o ARC-2) != "ARC-2" ]]
+then
+nmcli connection add type wifi con-name ARC-2 autoconnect yes ssid TRT-ARC-2 connection.autoconnect-priority 10 wifi-sec.key-mgmt WPA-PSK wifi-sec.psk IREC2025!
+fi
+#nmcli connection add type wifi con-name ARC-3 autoconnect yes ssid TRT-ARC-3 connection.autoconnect-priority 10 wifi-sec.key-mgmt WPA-PSK wifi-sec.psk IREC2025!
 
+# add intra-rocket host hotspot
+if [[ $(nmcli con show | grep -o FLIGHT-hotspot) != "FLIGHT-hotspot" ]]
+then
+nmcli connection add type wifi ifname wlan0 con-name FLIGHT-hotspot autoconnect yes ssid TRT-ARC-FLIGHT connection.autoconnect-priority 9
+nmcli connection modify FLIGHT-hotspot 802-11-wireless.mode ap 802-11-wireless.band bg ipv4.method shared
+nmcli connection modify FLIGHT-hotspot wifi-sec.key-mgmt wpa-psk wifi-sec.psk IREC2025!
+fi
+
+# add intra-rocket client wifi
+if [[ $(nmcli con show | grep -o ARC-FLIGHT) != "ARC-FLIGHT" ]]
+then
+nmcli connection add type wifi con-name ARC-FLIGHT autoconnect yes ssid TRT-ARC-FLIGHT connection.autoconnect-priority 8 wifi-sec.key-mgmt WPA-PSK wifi-sec.psk IREC2025!
+fi
 sudo -u ${SUDO_USER} bash -c "./setup-user.sh"
 
 chmod 644 ARC.service.temp

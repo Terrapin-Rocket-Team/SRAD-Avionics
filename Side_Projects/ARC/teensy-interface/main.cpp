@@ -67,7 +67,7 @@ int main()
     int packetCount = 0;
     long bytes = 0;
     uint64_t timer = micros();
-    char logMsg[50];
+    char logMsg[400];
     long long us = 0;
     while (!force_exit)
     {
@@ -77,14 +77,14 @@ int main()
             // the way logMsg is formatted is a little weird, but should generate a nice looking log file
             if (us >= 1000000)
             {
-                printf("\nAvg Bitrate: %lf\n", us, (bytes + 75) * 8, ((double(bytes + 75) * 8) / us) * 1000);
-                snprintf(logMsg, 50, "\nElapsed Time: %llu Bitrate: %lf \nElapsed Time: ", micros() - timer, ((double(bytes + 75) * 8) / us) * 1000);
+                printf("\nAvg Bitrate: %lf\n", ((double(bytes + 75) * 8) / us) * 1000);
+                snprintf(logMsg, sizeof(logMsg), "\nElapsed Time: %lu Bitrate: %lf \nElapsed Time: ", micros() - timer, ((double(bytes + 75) * 8) / us) * 1000);
                 us = 0;
                 bytes = 0;
             }
             else
             {
-                snprintf(logMsg, 50, "%llu\t", micros() - timer);
+                snprintf(logMsg, sizeof(logMsg), "%lu\t", micros() - timer);
             }
             fwrite(logMsg, sizeof(char), strlen(logMsg), logFile);
             timer = micros();
