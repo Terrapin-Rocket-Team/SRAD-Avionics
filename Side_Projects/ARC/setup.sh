@@ -164,7 +164,8 @@ fi
 # add intra-rocket host hotspot
 if [[ $(nmcli con show | grep -o FLIGHT-hotspot) != "FLIGHT-hotspot" ]]
 then
-nmcli connection add type wifi ifname wlan0 con-name FLIGHT-hotspot autoconnect yes ssid TRT-ARC-FLIGHT connection.autoconnect-priority 9
+# autoconnect no to initally set all pi's up in client mode
+nmcli connection add type wifi ifname wlan0 con-name FLIGHT-hotspot autoconnect no ssid TRT-ARC-FLIGHT connection.autoconnect-priority 9
 nmcli connection modify FLIGHT-hotspot 802-11-wireless.mode ap 802-11-wireless.band bg ipv4.method shared
 nmcli connection modify FLIGHT-hotspot wifi-sec.key-mgmt wpa-psk wifi-sec.psk IREC2025!
 fi
