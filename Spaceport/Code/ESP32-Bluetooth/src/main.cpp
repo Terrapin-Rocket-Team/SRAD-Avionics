@@ -112,7 +112,7 @@ void clientLoop()
                 SERIAL_DBG.println("Server name: " + String(name.c_str()) + String(name.size()));
                 client.start(name);
             }
-        }
+        } //add else statement because what if SERIAL_IN is not available at the start?
     }
     else
     {

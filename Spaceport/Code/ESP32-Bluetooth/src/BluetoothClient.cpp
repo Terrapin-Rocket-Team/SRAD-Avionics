@@ -15,10 +15,10 @@ BluetoothClient::~BluetoothClient()
 }
 
 bool BluetoothClient::start(const std::string &serverName)
-{ // is this the start for bluetooth or serial communication??
+{ // starts to scan for the server
 
     // add serial communication code because currently it's all bluetooth
-    this->serverName = "AVIONICS";
+    this->serverName = serverName;
     BLEDevice::init("");
     dbgSerial.println("Initializing client device with target server " + String(serverName.c_str()));
     dbgSerial.println(BLEDevice::getMTU());
@@ -37,7 +37,8 @@ bool BluetoothClient::start(const std::string &serverName)
     return initialized;
 }
 
-void BluetoothClient::update(Stream &inputSerial)
+void BluetoothClient::update(Stream &inputSerial) //does two things, checks if client is connected. if both, takes in serial 
+                                                    // data and sends to server. 
 {
 
     if (!connected && pServerAddress != nullptr)
@@ -90,23 +91,23 @@ void BluetoothClient::update(Stream &inputSerial)
         char asdf[] = "KC3UTM>ALL,WIDE1-1:!MNN!!NN!!\\ !!\"1#Q$!!#j!!!!!\\(";
         send((uint8_t *)asdf, sizeof(asdf) - 1);
         delay(400);
-        //     uint16_t size = 0;
-        //     inputSerial.readBytes(reinterpret_cast<char *>(&size), sizeof(uint16_t));
+            uint16_t size = 0;
+            inputSerial.readBytes(reinterpret_cast<char *>(&size), sizeof(uint16_t));
 
-        //     dbgSerial.println("Received message to send with size: " + String(size));
+            dbgSerial.println("Received message to send with size: " + String(size));
 
-        //     if (size != 0 && size <= MAX_MESSAGE_SIZE - sizeof(uint16_t))
-        //     {
-        //         uint8_t buffer[size];
-        //         inputSerial.readBytes(buffer, size);
-        //         dbgSerial.println("Sending the following message content: ");
-        //         for (int i = 0; i < size; i++)
-        //         {
-        //             dbgSerial.print((char)buffer[i]);
-        //         }
-        //         dbgSerial.println("");
-        //         send(buffer, size);
-        //     }
+            if (size != 0 && size <= MAX_MESSAGE_SIZE - sizeof(uint16_t))
+            {
+                uint8_t buffer[size];
+                inputSerial.readBytes(buffer, size); //read from inputSerial into buffer and only read "size" number of bytes 
+                dbgSerial.println("Sending the following message content: ");
+                for (int i = 0; i < size; i++)
+                {
+                    dbgSerial.print((char)buffer[i]);
+                }
+                dbgSerial.println("");
+                send(buffer, size);
+            }
     }
 }
 
