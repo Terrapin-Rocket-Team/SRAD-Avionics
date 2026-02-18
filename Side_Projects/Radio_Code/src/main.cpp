@@ -46,27 +46,80 @@ void setup()
     digitalWrite(STATUS_LED, HIGH);
     delay(100);
   }
-  radio.onIrq(radInt);
-  radio.recieve();
+  // TX-only bridge path.
 }
 
 void loop()
 {
-  // 2 kb buffer
-  char buf[2048];
-  if (Serial.available())
+  static char buf[2048];
+  static size_t buf_len = 0;
+
+  while (Serial.available())
   {
+    const int in = Serial.read();
+    if (in < 0)
+    {
+      break;
+    }
+
+    const char c = (char)in;
+    if (c == '\r' || c == '\0')
+    {
+      continue;
+    }
+
+    if (c != '\n')
+    {
+      if (buf_len < (sizeof(buf) - 1))
+      {
+        buf[buf_len++] = c;
+      }
+      else
+      {
+        // Overflow guard: drop oversized line and wait for the next newline.
+        buf_len = 0;
+      }
+      continue;
+    }
+
+    // Newline received: process one complete line.
+    if (buf_len == 0)
+    {
+      continue;
+    }
+
     digitalWrite(STATUS_LED, HIGH);
-    int i = Serial.readBytesUntil('\n', buf, 2048);  // Fixed: use actual buffer size
-    buf[i] = '\0';
+    buf[buf_len] = '\0';
+
     if (!strncmp(buf, "RAD/PING", 8))
     {
       Serial.println("RAD/PONG");
     }
     else
     {
-      radio.transmit(buf);
+      int tx_status = RADIOLIB_ERR_NONE;
+      bool sent = false;
+      for (uint8_t attempt = 0; attempt < 4 && !sent; ++attempt)
+      {
+        tx_status = radio.transmit(buf);
+        if (tx_status == RADIOLIB_ERR_NONE)
+        {
+          sent = true;
+        }
+        else
+        {
+          Serial.printf("RAD/Warn: transmit retry attempt=%u err=%d\n",
+                        (unsigned)(attempt + 1), tx_status);
+          delay(15);
+        }
+      }
+      if (!sent)
+      {
+        Serial.printf("RAD/Error: transmit failed, Error code %d\n", tx_status);
+      }
     }
+
+    buf_len = 0;
   }
   digitalWrite(STATUS_LED, LOW);
 }
@@ -91,15 +144,10 @@ void loop()
   if (Serial1.available())
   {
     Serial.write((char)Serial1.read());
-    delay(20);
   }
-
-  unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= interval)
+  if (Serial.available())
   {
-    previousMillis = currentMillis;
-
-    Serial1.write("Some Data");
+    Serial1.write((char)Serial.read());
   }
 }
 

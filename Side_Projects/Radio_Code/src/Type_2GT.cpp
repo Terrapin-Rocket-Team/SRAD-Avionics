@@ -20,30 +20,45 @@ Type2GT::Type2GT(uint8_t cs, uint8_t irq, uint8_t rst, uint8_t bsy, SPIClass &sp
 int Type2GT::begin()
 {
     int rc = rad.begin();
-    //Serial.printf("DBG: RadioLib begin -> %d\n", rc);
     if (rc != RADIOLIB_ERR_NONE)
         return rc;
 
     rad.setRfSwitchTable(rfswitch_dio_pins, rfswitch_table);
     rad.setRegulatorDCDC();
 
-    // >>>> PICK YOUR NETWORK PARAMS <<<<
-    // Example: US 915 MHz, SF7, BW125, CR 4/5, sync 0x12, power 14 dBm
-    // Change these to match your other node(s).
+    // Keep PHY exactly aligned with the ESP32 receiver side.
     rc = rad.setFrequency(915.0);
-    //Serial.printf("DBG: setFrequency -> %d\n", rc);
+    if (rc != RADIOLIB_ERR_NONE)
+        return rc;
     rc = rad.setSpreadingFactor(7);
-    //Serial.printf("DBG: setSF -> %d\n", rc);
+    if (rc != RADIOLIB_ERR_NONE)
+        return rc;
     rc = rad.setBandwidth(125.0);
-    //Serial.printf("DBG: setBW -> %d\n", rc);
+    if (rc != RADIOLIB_ERR_NONE)
+        return rc;
     rc = rad.setCodingRate(5);
-    //Serial.printf("DBG: setCR -> %d\n", rc);
+    if (rc != RADIOLIB_ERR_NONE)
+        return rc;
     rc = rad.setSyncWord(0x12);
-    //Serial.printf("DBG: setSync -> %d\n", rc);
+    if (rc != RADIOLIB_ERR_NONE)
+        return rc;
+    rc = rad.setPreambleLength(8);
+    if (rc != RADIOLIB_ERR_NONE)
+        return rc;
+    rc = rad.setCRC(true);
+    if (rc != RADIOLIB_ERR_NONE)
+        return rc;
+    rc = rad.explicitHeader();
+    if (rc != RADIOLIB_ERR_NONE)
+        return rc;
+    rc = rad.invertIQ(false);
+    if (rc != RADIOLIB_ERR_NONE)
+        return rc;
     rc = rad.setOutputPower(14);
-    //Serial.printf("DBG: setPower -> %d\n", rc);
+    if (rc != RADIOLIB_ERR_NONE)
+        return rc;
 
-    return RADIOLIB_ERR_NONE;
+    return rc;
 }
 
 void Type2GT::onIrq(void (*func)(void))
@@ -61,12 +76,10 @@ int Type2GT::recieve()
 
 int Type2GT::transmit(const char *str)
 {
+    // Use blocking TX to guarantee packet completion before next send.
     state = TX;
-    const size_t len = strlen(str);
-    //Serial.printf("DBG: startTransmit len=%u: \"%.40s%s\"\n",
-                  //(unsigned)len, str, (len > 40 ? "..." : ""));
-    int rc = rad.startTransmit(str);
-    //Serial.printf("DBG: startTransmit -> %d\n", rc);
+    int rc = rad.transmit(str);
+    state = IDLE;
     return rc;
 }
 
@@ -87,8 +100,8 @@ void Type2GT::respondToIrq()
 {
     if (state == TX)
     {
-        //Serial.println("DBG: IRQ after TX -> switch to RX");
-        recieve();
+        // TX complete IRQ.
+        state = IDLE;
     }
     else if (state == RX)
     {
