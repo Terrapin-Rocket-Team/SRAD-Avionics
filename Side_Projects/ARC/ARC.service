@@ -5,8 +5,8 @@ After=multi-user.service
 [Service]
 Type=idle
 User=USER_NAME
-WorkingDirectory=USER_SCRIPT/arc
-ExecStart=USER_SCRIPT/arc/ARC_controller.py
+WorkingDirectory=USER_SCRIPT/ARC
+ExecStart=USER_SCRIPT/ARC/ARC_controller.py
 
 [Install]
 WantedBy=multi-user.target
