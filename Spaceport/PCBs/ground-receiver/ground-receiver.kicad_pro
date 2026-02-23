@@ -69,16 +69,19 @@
         "copper_edge_clearance": "error",
         "copper_sliver": "warning",
         "courtyards_overlap": "error",
+        "creepage": "error",
         "diff_pair_gap_out_of_range": "error",
         "diff_pair_uncoupled_length_too_long": "error",
         "drill_out_of_range": "error",
         "duplicate_footprints": "warning",
         "extra_footprint": "warning",
         "footprint": "error",
+        "footprint_filters_mismatch": "ignore",
         "footprint_symbol_mismatch": "warning",
         "footprint_type_mismatch": "ignore",
         "hole_clearance": "error",
         "hole_near_hole": "error",
+        "hole_to_hole": "error",
         "holes_co_located": "warning",
         "invalid_outline": "error",
         "isolated_copper": "warning",
@@ -89,9 +92,11 @@
         "lib_footprint_mismatch": "warning",
         "malformed_courtyard": "error",
         "microvia_drill_out_of_range": "error",
+        "mirrored_text_on_front_layer": "warning",
         "missing_courtyard": "ignore",
         "missing_footprint": "warning",
         "net_conflict": "warning",
+        "nonmirrored_text_on_back_layer": "warning",
         "npth_inside_courtyard": "ignore",
         "padstack": "warning",
         "pth_inside_courtyard": "ignore",
@@ -103,10 +108,13 @@
         "solder_mask_bridge": "error",
         "starved_thermal": "error",
         "text_height": "warning",
+        "text_on_edge_cuts": "error",
         "text_thickness": "warning",
         "through_hole_pad_without_hole": "error",
         "too_many_vias": "error",
+        "track_angle": "error",
         "track_dangling": "warning",
+        "track_segment_length": "error",
         "track_width": "error",
         "tracks_crossing": "error",
         "unconnected_items": "error",
@@ -119,6 +127,7 @@
         "min_clearance": 0.0,
         "min_connection": 0.0,
         "min_copper_edge_clearance": 0.5,
+        "min_groove_width": 0.0,
         "min_hole_clearance": 0.25,
         "min_hole_to_hole": 0.25,
         "min_microvia_diameter": 0.2,
@@ -136,10 +145,11 @@
       },
       "teardrop_options": [
         {
-          "td_onpadsmd": true,
+          "td_onpthpad": true,
           "td_onroundshapesonly": false,
+          "td_onsmdpad": true,
           "td_ontrackend": false,
-          "td_onviapad": true
+          "td_onvia": true
         }
       ],
       "teardrop_parameters": [
@@ -224,6 +234,7 @@
       "mfg": "",
       "mpn": ""
     },
+    "layer_pairs": [],
     "layer_presets": [],
     "viewports": []
   },
@@ -448,7 +459,7 @@
   },
   "meta": {
     "filename": "ground-receiver.kicad_pro",
-    "version": 1
+    "version": 3
   },
   "net_settings": {
     "classes": [
@@ -463,6 +474,7 @@
         "microvia_drill": 0.1,
         "name": "Default",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 2147483647,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
         "track_width": 0.2,
         "via_diameter": 0.6,
@@ -480,6 +492,7 @@
         "microvia_drill": 0.1,
         "name": "High Power",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 0,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
         "track_width": 0.381,
         "via_diameter": 0.6,
@@ -497,6 +510,7 @@
         "microvia_drill": 0.1,
         "name": "Power",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 1,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
         "track_width": 0.3048,
         "via_diameter": 0.6,
@@ -514,6 +528,7 @@
         "microvia_drill": 0.1,
         "name": "Signal",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 2,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
         "track_width": 0.1524,
         "via_diameter": 0.6,
@@ -522,67 +537,181 @@
       }
     ],
     "meta": {
-      "version": 3
+      "version": 4
     },
     "net_colors": null,
     "netclass_assignments": {
-      "+3.3V2": "Power",
-      "+5V": "High Power",
-      "BSTAT1": "Signal",
-      "BSTAT2": "Signal",
-      "CS_1": "Signal",
-      "CS_2": "Signal",
-      "CS_3": "Signal",
-      "GND": "High Power",
-      "GPIO0_1": "Signal",
-      "GPIO0_2": "Signal",
-      "GPIO0_3": "Signal",
-      "GPIO1_1": "Signal",
-      "GPIO1_2": "Signal",
-      "GPIO1_3": "Signal",
-      "GPIO2_1": "Signal",
-      "GPIO2_2": "Signal",
-      "GPIO2_3": "Signal",
-      "GPIO3_1": "Signal",
-      "GPIO3_2": "Signal",
-      "GPIO3_3": "Signal",
-      "IRQ_1": "Signal",
-      "IRQ_2": "Signal",
-      "IRQ_3": "Signal",
-      "MISO": "Signal",
-      "MOSI": "Signal",
-      "Net-(3V1-K)": "Power",
-      "Net-(3V3-K)": "Power",
-      "Net-(5V0-K)": "Power",
-      "Net-(5V1-K)": "Power",
-      "Net-(BSTAT1-K)": "Power",
-      "Net-(BSTAT2-K)": "Power",
-      "Net-(J2-CC1)": "Signal",
-      "Net-(J2-CC2)": "Signal",
-      "Net-(U1-BST)": "High Power",
-      "Net-(U1-FB)": "High Power",
-      "Net-(U1-INTVCC)": "High Power",
-      "Net-(U1-RT)": "Signal",
-      "Net-(U4-3V3OUT)": "Power",
-      "Net-(U4-VCC)": "Power",
-      "Net-(U6-CHM_TMR)": "Signal",
-      "Net-(U6-ISET)": "Signal",
-      "Net-(U6-TS)": "Signal",
-      "Net-(U6-VSET)": "Signal",
-      "Net-(VBus-K)": "Power",
-      "Net-(VBus1-K)": "Power",
-      "Net-(VBus2-K)": "Power",
-      "PWR_EN": "Signal",
-      "RXD": "Signal",
-      "SCL": "Signal",
-      "SCLK": "Signal",
-      "SDA": "Signal",
-      "SDN_1": "Signal",
-      "SDN_2": "Signal",
-      "SDN_3": "Signal",
-      "TXD": "Signal",
-      "VBAT": "High Power",
-      "VBUS": "Power"
+      "+3.3V2": [
+        "Power"
+      ],
+      "+5V": [
+        "High Power"
+      ],
+      "BSTAT1": [
+        "Signal"
+      ],
+      "BSTAT2": [
+        "Signal"
+      ],
+      "CS_1": [
+        "Signal"
+      ],
+      "CS_2": [
+        "Signal"
+      ],
+      "CS_3": [
+        "Signal"
+      ],
+      "GND": [
+        "High Power"
+      ],
+      "GPIO0_1": [
+        "Signal"
+      ],
+      "GPIO0_2": [
+        "Signal"
+      ],
+      "GPIO0_3": [
+        "Signal"
+      ],
+      "GPIO1_1": [
+        "Signal"
+      ],
+      "GPIO1_2": [
+        "Signal"
+      ],
+      "GPIO1_3": [
+        "Signal"
+      ],
+      "GPIO2_1": [
+        "Signal"
+      ],
+      "GPIO2_2": [
+        "Signal"
+      ],
+      "GPIO2_3": [
+        "Signal"
+      ],
+      "GPIO3_1": [
+        "Signal"
+      ],
+      "GPIO3_2": [
+        "Signal"
+      ],
+      "GPIO3_3": [
+        "Signal"
+      ],
+      "IRQ_1": [
+        "Signal"
+      ],
+      "IRQ_2": [
+        "Signal"
+      ],
+      "IRQ_3": [
+        "Signal"
+      ],
+      "MISO": [
+        "Signal"
+      ],
+      "MOSI": [
+        "Signal"
+      ],
+      "Net-(3V1-K)": [
+        "Power"
+      ],
+      "Net-(3V3-K)": [
+        "Power"
+      ],
+      "Net-(5V0-K)": [
+        "Power"
+      ],
+      "Net-(5V1-K)": [
+        "Power"
+      ],
+      "Net-(BSTAT1-K)": [
+        "Power"
+      ],
+      "Net-(BSTAT2-K)": [
+        "Power"
+      ],
+      "Net-(J2-CC1)": [
+        "Signal"
+      ],
+      "Net-(J2-CC2)": [
+        "Signal"
+      ],
+      "Net-(U1-BST)": [
+        "High Power"
+      ],
+      "Net-(U1-FB)": [
+        "High Power"
+      ],
+      "Net-(U1-INTVCC)": [
+        "High Power"
+      ],
+      "Net-(U1-RT)": [
+        "Signal"
+      ],
+      "Net-(U4-3V3OUT)": [
+        "Power"
+      ],
+      "Net-(U4-VCC)": [
+        "Power"
+      ],
+      "Net-(U6-CHM_TMR)": [
+        "Signal"
+      ],
+      "Net-(U6-ISET)": [
+        "Signal"
+      ],
+      "Net-(U6-TS)": [
+        "Signal"
+      ],
+      "Net-(U6-VSET)": [
+        "Signal"
+      ],
+      "Net-(VBus-K)": [
+        "Power"
+      ],
+      "Net-(VBus1-K)": [
+        "Power"
+      ],
+      "Net-(VBus2-K)": [
+        "Power"
+      ],
+      "PWR_EN": [
+        "Signal"
+      ],
+      "RXD": [
+        "Signal"
+      ],
+      "SCL": [
+        "Signal"
+      ],
+      "SCLK": [
+        "Signal"
+      ],
+      "SDA": [
+        "Signal"
+      ],
+      "SDN_1": [
+        "Signal"
+      ],
+      "SDN_2": [
+        "Signal"
+      ],
+      "SDN_3": [
+        "Signal"
+      ],
+      "TXD": [
+        "Signal"
+      ],
+      "VBAT": [
+        "High Power"
+      ],
+      "VBUS": [
+        "Power"
+      ]
     },
     "netclass_patterns": []
   },

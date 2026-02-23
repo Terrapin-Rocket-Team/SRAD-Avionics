@@ -37,9 +37,9 @@
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 1.0,
-          "height": 1.4,
-          "width": 1.7
+          "drill": 0.0,
+          "height": 4.064,
+          "width": 1.27
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -48,16 +48,10 @@
         "silk_text_thickness": 0.1,
         "silk_text_upright": false,
         "zones": {
-          "min_clearance": 0.4
+          "min_clearance": 0.5
         }
       },
-      "diff_pair_dimensions": [
-        {
-          "gap": 0.0,
-          "via_gap": 0.0,
-          "width": 0.0
-        }
-      ],
+      "diff_pair_dimensions": [],
       "drc_exclusions": [],
       "meta": {
         "version": 2
@@ -177,12 +171,7 @@
           "td_width_to_size_filter_ratio": 0.9
         }
       ],
-      "track_widths": [
-        0.0,
-        0.1524,
-        0.3,
-        0.3048
-      ],
+      "track_widths": [],
       "tuning_pattern_settings": {
         "diff_pair_defaults": {
           "corner_radius_percentage": 80,
@@ -209,12 +198,7 @@
           "spacing": 0.6
         }
       },
-      "via_dimensions": [
-        {
-          "diameter": 0.0,
-          "drill": 0.0
-        }
-      ],
+      "via_dimensions": [],
       "zones_allow_external_fillets": false
     },
     "ipc2581": {
@@ -224,7 +208,6 @@
       "mfg": "",
       "mpn": ""
     },
-    "layer_pairs": [],
     "layer_presets": [],
     "viewports": []
   },
@@ -448,8 +431,8 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "live-video-multi-function-board.kicad_pro",
-    "version": 3
+    "filename": "dipole-breakout.kicad_pro",
+    "version": 1
   },
   "net_settings": {
     "classes": [
@@ -464,7 +447,6 @@
         "microvia_drill": 0.1,
         "name": "Default",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
-        "priority": 2147483647,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
         "track_width": 0.2,
         "via_diameter": 0.6,
@@ -480,180 +462,22 @@
         "line_style": 0,
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
-        "name": "High Power",
+        "name": "Impedance Matched",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
-        "priority": 0,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.6096,
-        "via_diameter": 0.6,
-        "via_drill": 0.3,
-        "wire_width": 25
-      },
-      {
-        "bus_width": 12,
-        "clearance": 0.2,
-        "diff_pair_gap": 0.25,
-        "diff_pair_via_gap": 0.25,
-        "diff_pair_width": 0.2,
-        "line_style": 0,
-        "microvia_diameter": 0.3,
-        "microvia_drill": 0.1,
-        "name": "Power",
-        "pcb_color": "rgba(0, 0, 0, 0.000)",
-        "priority": 1,
-        "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.508,
-        "via_diameter": 0.6,
-        "via_drill": 0.3,
-        "wire_width": 20
-      },
-      {
-        "bus_width": 12,
-        "clearance": 0.2,
-        "diff_pair_gap": 0.25,
-        "diff_pair_via_gap": 0.25,
-        "diff_pair_width": 0.2,
-        "line_style": 0,
-        "microvia_diameter": 0.3,
-        "microvia_drill": 0.1,
-        "name": "Signal",
-        "pcb_color": "rgba(0, 0, 0, 0.000)",
-        "priority": 2,
-        "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.1524,
+        "track_width": 1.1,
         "via_diameter": 0.6,
         "via_drill": 0.3,
         "wire_width": 6
       }
     ],
     "meta": {
-      "version": 4
+      "version": 3
     },
     "net_colors": null,
     "netclass_assignments": {
-      "+3.3V": [
-        "Power"
-      ],
-      "+3.3V1": [
-        "Power"
-      ],
-      "+5V": [
-        "High Power"
-      ],
-      "BSTAT1": [
-        "Signal"
-      ],
-      "BSTAT2": [
-        "Signal"
-      ],
-      "EN": [
-        "Signal"
-      ],
-      "GND": [
-        "High Power"
-      ],
-      "IN_TG": [
-        "Signal"
-      ],
-      "Net-(3V1-K)": [
-        "Power"
-      ],
-      "Net-(3V3-K)": [
-        "Power"
-      ],
-      "Net-(5V0-K)": [
-        "Power"
-      ],
-      "Net-(5V1-K)": [
-        "Power"
-      ],
-      "Net-(BSTAT1-K)": [
-        "Signal"
-      ],
-      "Net-(BSTAT2-K)": [
-        "Signal"
-      ],
-      "Net-(BZ1--)": [
-        "Signal"
-      ],
-      "Net-(J4-Pin_2)": [
-        "High Power"
-      ],
-      "Net-(STAT1-K)": [
-        "Signal"
-      ],
-      "Net-(U1-BST)": [
-        "High Power"
-      ],
-      "Net-(U1-FB)": [
-        "High Power"
-      ],
-      "Net-(U1-INTVCC)": [
-        "Signal"
-      ],
-      "Net-(U1-RT)": [
-        "Signal"
-      ],
-      "Net-(U1-SW)": [
-        "High Power"
-      ],
-      "Net-(U4-3V3OUT)": [
-        "Power"
-      ],
-      "Net-(U4-VCC)": [
-        "Power"
-      ],
-      "Net-(U5-D1)": [
-        "Signal"
-      ],
-      "Net-(U5-D2)": [
-        "Signal"
-      ],
-      "Net-(U5-Q2)": [
-        "Signal"
-      ],
-      "Net-(VBus1-K)": [
-        "Power"
-      ],
-      "PWR": [
-        "Signal"
-      ],
-      "PWR_EN": [
-        "Signal"
-      ],
-      "RXD": [
-        "Signal"
-      ],
-      "SCL1": [
-        "Signal"
-      ],
-      "SDA1": [
-        "Signal"
-      ],
-      "STAT1": [
-        "Signal"
-      ],
-      "TG": [
-        "Signal"
-      ],
-      "TXD": [
-        "Signal"
-      ],
-      "VBAT": [
-        "High Power"
-      ],
-      "VBUS": [
-        "Power"
-      ],
-      "VIN": [
-        "Default"
-      ],
-      "VOUT0": [
-        "High Power"
-      ],
-      "VOUT4": [
-        "High Power"
-      ]
+      "GND": "Impedance Matched",
+      "Net-(J1-In)": "Impedance Matched"
     },
     "netclass_patterns": []
   },
@@ -662,7 +486,7 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "plot": "../Gerbers/LVMFB-v1.0/",
+      "plot": "../Gerbers/dipole-breakout/",
       "pos_files": "",
       "specctra_dsn": "",
       "step": "",
@@ -772,7 +596,7 @@
   },
   "sheets": [
     [
-      "8015fa41-3749-4a4c-9a37-5e6c4c4c807d",
+      "5e1def53-974a-45e1-8212-0b9e632afaa5",
       "Root"
     ]
   ],
