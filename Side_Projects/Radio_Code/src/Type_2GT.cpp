@@ -1,5 +1,9 @@
 #ifdef STM32
 #include "Type_2GT.h"
+#include <string.h>
+
+static const uint8_t EVENT_MASK_TX_DONE = 0x01;
+static const uint8_t EVENT_MASK_RX_DONE = 0x02;
 
 static const uint32_t rfswitch_dio_pins[] = {
     RADIOLIB_LR11X0_DIO5, RADIOLIB_LR11X0_DIO6,
@@ -34,7 +38,7 @@ int Type2GT::begin()
     Serial.printf("DBG: setFrequency -> %d\n", rc);
     rc = rad.setSpreadingFactor(7);
     Serial.printf("DBG: setSF -> %d\n", rc);
-    rc = rad.setBandwidth(125.0);
+    rc = rad.setBandwidth(250.0);
     Serial.printf("DBG: setBW -> %d\n", rc);
     rc = rad.setCodingRate(5);
     Serial.printf("DBG: setCR -> %d\n", rc);
@@ -55,18 +59,26 @@ int Type2GT::recieve()
 {
     state = RX;
     int rc = rad.startReceive();
-    Serial.printf("DBG: startReceive -> %d\n", rc);
+    if (rc != RADIOLIB_ERR_NONE)
+        state = IDLE;
+    // Serial.printf("DBG: startReceive -> %d\n", rc);
     return rc;
 }
 
 int Type2GT::transmit(const char *str)
 {
+    if (state == TX)
+    {
+        return TYPE2GT_ERR_BUSY;
+    }
+
     state = TX;
-    const size_t len = strlen(str);
-    Serial.printf("DBG: startTransmit len=%u: \"%.40s%s\"\n",
-                  (unsigned)len, str, (len > 40 ? "..." : ""));
+    txStartUs = micros();
     int rc = rad.startTransmit(str);
-    Serial.printf("DBG: startTransmit -> %d\n", rc);
+    if (rc != RADIOLIB_ERR_NONE)
+        state = IDLE;
+
+    // Serial.printf("DBG: startTransmit -> %d\n", rc);
     return rc;
 }
 
@@ -75,26 +87,81 @@ bool Type2GT::hasData()
     return state == HAS_DATA;
 }
 
-void Type2GT::readData(char *str, int len)
+int Type2GT::readData(char *str, int len)
 {
-    int n = rad.readData((uint8_t *)str, len);
-    Serial.printf("DBG: readData -> %d\n", n);
-    if (!rad.available())
+    if (!str || len < 2)
+        return TYPE2GT_ERR_BAD_ARGS;
+
+    memset(str, 0, len);
+    int rc = rad.readData((uint8_t *)str, (size_t)(len - 1));
+    if (rc != RADIOLIB_ERR_NONE)
+    {
         state = IDLE;
+        return rc;
+    }
+
+    str[len - 1] = '\0';
+    state = IDLE;
+    return (int)strnlen(str, (size_t)(len - 1));
+}
+
+bool Type2GT::popEvent(RAD_EVENT &event)
+{
+    noInterrupts();
+    const uint8_t events = pendingEvents;
+
+    if ((events & EVENT_MASK_TX_DONE) != 0)
+    {
+        pendingEvents = (uint8_t)(pendingEvents & ~EVENT_MASK_TX_DONE);
+        interrupts();
+        event = RAD_EVENT_TX_DONE;
+        return true;
+    }
+
+    if ((events & EVENT_MASK_RX_DONE) != 0)
+    {
+        pendingEvents = (uint8_t)(pendingEvents & ~EVENT_MASK_RX_DONE);
+        interrupts();
+        event = RAD_EVENT_RX_DONE;
+        return true;
+    }
+
+    interrupts();
+    event = RAD_EVENT_NONE;
+    return false;
+}
+
+void Type2GT::handleIrq()
+{
+    if (state == TX)
+    {
+        txIrqUs = micros();
+        pendingEvents = (uint8_t)(pendingEvents | EVENT_MASK_TX_DONE);
+        state = IDLE;
+    }
+    else if (state == RX || state == HAS_DATA)
+    {
+        pendingEvents = (uint8_t)(pendingEvents | EVENT_MASK_RX_DONE);
+        state = HAS_DATA;
+    }
+}
+
+bool Type2GT::isBusy() const
+{
+    return state == TX;
+}
+
+uint32_t Type2GT::lastTxDurationUs() const
+{
+    noInterrupts();
+    const uint32_t start = txStartUs;
+    const uint32_t done = txIrqUs;
+    interrupts();
+    return (uint32_t)(done - start);
 }
 
 void Type2GT::respondToIrq()
 {
-    if (state == TX)
-    {
-        Serial.println("DBG: IRQ after TX -> switch to RX");
-        recieve();
-    }
-    else if (state == RX)
-    {
-        const bool avail = rad.available();
-        Serial.printf("DBG: IRQ RX -> available=%d\n", (int)avail);
-        state = avail ? HAS_DATA : IDLE;
-    }
+    handleIrq();
 }
 #endif
