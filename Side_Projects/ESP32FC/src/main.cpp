@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <NimBLEDevice.h>
 #include <RadioLib.h>
-#include <RadioMessage.h>
 
 // =============== Debug helpers (USB CDC on ESP32-S3) ===============
 static void dbgHex(const uint8_t *d, size_t n)
@@ -41,7 +40,7 @@ static const Module::RfSwitchMode_t rfswitch_table[] = {
 };
 
 // IRQ flag from RadioLib
-volatile bool g_loraOpDone = false;
+volatile uint32_t g_loraOpDone = 0;  // count of pending packets, not just a flag
 volatile uint32_t g_irqCount = 0;
 
 #if defined(ESP8266) || defined(ESP32)
@@ -49,7 +48,7 @@ ICACHE_RAM_ATTR
 #endif
 static void onLoraIrq()
 {
-    g_loraOpDone = true;
+    g_loraOpDone++;
     g_irqCount++;
 }
 
@@ -62,7 +61,7 @@ NimBLECharacteristic *g_txChar = nullptr;
 volatile bool g_hasClient = false;
 volatile bool g_notifyEnabled = false;
 
-static void ble_notify_chunked(const char *data, size_t len)
+static void ble_notify_forward(const char *data, size_t len)
 {
     if (!g_hasClient || !g_notifyEnabled || !g_txChar || len == 0)
     {
@@ -70,20 +69,131 @@ static void ble_notify_chunked(const char *data, size_t len)
                          (int)g_hasClient, (int)g_notifyEnabled, (void *)g_txChar, (unsigned)len);
         return;
     }
-    const uint16_t mtu = NimBLEDevice::getMTU();          // 23..247
-    const size_t maxPayload = (mtu > 3) ? (mtu - 3) : 20; // ATT notif payload
-    USBSerial.printf("[BLE] notify len=%u mtu=%u chunk=%u\n",
-                     (unsigned)len, (unsigned)mtu, (unsigned)maxPayload);
+    g_txChar->setValue((uint8_t *)data, len);
+    g_txChar->notify();
+}
 
-    for (size_t off = 0; off < len; off += maxPayload)
+static bool extract_chunk_data(const String &payload, String &chunkData)
+{
+    if (!payload.startsWith("CH/"))
     {
-        const size_t n = ((len - off) > maxPayload) ? maxPayload : (len - off);
-        g_txChar->setValue((uint8_t *)(data + off), n);
-        g_txChar->notify();
-        if (off + n < len) {
-            // Small delay between chunks to prevent BLE buffer overflow
-            delayMicroseconds(500);  // 0.5ms delay between chunks
+        chunkData = payload;
+        return false;
+    }
+
+    const int p1 = payload.indexOf('/', 3);
+    const int p2 = (p1 >= 0) ? payload.indexOf('/', p1 + 1) : -1;
+    const int p3 = (p2 >= 0) ? payload.indexOf('/', p2 + 1) : -1;
+    if (p3 < 0)
+    {
+        chunkData = payload;
+        return false;
+    }
+
+    chunkData = payload.substring(p3 + 1);
+    return true;
+}
+
+static bool is_complete_ctlm_line(const String &line)
+{
+    if (!line.startsWith("CTLM/"))
+    {
+        return false;
+    }
+
+    int commas = 0;
+    for (size_t i = 0; i < line.length(); ++i)
+    {
+        if (line[i] == ',')
+        {
+            commas++;
         }
+    }
+    return commas == 14; // CTLM/<15 fields total>
+}
+
+static void forward_ctlm_records(const String &rxPayload)
+{
+    static String buf;
+    static String lastForwarded;
+
+    String chunk;
+    extract_chunk_data(rxPayload, chunk);
+    buf += chunk;
+
+    if (buf.length() > 2048)
+    {
+        const int keepFrom = buf.lastIndexOf("CTLM/");
+        if (keepFrom >= 0)
+        {
+            buf = buf.substring(keepFrom);
+        }
+        else
+        {
+            buf = "";
+        }
+    }
+
+    while (true)
+    {
+        const int start = buf.indexOf("CTLM/");
+        if (start < 0)
+        {
+            if (buf.length() > 256)
+            {
+                buf = "";
+            }
+            return;
+        }
+
+        if (start > 0)
+        {
+            buf.remove(0, start);
+        }
+
+        int next = buf.indexOf("CTLM/", 5);
+        if (next < 0)
+        {
+            // End-of-line fallback
+            const int nl = buf.indexOf('\n');
+            if (nl >= 0)
+            {
+                String line = buf.substring(0, nl);
+                line.trim();
+                if (is_complete_ctlm_line(line) && line != lastForwarded)
+                {
+                    line += '\n';
+                    USBSerial.printf("[LORA] forward CTLM len=%u\n", (unsigned)line.length());
+                    ble_notify_forward(line.c_str(), line.length());
+                    line.trim();
+                    lastForwarded = line;
+                }
+                buf.remove(0, nl + 1);
+                continue;
+            }
+
+            // If this is already a complete record without a trailing separator, forward it.
+            if (is_complete_ctlm_line(buf) && buf != lastForwarded)
+            {
+                String out = buf + '\n';
+                USBSerial.printf("[LORA] forward CTLM len=%u\n", (unsigned)out.length());
+                ble_notify_forward(out.c_str(), out.length());
+                lastForwarded = buf;
+                buf = "";
+            }
+            return;
+        }
+
+        String candidate = buf.substring(0, next);
+        candidate.trim();
+        if (is_complete_ctlm_line(candidate) && candidate != lastForwarded)
+        {
+            String out = candidate + '\n';
+            USBSerial.printf("[LORA] forward CTLM len=%u\n", (unsigned)out.length());
+            ble_notify_forward(out.c_str(), out.length());
+            lastForwarded = candidate;
+        }
+        buf.remove(0, next);
     }
 }
 class RxCallbacks : public NimBLECharacteristicCallbacks
@@ -224,140 +334,9 @@ void setup()
         USBSerial.println("[LORA] WARNING: startReceive failed");
     }
 }
-// ============ APRS/Command handling - ALL COMMENTED OUT ============
-// bool foundNewline = false;
-// int bytesAvail = 0;
-// char serialBuf[Message::maxSize] = {0};
-// int serialBufLength = 0;
-// // Message commandMsg;
-// // APRSConfig commandConfig = {"KD3BBD", "ALL", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '\\', 'M'};
-// uint16_t commandSize = 0;
-// enum InputState
-// {
-//     HANDSHAKE,
-//     COMMAND,
-//     // add additional states as necessary
-//     NONE
-// };
-
-// InputState currState = NONE;
-// GSData avionicsData(APRSTelem::type, 1, 3);
-// bool handshakeSuccess = false;
-// bool hasDataHeader = false;
-// bool hasAvionicsTelem = false;
-// Message m;
-// double arr[3] = {0.0, 0.0, 0.0};
 void loop()
 {
-    // ============ ALL COMMAND/HANDSHAKE CODE COMMENTED OUT ============
-    // if (((bytesAvail = USBSerial.available()) > 0))
-    // {
-    //     // check if a command is being sent
-    //     if (currState == NONE)
-    //     {
-    //         //   log("buf");
-    //         for (int i = 0; i < bytesAvail; i++)
-    //         {
-    //             char c = USBSerial.read();
-    //             if (c == '\n')
-    //             {
-    //                 serialBuf[serialBufLength] = 0;
-    //                 foundNewline = true;
-    //                 break;
-    //             }
-    //             if (c != '\0')
-    //             {
-    //                 serialBuf[serialBufLength] = c;
-    //                 serialBufLength++;
-    //                 if (serialBufLength >= (int)sizeof(serialBuf))
-    //                     break;
-    //             }
-    //         }
-    //         bytesAvail = USBSerial.available();
-
-    //         if (foundNewline)
-    //         {
-    //             // log("newline command ", serialBuf);
-    //             if (strcmp(serialBuf, "handshake") == 0)
-    //             {
-    //                 //   log("Starting handshake");
-    //                 // begin the handshake
-    //                 handshakeSuccess = false;
-    //                 currState = HANDSHAKE;
-    //             }
-    //             else if (strcmp(serialBuf, "handshake succeeded") == 0)
-    //             {
-    //                 //   log("Successful handshake");
-    //                 // the handshake was successful
-    //                 handshakeSuccess = true;
-    //                 // we will start sending data, so set up metrics
-    //                 //   telemMetrics.setInitialTime(millis());
-    //             }
-    //             else if (strcmp(serialBuf, "handshake failed") == 0)
-    //             {
-    //                 //   log("Failed handshake");
-    //                 // the handshake was not successful
-    //                 handshakeSuccess = false;
-    //             }
-    //             else if (strcmp(serialBuf, "command") == 0)
-    //             {
-    //                 //   log("Ready for radio command");
-    //                 // the next text will be a radio command
-    //                 commandMsg.clear();
-    //                 currState = COMMAND;
-    //             }
-    //             // add additional commands as required
-
-    //             // reset serial buffer
-    //             memset(serialBuf, 0, sizeof(serialBuf));
-    //             serialBufLength = 0;
-    //             foundNewline = false;
-    //         }
-    //     }
-    //     // complete the handshake
-    // if (currState == HANDSHAKE)
-    // {
-    //   for (int i = 0; i < bytesAvail; i++)
-    //   {
-    //     char c = USBSerial.read();
-    //     // log("read:");
-    //     // skip odd characters that accidently get added
-    //     if (c != 0xff && c != 0)
-    //     {
-    //       USBSerial.write(c);
-    //       if (c == '\n')
-    //       {
-    //         // log("newline handshake");
-    //         foundNewline = true;
-    //         break;
-    //       }
-    //     }
-    //   }
-    //   bytesAvail = USBSerial.available();
-
-    //   if (foundNewline)
-    //   {
-    //     foundNewline = false;
-    //     currState = NONE;
-    //   }
-    // }
-
-    // // receive the radio command
-    // if (currState == COMMAND)
-    // {
-    //   // read into serial buffer
-    //   for (int i = 0; i < bytesAvail; i++)
-    //   {
-    //     commandMsg.append(USBSerial.read());
-    //     if (commandMsg.size >= Message::maxSize)
-    //       break;
-    //   }
-    //   bytesAvail = USBSerial.available();
-    //     radio.transmit("CMD/boop\n", sizeof("CMD/boop\n"));
-    //     currState = NONE;
-    // }
-    // }
-    // 1 Hz heartbeat with states
+    // 1 Hz heartbeat
     static uint32_t lastHb = 0;
     uint32_t now = millis();
     if (now - lastHb >= 1000)
@@ -368,13 +347,18 @@ void loop()
                          (int)g_notifyEnabled, (unsigned)g_irqCount);
     }
 
-    // LoRa packet arrived
-    if (g_loraOpDone)
+    while (g_loraOpDone > 0)
     {
-        g_loraOpDone = false;
+        g_loraOpDone--;
 
         String payload;
         int st = radio.readData(payload);
+        // Re-arm RX immediately.
+        int rx_restart_status = radio.startReceive();
+        if (rx_restart_status != RADIOLIB_ERR_NONE)
+        {
+            USBSerial.printf("[LORA] restart RX ret=%d\n", rx_restart_status);
+        }
         USBSerial.printf("[LORA] readData ret=%d len=%u\n", st, (unsigned)payload.length());
 
         if (st == RADIOLIB_ERR_NONE)
@@ -383,88 +367,13 @@ void loop()
             float rssi = radio.getRSSI();
             float snr = radio.getSNR();
             USBSerial.printf("[LORA] RSSI=%.1f dBm SNR=%.1f dB\n", rssi, snr);
-
-            // Print full payload string instead of hex
-            if (payload.length())
-            {
-                USBSerial.printf("[LORA] payload: %s\n", payload.c_str());
-            }
-
-            // BLE notify (newline-terminated for line-oriented clients)
-            if (payload.length() == 0 || payload[payload.length() - 1] != '\n')
-            {
-                payload += '\n';
-            }
-            ble_notify_chunked(payload.c_str(), payload.length());
-
-            // ============ APRS ENCODING COMMENTED OUT ============
-            // // Parse the new TELEM format - actual column positions from real data:
-            // // 0=time, 1=stage, 8-10=accel, 15=baro_pres, 16=baro_temp, 17=baro_alt, 18=gps_lat, 19=gps_lon, 20=gps_alt
-            // double time = 0, baro_alt = 0, gps_lat = 0, gps_lon = 0, gps_alt = 0, ax = 0, ay = 0, az = 0;
-            // int matched = sscanf(payload.c_str(), "TELEM/%lf,%*d,%*f,%*f,%*f,%*f,%*f,%*f,%lf,%lf,%lf,%*f,%*f,%*f,%*f,%*f,%*f,%lf,%lf,%lf,%lf",
-            //                     &time, &ax, &ay, &az, &baro_alt, &gps_lat, &gps_lon, &gps_alt);
-            // double acc_mag = sqrt(ax*ax + ay*ay + az*az);
-            // // Use GPS alt if baro alt is 0
-            // double alt = (baro_alt != 0.0) ? baro_alt : gps_alt;
-            // USBSerial.printf("[LORA] parsed: time=%.2f alt=%.2f lat=%.6f lon=%.6f acc=%.2f (matched=%d)\n",
-            //                  time, alt, gps_lat, gps_lon, acc_mag, matched);
-            // APRSConfig con = {"N0CALL", "APRS", "WIDE1-1", PositionWithoutTimestampWithoutAPRS, '/', 0x5C};
-            // APRSTelem telem(con, gps_lat, gps_lon, alt, acc_mag, 0.0, arr, 0x00000001);
-
-            // m.encode(&telem);
-            // USBSerial.printf("[LORA] telem size=%u encoded size=%u\n",
-            //                  (unsigned)m.size, (unsigned)m.size);
-            // // update metrics
-            // // telemMetrics.update(m.size, millis(), radioTelem.RSSI());
-            // // set the flag to transmit data
-            // hasAvionicsTelem = true;
+            USBSerial.printf("[LORA] payload: %s\n", payload.c_str());
+            forward_ctlm_records(payload);
         }
         else
         {
             USBSerial.println("[LORA] readData failed");
         }
-
-        // Return to RX (log result)
-        st = radio.startReceive();
-        USBSerial.printf("[LORA] restart RX ret=%d\n", st);
-
-        // ============ APRS OUTPUT COMMENTED OUT ============
-        // if (handshakeSuccess ||
-        //  true)
-        // {
-        //     // output goes here
-        //     if (hasAvionicsTelem)
-        //     {
-        //         // fill GSData with message
-        //         avionicsData.fill(m.buf, m.size);
-        //         // encode for multplexing
-        //         m.encode(&avionicsData);
-        //         USBSerial.printf("[AVIONICS] telem size=%u encoded size=%u\n",
-        //                          (unsigned)avionicsData.size, (unsigned)m.size);
-        //         // write
-        //         // log("Avionics data: ", (const char *)m.buf);
-        //         USBSerial.write(m.buf, m.size);
-        //         // reset flag
-        //         hasAvionicsTelem = false;
-        //     }
-        // }
     }
 }
 
-
-
-
-
-
-
-
-// #include <Arduino.h>
-
-// void setup(){
-//     USBSerial.begin(115200);
-// }
-
-// void loop(){
-//     USBSerial.println("Loop");
-//     delay(500);
-// }
