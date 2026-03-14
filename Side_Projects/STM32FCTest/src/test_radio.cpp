@@ -406,9 +406,7 @@ namespace RadioTest
                 Console.print("[RADIO] Message: \"");
                 Console.print(testMessage);
                 Console.println("\"");
-                Console.print("[RADIO] Data rate: ");
-                Console.print(radio_ptr->getDataRate());
-                Console.println(" bps");
+                Console.println("[RADIO] Data rate: unavailable in current RadioLib API");
             }
             else
             {
