@@ -99,7 +99,7 @@ const getAvailFiles = () => {
     videoList.forEach((vEntry) => {
       list.push({
         time: parseInt(vEntry),
-        video: getFileSize(path.join(videoDir, vEntry + "_video.av1")),
+        video: getFileSize(path.join(videoDir, vEntry + "_video.mp4")),
         log: logList.includes(vEntry)
           ? getFileSize(path.join(logsDir, vEntry + "_log.txt"))
           : -1,
@@ -137,7 +137,7 @@ app.get("/download", (req, res) => {
     try {
       let dir = "";
       if (type === "log") dir = path.join(logsDir, file + "_log.txt");
-      else if (type === "video") dir = path.join(videoDir, file + "_video.av1");
+      else if (type === "video") dir = path.join(videoDir, file + "_video.mp4");
       else res.status(400).redirect("/");
 
       if (fs.existsSync(dir)) {

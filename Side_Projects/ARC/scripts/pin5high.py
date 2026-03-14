@@ -1,11 +1,13 @@
 import RPi.GPIO as GPIO
 import time
 
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(5, GPIO.OUT)
+PIN = 7
 
-GPIO.output(5, GPIO.HIGH)
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(PIN, GPIO.OUT)
+
+GPIO.output(PIN, GPIO.HIGH)
 time.sleep(0.1)
-GPIO.output(5, GPIO.LOW)
+GPIO.output(PIN, GPIO.LOW)
 
 GPIO.cleanup()
