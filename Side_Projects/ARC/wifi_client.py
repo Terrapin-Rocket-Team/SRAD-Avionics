@@ -1,18 +1,14 @@
 #!/usr/bin/env python3
 
+
 #this will be used for connecting via wifi and tcp client stuff
 #must be bidirectional transport bridge 
-
-SERVER_HOST     = "192.168.137.1"    # IP of the other Pi Zero (TCP server) MUST CHANGE
+SERVER_HOST     = "10.42.0.1" #IP of the other Pi Zero (TCP server) MUST CHANGE 
 SERVER_PORT     = 5000             # Must match server
-
 SERIAL_PORT = "/dev/serial0"   # serial address MUST CHANGE
 SERIAL_BAUD = 115200           # baud rate
-
-
 RECONNECT_DELAY = 0.2                # Seconds between WiFi reconnect attempts
 BUFFER_SIZE     = 4096
-
 import socket
 import threading
 import time
@@ -20,20 +16,21 @@ import sys
 import logging
 import serial  
 
-
 def serial_to_wifi(ser: serial.Serial, sock: socket.socket, stop_event: threading.Event) -> None:
     while not stop_event.is_set():
         try:
-            data = ser.read(ser.in_waiting or 1)
-            if data:
+            waiting = ser.in_waiting
+            if waiting:
+                data = ser.read(waiting)
                 sock.sendall(data)
+            else:
+                time.sleep(0.005)
         except (serial.SerialException, OSError):
             stop_event.set()
             break
-            
-            
-            
+
 def wifi_to_serial(sock: socket.socket, ser: serial.Serial, stop_event: threading.Event) -> None:
+    sock.settimeout(1.0)
     while not stop_event.is_set():
         try:
             data = sock.recv(BUFFER_SIZE)
@@ -41,21 +38,21 @@ def wifi_to_serial(sock: socket.socket, ser: serial.Serial, stop_event: threadin
                 stop_event.set()
                 break
             ser.write(data)
+        except socket.timeout:
+            continue
         except (OSError, serial.SerialException):
             stop_event.set()
             break
 
-
 def main():
-    ser = serial.Serial(SERIAL_PORT, SERIAL_BAUD, timeout=1)
+    ser = serial.Serial(SERIAL_PORT, SERIAL_BAUD, timeout=0)
  
     while True:
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(10)
             sock.connect((SERVER_HOST, SERVER_PORT))
-            sock.settimeout(None)
- 
+
             stop_event = threading.Event()
  
             t1 = threading.Thread(target=serial_to_wifi, args=(ser, sock, stop_event), daemon=True)
@@ -76,9 +73,5 @@ def main():
  
         time.sleep(RECONNECT_DELAY)
  
- 
 if __name__ == "__main__":
     main()
-
-
-
