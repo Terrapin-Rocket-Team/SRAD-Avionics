@@ -129,9 +129,33 @@ void loop()
 
 */
 #ifdef TEENSY
+namespace
+{
+constexpr unsigned long TELEMETRY_INTERVAL_MS = 500;
 
-unsigned long previousMillis = 0;
-unsigned long interval = 100;
+void buildTelemetryPacket(char *packet, size_t packetSize)
+{
+  const unsigned long nowMs = millis();
+  const unsigned long timeSeconds = nowMs / 1000UL;
+  const long phase = (long)((nowMs / 500UL) % 80UL);
+
+  // Simple synthetic flight profile for bench testing the serial link.
+  const long positionMeters = 1200L + (phase * 18L);
+  const long velocityMetersPerSecond = 45L + ((phase % 12L) - 6L);
+  const long pressureDeciKpa = 1013L - (phase * 2L);
+  const long temperatureC = 24L - (phase / 20L);
+
+  snprintf(packet,
+           packetSize,
+           "TELEM/%ld,%ld,%ld,%lu,%ld",
+           positionMeters,
+           velocityMetersPerSecond,
+           pressureDeciKpa,
+           timeSeconds,
+           temperatureC);
+}
+} // namespace
+
 void setup()
 {
   Serial.begin(115200);
@@ -140,14 +164,27 @@ void setup()
 
 void loop()
 {
+  static unsigned long lastTelemetryMs = 0;
 
-  if (Serial1.available())
+  while (Serial1.available())
   {
     Serial.write((char)Serial1.read());
   }
-  if (Serial.available())
+
+  while (Serial.available())
   {
     Serial1.write((char)Serial.read());
+  }
+
+  const unsigned long nowMs = millis();
+  if ((nowMs - lastTelemetryMs) >= TELEMETRY_INTERVAL_MS)
+  {
+    lastTelemetryMs = nowMs;
+
+    char telemetryPacket[50];
+    buildTelemetryPacket(telemetryPacket, sizeof(telemetryPacket));
+    Serial1.println(telemetryPacket);
+    Serial.printf("Sent telemetry: %s\n", telemetryPacket);
   }
 }
 
