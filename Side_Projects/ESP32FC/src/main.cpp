@@ -57,11 +57,20 @@ static const char *NUS_SERVICE_UUID = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E";
 static const char *NUS_RX_CHAR_UUID = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"; // Write
 static const char *NUS_TX_CHAR_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"; // Notify only
 
+NimBLEServer *g_bleServer = nullptr;
 NimBLECharacteristic *g_txChar = nullptr;
 volatile bool g_hasClient = false;
 volatile bool g_notifyEnabled = false;
+static constexpr size_t kBleNotifyChunkBytes = 240;
+static constexpr size_t kMaxRadioPacketBytes = 255;
 
-static void ble_notify_forward(const char *data, size_t len)
+static void ble_start_advertising(const char *reason)
+{
+    bool ok = g_bleServer ? g_bleServer->startAdvertising() : NimBLEDevice::startAdvertising();
+    USBSerial.printf("[BLE] advertising %s -> %s\n", reason, ok ? "ok" : "failed");
+}
+
+static void ble_notify_forward(const uint8_t *data, size_t len)
 {
     if (!g_hasClient || !g_notifyEnabled || !g_txChar || len == 0)
     {
@@ -73,127 +82,14 @@ static void ble_notify_forward(const char *data, size_t len)
     g_txChar->notify();
 }
 
-static bool extract_chunk_data(const String &payload, String &chunkData)
+static void ble_notify_forward_chunked(const uint8_t *data, size_t len)
 {
-    if (!payload.startsWith("CH/"))
+    while (len > 0)
     {
-        chunkData = payload;
-        return false;
-    }
-
-    const int p1 = payload.indexOf('/', 3);
-    const int p2 = (p1 >= 0) ? payload.indexOf('/', p1 + 1) : -1;
-    const int p3 = (p2 >= 0) ? payload.indexOf('/', p2 + 1) : -1;
-    if (p3 < 0)
-    {
-        chunkData = payload;
-        return false;
-    }
-
-    chunkData = payload.substring(p3 + 1);
-    return true;
-}
-
-static bool is_complete_ctlm_line(const String &line)
-{
-    if (!line.startsWith("CTLM/"))
-    {
-        return false;
-    }
-
-    int commas = 0;
-    for (size_t i = 0; i < line.length(); ++i)
-    {
-        if (line[i] == ',')
-        {
-            commas++;
-        }
-    }
-    return commas == 14; // CTLM/<15 fields total>
-}
-
-static void forward_ctlm_records(const String &rxPayload)
-{
-    static String buf;
-    static String lastForwarded;
-
-    String chunk;
-    extract_chunk_data(rxPayload, chunk);
-    buf += chunk;
-
-    if (buf.length() > 2048)
-    {
-        const int keepFrom = buf.lastIndexOf("CTLM/");
-        if (keepFrom >= 0)
-        {
-            buf = buf.substring(keepFrom);
-        }
-        else
-        {
-            buf = "";
-        }
-    }
-
-    while (true)
-    {
-        const int start = buf.indexOf("CTLM/");
-        if (start < 0)
-        {
-            if (buf.length() > 256)
-            {
-                buf = "";
-            }
-            return;
-        }
-
-        if (start > 0)
-        {
-            buf.remove(0, start);
-        }
-
-        int next = buf.indexOf("CTLM/", 5);
-        if (next < 0)
-        {
-            // End-of-line fallback
-            const int nl = buf.indexOf('\n');
-            if (nl >= 0)
-            {
-                String line = buf.substring(0, nl);
-                line.trim();
-                if (is_complete_ctlm_line(line) && line != lastForwarded)
-                {
-                    line += '\n';
-                    USBSerial.printf("[LORA] forward CTLM len=%u\n", (unsigned)line.length());
-                    ble_notify_forward(line.c_str(), line.length());
-                    line.trim();
-                    lastForwarded = line;
-                }
-                buf.remove(0, nl + 1);
-                continue;
-            }
-
-            // If this is already a complete record without a trailing separator, forward it.
-            if (is_complete_ctlm_line(buf) && buf != lastForwarded)
-            {
-                String out = buf + '\n';
-                USBSerial.printf("[LORA] forward CTLM len=%u\n", (unsigned)out.length());
-                ble_notify_forward(out.c_str(), out.length());
-                lastForwarded = buf;
-                buf = "";
-            }
-            return;
-        }
-
-        String candidate = buf.substring(0, next);
-        candidate.trim();
-        if (is_complete_ctlm_line(candidate) && candidate != lastForwarded)
-        {
-            String out = candidate + '\n';
-            USBSerial.printf("[LORA] forward CTLM len=%u\n", (unsigned)out.length());
-            ble_notify_forward(out.c_str(), out.length());
-            lastForwarded = candidate;
-        }
-        buf.remove(0, next);
+        const size_t chunkLen = len > kBleNotifyChunkBytes ? kBleNotifyChunkBytes : len;
+        ble_notify_forward(data, chunkLen);
+        data += chunkLen;
+        len -= chunkLen;
     }
 }
 
@@ -218,18 +114,24 @@ class TxCallbacks : public NimBLECharacteristicCallbacks
 
 class ServerCallbacks : public NimBLEServerCallbacks
 {
-    void onConnect(NimBLEServer *, NimBLEConnInfo &) override
+    void onConnect(NimBLEServer *server, NimBLEConnInfo &connInfo) override
     {
         g_hasClient = true;
-        USBSerial.println("[BLE] client connected");
+        USBSerial.printf("[BLE] client connected handle=%u peers=%u mtu=%u\n",
+                         (unsigned)connInfo.getConnHandle(),
+                         (unsigned)server->getConnectedCount(),
+                         (unsigned)server->getPeerMTU(connInfo.getConnHandle()));
     }
 
-    void onDisconnect(NimBLEServer *, NimBLEConnInfo &, int) override
+    void onDisconnect(NimBLEServer *server, NimBLEConnInfo &connInfo, int reason) override
     {
-        USBSerial.println("[BLE] client disconnected -> re-adv");
         g_hasClient = false;
         g_notifyEnabled = false;
-        NimBLEDevice::startAdvertising();
+        USBSerial.printf("[BLE] client disconnected handle=%u reason=%d peers=%u\n",
+                         (unsigned)connInfo.getConnHandle(),
+                         reason,
+                         (unsigned)server->getConnectedCount());
+        ble_start_advertising("restart after disconnect");
     }
 };
 
@@ -239,7 +141,7 @@ void setup()
     // USB CDC debug
     USBSerial.begin(115200);
     delay(3000);
-    USBSerial.println("\n=== LoRa RX -> BLE NUS Bridge (verbose) ===");
+    USBSerial.println("\n=== LoRa Raw Packet -> BLE NUS Bridge (verbose) ===");
 
     // ---- BLE ----
     dbgBanner("BLE init");
@@ -251,11 +153,13 @@ void setup()
     USBSerial.printf("[BLE] addr=%s\n", addr.c_str());
 
     dbgBanner("create server");
-    NimBLEServer *server = NimBLEDevice::createServer();
-    server->setCallbacks(new ServerCallbacks());
+    g_bleServer = NimBLEDevice::createServer();
+    g_bleServer->setCallbacks(new ServerCallbacks());
+    g_bleServer->advertiseOnDisconnect(true);
+    USBSerial.println("[BLE] advertiseOnDisconnect enabled");
 
     dbgBanner("create service");
-    NimBLEService *svc = server->createService(NUS_SERVICE_UUID);
+    NimBLEService *svc = g_bleServer->createService(NUS_SERVICE_UUID);
 
     dbgBanner("create TX characteristic");
     g_txChar = svc->createCharacteristic(
@@ -281,8 +185,7 @@ void setup()
     NimBLEAdvertisementData sd;
     sd.setName("ESP32-NUS-3");
     adv->setScanResponseData(sd);
-    adv->start();
-    USBSerial.println("[BLE] advertising started (look for 'ESP32-NUS-3')");
+    ble_start_advertising("initial start");
 
     // ---- LoRa (LR11x0) ----
     USBSerial.println("[LORA] SPI begin");
@@ -350,22 +253,33 @@ void loop()
     {
         g_loraOpDone--;
 
-        String payload;
-        int st = radio.readData(payload);
+        uint8_t payload[kMaxRadioPacketBytes] = {};
+        size_t packetLen = radio.getPacketLength();
+        if (packetLen == 0 || packetLen > sizeof(payload))
+        {
+            USBSerial.printf("[LORA] unexpected packet length=%u\n", (unsigned)packetLen);
+            int drainStatus = radio.readData(payload, sizeof(payload));
+            USBSerial.printf("[LORA] drain read ret=%d\n", drainStatus);
+            continue;
+        }
+
+        int st = radio.readData(payload, packetLen);
         int rx_restart_status = radio.startReceive();
         if (rx_restart_status != RADIOLIB_ERR_NONE)
         {
             USBSerial.printf("[LORA] restart RX ret=%d\n", rx_restart_status);
         }
-        USBSerial.printf("[LORA] readData ret=%d len=%u\n", st, (unsigned)payload.length());
+        USBSerial.printf("[LORA] readData ret=%d len=%u\n", st, (unsigned)packetLen);
 
         if (st == RADIOLIB_ERR_NONE)
         {
             float rssi = radio.getRSSI();
             float snr = radio.getSNR();
             USBSerial.printf("[LORA] RSSI=%.1f dBm SNR=%.1f dB\n", rssi, snr);
-            USBSerial.printf("[LORA] payload: %s\n", payload.c_str());
-            forward_ctlm_records(payload);
+            USBSerial.printf("[LORA] header type=%u payloadLen=%u\n",
+                             (unsigned)payload[0],
+                             packetLen > 1 ? (unsigned)payload[1] : 0U);
+            ble_notify_forward_chunked(payload, packetLen);
         }
         else
         {

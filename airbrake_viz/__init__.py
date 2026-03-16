@@ -1,0 +1,1 @@
+"""Airbrake telemetry viewer package."""
