@@ -1,0 +1,17 @@
+version: 1
+project: .
+defaults:
+  test_args:
+    - --no-progress
+  sim_args: []
+paths:
+  dataset_paths: []
+  sitl_exe:
+  hitl_port:
+managed:
+  envs:
+    - native
+    - teensy41
+    - esp32s3
+    - stm32h723vehx
+  write_workflow: true
