@@ -1,7 +1,6 @@
 #include <NimBLEDevice.h>
 #include <HardwareSerial.h>
 #include <cstring>
-#include <cstdarg>
 
 // ===== UART on RX0/TX0 (ESP32-S3: GPIO44/43) =====
 static const uint32_t UART_BAUD = 115200;
@@ -20,37 +19,13 @@ volatile bool g_hasClient = false;
 volatile bool g_notifyEnabled = false;
 
 // ---------- Helpers ----------
-static void notify_chunked(const char *data, size_t len)
+// Forward one BLE notification without app-level chunk splitting.
+static void notify_raw(const char *data, size_t len)
 {
   if (!g_hasClient || !g_notifyEnabled || !pTxChar || len == 0)
     return;
-  const uint16_t mtu = NimBLEDevice::getMTU();          // 23..247 (default 23 unless negotiated)
-  const size_t maxPayload = (mtu > 3) ? (mtu - 3) : 20; // ATT notif payload size
-  for (size_t off = 0; off < len; off += maxPayload)
-  {
-    const size_t n = ((len - off) > maxPayload) ? maxPayload : (len - off);
-    pTxChar->setValue((uint8_t *)(data + off), n);
-    pTxChar->notify();
-  }
-}
-
-static void bleLogf(const char *fmt, ...)
-{
-  if (!g_hasClient || !g_notifyEnabled)
-    return;
-  static char buf[256];
-  va_list ap;
-  va_start(ap, fmt);
-  const int n = vsnprintf(buf, sizeof(buf), fmt, ap);
-  va_end(ap);
-  if (n > 0)
-    notify_chunked(buf, (size_t)n);
-}
-
-static inline bool is_gps_line(const char *s)
-{
-  // Treat as GPS if it starts with "GPS," or "GPS "
-  return (strncmp(s, "GPS,", 4) == 0) || (strncmp(s, "GPS ", 4) == 0);
+  pTxChar->setValue((uint8_t *)data, len);
+  pTxChar->notify();
 }
 
 // ---------- Callbacks ----------
@@ -58,14 +33,11 @@ class RxCallbacks : public NimBLECharacteristicCallbacks
 {
   void onWrite(NimBLECharacteristic *c, NimBLEConnInfo &) override
   {
-    // Forward phone->ESP write straight to STM32 UART, append newline.
+    // Forward phone->ESP write straight to STM32 UART exactly as received.
     const std::string &v = c->getValue();
     if (!v.empty())
     {
       SensorUart.write((const uint8_t *)v.data(), v.size());
-      SensorUart.write('\n');
-      // Optional: also echo to phone as debug
-      bleLogf("DBG: rx->uart %s\n", v.data());
     }
   }
 };
@@ -75,7 +47,6 @@ class TxCallbacks : public NimBLECharacteristicCallbacks
   void onSubscribe(NimBLECharacteristic *, NimBLEConnInfo &, uint16_t subValue) override
   {
     g_notifyEnabled = (subValue & 0x0001);
-    bleLogf("DBG: subscribe 0x%04X -> %s\n", subValue, g_notifyEnabled ? "on" : "off");
   }
 };
 
@@ -84,18 +55,16 @@ class ServerCallbacks : public NimBLEServerCallbacks
   void onConnect(NimBLEServer *, NimBLEConnInfo &) override
   {
     g_hasClient = true;
-    bleLogf("DBG: client connected\n");
   }
   void onDisconnect(NimBLEServer *, NimBLEConnInfo &, int) override
   {
-    bleLogf("DBG: client disconnected\n");
     g_hasClient = false;
     g_notifyEnabled = false;
     NimBLEDevice::startAdvertising();
   }
 };
 
-// ---------- UART line pump (normalize CRLF, prefix non-GPS with DBG:) ----------
+// ---------- UART line pump (normalize CRLF, forward lines verbatim) ----------
 static const size_t RBUF_MAX = 1024;
 static char rbuf[RBUF_MAX];
 static size_t rlen = 0;
@@ -115,24 +84,8 @@ static void pump_uart()
     {
       rbuf[rlen] = '\0';
 
-      if (rlen == RBUF_MAX - 1)
-        bleLogf("DBG: UART overflow; line truncated\n");
-
-      // Decide how to present to phone
-      if (is_gps_line(rbuf))
-      {
-        // Forward GPS line exactly as received
-        notify_chunked(rbuf, rlen);
-      }
-      else
-      {
-        // Prefix with DBG: and ensure single newline
-        // Strip any trailing '\n' to avoid double NL
-        size_t payloadLen = rlen;
-        if (payloadLen && rbuf[payloadLen - 1] == '\n')
-          payloadLen--;
-        bleLogf("DBG: %.*s\n", (int)payloadLen, rbuf);
-      }
+      // Forward UART line as-is, no filtering or prefixing.
+      notify_raw(rbuf, rlen);
 
       rlen = 0;
     }
