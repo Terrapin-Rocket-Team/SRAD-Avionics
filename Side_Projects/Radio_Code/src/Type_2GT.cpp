@@ -83,17 +83,29 @@ int Type2GT::transmit(const char *str)
     return rc;
 }
 
+int Type2GT::transmit(const uint8_t *data, size_t len)
+{
+    state = TX;
+    int rc = rad.transmit(data, len);
+    state = IDLE;
+    return rc;
+}
+
 bool Type2GT::hasData()
 {
     return state == HAS_DATA;
 }
 
-void Type2GT::readData(char *str, int len)
+size_t Type2GT::getPacketLength()
 {
-    int n = rad.readData((uint8_t *)str, len);
-    //Serial.printf("DBG: readData -> %d\n", n);
-    if (!rad.available())
-        state = IDLE;
+    return rad.getPacketLength();
+}
+
+int Type2GT::readData(uint8_t *data, size_t len)
+{
+    const int rc = rad.readData(data, len);
+    state = IDLE;
+    return rc;
 }
 
 void Type2GT::respondToIrq()

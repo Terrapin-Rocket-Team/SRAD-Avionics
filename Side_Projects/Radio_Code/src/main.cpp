@@ -14,10 +14,283 @@
 #define RADIO_MISO PB4
 #define RADIO_SCK PB3
 
+#include "AvionicsPacketProtocol.h"
 #include "Type_2GT.h"
 // create the SPI class to input into the radio
 SPIClass Radio_SPI(RADIO_MOSI, RADIO_MISO, RADIO_SCK);
 Type2GT radio(RADIO_NCS, RADIO_IO9, RADIO_NRST, RADIO_BUSY, Radio_SPI);
+
+namespace
+{
+constexpr uint32_t kTelemetryBaud = 115200;
+constexpr uint32_t kTransmitWindowMs = 750;
+constexpr uint32_t kListenWindowMs = 250;
+constexpr uint8_t kTransmitRetries = 4;
+constexpr uint32_t kTransmitRetryDelayMs = 15;
+
+enum class LinkPhase : uint8_t
+{
+  Transmit,
+  Listen,
+};
+
+struct PendingPacket
+{
+  uint8_t data[avionics_packet::kMaxPacketSize] = {};
+  size_t size = 0;
+  bool pending = false;
+};
+
+struct SerialPacketReader
+{
+  uint8_t buffer[avionics_packet::kMaxPacketSize] = {};
+  size_t size = 0;
+  size_t expectedSize = 0;
+
+  void reset()
+  {
+    size = 0;
+    expectedSize = 0;
+  }
+};
+
+PendingPacket pendingAbTelem;
+PendingPacket pendingAviTelem;
+SerialPacketReader serialReader;
+LinkPhase currentPhase = LinkPhase::Transmit;
+uint32_t phaseStartedMs = 0;
+bool abSentThisWindow = false;
+bool aviSentThisWindow = false;
+
+bool isSupportedTelemetryType(uint8_t rawType)
+{
+  return rawType == static_cast<uint8_t>(avionics_packet::MessageType::ABTELEM) ||
+         rawType == static_cast<uint8_t>(avionics_packet::MessageType::AVITELEM);
+}
+
+void queuePendingPacket(PendingPacket &slot, const uint8_t *packet, size_t packetSize)
+{
+  memcpy(slot.data, packet, packetSize);
+  slot.size = packetSize;
+  slot.pending = true;
+}
+
+void enterTransmitWindow()
+{
+  currentPhase = LinkPhase::Transmit;
+  phaseStartedMs = millis();
+  abSentThisWindow = false;
+  aviSentThisWindow = false;
+}
+
+void enterListenWindow()
+{
+  currentPhase = LinkPhase::Listen;
+  phaseStartedMs = millis();
+
+  const int rc = radio.recieve();
+  if (rc != RADIOLIB_ERR_NONE)
+  {
+    Serial.printf("RAD/Error: failed to enter RX, Error code %d\n", rc);
+  }
+}
+
+bool transmitPacket(PendingPacket &slot, const char *label)
+{
+  if (!slot.pending || slot.size == 0)
+  {
+    return false;
+  }
+
+  digitalWrite(STATUS_LED, HIGH);
+
+  int txStatus = RADIOLIB_ERR_NONE;
+  bool sent = false;
+  for (uint8_t attempt = 0; attempt < kTransmitRetries && !sent; ++attempt)
+  {
+    txStatus = radio.transmit(slot.data, slot.size);
+    if (txStatus == RADIOLIB_ERR_NONE)
+    {
+      sent = true;
+    }
+    else
+    {
+      Serial.printf("RAD/Warn: %s transmit retry attempt=%u err=%d\n",
+                    label,
+                    static_cast<unsigned>(attempt + 1),
+                    txStatus);
+      delay(kTransmitRetryDelayMs);
+    }
+  }
+
+  digitalWrite(STATUS_LED, LOW);
+
+  if (!sent)
+  {
+    Serial.printf("RAD/Error: %s transmit failed, Error code %d\n", label, txStatus);
+    return false;
+  }
+
+  slot.pending = false;
+  slot.size = 0;
+  return true;
+}
+
+void processIncomingSerialPacket(const uint8_t *packet, size_t packetSize)
+{
+  if (!avionics_packet::packetLengthLooksValid(packet, packetSize))
+  {
+    Serial.println("RAD/Warn: dropped malformed serial packet");
+    return;
+  }
+
+  switch (static_cast<avionics_packet::MessageType>(packet[0]))
+  {
+  case avionics_packet::MessageType::ABTELEM:
+    queuePendingPacket(pendingAbTelem, packet, packetSize);
+    break;
+  case avionics_packet::MessageType::AVITELEM:
+    queuePendingPacket(pendingAviTelem, packet, packetSize);
+    break;
+  default:
+    Serial.printf("RAD/Warn: unsupported uplink packet type=%u\n", static_cast<unsigned>(packet[0]));
+    break;
+  }
+}
+
+void consumeSerialByte(uint8_t byteValue)
+{
+  if (serialReader.size == 0)
+  {
+    if (!isSupportedTelemetryType(byteValue))
+    {
+      Serial.printf("RAD/Warn: dropped unexpected serial type=%u\n", static_cast<unsigned>(byteValue));
+      return;
+    }
+  }
+
+  if (serialReader.size >= avionics_packet::kMaxPacketSize)
+  {
+    serialReader.reset();
+  }
+
+  serialReader.buffer[serialReader.size++] = byteValue;
+
+  if (serialReader.size == avionics_packet::kPacketHeaderSize)
+  {
+    serialReader.expectedSize = avionics_packet::kPacketHeaderSize + serialReader.buffer[1];
+    if (serialReader.expectedSize > avionics_packet::kMaxPacketSize)
+    {
+      Serial.printf("RAD/Warn: dropped oversized serial payload len=%u\n",
+                    static_cast<unsigned>(serialReader.buffer[1]));
+      serialReader.reset();
+    }
+  }
+
+  if (serialReader.expectedSize != 0 && serialReader.size == serialReader.expectedSize)
+  {
+    processIncomingSerialPacket(serialReader.buffer, serialReader.size);
+    serialReader.reset();
+  }
+}
+
+void pollSerialInput()
+{
+  while (Serial.available())
+  {
+    const int in = Serial.read();
+    if (in < 0)
+    {
+      break;
+    }
+
+    consumeSerialByte(static_cast<uint8_t>(in));
+  }
+}
+
+void forwardRadioPacketToSerial()
+{
+  if (!radio.hasData())
+  {
+    return;
+  }
+
+  const size_t packetSize = radio.getPacketLength();
+  if (packetSize == 0 || packetSize > avionics_packet::kMaxPacketSize)
+  {
+    Serial.printf("RAD/Warn: dropped radio packet with invalid size=%u\n",
+                  static_cast<unsigned>(packetSize));
+    uint8_t scratch[avionics_packet::kMaxPacketSize] = {};
+    radio.readData(scratch, avionics_packet::kMaxPacketSize);
+    radio.recieve();
+    return;
+  }
+
+  uint8_t packet[avionics_packet::kMaxPacketSize] = {};
+  const int rc = radio.readData(packet, packetSize);
+  if (rc != RADIOLIB_ERR_NONE)
+  {
+    Serial.printf("RAD/Warn: radio read failed, Error code %d\n", rc);
+    radio.recieve();
+    return;
+  }
+
+  if (!avionics_packet::packetLengthLooksValid(packet, packetSize))
+  {
+    Serial.println("RAD/Warn: dropped malformed radio packet");
+    radio.recieve();
+    return;
+  }
+
+  const size_t written = Serial.write(packet, packetSize);
+  if (written != packetSize)
+  {
+    Serial.printf("RAD/Warn: serial forward short write=%u expected=%u\n",
+                  static_cast<unsigned>(written),
+                  static_cast<unsigned>(packetSize));
+  }
+
+  radio.recieve();
+}
+
+void serviceTransmitWindow()
+{
+  if (!abSentThisWindow && pendingAbTelem.pending)
+  {
+    if (transmitPacket(pendingAbTelem, "ABTELEM"))
+    {
+      abSentThisWindow = true;
+    }
+  }
+
+  const bool canSendAvi = !aviSentThisWindow && pendingAviTelem.pending && (!pendingAbTelem.pending || abSentThisWindow);
+  if (canSendAvi)
+  {
+    if (transmitPacket(pendingAviTelem, "AVITELEM"))
+    {
+      aviSentThisWindow = true;
+    }
+  }
+
+  const uint32_t elapsedMs = millis() - phaseStartedMs;
+  const bool sentFullTelemetryPair = abSentThisWindow && aviSentThisWindow;
+  if (sentFullTelemetryPair || elapsedMs >= kTransmitWindowMs)
+  {
+    enterListenWindow();
+  }
+}
+
+void serviceListenWindow()
+{
+  forwardRadioPacketToSerial();
+
+  const uint32_t elapsedMs = millis() - phaseStartedMs;
+  if (elapsedMs >= kListenWindowMs)
+  {
+    enterTransmitWindow();
+  }
+}
+} // namespace
 
 void radInt(void)
 {
@@ -32,7 +305,7 @@ void setup()
   Serial.setRx(PB7_ALT1); // alt pin defs
   Serial.setTx(PB6_ALT2);
   Serial.setTimeout(5000);
-  Serial.begin(115200);
+  Serial.begin(kTelemetryBaud);
 
   pinMode(STATUS_LED, OUTPUT);
   int radio_init_statuscode = radio.begin();
@@ -46,82 +319,23 @@ void setup()
     digitalWrite(STATUS_LED, HIGH);
     delay(100);
   }
-  // TX-only bridge path.
+
+  radio.onIrq(radInt);
+  enterTransmitWindow();
 }
 
 void loop()
 {
-  static char buf[2048];
-  static size_t buf_len = 0;
+  pollSerialInput();
 
-  while (Serial.available())
+  if (currentPhase == LinkPhase::Transmit)
   {
-    const int in = Serial.read();
-    if (in < 0)
-    {
-      break;
-    }
-
-    const char c = (char)in;
-    if (c == '\r' || c == '\0')
-    {
-      continue;
-    }
-
-    if (c != '\n')
-    {
-      if (buf_len < (sizeof(buf) - 1))
-      {
-        buf[buf_len++] = c;
-      }
-      else
-      {
-        // Overflow guard: drop oversized line and wait for the next newline.
-        buf_len = 0;
-      }
-      continue;
-    }
-
-    // Newline received: process one complete line.
-    if (buf_len == 0)
-    {
-      continue;
-    }
-
-    digitalWrite(STATUS_LED, HIGH);
-    buf[buf_len] = '\0';
-
-    if (!strncmp(buf, "RAD/PING", 8))
-    {
-      Serial.println("RAD/PONG");
-    }
-    else
-    {
-      int tx_status = RADIOLIB_ERR_NONE;
-      bool sent = false;
-      for (uint8_t attempt = 0; attempt < 4 && !sent; ++attempt)
-      {
-        tx_status = radio.transmit(buf);
-        if (tx_status == RADIOLIB_ERR_NONE)
-        {
-          sent = true;
-        }
-        else
-        {
-          Serial.printf("RAD/Warn: transmit retry attempt=%u err=%d\n",
-                        (unsigned)(attempt + 1), tx_status);
-          delay(15);
-        }
-      }
-      if (!sent)
-      {
-        Serial.printf("RAD/Error: transmit failed, Error code %d\n", tx_status);
-      }
-    }
-
-    buf_len = 0;
+    serviceTransmitWindow();
   }
-  digitalWrite(STATUS_LED, LOW);
+  else
+  {
+    serviceListenWindow();
+  }
 }
 #endif
 /*

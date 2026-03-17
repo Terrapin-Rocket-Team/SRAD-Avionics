@@ -17,9 +17,11 @@ public:
     int begin();
     void onIrq(void (*func)(void));
     int recieve();
-    int transmit(const char *str); // was bool
+    int transmit(const char *str);
+    int transmit(const uint8_t *data, size_t len);
     bool hasData();
-    void readData(char *str, int len);
+    size_t getPacketLength();
+    int readData(uint8_t *data, size_t len);
     void respondToIrq();
 
 private:
