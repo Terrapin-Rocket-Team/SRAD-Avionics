@@ -321,6 +321,98 @@ bool isPrintableAscii(uint8_t byte)
     return byte >= 32U && byte <= 126U;
 }
 
+bool payloadToAscii(const uint8_t *packet, size_t packetSize, char *buffer, size_t bufferSize)
+{
+    if (!packet || !buffer || bufferSize == 0 || packetSize < avionics_packet::kPacketHeaderSize)
+        return false;
+
+    const size_t payloadLength = packet[1];
+    if (packetSize != avionics_packet::kPacketHeaderSize + payloadLength || payloadLength + 1U > bufferSize)
+        return false;
+
+    for (size_t i = 0; i < payloadLength; ++i)
+    {
+        const uint8_t byte = packet[avionics_packet::kPacketHeaderSize + i];
+        if (!isPrintableAscii(byte))
+            return false;
+        buffer[i] = static_cast<char>(byte);
+    }
+
+    buffer[payloadLength] = '\0';
+    return true;
+}
+
+void printVideoStatusPayload(const char *payload)
+{
+    Serial.printf("  status=%s\n", payload + 7);
+}
+
+void printVideoAckPayload(char *payload)
+{
+    char *command = strtok(payload + 4, ":");
+    char *result = strtok(nullptr, "");
+
+    Serial.printf("  ack_command=%s\n", command ? command : "<missing>");
+    Serial.printf("  ack_result=%s\n", result ? result : "<missing>");
+}
+
+void printHeartbeatPayload(char *payload)
+{
+    char *sequence = strtok(payload + 3, ":");
+    char *telemPrefix = strtok(nullptr, ":");
+    char *telemState = strtok(nullptr, ":");
+    char *telemAge = strtok(nullptr, ":");
+    char *telemCount = strtok(nullptr, ":");
+    char *videoStatus = strtok(nullptr, "");
+
+    Serial.printf("  heartbeat_seq=%s\n", sequence ? sequence : "<missing>");
+
+    if (telemPrefix && strcmp(telemPrefix, "telem") == 0)
+    {
+        Serial.printf("  telemetry_state=%s\n", telemState ? telemState : "<missing>");
+        Serial.printf("  telemetry_age_s=%s\n", telemAge ? telemAge : "<missing>");
+        Serial.printf("  telemetry_count=%s\n", telemCount ? telemCount : "<missing>");
+    }
+    else
+    {
+        Serial.println("  telemetry=unparsed");
+    }
+
+    Serial.printf("  video_status=%s\n", videoStatus ? videoStatus : "<missing>");
+}
+
+void printCommandPayload(const uint8_t *packet, size_t packetSize)
+{
+    char payload[avionics_packet::kMaxPayloadSize + 1] = {};
+    if (!payloadToAscii(packet, packetSize, payload, sizeof(payload)))
+    {
+        Serial.println("  command payload is non-ASCII or malformed");
+        return;
+    }
+
+    Serial.printf("  ascii_payload=%s\n", payload);
+
+    if (strncmp(payload, "ack:", 4) == 0)
+    {
+        printVideoAckPayload(payload);
+        return;
+    }
+
+    if (strncmp(payload, "status:", 7) == 0)
+    {
+        printVideoStatusPayload(payload);
+        return;
+    }
+
+    if (strncmp(payload, "hb:", 3) == 0)
+    {
+        printHeartbeatPayload(payload);
+        return;
+    }
+
+    Serial.printf("  command=%s\n", payload);
+}
+
 void printHelp()
 {
     Serial.println("USB bridge commands:");
@@ -422,6 +514,16 @@ void handlePacket(const uint8_t *packet, size_t packetSize)
             printAbTelemetry(telemetry);
         else
             Serial.println("  decode failed for ABTELEM");
+        return;
+    }
+
+    if (type == static_cast<uint8_t>(avionics_packet::MessageType::ABCMD) ||
+        type == static_cast<uint8_t>(avionics_packet::MessageType::AVICMD) ||
+        type == static_cast<uint8_t>(avionics_packet::MessageType::LIVECMD) ||
+        type == static_cast<uint8_t>(avionics_packet::MessageType::NOSEVIDCMD) ||
+        type == static_cast<uint8_t>(avionics_packet::MessageType::ABVIDCMD))
+    {
+        printCommandPayload(packet, packetSize);
         return;
     }
 
@@ -722,7 +824,7 @@ void setup()
     Serial.println("Teensy telemetry sniffer ready");
     Serial.println("Listening on Serial1 at 115200 baud");
     Serial.println("Packet format: [type][length][payload...]");
-    Serial.println("Known telemetry types: 0=ABTELEM, 1=AVITELEM");
+    Serial.println("Known packet types: 0=ABTELEM, 1=AVITELEM, 2=ABCMD, 3=AVICMD, 4=LIVECMD, 5=NOSEVIDCMD, 6=ABVIDCMD");
     printHelp();
 }
 
