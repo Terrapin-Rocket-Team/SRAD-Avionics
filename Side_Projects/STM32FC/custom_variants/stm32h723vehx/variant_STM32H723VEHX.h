@@ -233,6 +233,9 @@
 #if !defined(HAL_SD_MODULE_DISABLED)
   #define HAL_SD_MODULE_ENABLED
 #endif
+#if !defined(HAL_MMC_MODULE_DISABLED)
+  #define HAL_MMC_MODULE_ENABLED
+#endif
 
 /*----------------------------------------------------------------------------
  *        Arduino objects - C++ only

@@ -18,6 +18,7 @@ public:
     void onIrq(void (*func)(void));
     int recieve();
     int transmit(const char *str); // was bool
+    int transmit(const uint8_t *data, size_t len);
     bool hasData();
     void readData(char *str, int len);
     void respondToIrq();

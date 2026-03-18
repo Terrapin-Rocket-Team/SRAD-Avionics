@@ -1,158 +1,259 @@
 #include <Arduino.h>
 
-#ifdef STM32
+#include <Sensors/HW/IMU/BMI088.h>
+#include <Sensors/HW/Baro/DPS368.h>
+#include <Sensors/HW/Accel/H3LIS331DL.h>
+#include <Sensors/HW/GPS/SAM_M10Q.h>
+#include <Sensors/HW/Mag/MMC5603NJ.h>
+#include <Sensors/VoltageSensor/VoltageSensor.h>
 
-#include <RadioLib.h>
+#include <AstraRocket.h>
+#include <RecordData/Logging/EventLogger.h>
+#include <RecordData/Logging/LoggingBackend/ILogSink.h>
 
-// ==================== PIN DEFINITIONS ====================
-#define STATUS_LED PB12
-
-// Radio pins
+#define STATUS_LED PC0
 #define RADIO_NRST PC13
 #define RADIO_BUSY PE3
 #define RADIO_NCS PA15
-#define RADIO_IO9 PE2  // IRQ pin
+#define RADIO_IO8 PA3
+// irq pin
+#define RADIO_IO9 PE2
+
 #define RADIO_MOSI PD7
 #define RADIO_MISO PB4
 #define RADIO_SCK PB3
+#define TELEMETRY_UART_TX PB12
+#define TELEMETRY_UART_RX PB13
+#define BATTERY_SENSE_PIN PC2_C
 
-// ==================== RADIO SETUP ====================
+#include "LocalFileCommands.h"
+#include "AvionicsPacketProtocol.h"
+#include "PacketTransports.h"
+#include "Type_2GT.h"
+
 SPIClass Radio_SPI(RADIO_MOSI, RADIO_MISO, RADIO_SCK);
-LR1121 radio = new Module(RADIO_NCS, RADIO_IO9, RADIO_NRST, RADIO_BUSY, Radio_SPI);
+Type2GT radio(RADIO_NCS, RADIO_IO9, RADIO_NRST, RADIO_BUSY, Radio_SPI);
+HardwareSerial TelemetryUART(TELEMETRY_UART_RX, TELEMETRY_UART_TX);
+PacketTransports packetTransports;
+PrintLog serialEventLog(Serial, true);
+ILogSink *eventLogSinks[] = {&serialEventLog};
 
-// RF switch configuration for LR1121
-static const uint32_t rfswitch_dio_pins[] = {
-    RADIOLIB_LR11X0_DIO5, RADIOLIB_LR11X0_DIO6,
-    RADIOLIB_LR11X0_DIO7, RADIOLIB_NC, RADIOLIB_NC};
+constexpr uint32_t kTelemetryBaud = 115200;
+constexpr uint32_t kAviTelemPeriodMs = 500;
+constexpr int kBatteryDividerR1Ohms = 422000;
+constexpr int kBatteryDividerR2Ohms = 102000;
+constexpr double kBatterySenseRefVoltage = 3.3;
+constexpr float kBatteryCalibrationGain = 1.00733f;
+constexpr float kBatteryCalibrationOffset = -0.064f;
 
-static const Module::RfSwitchMode_t rfswitch_table[] = {
-    {LR11x0::MODE_STBY, {LOW, LOW, LOW}},
-    {LR11x0::MODE_RX, {LOW, LOW, HIGH}},
-    {LR11x0::MODE_TX, {LOW, HIGH, LOW}},
-    {LR11x0::MODE_TX_HP, {HIGH, LOW, LOW}},
-    END_OF_MODE_TABLE,
-};
-
-volatile bool radioTransmitFlag = false;
-
-void radioIrqHandler() {
-    radioTransmitFlag = true;
+void radInt(void)
+{
+    radio.respondToIrq();
+    digitalWrite(STATUS_LED, LOW);
 }
 
-// ==================== TELEMETRY VARIABLES ====================
-unsigned long lastTelemetryTime = 0;
-const unsigned long TELEMETRY_INTERVAL = 100;  // Send telemetry every 100ms (10 Hz)
-uint32_t telemetryCounter = 0;
+using namespace astra;
+using namespace astra_rocket;
 
-// ==================== RADIO INITIALIZATION ====================
-void setupRadio() {
-    Serial.println("Initializing LR1121 radio...");
+SAM_M10Q gps;
+DPS368 baro;
+BMI088 imu;
+H3LIS331DL highGAccel(&Wire, 0x19);
+MMC5603NJ mag;
+VoltageSensor batterySense(BATTERY_SENSE_PIN, kBatteryDividerR1Ohms, kBatteryDividerR2Ohms, "Battery Voltage", kBatterySenseRefVoltage);
 
-    int rc = radio.begin();
-    if (rc != RADIOLIB_ERR_NONE) {
-        Serial.print("Radio init failed, code: ");
-        Serial.println(rc);
-        return;
+AstraRocketConfig config;
+
+AstraRocket rocket(config);
+
+namespace
+{
+    uint32_t lastAviTelemMs = 0;
+
+    float metersToFeet(double meters)
+    {
+        return static_cast<float>(meters * 3.28083989501312);
     }
 
-    // Configure RF switch
-    radio.setRfSwitchTable(rfswitch_dio_pins, rfswitch_table);
-    radio.setRegulatorDCDC();
+    bool trySampleBatteryVoltage(float &batteryVolts)
+    {
+        if (!batterySense.isInitialized() || !batterySense.isHealthy())
+            return false;
 
-    // Configure radio to match ESP32FC ground station settings
-    radio.setFrequency(915.0);
-    radio.setSpreadingFactor(7);
-    radio.setBandwidth(125.0);
-    radio.setCodingRate(5);           // 4/5
-    radio.setSyncWord(0x34);          // Match ESP32FC sync word
-    radio.setPreambleLength(8);
-    radio.setCRC(true);
-    radio.setOutputPower(14);         // 14 dBm
-    radio.explicitHeader();
-    radio.invertIQ(false);
-
-    // Set up IRQ handler
-    radio.setIrqAction(radioIrqHandler);
-
-    Serial.println("Radio initialized successfully!");
-}
-
-// ==================== TELEM2 TRANSMISSION ====================
-void sendTelemetry() {
-    // Generate pseudo-random telemetry data
-    float flightTime = millis() / 1000.0;
-    float altitude = random(0, 10000) / 10.0;     // 0-1000 feet
-    float velocity = random(000, 500) / 10.0;    // -50 to 50 knots
-    float acceleration = random(-100, 400) / 10.0; // -10 to 40 m/s²
-    double latitude = random(38999000, 39000000) / 1000000.0;   // ~38-39 degrees
-    double longitude = random(-78000000, -77999000) / 1000000.0; // ~-78 to -77 degrees
-
-    // Format TELEM2 packet: "TELEM2/time,alt,vel,acc,lat,lon"
-    char telemetryPacket[128];
-    snprintf(telemetryPacket, sizeof(telemetryPacket),
-             "TELEM2/%.2f,%.2f,%.2f,%.2f,%.6f,%.6f",
-             flightTime, altitude, velocity, acceleration, latitude, longitude);
-
-    // Transmit via LoRa
-    int rc = radio.startTransmit(telemetryPacket);
-    if (rc == RADIOLIB_ERR_NONE) {
-        digitalWrite(STATUS_LED, HIGH);
-        telemetryCounter++;
-
-        // Print to serial for debugging
-        Serial.print("TX [");
-        Serial.print(telemetryCounter);
-        Serial.print("]: ");
-        Serial.println(telemetryPacket);
-    } else {
-        Serial.print("TX failed, code: ");
-        Serial.println(rc);
+        const float rawBatteryVoltage = static_cast<float>(batterySense.getVoltage());
+        batteryVolts = (kBatteryCalibrationGain * rawBatteryVoltage) + kBatteryCalibrationOffset;
+        return true;
     }
-}
 
-// ==================== SETUP ====================
-void setup() {
-    // Initialize status LED
+    bool buildAviTelemetryPacket(avionics_packet::PacketBuffer &packet)
+    {
+        RocketState *state = rocket.getRocketState();
+        if (state == nullptr)
+            return false;
+
+        avionics_packet::AviTelemetry telemetry = {};
+
+        telemetry.positionZFeet = metersToFeet(state->getAltitudeAGL());
+
+        const Vector<3> velocity = state->getVelocity();
+        telemetry.velocityZMs = static_cast<float>(velocity.z());
+
+        const Vector<3> acceleration = state->getAcceleration();
+        telemetry.accelZMs2 = static_cast<float>(acceleration.z());
+
+        if (Barometer *baroSource = config.getSensorManager()->getBaroSource();
+            baroSource != nullptr && baroSource->isInitialized())
+        {
+            telemetry.hasBaroAgl = true;
+            telemetry.baroAglFeet = metersToFeet(baroSource->getASLAltM() - state->getGroundLevelMSL());
+        }
+
+        const Quaternion orientation = state->getRocketOrientation();
+        telemetry.quatW = static_cast<float>(orientation.w());
+        telemetry.quatX = static_cast<float>(orientation.x());
+        telemetry.quatY = static_cast<float>(orientation.y());
+        telemetry.quatZ = static_cast<float>(orientation.z());
+
+        float batteryVolts = 0.0f;
+        telemetry.hasBattery = trySampleBatteryVoltage(batteryVolts);
+        telemetry.batteryVolts = batteryVolts;
+
+        if (GPS *gpsSource = config.getSensorManager()->getGPSSource();
+            gpsSource != nullptr && gpsSource->isInitialized() && gpsSource->getHasFix())
+        {
+            const Vector<3> gpsPos = gpsSource->getPos();
+            telemetry.hasGps = true;
+            telemetry.latitudeDeg = gpsPos.x();
+            telemetry.longitudeDeg = gpsPos.y();
+        }
+
+        return avionics_packet::encodeAviTelemetry(telemetry, packet);
+    }
+
+    void publishAviTelemetryIfDue()
+    {
+        const uint32_t now = millis();
+        if ((now - lastAviTelemMs) < kAviTelemPeriodMs)
+            return;
+
+        lastAviTelemMs = now;
+
+        avionics_packet::PacketBuffer packet;
+        if (!buildAviTelemetryPacket(packet))
+            return;
+
+        packetTransports.send(packet);
+    }
+
+    void waitForSerialReady()
+    {
+        const uint32_t start = millis();
+        while (!Serial && (millis() - start) < 2000)
+        {
+            delay(10);
+        }
+    }
+
+    void setupTelemetryUart()
+    {
+        TelemetryUART.begin(kTelemetryBaud);
+        delay(100);
+        packetTransports.addStream(TelemetryUART);
+    }
+
+} // namespace
+
+void setup()
+{
     pinMode(STATUS_LED, OUTPUT);
     digitalWrite(STATUS_LED, LOW);
-
-    // Initialize Serial
+    analogReadResolution(12);
     Serial.begin(115200);
-    delay(2000);
+    waitForSerialReady();
+    EventLogger::configure(eventLogSinks, 1);
+    setupTelemetryUart();
+#ifdef USE_OWN_RADIO
+    packetTransports.setRadio(&radio);
+    int rc = radio.begin();
+    if (rc != RADIOLIB_ERR_NONE)
+    {
+        LOGE("Radio initialization failed, code: %d", rc);
+    }
+    else
+    {
+        LOGI("Own radio enabled for AviTelem");
+        radio.onIrq(radInt);
+        radio.recieve();
+    }
+#else
+    LOGI("Own radio disabled; AviTelem will use UART only");
+#endif
 
-    Serial.println("\n\n========================================");
-    Serial.println("  STM32 LoRa Telemetry Test");
-    Serial.println("  Pseudo-Random Data");
-    Serial.println("========================================\n");
+    config.with6DoFIMU(&imu)
+        .withName("FC")
+        .withBaro(&baro)
+        .withGPS(&gps)
+        .withMag(&mag)
+        .withLoggingRate(20)
+        .withEventLogs(eventLogSinks, 1)
+        .withName("STM32FC")
+        .withMiscSensor(&highGAccel)
+        .withMiscSensor(&batterySense);
 
-    // Initialize radio
-    setupRadio();
-    delay(500);
+    MountingTransform bmiMount =
+        MountingTransform(MountingOrientation::ROTATE_NEG90_Z)
+            .compose(MountingOrientation::FLIP_YZ);
 
-    Serial.println("\nTransmitter ready!");
-    Serial.println("Sending telemetry packets...\n");
+    imu.setMountingTransform(bmiMount);
 
-    digitalWrite(STATUS_LED, HIGH);
-    delay(200);
-    digitalWrite(STATUS_LED, LOW);
-}
+    mag.setMountingOrientation(MountingOrientation::IDENTITY);
 
-// ==================== MAIN LOOP ====================
-void loop() {
-    // Handle radio IRQ
-    if (radioTransmitFlag) {
-        radioTransmitFlag = false;
-        digitalWrite(STATUS_LED, LOW);
+        const bool initOk = rocket.init();
+    if (!initOk)
+    {
+        Serial.println("ERR: AstraRocket init failed");
+        Serial.println("ERR: See LOG/ messages above for the root cause");
+        while (1)
+        {
+            delay(100);
+        }
     }
 
-    // Send telemetry at regular intervals
-    unsigned long currentTime = millis();
-    if (currentTime - lastTelemetryTime >= TELEMETRY_INTERVAL) {
-        lastTelemetryTime = currentTime;
-        sendTelemetry();
-    }
+    pinMode(BATTERY_SENSE_PIN, INPUT_ANALOG);
 
-    delay(10);
+    Serial.println("AstraRocket initialized");
+
+    if (Astra *sys = rocket.getAstraSystem())
+    {
+        if (SerialMessageRouter *router = sys->getMessageRouter())
+        {
+            router->withInterface(&TelemetryUART);
+            stm32fc::registerLocalFileCommands(*router);
+        }
+        else
+        {
+            Serial.println("ERR: Astra router unavailable");
+        }
+    }
+    else
+    {
+        Serial.println("ERR: Astra system unavailable");
+    }
 }
 
-#endif  // STM32
+double last = 0;
+
+void loop()
+{
+#ifdef USE_OWN_RADIO
+    if (radio.hasData())
+    {
+        char str[256];
+        radio.readData(str, sizeof(str));
+        radio.recieve();
+    }
+#endif
+
+    rocket.update();
+    publishAviTelemetryIfDue();
+}

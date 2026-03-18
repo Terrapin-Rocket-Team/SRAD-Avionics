@@ -69,9 +69,9 @@ namespace RadioTest
             {RAD_MISO, "MISO (PB4)"},
             {RAD_MOSI, "MOSI (PD7)"},
             {RAD_CS, "CS (PA15)"},
-            {RAD_NRST, "NRST (PA6)"},
-            {RAD_IRQ, "IRQ (PA2)"},
-            {RAD_BUSY, "BUSY (PA7)"}
+            {RAD_NRST, "NRST (PC13)"},
+            {RAD_IRQ, "IRQ (PE2)"},
+            {RAD_BUSY, "BUSY (PE3)"}
         };
 
         const int numPins = sizeof(testPins) / sizeof(testPins[0]);
@@ -247,7 +247,7 @@ namespace RadioTest
         Console.println("[RADIO] Initializing radio test...");
         Console.println("[RADIO] LR1121 LoRa Radio Module");
         Console.println("[RADIO] SPI Pins: PB3(SCK), PB4(MISO), PD7(MOSI), PA15(CS)");
-        Console.println("[RADIO] Control: PA6(RST), PA2(IRQ), PA7(BUSY)");
+        Console.println("[RADIO] Control: PC13(RST), PE2(IRQ), PE3(BUSY)");
         Console.println("[RADIO] Setup complete");
     }
 

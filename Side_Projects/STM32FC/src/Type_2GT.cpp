@@ -20,7 +20,6 @@ Type2GT::Type2GT(uint8_t cs, uint8_t irq, uint8_t rst, uint8_t bsy, SPIClass &sp
 int Type2GT::begin()
 {
     int rc = rad.begin();
-    //Serial.printf("DBG: RadioLib begin -> %d\n", rc);
     if (rc != RADIOLIB_ERR_NONE)
         return rc;
 
@@ -31,17 +30,28 @@ int Type2GT::begin()
     // Example: US 915 MHz, SF7, BW125, CR 4/5, sync 0x12, power 14 dBm
     // Change these to match your other node(s).
     rc = rad.setFrequency(915.0);
-    //Serial.printf("DBG: setFrequency -> %d\n", rc);
+    if (rc != RADIOLIB_ERR_NONE)
+        return rc;
+
     rc = rad.setSpreadingFactor(7);
-    //Serial.printf("DBG: setSF -> %d\n", rc);
+    if (rc != RADIOLIB_ERR_NONE)
+        return rc;
+
     rc = rad.setBandwidth(125.0);
-    //Serial.printf("DBG: setBW -> %d\n", rc);
+    if (rc != RADIOLIB_ERR_NONE)
+        return rc;
+
     rc = rad.setCodingRate(5);
-    //Serial.printf("DBG: setCR -> %d\n", rc);
+    if (rc != RADIOLIB_ERR_NONE)
+        return rc;
+
     rc = rad.setSyncWord(0x12);
-    //Serial.printf("DBG: setSync -> %d\n", rc);
+    if (rc != RADIOLIB_ERR_NONE)
+        return rc;
+
     rc = rad.setOutputPower(14);
-    //Serial.printf("DBG: setPower -> %d\n", rc);
+    if (rc != RADIOLIB_ERR_NONE)
+        return rc;
 
     return RADIOLIB_ERR_NONE;
 }
@@ -63,10 +73,14 @@ int Type2GT::transmit(const char *str)
 {
     state = TX;
     const size_t len = strlen(str);
-    //Serial.printf("DBG: startTransmit len=%u: \"%.40s%s\"\n",
-                  //(unsigned)len, str, (len > 40 ? "..." : ""));
     int rc = rad.startTransmit(str);
-    //Serial.printf("DBG: startTransmit -> %d\n", rc);
+    return rc;
+}
+
+int Type2GT::transmit(const uint8_t *data, size_t len)
+{
+    state = TX;
+    int rc = rad.startTransmit(data, len);
     return rc;
 }
 
