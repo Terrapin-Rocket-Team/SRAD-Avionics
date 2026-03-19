@@ -179,8 +179,14 @@ sudo -u ${SUDO_USER} bash -c "./setup-user.sh"
 
 chmod 644 ARC.service.temp
 mv ARC.service.temp /lib/systemd/system/ARC.service
+mv wifi-server.service.temp /lib/systemd/system/wifi-server.service
+mv wifi-client.service.temp /lib/systemd/system/wifi-client.service
+
 systemctl daemon-reload
 systemctl enable ARC
 systemctl start ARC
+
+
+
 
 echo "Setup complete!"

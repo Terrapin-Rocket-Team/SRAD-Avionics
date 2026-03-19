@@ -3,7 +3,7 @@
 
 #this will be used for connecting via wifi and tcp client stuff
 #must be bidirectional transport bridge 
-SERVER_HOST     = "10.42.0.1" #IP of the other Pi Zero (TCP server) MUST CHANGE 
+SERVER_HOST     = "arcpi8.local" #IP of the other Pi Zero (TCP server) MUST CHANGE 
 SERVER_PORT     = 5000             # Must match server
 SERIAL_PORT = "/dev/serial0"   # serial address MUST CHANGE
 SERIAL_BAUD = 115200           # baud rate
@@ -19,9 +19,11 @@ import serial
 def serial_to_wifi(ser: serial.Serial, sock: socket.socket, stop_event: threading.Event) -> None:
     while not stop_event.is_set():
         try:
-            data = ser.read(ser.in_waiting)
+            #data = ser.read(ser.in_waiting)
+            data = b'Hello world'
             if data:
                 sock.sendall(data)
+                time.sleep(1)
             else:
                 time.sleep(0.005)
         except (serial.SerialException, OSError):
@@ -29,15 +31,18 @@ def serial_to_wifi(ser: serial.Serial, sock: socket.socket, stop_event: threadin
             break
 
 def wifi_to_serial(sock: socket.socket, ser: serial.Serial, stop_event: threading.Event) -> None:
-    sock.settimeout(1.0)
+    sock.settimeout(None)
     while not stop_event.is_set():
         try:
             data = sock.recv(BUFFER_SIZE)
             if not data:
+                print("drop")
                 stop_event.set()
                 break
+            print(data.decode())
             ser.write(data)
         except socket.timeout:
+            print("timeout")
             continue
         except (OSError, serial.SerialException):
             stop_event.set()

@@ -4,7 +4,7 @@
 
 SERVER_HOST     = "0.0.0.0"
 SERVER_PORT     = 5000
-SERIAL_PORT     = "/dev/ttyS0"  # MUST CHANGE
+SERIAL_PORT     = "/dev/serial0"  # MUST CHANGE
 SERIAL_BAUD     = 115200
 RECONNECT_DELAY = 0.2
 BUFFER_SIZE     = 4096
@@ -19,28 +19,33 @@ import serial
 def serial_to_wifi(ser: serial.Serial, sock: socket.socket, stop_event: threading.Event) -> None:
     while not stop_event.is_set():
         try:
-            waiting = ser.in_waiting
-            if waiting:
-                data = ser.read(waiting)
+            #data = ser.read(ser.in_waiting)
+            data = b'Hello world2'
+            if data:
                 sock.sendall(data)
+                time.sleep(1)
             else:
                 time.sleep(0.005)
         except (serial.SerialException, OSError):
             stop_event.set()
             break
-            
-            
+
+
 
 def wifi_to_serial(conn: socket.socket, ser: serial.Serial, stop_event: threading.Event) -> None:
-    conn.settimeout(1.0)
+    conn.settimeout(None)
     while not stop_event.is_set():
         try:
             data = conn.recv(BUFFER_SIZE)
             if not data:
+                print("drop")
                 stop_event.set()
                 break
-            ser.write(data)
+            else:
+                print(data.decode())
+                ser.write(data)
         except socket.timeout:
+            print("timeout")
             continue
         except (OSError, serial.SerialException):
             stop_event.set()
@@ -59,6 +64,8 @@ def main():
             conn, addr = server.accept()
             print(f"Connected: {addr}")
 
+            #data = conn.recv(100)
+            #print(data)
             stop_event = threading.Event()
 
             t1 = threading.Thread(target=serial_to_wifi, args=(ser, conn, stop_event), daemon=True)

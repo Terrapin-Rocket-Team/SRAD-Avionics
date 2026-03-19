@@ -1,0 +1,12 @@
+[Unit]
+Description=WiFi TCP Server
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 USER_SCRIPT/ARC/wifi_server_working.py
+Restart=always
+RestartSec=1
+User=USER_NAME
+
+[Install]
+WantedBy=multi-user.target
