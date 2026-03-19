@@ -19,11 +19,11 @@ import serial
 def serial_to_wifi(ser: serial.Serial, sock: socket.socket, stop_event: threading.Event) -> None:
     while not stop_event.is_set():
         try:
-            #data = ser.read(ser.in_waiting)
-            data = b'Hello world2'
+            data = ser.read(ser.in_waiting)
+            #data = b'Hello world2'
             if data:
                 sock.sendall(data)
-                time.sleep(1)
+                #time.sleep(1)
             else:
                 time.sleep(0.005)
         except (serial.SerialException, OSError):
