@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "Si4464.h"
 #include "List.h"
+#include "RadioMessage.h"
 
 #define IS_ACTIVE_NODE true
 #define RX_TIMEOUT 100     // ms
@@ -51,6 +52,8 @@ bool ledOn = false;
 void blink(uint8_t times, uint32_t interval);
 void updateBlink();
 
+uint8_t testBuf[8] = {1, 2, 3, 4, 5, 6, 7, 8};
+
 void setup()
 {
     // set correct SPI pins
@@ -60,6 +63,8 @@ void setup()
 
     Serial1.begin(SERIAL_BAUD);
     pinMode(STAT_PIN, OUTPUT);
+
+    Serial1.println("Starting radio");
 
     if (!radHW.begin())
     {
@@ -73,55 +78,74 @@ void setup()
         }
     }
 
+    Serial1.println("Radio Started");
+
     delay(1000);
+
+    digitalWrite(STAT_PIN, HIGH);
+    delay(500);
+    digitalWrite(STAT_PIN, LOW);
+    delay(500);
 
     // flush serial
     while (Serial1.available())
         Serial1.read();
 
+    // pinMode((uint8_t)pinNametoDigitalPin(PB_1), OUTPUT);
+    // digitalWrite((uint8_t)pinNametoDigitalPin(PB_1), HIGH);
+
     // TODO: setup debug serial
 }
 
+uint32_t timer = millis();
+
 void loop()
 {
-    // check for input to be transmitted
-    while (Serial1.available() && m.size < Message::maxSize)
+    if (millis() - timer > 1000)
     {
-        // will only occur when first getting serial data
-        if (!serialReadLock)
-            serialReadLock = true;
-        // read in character
-        char c = Serial1.read();
-
-        // denote complete messages by \n for now (text only)
-        if (c == END_CHAR)
-        {
-            // send complete message
-            radio.send(&m);
-            m.clear();
-            serialReadLock = false;
-            blink(1, 100);
-            break;
-        }
-        else
-            m.append(c);
+        timer = millis();
+        radHW.tx(testBuf, sizeof(testBuf));
+        Serial1.println("TX");
     }
 
-    // check for received messages
-    if (!serialReadLock && radio.receive(&m))
-    {
-        m.print(Serial1);
-        m.clear();
-        blink(2, 100);
-    }
+    // // check for input to be transmitted
+    // while (Serial1.available() && m.size < Message::maxSize)
+    // {
+    //     // will only occur when first getting serial data
+    //     if (!serialReadLock)
+    //         serialReadLock = true;
+    //     // read in character
+    //     char c = Serial1.read();
 
-    // if somehow we reach the max message size, dump the data to prevent lockup
-    if (m.size == Message::maxSize)
-        m.clear();
+    //     // denote complete messages by \n for now (text only)
+    //     if (c == END_CHAR)
+    //     {
+    //         // send complete message
+    //         radio.send(&m);
+    //         m.clear();
+    //         serialReadLock = false;
+    //         blink(1, 100);
+    //         break;
+    //     }
+    //     else
+    //         m.append(c);
+    // }
+
+    // // check for received messages
+    // if (!serialReadLock && radio.receive(&m))
+    // {
+    //     m.print(Serial1);
+    //     m.clear();
+    //     blink(2, 100);
+    // }
+
+    // // if somehow we reach the max message size, dump the data to prevent lockup
+    // if (m.size == Message::maxSize)
+    //     m.clear();
 
     // radio update
     radio.update();
-    updateBlink();
+    // updateBlink();
 }
 
 void blink(uint8_t times, uint32_t interval)

@@ -89,14 +89,15 @@ bool Si4464::begin()
     // check part info to make sure proper communication has been established
     uint8_t args[8] = {0};
     this->sendCommandR(C_PART_INFO, 8, args);
-    // Serial.println("PART_INFO");
+    Serial1.println("PART_NO");
     // for (int i = 0; i < 8; i++)
     // {
-    //     Serial.println(args[i], HEX);
+    //     Serial1.println(args[i], HEX);
     // }
 
     uint16_t partNo = 0;
     from_bytes(partNo, 1, 0, args);
+    Serial1.println(partNo, HEX);
     if (partNo != PART_NO)
         return false; // ERROR: did not receive the correct part number
 
@@ -130,7 +131,8 @@ bool Si4464::begin()
     // this->setAFC(true);
 
     // set defaults for gpio pins
-    this->setPins(PIN_TX_FIFO_EMPTY, PIN_RX_FIFO_FULL, PIN_RX_STATE, PIN_TX_STATE, PIN_CTS, false);
+    // this->setPins(PIN_TX_FIFO_EMPTY, PIN_RX_FIFO_FULL, PIN_RX_STATE, PIN_TX_STATE, PIN_CTS, false);
+    this->setPins(PIN_RX_STATE, PIN_TX_STATE, PIN_TX_FIFO_EMPTY, PIN_RX_FIFO_FULL, PIN_CTS, false);
     this->useSPICTS = false;
 
     // set defaults for FRRs
@@ -293,19 +295,19 @@ void Si4464::update()
 #ifndef RF4463F30
     if (this->state == STATE_TX_COMPLETE)
     {
-        if (this->gpio2()) // RX state
+        if (this->gpio0()) // RX state
             this->state = STATE_RX;
 
-        else if (!this->gpio3()) // ready state (not RX, must go through STATE_ENTER_TX to get to TX)
+        else if (!this->gpio1()) // ready state (not RX, must go through STATE_ENTER_TX to get to TX)
             this->state = STATE_IDLE;
     }
 
     if (this->state == STATE_RX_COMPLETE)
     {
-        // if (this->gpio2()) // RX state
+        // if (this->gpio0()) // RX state
         //     this->state = STATE_RX;
 
-        if (!this->gpio2() && !this->gpio3()) // ready state (not RX, must go through STATE_ENTER_TX to get to TX)
+        if (!this->gpio0() && !this->gpio1()) // ready state (not RX, must go through STATE_ENTER_TX to get to TX)
         {
             this->state = STATE_IDLE;
             // Serial.println("set to idle after rx complete");
@@ -340,14 +342,14 @@ void Si4464::update()
         }
     }
 #endif
-    if (this->TXEmptyFlag && !this->gpio0())
+    if (this->TXEmptyFlag && !this->gpio2())
     {
         this->TXEmptyFlag = false;
         // Serial.println("update() reset TX took: ");
         // Serial.println(micros() - this->debugTimer);
     }
 
-    if (this->RXFullFlag && !this->gpio1())
+    if (this->RXFullFlag && !this->gpio3())
     {
         this->RXFullFlag = false;
         // Serial.println("update() reset RX took: ");
@@ -379,7 +381,7 @@ void Si4464::handleTX()
     // Serial.println(this->length);
     // this function assumes we are in tx mode already, so check that we are in tx mode
     // availLen is the same as length in static TX
-    if (!this->TXEmptyFlag && this->xfrd < this->availLen && this->gpio0())
+    if (!this->TXEmptyFlag && this->xfrd < this->availLen && this->gpio2())
     {
         this->TXEmptyFlag = true;
         // Serial.println("handleTX");
@@ -432,7 +434,7 @@ void Si4464::handleRX()
     // }
     // assume we are in RX mode
     // this is how we read the packet until we have less than the RX FIFO THRESH left
-    if (!this->RXFullFlag && this->gpio1()) // valid preamble and more than RX_THRESH bytes in FIFO
+    if (!this->RXFullFlag && this->gpio3()) // valid preamble and more than RX_THRESH bytes in FIFO
     {
         this->RXFullFlag = true;
         // this->debugTimer = micros();
@@ -555,7 +557,7 @@ void Si4464::handleRX()
             this->xfrd = 0;
         }
     }
-    // if (!gpio2())
+    // if (!gpio0())
     // {
     //     Serial.println("ERROR: failed to receive packet");
     //     this->state = STATE_IDLE;
@@ -935,8 +937,8 @@ bool Si4464::shutdown(bool shutdown)
         }
         if (millis() - start >= 10)
         {
-            Serial.print("ERROR: chip failed to wake up, GPIO1 state is ");
-            Serial.println(this->gpio1());
+            Serial1.print("ERROR: chip failed to wake up, GPIO1 state is ");
+            Serial1.println(this->gpio1());
             return false;
         }
         this->spi_write(C_NOP, 0, {});
@@ -947,8 +949,8 @@ bool Si4464::shutdown(bool shutdown)
         }
         if (millis() - start >= 100)
         {
-            Serial.print("ERROR: chip did not respond to SPI, GPIO1 state is ");
-            Serial.println(this->gpio1());
+            Serial1.print("ERROR: chip did not respond to SPI, GPIO1 state is ");
+            Serial1.println(this->gpio1());
             return false;
         }
     }
