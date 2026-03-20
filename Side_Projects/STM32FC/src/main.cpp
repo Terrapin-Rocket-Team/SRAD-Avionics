@@ -35,14 +35,16 @@ SPIClass Radio_SPI(RADIO_MOSI, RADIO_MISO, RADIO_SCK);
 Type2GT radio(RADIO_NCS, RADIO_IO9, RADIO_NRST, RADIO_BUSY, Radio_SPI);
 HardwareSerial TelemetryUART(TELEMETRY_UART_RX, TELEMETRY_UART_TX);
 PacketTransports packetTransports;
+FileLogSink dataLog("data_log.csv", StorageBackend::EMMC, false);
+FileLogSink eventLog("event_log.csv", StorageBackend::EMMC, false);
 PrintLog serialEventLog(Serial, true);
-ILogSink *eventLogSinks[] = {&serialEventLog};
+ILogSink *eventLogSinks[] = {&serialEventLog, &eventLog};
+ILogSink *dataLogSinks[] = {&dataLog};
 
 constexpr uint32_t kTelemetryBaud = 115200;
 constexpr uint32_t kAviTelemPeriodMs = 500;
 constexpr int kBatteryDividerR1Ohms = 422000;
 constexpr int kBatteryDividerR2Ohms = 102000;
-constexpr double kBatterySenseRefVoltage = 3.3;
 constexpr float kBatteryCalibrationGain = 1.00733f;
 constexpr float kBatteryCalibrationOffset = -0.064f;
 
@@ -60,7 +62,7 @@ DPS368 baro;
 BMI088 imu;
 H3LIS331DL highGAccel(&Wire, 0x19);
 MMC5603NJ mag;
-VoltageSensor batterySense(BATTERY_SENSE_PIN, kBatteryDividerR1Ohms, kBatteryDividerR2Ohms, "Battery Voltage", kBatterySenseRefVoltage);
+VoltageSensor batterySense(BATTERY_SENSE_PIN, kBatteryDividerR1Ohms, kBatteryDividerR2Ohms, "Battery Voltage");
 
 AstraRocketConfig config;
 
@@ -189,13 +191,16 @@ void setup()
     LOGI("Own radio disabled; AviTelem will use UART only");
 #endif
 
-    config.with6DoFIMU(&imu)
-        .withName("FC")
+    config.withFlightLogRate(20)
+        .withPreflightLogRate(20)
+        .withPostflightLogRate(20)
+        .with6DoFIMU(&imu)
         .withBaro(&baro)
         .withGPS(&gps)
         .withMag(&mag)
         .withLoggingRate(20)
-        .withEventLogs(eventLogSinks, 1)
+        .withEventLogs(eventLogSinks, 2)
+        .withDataLogs(dataLogSinks, 1)
         .withName("STM32FC")
         .withMiscSensor(&highGAccel)
         .withMiscSensor(&batterySense);
@@ -208,7 +213,7 @@ void setup()
 
     mag.setMountingOrientation(MountingOrientation::IDENTITY);
 
-        const bool initOk = rocket.init();
+    const bool initOk = rocket.init();
     if (!initOk)
     {
         Serial.println("ERR: AstraRocket init failed");
