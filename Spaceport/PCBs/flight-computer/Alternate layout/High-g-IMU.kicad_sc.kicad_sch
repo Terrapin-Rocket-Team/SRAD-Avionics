@@ -816,16 +816,16 @@
 		(uuid "0efa791f-2af1-4f32-b021-57d8e9edc187")
 	)
 	(junction
+		(at 204.47 90.17)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "3b435fde-2890-47cb-8bf9-fd09bde43eea")
+	)
+	(junction
 		(at 210.82 80.01)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "3bb52c1d-baad-41de-a631-f56851a2a059")
-	)
-	(junction
-		(at 201.93 90.17)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "4b94f6f1-6cc8-4ca5-9aad-5b78d537b6b1")
 	)
 	(junction
 		(at 196.85 83.82)
@@ -850,14 +850,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "fbbec2d3-a4d0-4250-9c93-a3c75b96b122")
-	)
-	(no_connect
-		(at 196.85 87.63)
-		(uuid "e3871658-cc4c-4a24-a2e2-4e8e980500a9")
-	)
-	(no_connect
-		(at 196.85 92.71)
-		(uuid "fb849f8f-e03d-413e-aa45-5231617eb980")
 	)
 	(wire
 		(pts
@@ -891,7 +883,7 @@
 	)
 	(wire
 		(pts
-			(xy 196.85 83.82) (xy 201.93 83.82)
+			(xy 196.85 83.82) (xy 204.47 83.82)
 		)
 		(stroke
 			(width 0)
@@ -961,7 +953,7 @@
 	)
 	(wire
 		(pts
-			(xy 201.93 83.82) (xy 201.93 90.17)
+			(xy 204.47 83.82) (xy 204.47 90.17)
 		)
 		(stroke
 			(width 0)
@@ -1011,7 +1003,7 @@
 	)
 	(wire
 		(pts
-			(xy 196.85 90.17) (xy 201.93 90.17)
+			(xy 196.85 90.17) (xy 204.47 90.17)
 		)
 		(stroke
 			(width 0)
@@ -1091,6 +1083,28 @@
 		)
 		(uuid "83918d24-31a2-4714-a587-b643a49f5982")
 	)
+	(hierarchical_label "INT1"
+		(shape output)
+		(at 196.85 87.63 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "9d24d7fb-84ff-4ecb-8f02-7ef4a7046ee8")
+	)
+	(hierarchical_label "INT2"
+		(shape output)
+		(at 196.85 92.71 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "d3fda7f0-a522-43e8-bf18-15ae9a4155c7")
+	)
 	(symbol
 		(lib_id "Device:C")
 		(at 223.52 83.82 0)
@@ -1138,6 +1152,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 223.52 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PACKAGE_ID" ""
 			(at 223.52 83.82 0)
 			(effects
 				(font
@@ -1208,6 +1231,15 @@
 			)
 		)
 		(property "Description" ""
+			(at 130.81 74.93 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PACKAGE_ID" ""
 			(at 130.81 74.93 0)
 			(effects
 				(font
@@ -1407,7 +1439,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 201.93 90.17 0)
+		(at 204.47 90.17 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1416,7 +1448,7 @@
 		(fields_autoplaced yes)
 		(uuid "668b421e-0b03-40f7-95b4-49c13786c2e2")
 		(property "Reference" "#PWR085"
-			(at 201.93 96.52 0)
+			(at 204.47 96.52 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1425,7 +1457,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 204.47 91.4399 0)
+			(at 207.01 91.4399 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1434,7 +1466,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 201.93 90.17 0)
+			(at 204.47 90.17 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1443,7 +1475,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 201.93 90.17 0)
+			(at 204.47 90.17 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1452,7 +1484,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 201.93 90.17 0)
+			(at 204.47 90.17 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1717,6 +1749,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 210.82 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PACKAGE_ID" ""
 			(at 210.82 83.82 0)
 			(effects
 				(font
