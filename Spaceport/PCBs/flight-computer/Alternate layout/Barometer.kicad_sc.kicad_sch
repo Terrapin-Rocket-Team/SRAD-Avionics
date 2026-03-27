@@ -603,7 +603,7 @@
 			(embedded_fonts no)
 		)
 	)
-	(text "I2C 0X77\n\n"
+	(text "I2C 0x76\n"
 		(exclude_from_sim no)
 		(at 133.858 83.82 0)
 		(effects
@@ -613,21 +613,17 @@
 		)
 		(uuid "535e9c0b-7aea-40e2-80c1-3dc448ed73a2")
 	)
-	(text "0x76"
-		(exclude_from_sim no)
-		(at 94.742 69.342 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "d2b2877c-5060-4979-8946-91fd1e4417b4")
-	)
 	(junction
 		(at 127 58.42)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "3706c3cb-9b83-457b-95c3-c4f4960070e5")
+	)
+	(junction
+		(at 127 82.55)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "4d333d1d-fa6f-4b44-934a-499e606ebf80")
 	)
 	(junction
 		(at 127 55.88)
@@ -651,16 +647,6 @@
 	)
 	(wire
 		(pts
-			(xy 90.17 71.12) (xy 90.17 76.2)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "0adf2d3d-5e29-49aa-8ada-c27c8b1393e0")
-	)
-	(wire
-		(pts
 			(xy 127 55.88) (xy 127 58.42)
 		)
 		(stroke
@@ -681,13 +667,13 @@
 	)
 	(wire
 		(pts
-			(xy 90.17 76.2) (xy 116.84 76.2)
+			(xy 127 82.55) (xy 127 86.36)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "63f6235b-9f0e-4724-b136-d419a1f7986b")
+		(uuid "6b5b17c5-ad62-4f86-960a-119c45bb950d")
 	)
 	(wire
 		(pts
@@ -721,6 +707,16 @@
 	)
 	(wire
 		(pts
+			(xy 116.84 76.2) (xy 116.84 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ba32923b-20e2-4070-a4ee-5a18f09fb85a")
+	)
+	(wire
+		(pts
 			(xy 116.84 55.88) (xy 127 55.88)
 		)
 		(stroke
@@ -731,7 +727,17 @@
 	)
 	(wire
 		(pts
-			(xy 127 81.28) (xy 127 86.36)
+			(xy 116.84 82.55) (xy 127 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "de3fda64-386a-4679-a71c-54cd594a5f49")
+	)
+	(wire
+		(pts
+			(xy 127 81.28) (xy 127 82.55)
 		)
 		(stroke
 			(width 0)
@@ -1051,72 +1057,6 @@
 			(project ""
 				(path "/b419aaf0-5349-42bc-a414-d94cafbe45e9/f857b9c9-761d-4a7f-a2fa-b1edff240511"
 					(reference "#PWR02")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:+3V3")
-		(at 90.17 71.12 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "cabb46d9-6690-4f5d-92ac-d4c07e3cbf48")
-		(property "Reference" "#PWR0114"
-			(at 90.17 74.93 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+3V3A"
-			(at 82.042 69.596 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" ""
-			(at 90.17 71.12 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 90.17 71.12 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+3V3\""
-			(at 90.17 71.12 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "28f9c563-e1a5-455b-8e3e-75829ab42856")
-		)
-		(instances
-			(project "flight-computer"
-				(path "/b419aaf0-5349-42bc-a414-d94cafbe45e9/f857b9c9-761d-4a7f-a2fa-b1edff240511"
-					(reference "#PWR0114")
 					(unit 1)
 				)
 			)

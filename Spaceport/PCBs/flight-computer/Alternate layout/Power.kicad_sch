@@ -1742,6 +1742,131 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "power:VBUS"
+			(power)
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "#PWR"
+				(at 0 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Value" "VBUS"
+				(at 0 3.556 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Power symbol creates a global label with name \"VBUS\""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "global power"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "VBUS_0_1"
+				(polyline
+					(pts
+						(xy -0.762 1.27) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 2.54) (xy 0.762 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 0) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "VBUS_1_1"
+				(pin power_in line
+					(at 0 0 90)
+					(length 0)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "power:VCC"
 			(power)
 			(pin_numbers
@@ -1923,6 +2048,12 @@
 		(uuid "dff37f2f-99f5-4928-aab5-20b2777ad496")
 	)
 	(junction
+		(at 54.61 77.47)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "05a9e951-21e0-4b95-881e-49c21ca0a7b6")
+	)
+	(junction
 		(at 125.73 105.41)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -2025,12 +2156,6 @@
 		(uuid "6810dfa3-adc7-45c5-a24d-c4ab3bb0bd99")
 	)
 	(junction
-		(at 114.3 85.09)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "85c4a334-5a76-4f3c-a862-ac35dc1e4bc6")
-	)
-	(junction
 		(at 81.28 105.41)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -2097,6 +2222,20 @@
 	(no_connect
 		(at 204.47 69.85)
 		(uuid "4e41c077-fef0-43ef-9680-92f80ddc58d4")
+	)
+	(no_connect
+		(at 101.6 92.71)
+		(uuid "b7c4ba62-0744-4f56-9265-0064be56ca8d")
+	)
+	(wire
+		(pts
+			(xy 54.61 77.47) (xy 59.69 77.47)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "049aaf77-d429-42b6-a094-11b40189686f")
 	)
 	(wire
 		(pts
@@ -2300,7 +2439,7 @@
 	)
 	(wire
 		(pts
-			(xy 49.53 77.47) (xy 59.69 77.47)
+			(xy 49.53 77.47) (xy 54.61 77.47)
 		)
 		(stroke
 			(width 0)
@@ -2580,7 +2719,7 @@
 	)
 	(wire
 		(pts
-			(xy 111.76 85.09) (xy 114.3 85.09)
+			(xy 111.76 85.09) (xy 125.73 85.09)
 		)
 		(stroke
 			(width 0)
@@ -2597,16 +2736,6 @@
 			(type default)
 		)
 		(uuid "b3d9faf3-4da8-4c03-bf44-70f96d036f34")
-	)
-	(wire
-		(pts
-			(xy 114.3 85.09) (xy 125.73 85.09)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b4f8f634-d7ae-40a8-b945-f1ce7af58fc4")
 	)
 	(wire
 		(pts
@@ -2730,16 +2859,6 @@
 	)
 	(wire
 		(pts
-			(xy 101.6 92.71) (xy 114.3 92.71)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "ede0ea00-b8a9-4b9a-bd59-07001c154e18")
-	)
-	(wire
-		(pts
 			(xy 125.73 95.25) (xy 125.73 97.79)
 		)
 		(stroke
@@ -2842,7 +2961,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "SCREW_SW"
+		(property "Value" "BATT"
 			(at 34.544 66.2939 90)
 			(effects
 				(font
@@ -3549,85 +3668,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R")
-		(at 114.3 88.9 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "4e641ece-1473-4389-bc5b-77a6fb637643")
-		(property "Reference" "R3"
-			(at 116.84 87.6299 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "100 kΩ"
-			(at 116.84 90.1699 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
-			(at 112.522 88.9 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 114.3 88.9 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 114.3 88.9 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "SNAPEDA_PACKAGE_ID" ""
-			(at 114.3 88.9 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "57d39ea4-b4d3-4756-869e-043a23d3fccc")
-		)
-		(pin "1"
-			(uuid "4ace04c7-b886-4f81-8fac-9505ec52cf7f")
-		)
-		(instances
-			(project ""
-				(path "/b419aaf0-5349-42bc-a414-d94cafbe45e9/551958d2-abef-4077-bb30-14cb500b1ed6"
-					(reference "R3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:+3.3V")
 		(at 160.02 113.03 0)
 		(unit 1)
@@ -3721,7 +3761,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_1210_3225Metric_Pad1.33x2.70mm_HandSolder"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
 			(at 166.37 115.57 0)
 			(effects
 				(font
@@ -3925,7 +3965,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_1210_3225Metric_Pad1.33x2.70mm_HandSolder"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
 			(at 209.55 115.57 0)
 			(effects
 				(font
@@ -4228,7 +4268,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_1210_3225Metric_Pad1.33x2.70mm_HandSolder"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
 			(at 209.55 80.01 0)
 			(effects
 				(font
@@ -4439,7 +4479,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_1210_3225Metric_Pad1.33x2.70mm_HandSolder"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
 			(at 166.37 80.01 0)
 			(effects
 				(font
@@ -4857,7 +4897,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "38.5 kΩ"
+		(property "Value" "38.3 kΩ"
 			(at 128.27 90.1699 0)
 			(effects
 				(font
@@ -5051,6 +5091,72 @@
 		)
 	)
 	(symbol
+		(lib_id "power:VBUS")
+		(at 54.61 77.47 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "cd8f068e-3fab-4acd-af52-d9f67c1dfe5b")
+		(property "Reference" "#PWR076"
+			(at 54.61 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VBUS"
+			(at 54.61 72.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 54.61 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 54.61 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"VBUS\""
+			(at 54.61 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "efceb200-83b2-4e78-ae78-b3a7818b4ad0")
+		)
+		(instances
+			(project ""
+				(path "/b419aaf0-5349-42bc-a414-d94cafbe45e9/551958d2-abef-4077-bb30-14cb500b1ed6"
+					(reference "#PWR076")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:C")
 		(at 137.16 92.71 0)
 		(unit 1)
@@ -5078,7 +5184,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_1210_3225Metric_Pad1.33x2.70mm_HandSolder"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
 			(at 138.1252 96.52 0)
 			(effects
 				(font
@@ -5290,7 +5396,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_1210_3225Metric_Pad1.33x2.70mm_HandSolder"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
 			(at 60.6552 77.47 0)
 			(effects
 				(font
