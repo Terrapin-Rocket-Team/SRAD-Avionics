@@ -48,10 +48,16 @@
         "silk_text_thickness": 0.1,
         "silk_text_upright": false,
         "zones": {
-          "min_clearance": 0.5
+          "min_clearance": 0.2
         }
       },
-      "diff_pair_dimensions": [],
+      "diff_pair_dimensions": [
+        {
+          "gap": 0.0,
+          "via_gap": 0.0,
+          "width": 0.0
+        }
+      ],
       "drc_exclusions": [],
       "meta": {
         "version": 2
@@ -180,7 +186,15 @@
           "td_width_to_size_filter_ratio": 0.9
         }
       ],
-      "track_widths": [],
+      "track_widths": [
+        0.0,
+        0.1524,
+        0.254,
+        0.508,
+        2.921,
+        5.08,
+        7.62
+      ],
       "tuning_pattern_settings": {
         "diff_pair_defaults": {
           "corner_radius_percentage": 80,
@@ -207,7 +221,12 @@
           "spacing": 0.6
         }
       },
-      "via_dimensions": [],
+      "via_dimensions": [
+        {
+          "diameter": 0.0,
+          "drill": 0.0
+        }
+      ],
       "zones_allow_external_fillets": false
     },
     "ipc2581": {
@@ -473,6 +492,30 @@
         "via_diameter": 0.6,
         "via_drill": 0.3,
         "wire_width": 6
+      },
+      {
+        "clearance": 0.2,
+        "name": "High Power",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 0,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 1.016
+      },
+      {
+        "clearance": 0.2,
+        "name": "Power",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 1,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.508
+      },
+      {
+        "clearance": 0.1524,
+        "name": "Signal",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 2,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.1524
       }
     ],
     "meta": {
@@ -495,6 +538,9 @@
       ],
       "Net-(J4-CC1)": [
         "Signal"
+      ],
+      "Net-(J5-Pin_1)": [
+        "High Power"
       ],
       "Net-(PWR1-K)": [
         "Signal"
@@ -526,7 +572,25 @@
       "Net-(U4-ADJ{slash}SENSE)": [
         "Signal"
       ],
+      "PWR1": [
+        "Signal"
+      ],
+      "PWR3": [
+        "Signal"
+      ],
+      "PWR4": [
+        "Signal"
+      ],
+      "PWR5": [
+        "Signal"
+      ],
+      "PWR6": [
+        "Signal"
+      ],
       "SRX": [
+        "Signal"
+      ],
+      "STAT1": [
         "Signal"
       ],
       "STX": [
@@ -535,8 +599,30 @@
       "SWCLK": [
         "Signal"
       ],
+      "SWDIO": [
+        "Signal"
+      ],
+      "VBUS": [
+        "Power"
+      ],
+      "VCHG": [
+        "Power"
+      ],
+      "VOLT0": [
+        "High Power",
+        "Power"
+      ],
       "VOLT1": [
         "Power"
+      ],
+      "VOLT2": [
+        "Power"
+      ],
+      "unconnected-(U1-PB6-Pad18)": [
+        "Signal"
+      ],
+      "unconnected-(U1-PB7-Pad19)": [
+        "Signal"
       ]
     },
     "netclass_patterns": []
