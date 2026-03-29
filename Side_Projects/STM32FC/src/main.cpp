@@ -191,14 +191,13 @@ void setup()
     LOGI("Own radio disabled; AviTelem will use UART only");
 #endif
 
-    config.withFlightLogRate(20)
-        .withPreflightLogRate(20)
-        .withPostflightLogRate(20)
+    config.withFlightLogRate(50)
+        .withPreflightLogRate(10)
+        .withPostflightLogRate(10)
         .with6DoFIMU(&imu)
         .withBaro(&baro)
         .withGPS(&gps)
         .withMag(&mag)
-        .withLoggingRate(20)
         .withEventLogs(eventLogSinks, 2)
         .withDataLogs(dataLogSinks, 1)
         .withName("STM32FC")
