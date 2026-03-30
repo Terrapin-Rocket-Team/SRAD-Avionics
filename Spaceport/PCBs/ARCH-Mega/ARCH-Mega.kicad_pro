@@ -48,7 +48,7 @@
         "silk_text_thickness": 0.1,
         "silk_text_upright": false,
         "zones": {
-          "min_clearance": 0.2
+          "min_clearance": 0.1
         }
       },
       "diff_pair_dimensions": [
@@ -191,7 +191,7 @@
         0.1524,
         0.254,
         0.508,
-        2.921,
+        2.54,
         5.08,
         7.62
       ],
@@ -539,9 +539,6 @@
       "Net-(J4-CC1)": [
         "Signal"
       ],
-      "Net-(J5-Pin_1)": [
-        "High Power"
-      ],
       "Net-(PWR1-K)": [
         "Signal"
       ],
@@ -602,20 +599,16 @@
       "SWDIO": [
         "Signal"
       ],
+      "VBAT": [
+        "Power"
+      ],
       "VBUS": [
         "Power"
       ],
-      "VCHG": [
-        "Power"
-      ],
       "VOLT0": [
-        "High Power",
         "Power"
       ],
       "VOLT1": [
-        "Power"
-      ],
-      "VOLT2": [
         "Power"
       ],
       "unconnected-(U1-PB6-Pad18)": [
@@ -758,6 +751,10 @@
     [
       "d9d6923d-dba0-4a51-9b4b-1871f347044f",
       "Root"
+    ],
+    [
+      "1f696824-fb0d-4385-b375-77e82f204c9c",
+      "charge"
     ]
   ],
   "text_variables": {}
