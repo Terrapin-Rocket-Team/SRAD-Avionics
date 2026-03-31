@@ -37,9 +37,9 @@
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 0.8,
-          "height": 1.27,
-          "width": 2.54
+          "drill": 1.8,
+          "height": 3.5,
+          "width": 3.5
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -191,6 +191,7 @@
         0.1524,
         0.254,
         0.508,
+        1.016,
         2.54,
         5.08,
         7.62
@@ -488,7 +489,7 @@
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "priority": 2147483647,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.2,
+        "track_width": 0.1524,
         "via_diameter": 0.6,
         "via_drill": 0.3,
         "wire_width": 6
@@ -524,6 +525,9 @@
     "net_colors": null,
     "netclass_assignments": {
       "3V3_MCU": [
+        "Power"
+      ],
+      "CHG_IN": [
         "Power"
       ],
       "GND": [
@@ -605,6 +609,9 @@
       "VBAT": [
         "Power"
       ],
+      "VBUS": [
+        "Power"
+      ],
       "VOLT0": [
         "Power"
       ],
@@ -618,6 +625,9 @@
         "Signal"
       ],
       "unconnected-(U1-PB7-Pad19)": [
+        "Signal"
+      ],
+      "unconnected-(U1-PC14-OSCX_IN-Pad20)": [
         "Signal"
       ]
     },
@@ -701,12 +711,66 @@
           "label": "Datasheet",
           "name": "Datasheet",
           "show": true
+        },
+        {
+          "group_by": false,
+          "label": "MAXIMUM_PACKAGE_HEIGHT",
+          "name": "MAXIMUM_PACKAGE_HEIGHT",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "PARTREV",
+          "name": "PARTREV",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "STANDARD",
+          "name": "STANDARD",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Sim.Device",
+          "name": "Sim.Device",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Sim.Pins",
+          "name": "Sim.Pins",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Sim.Type",
+          "name": "Sim.Type",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "MANUFACTURER",
+          "name": "MANUFACTURER",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Description",
+          "name": "Description",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "#",
+          "name": "${ITEM_NUMBER}",
+          "show": false
         }
       ],
       "filter_string": "",
       "group_symbols": true,
       "include_excluded_from_bom": true,
-      "name": "Default Editing",
+      "name": "",
       "sort_asc": true,
       "sort_field": "Reference"
     },
