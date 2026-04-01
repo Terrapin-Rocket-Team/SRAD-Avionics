@@ -53,7 +53,13 @@
           "min_clearance": 0.5
         }
       },
-      "diff_pair_dimensions": [],
+      "diff_pair_dimensions": [
+        {
+          "gap": 0.0,
+          "via_gap": 0.0,
+          "width": 0.0
+        }
+      ],
       "drc_exclusions": [],
       "meta": {
         "version": 2
@@ -187,7 +193,9 @@
           "td_width_to_size_filter_ratio": 0.9
         }
       ],
-      "track_widths": [],
+      "track_widths": [
+        0.0
+      ],
       "tuning_pattern_settings": {
         "diff_pair_defaults": {
           "corner_radius_percentage": 80,
@@ -214,7 +222,12 @@
           "spacing": 0.6
         }
       },
-      "via_dimensions": [],
+      "via_dimensions": [
+        {
+          "diameter": 0.0,
+          "drill": 0.0
+        }
+      ],
       "zones_allow_external_fillets": false
     },
     "ipc2581": {
@@ -501,7 +514,9 @@
     "meta": {
       "version": 5
     },
-    "net_colors": null,
+    "net_colors": {
+      "GNDPWR": "rgb(255, 249, 62)"
+    },
     "netclass_assignments": null,
     "netclass_patterns": []
   },
@@ -642,16 +657,16 @@
       {
         "filename": "backup_radio.kicad_sch",
         "name": "backup_radio",
-        "uuid": "00000000-0000-0000-0000-000000000000"
+        "uuid": "050b9a1d-aff9-4518-8139-c200c7839aef"
       }
     ],
-    "used_designators": "",
+    "used_designators": "H2",
     "variants": []
   },
   "sheets": [
     [
       "050b9a1d-aff9-4518-8139-c200c7839aef",
-      "Root"
+      "backup_radio"
     ]
   ],
   "text_variables": {},
