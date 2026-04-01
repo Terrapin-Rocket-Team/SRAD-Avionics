@@ -5202,16 +5202,6 @@
 	)
 	(wire
 		(pts
-			(xy 95.25 125.73) (xy 95.25 130.81)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "93b4d876-38a1-45ba-b5d7-2945be4f6e88")
-	)
-	(wire
-		(pts
 			(xy 45.72 33.02) (xy 57.15 33.02)
 		)
 		(stroke
@@ -5509,6 +5499,16 @@
 			(type default)
 		)
 		(uuid "ed812a90-3d21-4b73-9874-3616772e95b7")
+	)
+	(wire
+		(pts
+			(xy 95.25 128.27) (xy 95.25 130.81)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "efab2b56-6fbe-4380-939c-0baee8265508")
 	)
 	(wire
 		(pts
@@ -5917,6 +5917,28 @@
 		(uuid "94790e6b-8402-4f73-8115-680537bd6dce")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 35.6591 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "CHG_IN"
+		(shape input)
+		(at 95.25 128.27 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "947ecb06-8e7b-4f71-ba68-8f6860cc0b26")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 85.4914 128.27 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6637,7 +6659,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "1uF"
+		(property "Value" "100nF"
 			(at 226.06 140.9699 0)
 			(effects
 				(font
@@ -6878,75 +6900,8 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R")
-		(at 67.31 62.23 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "1d687fb5-8ab0-4cae-b74e-b9dd9d42d12e")
-		(property "Reference" "R25"
-			(at 62.738 60.96 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "100k"
-			(at 62.738 63.5 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
-			(at 65.532 62.23 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 67.31 62.23 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 67.31 62.23 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "e215a414-c861-40d2-8d6c-54df8b3efbb2")
-		)
-		(pin "2"
-			(uuid "2c57ce4e-67c8-4648-ad7c-d1a1fe6f5c30")
-		)
-		(instances
-			(project "ARCH-Mega"
-				(path "/d9d6923d-dba0-4a51-9b4b-1871f347044f/1f696824-fb0d-4385-b375-77e82f204c9c"
-					(reference "R25")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:GND")
-		(at 107.95 68.58 0)
+		(at 107.95 60.96 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -6954,7 +6909,7 @@
 		(dnp no)
 		(uuid "20f5b7a8-504a-4b09-b6c7-9b68265b445d")
 		(property "Reference" "#PWR066"
-			(at 107.95 74.93 0)
+			(at 107.95 67.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6963,7 +6918,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 105.918 72.644 0)
+			(at 105.918 65.024 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6972,7 +6927,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 107.95 68.58 0)
+			(at 107.95 60.96 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6981,7 +6936,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 107.95 68.58 0)
+			(at 107.95 60.96 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6990,7 +6945,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 107.95 68.58 0)
+			(at 107.95 60.96 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7363,7 +7318,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "2k"
+		(property "Value" "260"
 			(at 214.63 135.8899 90)
 			(effects
 				(font
@@ -7433,7 +7388,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "1uF"
+		(property "Value" "100nF"
 			(at 214.63 129.5399 0)
 			(effects
 				(font
@@ -9270,7 +9225,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "2k"
+		(property "Value" "100"
 			(at 215.9 119.38 90)
 			(effects
 				(font
@@ -9339,7 +9294,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "2k"
+		(property "Value" "160"
 			(at 224.79 133.3499 90)
 			(effects
 				(font
@@ -9859,7 +9814,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 67.31 66.04 0)
+		(at 67.31 58.42 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -9867,7 +9822,7 @@
 		(dnp no)
 		(uuid "a49a4e0a-504c-4f64-8846-08e56c04ea06")
 		(property "Reference" "#PWR057"
-			(at 67.31 72.39 0)
+			(at 67.31 64.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9876,7 +9831,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 65.278 70.104 0)
+			(at 65.278 62.484 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9885,7 +9840,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 67.31 66.04 0)
+			(at 67.31 58.42 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9894,7 +9849,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 67.31 66.04 0)
+			(at 67.31 58.42 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9903,7 +9858,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 67.31 66.04 0)
+			(at 67.31 58.42 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10008,7 +9963,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "2k"
+		(property "Value" "100"
 			(at 207.264 143.002 90)
 			(effects
 				(font
@@ -10364,7 +10319,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "1uF"
+		(property "Value" "100nF"
 			(at 215.9 143.5099 0)
 			(effects
 				(font
@@ -11562,73 +11517,6 @@
 			(project "ARCH-Mega"
 				(path "/d9d6923d-dba0-4a51-9b4b-1871f347044f/1f696824-fb0d-4385-b375-77e82f204c9c"
 					(reference "J6")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R")
-		(at 107.95 64.77 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "e05e6fca-ddc9-4dca-87cc-07896f43a673")
-		(property "Reference" "R31"
-			(at 103.378 63.5 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "100k"
-			(at 103.378 66.04 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
-			(at 106.172 64.77 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 107.95 64.77 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 107.95 64.77 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "49d34967-adbe-43f1-abf3-ffc2ff1befb8")
-		)
-		(pin "2"
-			(uuid "1297b22e-120c-4c52-a2db-71412f6d202c")
-		)
-		(instances
-			(project "ARCH-Mega"
-				(path "/d9d6923d-dba0-4a51-9b4b-1871f347044f/1f696824-fb0d-4385-b375-77e82f204c9c"
-					(reference "R31")
 					(unit 1)
 				)
 			)
