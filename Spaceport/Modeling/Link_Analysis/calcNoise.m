@@ -1,7 +1,7 @@
 function noise = calcNoise(bw, noiseFigs, gains, TA)
     % may need to make this higher for high temp at spaceport
     % i.e. 273 + 40 = 313
-    T0 = 290; % K
+    T0 = 320; % K
     noiseFactors = 10.^(noiseFigs./10);
     powerGains = 10.^(gains./10);
     F = 0;
