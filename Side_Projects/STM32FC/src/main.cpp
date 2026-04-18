@@ -250,6 +250,7 @@ double last = 0;
 void loop()
 {
 #ifdef USE_OWN_RADIO
+    radio.service();
     if (radio.hasData())
     {
         char str[256];
