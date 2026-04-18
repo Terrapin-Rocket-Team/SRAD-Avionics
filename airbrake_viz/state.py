@@ -22,7 +22,10 @@ class TelemetryHistory:
     max_points: int = MAX_POINTS
     time_s: deque[float] = field(init=False)
     altitude_ft: deque[float] = field(init=False)
+    gps_altitude_ft: deque[float] = field(init=False)
     velocity_z_ms: deque[float] = field(init=False)
+    baro_velocity_z_ms: deque[float] = field(init=False)
+    gps_velocity_z_ms: deque[float] = field(init=False)
     accel_z_ms2: deque[float] = field(init=False)
     quat_w: deque[float] = field(init=False)
     quat_x: deque[float] = field(init=False)
@@ -38,7 +41,10 @@ class TelemetryHistory:
     def __post_init__(self) -> None:
         self.time_s = deque(maxlen=self.max_points)
         self.altitude_ft = deque(maxlen=self.max_points)
+        self.gps_altitude_ft = deque(maxlen=self.max_points)
         self.velocity_z_ms = deque(maxlen=self.max_points)
+        self.baro_velocity_z_ms = deque(maxlen=self.max_points)
+        self.gps_velocity_z_ms = deque(maxlen=self.max_points)
         self.accel_z_ms2 = deque(maxlen=self.max_points)
         self.quat_w = deque(maxlen=self.max_points)
         self.quat_x = deque(maxlen=self.max_points)
@@ -54,7 +60,10 @@ class TelemetryHistory:
     def append(self, sample: TelemetrySample) -> None:
         self.time_s.append(sample.time_s)
         self.altitude_ft.append(sample.altitude_ft)
+        self.gps_altitude_ft.append(sample.gps_altitude_ft)
         self.velocity_z_ms.append(sample.velocity_z_ms)
+        self.baro_velocity_z_ms.append(sample.baro_velocity_z_ms)
+        self.gps_velocity_z_ms.append(sample.gps_velocity_z_ms)
         self.accel_z_ms2.append(sample.accel_z_ms2)
         self.quat_w.append(sample.quat_w)
         self.quat_x.append(sample.quat_x)

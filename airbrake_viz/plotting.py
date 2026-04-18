@@ -1,4 +1,4 @@
-"""Matplotlib dashboard for live AVITELEM telemetry."""
+"""Matplotlib dashboard for live AVITELEM and BPPTELEM telemetry."""
 
 from __future__ import annotations
 
@@ -58,6 +58,12 @@ def _set_gps_view(ax, longitudes: list[float], latitudes: list[float]) -> None:
     ax.set_ylim(lat_min - (lat_range * padding), lat_max + (lat_range * padding))
 
 
+def _fmt_value(value: float, fmt: str, fallback: str = "--") -> str:
+    if not math.isfinite(value):
+        return fallback
+    return format(value, fmt)
+
+
 def _rotate_vector_by_quaternion(
     vector: tuple[float, float, float],
     w: float,
@@ -97,10 +103,13 @@ class Dashboard:
         self.ax_gps = self.fig.add_subplot(grid[2, 0])
         self.ax_att = self.fig.add_subplot(grid[2, 1], projection="3d")
 
-        self.fig.suptitle("STM32 AVITELEM Viewer")
+        self.fig.suptitle("STM32 Telemetry Viewer")
 
-        (self.ln_alt,) = self.ax_alt.plot([], [], linewidth=2.0, color="#1f77b4", label="Altitude")
-        (self.ln_vel,) = self.ax_vel.plot([], [], linewidth=2.0, color="#ff7f0e", label="Vertical Velocity")
+        (self.ln_alt,) = self.ax_alt.plot([], [], linewidth=2.0, color="#1f77b4", label="Primary Altitude")
+        (self.ln_gps_alt,) = self.ax_alt.plot([], [], linewidth=1.8, color="#9467bd", linestyle="--", label="GPS Altitude")
+        (self.ln_vel,) = self.ax_vel.plot([], [], linewidth=2.0, color="#ff7f0e", label="Primary Velocity")
+        (self.ln_baro_vel,) = self.ax_vel.plot([], [], linewidth=1.8, color="#1f77b4", linestyle="--", label="Baro Velocity")
+        (self.ln_gps_vel,) = self.ax_vel.plot([], [], linewidth=1.8, color="#9467bd", linestyle="--", label="GPS Velocity")
         (self.ln_acc,) = self.ax_acc.plot([], [], linewidth=2.0, color="#2ca02c", label="Vertical Accel")
         (self.ln_path,) = self.ax_gps.plot([], [], linewidth=2.0, color="#d62728", marker="o", markersize=3, label="GPS Path")
         (self.ln_current,) = self.ax_gps.plot([], [], marker="o", markersize=9, color="#111111", linestyle="", label="Current")
@@ -181,7 +190,10 @@ class Dashboard:
         xs = [value - t0 for value in times]
 
         altitude = list(history.altitude_ft)
+        gps_altitude = list(history.gps_altitude_ft)
         velocity = list(history.velocity_z_ms)
+        baro_velocity = list(history.baro_velocity_z_ms)
+        gps_velocity = list(history.gps_velocity_z_ms)
         accel = list(history.accel_z_ms2)
         roll = list(history.roll_deg)
         pitch = list(history.pitch_deg)
@@ -192,14 +204,17 @@ class Dashboard:
         quat_z = list(history.quat_z)
 
         self.ln_alt.set_data(xs, altitude)
+        self.ln_gps_alt.set_data(xs, gps_altitude)
         self.ln_vel.set_data(xs, velocity)
+        self.ln_baro_vel.set_data(xs, baro_velocity)
+        self.ln_gps_vel.set_data(xs, gps_velocity)
         self.ln_acc.set_data(xs, accel)
 
         for ax in (self.ax_alt, self.ax_vel, self.ax_acc):
             _set_time_window(ax, xs)
 
-        _set_ylim(self.ax_alt, altitude, default_span=100.0)
-        _set_ylim(self.ax_vel, velocity, default_span=20.0)
+        _set_ylim(self.ax_alt, altitude + gps_altitude, default_span=100.0)
+        _set_ylim(self.ax_vel, velocity + baro_velocity + gps_velocity, default_span=20.0)
         _set_ylim(self.ax_acc, accel, default_span=20.0)
 
         latitudes = list(history.latitude_deg)
@@ -221,25 +236,56 @@ class Dashboard:
             self.ln_current.set_data([], [])
             self.txt_gps.set_text("No GPS fix")
 
-        self.txt_alt.set_text(f"{altitude[-1]:.1f} ft")
-        self.txt_vel.set_text(f"{velocity[-1]:.2f} m/s")
-        self.txt_acc.set_text(f"{accel[-1]:.2f} m/s^2")
-        self.txt_att.set_text(f"ENU | R {roll[-1]:.1f} | P {pitch[-1]:.1f} | Y {yaw[-1]:.1f}")
+        latest_altitude = latest_finite(history.altitude_ft)
+        latest_gps_altitude = latest_finite(history.gps_altitude_ft)
+        latest_velocity = latest_finite(history.velocity_z_ms)
+        latest_baro_velocity = latest_finite(history.baro_velocity_z_ms)
+        latest_gps_velocity = latest_finite(history.gps_velocity_z_ms)
+        latest_accel = latest_finite(history.accel_z_ms2)
+        latest_roll = latest_finite(history.roll_deg)
+        latest_pitch = latest_finite(history.pitch_deg)
+        latest_yaw = latest_finite(history.yaw_deg)
+        latest_qw = latest_finite(history.quat_w)
+        latest_qx = latest_finite(history.quat_x)
+        latest_qy = latest_finite(history.quat_y)
+        latest_qz = latest_finite(history.quat_z)
 
-        axes = {
-            self.att_x_axis: _rotate_vector_by_quaternion((1.0, 0.0, 0.0), quat_w[-1], quat_x[-1], quat_y[-1], quat_z[-1]),
-            self.att_y_axis: _rotate_vector_by_quaternion((0.0, 1.0, 0.0), quat_w[-1], quat_x[-1], quat_y[-1], quat_z[-1]),
-            self.att_z_axis: _rotate_vector_by_quaternion((0.0, 0.0, 1.0), quat_w[-1], quat_x[-1], quat_y[-1], quat_z[-1]),
-        }
-        for line, (vx, vy, vz) in axes.items():
-            line.set_data_3d([0.0, vx], [0.0, vy], [0.0, vz])
+        alt_text = _fmt_value(latest_altitude, ".1f")
+        gps_alt_text = _fmt_value(latest_gps_altitude, ".1f")
+        self.txt_alt.set_text(f"Primary {alt_text} ft | GPS {gps_alt_text} ft")
+        self.txt_vel.set_text(f"{_fmt_value(latest_velocity, '.2f')} m/s")
+        self.txt_acc.set_text(f"{_fmt_value(latest_accel, '.2f')} m/s^2")
+
+        has_attitude = all(math.isfinite(value) for value in (latest_qw, latest_qx, latest_qy, latest_qz))
+        if has_attitude:
+            self.txt_att.set_text(
+                f"ENU | R {_fmt_value(latest_roll, '.1f')} | P {_fmt_value(latest_pitch, '.1f')} | Y {_fmt_value(latest_yaw, '.1f')}"
+            )
+            axes = {
+                self.att_x_axis: _rotate_vector_by_quaternion((1.0, 0.0, 0.0), latest_qw, latest_qx, latest_qy, latest_qz),
+                self.att_y_axis: _rotate_vector_by_quaternion((0.0, 1.0, 0.0), latest_qw, latest_qx, latest_qy, latest_qz),
+                self.att_z_axis: _rotate_vector_by_quaternion((0.0, 0.0, 1.0), latest_qw, latest_qx, latest_qy, latest_qz),
+            }
+            for line, (vx, vy, vz) in axes.items():
+                line.set_data_3d([0.0, vx], [0.0, vy], [0.0, vz])
+        else:
+            self.txt_att.set_text("No attitude in current packet stream")
+            for line, axis in (
+                (self.att_x_axis, (1.0, 0.0, 0.0)),
+                (self.att_y_axis, (0.0, 1.0, 0.0)),
+                (self.att_z_axis, (0.0, 0.0, 1.0)),
+            ):
+                vx, vy, vz = axis
+                line.set_data_3d([0.0, vx], [0.0, vy], [0.0, vz])
 
         latest_battery = latest_finite(history.battery_volts)
         battery_text = "--" if not math.isfinite(latest_battery) else f"{latest_battery:.2f} V"
         gps_text = "FIX" if gps_pairs else "NO FIX"
         self.status.set_text(
-            f"Samples: {len(times)} | Alt {altitude[-1]:.1f} ft | Vz {velocity[-1]:.2f} m/s | "
-            f"Az {accel[-1]:.2f} m/s^2 | Battery {battery_text} | GPS {gps_text}"
+            f"Samples: {len(times)} | Alt {_fmt_value(latest_altitude, '.1f')} ft | "
+            f"GPS Alt {_fmt_value(latest_gps_altitude, '.1f')} ft | "
+            f"Vz {_fmt_value(latest_velocity, '.2f')} m/s | "
+            f"Az {_fmt_value(latest_accel, '.2f')} m/s^2 | Battery {battery_text} | GPS {gps_text}"
         )
 
         self.fig.canvas.draw_idle()

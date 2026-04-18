@@ -9,7 +9,7 @@ from typing import Any
 
 from bleak import BleakClient
 
-from .ble import command_console, find_device, make_notification_handler
+from .ble import BleDiscoveryError, command_console, find_device, make_notification_handler
 from .config import (
     BLE_CONNECT_TIMEOUT_SECS,
     DEVICE_NAME,
@@ -94,21 +94,21 @@ async def connect_ble(device) -> BleakClient:
 
 
 async def main() -> None:
-    print(f"[INIT] Searching for {DEVICE_NAME}...")
-    device = await find_device(DEVICE_NAME)
-    if not device:
-        print(f"[ERROR] Device '{DEVICE_NAME}' not found")
-        return
-
     raw_q: asyncio.Queue[bytes] = asyncio.Queue(maxsize=RAW_Q_MAX)
     history = TelemetryHistory()
     parser = AviTelemetryStreamParser()
     running = {"open": True}
     dashboard: Dashboard | None = None
 
-    print(f"[INIT] Found {device.address}, connecting...")
     client: BleakClient | None = None
     try:
+        print(f"[INIT] Searching for {DEVICE_NAME}...")
+        device = await find_device(DEVICE_NAME)
+        if not device:
+            print(f"[ERROR] Device '{DEVICE_NAME}' not found")
+            return
+
+        print(f"[INIT] Found {device.address}, connecting...")
         client = await connect_ble(device)
         if not client.is_connected:
             print("[ERROR] BLE connect failed")
@@ -150,6 +150,8 @@ async def main() -> None:
                 await client.stop_notify(NUS_NOTIFY_UUID)
             if dashboard is not None:
                 dashboard.close()
+    except BleDiscoveryError as exc:
+        print(f"[ERROR] {exc}")
     except Exception as exc:
         print(f"[ERROR] BLE startup failed: {type(exc).__name__}: {exc}")
     finally:
@@ -161,4 +163,7 @@ async def main() -> None:
 
 
 def run() -> None:
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("[EXIT] Interrupted")

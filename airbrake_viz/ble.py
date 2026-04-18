@@ -5,11 +5,28 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import queue
+import sys
 import threading
 
 from bleak import BleakClient, BleakScanner
 
 from .config import DROP_TO_REALTIME
+
+
+class BleDiscoveryError(RuntimeError):
+    """Raised when BLE scanning cannot start or complete."""
+
+
+def _format_discovery_error(exc: Exception) -> str:
+    if isinstance(exc, OSError):
+        winerror = getattr(exc, "winerror", None)
+        if sys.platform == "win32" and winerror == -2147020577:
+            return (
+                "Bluetooth scan failed because Windows reports the device is not ready for use. "
+                "Make sure Bluetooth is turned on, the adapter is enabled, and no other app is holding the radio in a bad state."
+            )
+
+    return f"Bluetooth scan failed: {type(exc).__name__}: {exc}"
 
 
 def make_notification_handler(raw_q: asyncio.Queue[bytes]):
@@ -28,7 +45,11 @@ def make_notification_handler(raw_q: asyncio.Queue[bytes]):
 
 
 async def find_device(name: str):
-    devices = await BleakScanner.discover(timeout=6.0)
+    try:
+        devices = await BleakScanner.discover(timeout=6.0)
+    except Exception as exc:
+        raise BleDiscoveryError(_format_discovery_error(exc)) from exc
+
     for device in devices:
         if device.name == name:
             return device
