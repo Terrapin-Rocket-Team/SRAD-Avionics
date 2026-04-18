@@ -123,6 +123,8 @@ namespace
             const double baroAltitudeM = baro.getASLAltM();
             telemetry.hasBaroAltitude = true;
             telemetry.baroAltitudeFeet = metersToFeet(baroAltitudeM);
+            telemetry.hasBaroTemperature = true;
+            telemetry.baroTemperatureC = static_cast<float>(baro.getTemp());
 
             float baroVelocityZMs = 0.0f;
             telemetry.hasBaroVelocity = updateDerivedVelocity(

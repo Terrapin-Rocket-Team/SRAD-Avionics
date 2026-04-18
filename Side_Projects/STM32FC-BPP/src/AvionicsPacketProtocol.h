@@ -78,6 +78,8 @@ struct BppTelemetry
 {
     bool hasBaroAltitude = false;
     float baroAltitudeFeet = 0.0f;
+    bool hasBaroTemperature = false;
+    float baroTemperatureC = 0.0f;
     bool hasBaroVelocity = false;
     float baroVelocityZMs = 0.0f;
     bool hasGps = false;
@@ -112,7 +114,7 @@ constexpr size_t abTelemetryPacketSize()
 
 constexpr size_t bppTelemetryPayloadSize()
 {
-    return 1 + 4 + 4 + 2 + 4 + 4 + 2 + 2;
+    return 1 + 4 + 4 + 2 + 4 + 4 + 2 + 2 + 2;
 }
 
 constexpr size_t bppTelemetryPacketSize()
@@ -384,6 +386,8 @@ inline bool encodeBppTelemetry(const BppTelemetry &input, PacketBuffer &packet)
         flags |= 0x08;
     if (input.hasGpsVelocity)
         flags |= 0x10;
+    if (input.hasBaroTemperature)
+        flags |= 0x20;
     payload[offset++] = flags;
 
     const int32_t baroAltitudeFeet = input.hasBaroAltitude
@@ -417,6 +421,10 @@ inline bool encodeBppTelemetry(const BppTelemetry &input, PacketBuffer &packet)
 
     const int16_t gpsVelocityCms = input.hasGpsVelocity ? quantizeSigned(input.gpsVelocityZMs, 10.0f) : kUnknownSigned16;
     writeI16LE(&payload[offset], gpsVelocityCms);
+    offset += 2;
+
+    const int16_t baroTemperatureDeciC = input.hasBaroTemperature ? quantizeSigned(input.baroTemperatureC, 10.0f) : kUnknownSigned16;
+    writeI16LE(&payload[offset], baroTemperatureDeciC);
     offset += 2;
 
     return buildPacket(MessageType::BPPTELEM, payload, offset, packet);
@@ -577,6 +585,11 @@ inline bool decodeBppTelemetry(const uint8_t *packet, size_t packetSize, BppTele
     offset += 2;
     output.hasGpsVelocity = (flags & 0x10) != 0 && gpsVelocityCms != kUnknownSigned16;
     output.gpsVelocityZMs = output.hasGpsVelocity ? static_cast<float>(gpsVelocityCms) / 10.0f : 0.0f;
+
+    const int16_t baroTemperatureDeciC = readI16LE(&payload[offset]);
+    offset += 2;
+    output.hasBaroTemperature = (flags & 0x20) != 0 && baroTemperatureDeciC != kUnknownSigned16;
+    output.baroTemperatureC = output.hasBaroTemperature ? static_cast<float>(baroTemperatureDeciC) / 10.0f : 0.0f;
 
     return offset == bppTelemetryPayloadSize();
 }
