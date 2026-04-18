@@ -279,13 +279,15 @@ class Dashboard:
                 line.set_data_3d([0.0, vx], [0.0, vy], [0.0, vz])
 
         latest_battery = latest_finite(history.battery_volts)
+        latest_temperature = latest_finite(history.temperature_c)
         battery_text = "--" if not math.isfinite(latest_battery) else f"{latest_battery:.2f} V"
+        temperature_text = "--" if not math.isfinite(latest_temperature) else f"{latest_temperature:.1f} C"
         gps_text = "FIX" if gps_pairs else "NO FIX"
         self.status.set_text(
             f"Samples: {len(times)} | Alt {_fmt_value(latest_altitude, '.1f')} ft | "
             f"GPS Alt {_fmt_value(latest_gps_altitude, '.1f')} ft | "
             f"Vz {_fmt_value(latest_velocity, '.2f')} m/s | "
-            f"Az {_fmt_value(latest_accel, '.2f')} m/s^2 | Battery {battery_text} | GPS {gps_text}"
+            f"Az {_fmt_value(latest_accel, '.2f')} m/s^2 | Battery {battery_text} | Temp {temperature_text} | GPS {gps_text}"
         )
 
         self.fig.canvas.draw_idle()

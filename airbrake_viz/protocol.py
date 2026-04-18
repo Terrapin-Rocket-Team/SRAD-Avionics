@@ -21,7 +21,7 @@ class MessageType(IntEnum):
 
 # Keep this aligned with STM32FC/src/AvionicsPacketProtocol.h::aviTelemetryPayloadSize().
 AVI_TELEMETRY_PAYLOAD_SIZE = 26
-BPP_TELEMETRY_PAYLOAD_SIZE = 23
+BPP_TELEMETRY_PAYLOAD_SIZE = 25
 FIXED_PAYLOAD_SIZES = {
     MessageType.AVITELEM: {AVI_TELEMETRY_PAYLOAD_SIZE},
     MessageType.BPPTELEM: {BPP_TELEMETRY_PAYLOAD_SIZE},
@@ -49,6 +49,7 @@ class TelemetrySample:
     pitch_deg: float
     yaw_deg: float
     battery_volts: float
+    temperature_c: float
     latitude_deg: float
     longitude_deg: float
 
@@ -147,6 +148,7 @@ def decode_avi_telemetry(packet: bytes, sample_time_s: float) -> TelemetrySample
         pitch_deg=pitch_deg,
         yaw_deg=yaw_deg,
         battery_volts=battery_volts,
+        temperature_c=math.nan,
         latitude_deg=latitude_deg,
         longitude_deg=longitude_deg,
     )
@@ -182,12 +184,16 @@ def decode_bpp_telemetry(packet: bytes, sample_time_s: float) -> TelemetrySample
 
     baro_velocity_raw = _read_i16le(payload, 19)
     gps_velocity_raw = _read_i16le(payload, 21)
+    baro_temperature_raw = _read_i16le(payload, 23)
     baro_velocity_z_ms = math.nan
     gps_velocity_z_ms = math.nan
+    temperature_c = math.nan
     if (flags & 0x08) and baro_velocity_raw != UNKNOWN_SIGNED16:
         baro_velocity_z_ms = baro_velocity_raw / 10.0
     if (flags & 0x10) and gps_velocity_raw != UNKNOWN_SIGNED16:
         gps_velocity_z_ms = gps_velocity_raw / 10.0
+    if (flags & 0x20) and baro_temperature_raw != UNKNOWN_SIGNED16:
+        temperature_c = baro_temperature_raw / 10.0
 
     return TelemetrySample(
         time_s=sample_time_s,
@@ -206,6 +212,7 @@ def decode_bpp_telemetry(packet: bytes, sample_time_s: float) -> TelemetrySample
         pitch_deg=math.nan,
         yaw_deg=math.nan,
         battery_volts=battery_volts,
+        temperature_c=temperature_c,
         latitude_deg=latitude_deg,
         longitude_deg=longitude_deg,
     )
@@ -221,6 +228,7 @@ def sample_has_signal(sample: TelemetrySample) -> bool:
         sample.accel_z_ms2,
         sample.baro_agl_ft,
         sample.battery_volts,
+        sample.temperature_c,
         sample.latitude_deg,
         sample.longitude_deg,
     )
@@ -233,12 +241,13 @@ def summarize_sample(sample: TelemetrySample) -> str:
     baro_vz_text = "nan" if not math.isfinite(sample.baro_velocity_z_ms) else f"{sample.baro_velocity_z_ms:.2f}m/s"
     gps_vz_text = "nan" if not math.isfinite(sample.gps_velocity_z_ms) else f"{sample.gps_velocity_z_ms:.2f}m/s"
     battery_text = "nan" if not math.isfinite(sample.battery_volts) else f"{sample.battery_volts:.2f}V"
+    temp_text = "nan" if not math.isfinite(sample.temperature_c) else f"{sample.temperature_c:.1f}C"
     lat_text = "nan" if not math.isfinite(sample.latitude_deg) else f"{sample.latitude_deg:.6f}"
     lon_text = "nan" if not math.isfinite(sample.longitude_deg) else f"{sample.longitude_deg:.6f}"
     return (
         f"alt={sample.altitude_ft:.1f}ft vz={sample.velocity_z_ms:.2f}m/s "
         f"baro_vz={baro_vz_text} gps_vz={gps_vz_text} "
-        f"az={sample.accel_z_ms2:.2f}m/s^2 baro={baro_text} gps_alt={gps_alt_text} batt={battery_text} "
+        f"az={sample.accel_z_ms2:.2f}m/s^2 baro={baro_text} gps_alt={gps_alt_text} batt={battery_text} temp={temp_text} "
         f"lat={lat_text} lon={lon_text} "
         f"quat=({sample.quat_w:.3f},{sample.quat_x:.3f},{sample.quat_y:.3f},{sample.quat_z:.3f})"
     )

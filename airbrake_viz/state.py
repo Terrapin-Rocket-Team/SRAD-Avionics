@@ -35,6 +35,7 @@ class TelemetryHistory:
     pitch_deg: deque[float] = field(init=False)
     yaw_deg: deque[float] = field(init=False)
     battery_volts: deque[float] = field(init=False)
+    temperature_c: deque[float] = field(init=False)
     latitude_deg: deque[float] = field(init=False)
     longitude_deg: deque[float] = field(init=False)
 
@@ -54,6 +55,7 @@ class TelemetryHistory:
         self.pitch_deg = deque(maxlen=self.max_points)
         self.yaw_deg = deque(maxlen=self.max_points)
         self.battery_volts = deque(maxlen=self.max_points)
+        self.temperature_c = deque(maxlen=self.max_points)
         self.latitude_deg = deque(maxlen=self.max_points)
         self.longitude_deg = deque(maxlen=self.max_points)
 
@@ -73,6 +75,7 @@ class TelemetryHistory:
         self.pitch_deg.append(sample.pitch_deg)
         self.yaw_deg.append(sample.yaw_deg)
         self.battery_volts.append(sample.battery_volts)
+        self.temperature_c.append(sample.temperature_c)
         self.latitude_deg.append(sample.latitude_deg)
         self.longitude_deg.append(sample.longitude_deg)
 
