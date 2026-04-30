@@ -71,6 +71,7 @@ void loop()
 
     if (voltReadRate.evaluate())
     {
+        digitalWrite(STAT, HIGH);
         // get current voltages
         float bat = 0, rail = 0, charge = 0;
         getVoltage(bat, rail, charge);
@@ -79,6 +80,7 @@ void loop()
         // write data
         Serial.write(voltStr);
         Serial.write(0);
+        digitalWrite(STAT, LOW);
     }
 
     if (startCH1.evaluate())
