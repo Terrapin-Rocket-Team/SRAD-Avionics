@@ -21,9 +21,8 @@ namespace {
     constexpr PyroChannel PYRO_CHANNELS[] = {
         {"Channel 1", PB1, PB0, true},
         {"Channel 2", PA7, PA6, true},
-        {"Channel 3", PE13, PE8, false},
-        {"Channel 4", PE9, PE12, false},
     };
+    constexpr size_t PYRO_CHANNEL_COUNT = sizeof(PYRO_CHANNELS) / sizeof(PYRO_CHANNELS[0]);
 
     constexpr unsigned long ARM_SETTLE_MS = 150;
     constexpr unsigned long HEARTBEAT_MS = 10000;
@@ -62,7 +61,7 @@ namespace {
     }
 
     void setChannelFireState(size_t channelIndex, bool enabled) {
-        if (channelIndex >= (sizeof(PYRO_CHANNELS) / sizeof(PYRO_CHANNELS[0]))) {
+        if (channelIndex >= PYRO_CHANNEL_COUNT) {
             return;
         }
 
@@ -179,7 +178,7 @@ namespace {
         Console.print("[PYRO] Outputs: ARM=");
         Console.print(outputIsHigh(ARM_PIN) ? "HIGH" : "LOW");
 
-        for (size_t i = 0; i < (sizeof(PYRO_CHANNELS) / sizeof(PYRO_CHANNELS[0])); i++) {
+        for (size_t i = 0; i < PYRO_CHANNEL_COUNT; i++) {
             Console.print(", CH");
             Console.print(i + 1);
             Console.print("_FIRE=");
@@ -214,7 +213,7 @@ namespace {
         const float supplyPinVolts = readSupplyPinVoltage();
         const float expectedPyroSensePinVolts = supplyPinVolts * (SENSE_DIVIDER_RATIO / VSENSE_DIVIDER_RATIO);
 
-        for (size_t i = 0; i < (sizeof(PYRO_CHANNELS) / sizeof(PYRO_CHANNELS[0])); i++) {
+        for (size_t i = 0; i < PYRO_CHANNEL_COUNT; i++) {
             Console.print(", ");
             char label[16] = {};
             snprintf(label, sizeof(label), "CH%u_SENS", static_cast<unsigned>(i + 1));
@@ -259,19 +258,27 @@ namespace {
 
     void printControls() {
         Console.println("[PYRO] Manual control mode. Single-key commands; Enter is not required.");
-        Console.println("[PYRO] ARM output: PA3, ARM sense: PA2");
+        Console.println("[PYRO] ARM output: PA3 (through series resistor), ARM sense: PA2");
         Console.println("[PYRO] CH1 FIRE/SENS: PB1 / PB0");
         Console.println("[PYRO] CH2 FIRE/SENS: PA7 / PA6");
-        Console.println("[PYRO] CH3 FIRE/SENS: PE13 / PE8");
-        Console.println("[PYRO] CH4 FIRE/SENS: PE9 / PE12");
-        Console.println("[PYRO] Commands: a=toggle ARM, 1-4=toggle FIRE output, s=all LOW, p=print now, h/?=help, q/0=exit");
-        Console.print("[PYRO] CH1 and CH2 continuity are ADC-based and compare against ");
+        Console.println("[PYRO] Commands: a=toggle ARM, 1-2=toggle FIRE output, s=all LOW, p=print now, h/?=help, q/0=exit");
+        Console.print("[PYRO] Both continuity channels are ADC-based and compare against ");
         Console.print(CONTINUITY_THRESHOLD_RATIO * 100.0f, 0);
         Console.println("% of V_SENSE.");
-        Console.println("[PYRO] CH3 and CH4 are digital-only on this MCU pinout.");
     }
 
     bool handleCommand(char input, unsigned long& lastHeartbeatMs) {
+        if (input >= '1' && input < ('1' + static_cast<char>(PYRO_CHANNEL_COUNT))) {
+            const size_t channelIndex = static_cast<size_t>(input - '1');
+            Console.print("[PYRO] ");
+            Console.print(PYRO_CHANNELS[channelIndex].label);
+            Console.print(" FIRE -> ");
+            Console.println(toggleChannelFireState(channelIndex) ? "HIGH" : "LOW");
+            printHeartbeat();
+            lastHeartbeatMs = millis();
+            return false;
+        }
+
         switch (input) {
             case 'a':
             case 'A':
@@ -280,20 +287,6 @@ namespace {
                 printHeartbeat();
                 lastHeartbeatMs = millis();
                 return false;
-
-            case '1':
-            case '2':
-            case '3':
-            case '4': {
-                const size_t channelIndex = static_cast<size_t>(input - '1');
-                Console.print("[PYRO] ");
-                Console.print(PYRO_CHANNELS[channelIndex].label);
-                Console.print(" FIRE -> ");
-                Console.println(toggleChannelFireState(channelIndex) ? "HIGH" : "LOW");
-                printHeartbeat();
-                lastHeartbeatMs = millis();
-                return false;
-            }
 
             case 's':
             case 'S':

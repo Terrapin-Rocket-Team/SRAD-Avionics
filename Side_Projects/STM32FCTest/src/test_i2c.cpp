@@ -11,7 +11,7 @@
 #define BMI088_GYRO_ADDR    0x68  // BMI088 Gyroscope (or 0x69 if SDO high)
 #define H3LIS331DL_ADDR     0x18  // H3LIS331DL High-g Accelerometer (or 0x19 if SDO high)
 #define MMC5603_ADDR        0x30  // MMC5603 Magnetometer
-#define DPS368_ADDR         0x77  // DPS368 Barometer (or 0x76 if SDO low)
+#define MS5611_ADDR         0x76  // MS5611 barometer, strapped for I2C address 0x76 on current PCB
 
 // WHO_AM_I / ID registers
 #define BMI088_ACCEL_CHIP_ID_REG  0x00
@@ -22,8 +22,10 @@
 #define H3LIS331DL_WHO_AM_I       0x32
 #define MMC5603_PRODUCT_ID_REG    0x39
 #define MMC5603_PRODUCT_ID        0x10
-#define DPS368_PROD_ID_REG        0x0D
-#define DPS368_PROD_ID            0x10
+
+// MS5611 commands
+#define MS5611_CMD_RESET          0x1E
+#define MS5611_PROM_C1_MSB        0xA2
 
 namespace I2CTest {
     void setup() {
@@ -77,6 +79,23 @@ namespace I2CTest {
         return 0xFF;  // Error value
     }
 
+    uint16_t readRegister16(uint8_t addr, uint8_t reg) {
+        Wire.beginTransmission(addr);
+        Wire.write(reg);
+        if (Wire.endTransmission(false) != 0) {
+            return 0xFFFF;
+        }
+
+        Wire.requestFrom(addr, (uint8_t)2);
+        if (Wire.available() < 2) {
+            return 0xFFFF;
+        }
+
+        uint16_t msb = Wire.read();
+        uint16_t lsb = Wire.read();
+        return static_cast<uint16_t>((msb << 8) | lsb);
+    }
+
     // Test individual sensor by reading its ID register
     bool testSensor(const char* name, uint8_t addr, uint8_t idReg, uint8_t expectedId) {
         Console.print("[I2C] Testing ");
@@ -108,9 +127,38 @@ namespace I2CTest {
         }
     }
 
+    bool testMS5611(uint8_t addr) {
+        Console.print("[I2C] Testing MS5611 at 0x");
+        if (addr < 16) Console.print("0");
+        Console.print(addr, HEX);
+        Console.print("... ");
+
+        Wire.beginTransmission(addr);
+        Wire.write(MS5611_CMD_RESET);
+        byte error = Wire.endTransmission();
+        if (error != 0) {
+            Console.println("X No response to reset");
+            return false;
+        }
+
+        delay(5);
+
+        const uint16_t promC1 = readRegister16(addr, MS5611_PROM_C1_MSB);
+        if (promC1 == 0xFFFF || promC1 == 0x0000) {
+            Console.print("X PROM read failed (C1=0x");
+            Console.print(promC1, HEX);
+            Console.println(")");
+            return false;
+        }
+
+        Console.print("OK PROM C1: 0x");
+        Console.println(promC1, HEX);
+        return true;
+    }
+
     void run() {
         Console.println("\n[I2C] Running I2C sensors test...");
-        Console.println("[I2C] Testing 5 sensors on the bus\n");
+        Console.println("[I2C] Testing 6 sensors on the bus\n");
 
         // First, scan the entire bus
         Console.println("[I2C] === Step 1: Bus Scan ===");
@@ -121,10 +169,10 @@ namespace I2CTest {
         Console.println("[I2C] === Step 2: Sensor Identification ===");
 
         int passCount = 0;
-        int totalSensors = 5;
+        int totalSensors = 6;
 
         // Test 1: SAM-M10Q GNSS
-        Console.println("\n[I2C] [1/5] SAM-M10Q GNSS Module");
+        Console.println("\n[I2C] [1/6] SAM-M10Q GNSS Module");
         Wire.beginTransmission(SAM_M10Q_ADDR);
         byte error = Wire.endTransmission();
         if (error == 0) {
@@ -136,7 +184,7 @@ namespace I2CTest {
         }
 
         // Test 2: BMI088 Accelerometer
-        Console.println("\n[I2C] [2/5] BMI088 Accelerometer");
+        Console.println("\n[I2C] [2/6] BMI088 Accelerometer");
         if (testSensor("BMI088 Accel", BMI088_ACCEL_ADDR, BMI088_ACCEL_CHIP_ID_REG, BMI088_ACCEL_CHIP_ID)) {
             passCount++;
         } else {
@@ -148,7 +196,7 @@ namespace I2CTest {
         }
 
         // Test 3: BMI088 Gyroscope
-        Console.println("\n[I2C] [3/5] BMI088 Gyroscope");
+        Console.println("\n[I2C] [3/6] BMI088 Gyroscope");
         if (testSensor("BMI088 Gyro", BMI088_GYRO_ADDR, BMI088_GYRO_CHIP_ID_REG, BMI088_GYRO_CHIP_ID)) {
             passCount++;
         } else {
@@ -160,7 +208,7 @@ namespace I2CTest {
         }
 
         // Test 4: H3LIS331DL High-g Accelerometer
-        Console.println("\n[I2C] [4/5] H3LIS331DL High-g Accelerometer");
+        Console.println("\n[I2C] [4/6] H3LIS331DL High-g Accelerometer");
         // Note: H3LIS331DL shares address with BMI088 accel, need to check based on ID
         if (testSensor("H3LIS331DL", H3LIS331DL_ADDR, H3LIS331DL_WHO_AM_I_REG, H3LIS331DL_WHO_AM_I)) {
             passCount++;
@@ -173,23 +221,15 @@ namespace I2CTest {
         }
 
         // Test 5: MMC5603 Magnetometer
-        Console.println("\n[I2C] [5/5] MMC5603 Magnetometer");
+        Console.println("\n[I2C] [5/6] MMC5603 Magnetometer");
         if (testSensor("MMC5603", MMC5603_ADDR, MMC5603_PRODUCT_ID_REG, MMC5603_PRODUCT_ID)) {
             passCount++;
         }
 
-        // Test 6: DPS368 Barometer
-        Console.println("\n[I2C] [6/6] DPS368 Barometric Pressure Sensor");
-        if (testSensor("DPS368", DPS368_ADDR, DPS368_PROD_ID_REG, DPS368_PROD_ID)) {
+        // Test 6: MS5611 Barometer
+        Console.println("\n[I2C] [6/6] MS5611 Barometric Pressure Sensor");
+        if (testMS5611(MS5611_ADDR)) {
             passCount++;
-            totalSensors++;  // We actually have 6 sensors
-        } else {
-            // Try alternate address
-            Console.println("[I2C] Trying alternate address 0x76...");
-            if (testSensor("DPS368", 0x76, DPS368_PROD_ID_REG, DPS368_PROD_ID)) {
-                passCount++;
-                totalSensors++;
-            }
         }
 
         // Summary

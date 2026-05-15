@@ -10,6 +10,11 @@
 #include "../tests/test_battery.h"
 #include "../tests/test_radio.h"
 
+#if defined(USE_UART_CONSOLE)
+// PB13 is RX from the connector, PB12 is TX to the connector.
+HardwareSerial UARTConsole(PB13, PB12);
+#endif
+
 // Console interface can be configured to use either USB CDC or UART
 // Configure in platformio.ini: USE_USB_CONSOLE or USE_UART_CONSOLE
 // Console is defined in test_menu.h based on compile-time flags

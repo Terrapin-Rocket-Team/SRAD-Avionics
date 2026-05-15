@@ -6,12 +6,13 @@
 // Console configuration
 // Select console based on compile-time flags
 #if defined(USE_UART_CONSOLE)
-    // UART Console on PB6 (TX) and PB7 (RX)
-    // Serial1 is typically used for hardware UART on STM32
-    #define Console Serial1
+    // UART console on the external connector using PB12 (TX) and PB13 (RX)
+    // The board routes these pins to UART5, so use an explicit HardwareSerial.
+    extern HardwareSerial UARTConsole;
+    #define Console UARTConsole
     #define CONSOLE_BAUD 115200
-    #define CONSOLE_TYPE "UART"
-    #define CONSOLE_PINS "PB6/PB7"
+    #define CONSOLE_TYPE "UART5"
+    #define CONSOLE_PINS "PB12/PB13"
 #elif defined(USE_USB_CONSOLE)
     // USB CDC Console on PA11/PA12
     #define Console Serial

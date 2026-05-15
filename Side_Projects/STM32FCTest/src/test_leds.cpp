@@ -2,8 +2,9 @@
 #include "../tests/test_menu.h"
 
 // LED pin configuration
-#define LED_1 PC0
-#define LED_2 PC1
+#define LED_1 PE5
+#define LED_2 PE6
+#define LED_3 PA0
 
 // PWM configuration
 #define PWM_MAX_VALUE 255
@@ -12,29 +13,29 @@
 
 namespace LEDTest {
     // Smooth breathing effect using sine wave approximation
-    void breathingEffect(int led1, int led2, int cycles) {
-        Console.print("[LED] Alternating breathing effect (");
+    void breathingEffect(int led1, int led2, int led3, int cycles) {
+        Console.print("[LED] Three-LED breathing effect (");
         Console.print(cycles);
         Console.println(" cycles)");
 
         for (int cycle = 0; cycle < cycles; cycle++) {
-            // LED1 breathes in while LED2 breathes out
+            // Sweep brightness focus across all three LEDs in a smooth loop.
             for (int i = 0; i <= BREATHING_STEPS; i++) {
-                // Calculate brightness using smooth ease-in-out curve
                 float progress = (float)i / BREATHING_STEPS;
                 float easeInOut = progress < 0.5
                     ? 2 * progress * progress
                     : 1 - pow(-2 * progress + 2, 2) / 2;
 
                 int brightness1 = (int)(easeInOut * PWM_MAX_VALUE);
-                int brightness2 = PWM_MAX_VALUE - brightness1;  // Inverse for LED2
+                int brightness2 = (int)((1.0f - easeInOut) * PWM_MAX_VALUE);
+                int brightness3 = (int)(fabsf(0.5f - easeInOut) * 2.0f * PWM_MAX_VALUE);
 
                 analogWrite(led1, brightness1);
                 analogWrite(led2, brightness2);
+                analogWrite(led3, brightness3);
                 delay(BREATHING_DELAY);
             }
 
-            // LED1 breathes out while LED2 breathes in
             for (int i = BREATHING_STEPS; i >= 0; i--) {
                 float progress = (float)i / BREATHING_STEPS;
                 float easeInOut = progress < 0.5
@@ -42,17 +43,20 @@ namespace LEDTest {
                     : 1 - pow(-2 * progress + 2, 2) / 2;
 
                 int brightness1 = (int)(easeInOut * PWM_MAX_VALUE);
-                int brightness2 = PWM_MAX_VALUE - brightness1;
+                int brightness2 = (int)((1.0f - easeInOut) * PWM_MAX_VALUE);
+                int brightness3 = (int)(fabsf(0.5f - easeInOut) * 2.0f * PWM_MAX_VALUE);
 
                 analogWrite(led1, brightness1);
                 analogWrite(led2, brightness2);
+                analogWrite(led3, brightness3);
                 delay(BREATHING_DELAY);
             }
         }
 
-        // Turn off both LEDs
+        // Turn off all LEDs
         analogWrite(led1, 0);
         analogWrite(led2, 0);
+        analogWrite(led3, 0);
     }
 
     // Individual breathing effect for a single LED
@@ -92,30 +96,49 @@ namespace LEDTest {
         analogWrite(led, 0);
     }
 
-    // Knight Rider style sweep effect
-    void knightRiderEffect(int led1, int led2, int cycles) {
+    // Knight Rider style sweep effect across all three LEDs
+    void knightRiderEffect(int led1, int led2, int led3, int cycles) {
         Console.print("[LED] Knight Rider sweep (");
         Console.print(cycles);
         Console.println(" cycles)");
 
+        const int leds[] = {led1, led2, led3};
+
         for (int cycle = 0; cycle < cycles; cycle++) {
-            // Sweep left to right
-            for (int brightness = 0; brightness <= PWM_MAX_VALUE; brightness += 15) {
-                analogWrite(led1, brightness);
-                analogWrite(led2, PWM_MAX_VALUE - brightness);
-                delay(10);
+            for (int active = 0; active < 3; active++) {
+                for (int brightness = 0; brightness <= PWM_MAX_VALUE; brightness += 15) {
+                    for (int ledIndex = 0; ledIndex < 3; ledIndex++) {
+                        analogWrite(leds[ledIndex], ledIndex == active ? brightness : 0);
+                    }
+                    delay(10);
+                }
+                for (int brightness = PWM_MAX_VALUE; brightness >= 0; brightness -= 15) {
+                    for (int ledIndex = 0; ledIndex < 3; ledIndex++) {
+                        analogWrite(leds[ledIndex], ledIndex == active ? brightness : 0);
+                    }
+                    delay(10);
+                }
             }
 
-            // Sweep right to left
-            for (int brightness = PWM_MAX_VALUE; brightness >= 0; brightness -= 15) {
-                analogWrite(led1, brightness);
-                analogWrite(led2, PWM_MAX_VALUE - brightness);
-                delay(10);
+            for (int active = 1; active >= 0; active--) {
+                for (int brightness = 0; brightness <= PWM_MAX_VALUE; brightness += 15) {
+                    for (int ledIndex = 0; ledIndex < 3; ledIndex++) {
+                        analogWrite(leds[ledIndex], ledIndex == active ? brightness : 0);
+                    }
+                    delay(10);
+                }
+                for (int brightness = PWM_MAX_VALUE; brightness >= 0; brightness -= 15) {
+                    for (int ledIndex = 0; ledIndex < 3; ledIndex++) {
+                        analogWrite(leds[ledIndex], ledIndex == active ? brightness : 0);
+                    }
+                    delay(10);
+                }
             }
         }
 
         analogWrite(led1, 0);
         analogWrite(led2, 0);
+        analogWrite(led3, 0);
     }
 
     void setup() {
@@ -123,13 +146,16 @@ namespace LEDTest {
 
         pinMode(LED_1, OUTPUT);
         pinMode(LED_2, OUTPUT);
+        pinMode(LED_3, OUTPUT);
 
         // Start with LEDs off
         digitalWrite(LED_1, LOW);
         digitalWrite(LED_2, LOW);
+        digitalWrite(LED_3, LOW);
 
-        Console.println("[LED] LED 1 configured on PC0");
-        Console.println("[LED] LED 2 configured on PC1");
+        Console.println("[LED] LED 1 (SENS) configured on PE5");
+        Console.println("[LED] LED 2 (GPS) configured on PE6");
+        Console.println("[LED] LED 3 (BT) configured on PA0");
         Console.println("[LED] PWM breathing effects ready");
         Console.println("[LED] Setup complete");
     }
@@ -154,6 +180,13 @@ namespace LEDTest {
             digitalWrite(LED_2, LOW);
             Console.println("  LED2: OFF");
             delay(200);
+
+            digitalWrite(LED_3, HIGH);
+            Console.println("  LED3: ON");
+            delay(200);
+            digitalWrite(LED_3, LOW);
+            Console.println("  LED3: OFF");
+            delay(200);
         }
         Console.println();
 
@@ -161,23 +194,25 @@ namespace LEDTest {
 
         // Test 2: Individual breathing
         Console.println("[LED] Test 2: Individual LED breathing");
-        singleBreathingEffect(LED_1, "LED1 (PC0)", 2);
+        singleBreathingEffect(LED_1, "LED1 / SENS (PE5)", 2);
         delay(300);
-        singleBreathingEffect(LED_2, "LED2 (PC1)", 2);
+        singleBreathingEffect(LED_2, "LED2 / GPS (PE6)", 2);
+        delay(300);
+        singleBreathingEffect(LED_3, "LED3 / BT (PA0)", 2);
         Console.println();
 
         delay(500);
 
         // Test 3: Alternating breathing (the cool one!)
-        Console.println("[LED] Test 3: Alternating breathing");
-        breathingEffect(LED_1, LED_2, 3);
+        Console.println("[LED] Test 3: Three-LED breathing");
+        breathingEffect(LED_1, LED_2, LED_3, 3);
         Console.println();
 
         delay(500);
 
         // Test 4: Knight Rider sweep
         Console.println("[LED] Test 4: Knight Rider sweep");
-        knightRiderEffect(LED_1, LED_2, 3);
+        knightRiderEffect(LED_1, LED_2, LED_3, 3);
         Console.println();
 
         delay(500);
@@ -188,6 +223,7 @@ namespace LEDTest {
         for (int brightness = 0; brightness <= PWM_MAX_VALUE; brightness += 5) {
             analogWrite(LED_1, brightness);
             analogWrite(LED_2, brightness);
+            analogWrite(LED_3, brightness);
             delay(20);
         }
 
@@ -195,6 +231,7 @@ namespace LEDTest {
         for (int brightness = PWM_MAX_VALUE; brightness >= 0; brightness -= 5) {
             analogWrite(LED_1, brightness);
             analogWrite(LED_2, brightness);
+            analogWrite(LED_3, brightness);
             delay(20);
         }
         Console.println();
@@ -202,6 +239,7 @@ namespace LEDTest {
         // Ensure LEDs are off at the end
         analogWrite(LED_1, 0);
         analogWrite(LED_2, 0);
+        analogWrite(LED_3, 0);
 
         Console.println("[LED] All tests complete. Press '0' for menu.\n");
     }
