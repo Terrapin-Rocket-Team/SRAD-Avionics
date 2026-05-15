@@ -1,0 +1,38 @@
+{
+    "build": {
+     "arduino": {
+       "variant_h": "variant_generic.h"
+      },
+      "cpu": "cortex-m0plus",
+      "core": "stm32",
+      "extra_flags": "-DSTM32C0 -DSTM32C011xx",
+      "f_cpu": "48000000L",
+      "mcu": "stm32c011f6p6",
+      "usb_product": "Generic STM32C011F6",
+      "product_line": "STM32C011xx",
+      "variant": "STM32C0xx/C011D6Y_C011F(4-6)(P-U)"
+    },
+    "debug": {
+      "jlink_device": "STM32C011F6",
+      "openocd_target": "stm32c0x",
+      "svd_path": "STM32C011.svd"
+    },
+    "frameworks": [
+      "arduino",
+      "stm32cube"
+    ],
+    "name": "Generic STM32C011F6",
+    "upload": {
+      "maximum_ram_size": 6144,
+      "maximum_size": 32768,
+      "protocol": "stlink",
+      "protocols": [
+        "dfu",
+        "jlink",
+        "stlink",
+        "blackmagic"
+      ]
+    },
+    "url": "https://www.st.com/en/microcontrollers-microprocessors/stm32c011f6.html",
+    "vendor": "STMicroelectronics"
+  }

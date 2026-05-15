@@ -29,6 +29,7 @@ void setup()
     pinMode(RAIL_VOLT, INPUT);
     pinMode(CHARGE_VOLT, INPUT);
 
+    pinMode(STAT, OUTPUT);
     pinMode(PWR_CH1, OUTPUT);
     pinMode(PWR_CH2, OUTPUT);
     pinMode(PWR_CH3, OUTPUT);
@@ -36,12 +37,22 @@ void setup()
     pinMode(PWR_CH5, OUTPUT);
     pinMode(PWR_CH6, OUTPUT);
 
-    digitalWrite(PWR_CH1, PWR_CH1_DEFAULT);
-    digitalWrite(PWR_CH2, PWR_CH2_DEFAULT);
-    digitalWrite(PWR_CH3, PWR_CH3_DEFAULT);
-    digitalWrite(PWR_CH4, PWR_CH4_DEFAULT);
-    digitalWrite(PWR_CH5, PWR_CH5_DEFAULT);
-    digitalWrite(PWR_CH6, PWR_CH6_DEFAULT);
+    uint32_t ch1 = PA_2;
+    uint32_t ch2 = PA_1;
+    pinMode(ch1, OUTPUT);
+    pinMode(ch2, OUTPUT);
+    digitalWrite(ch1, HIGH);
+    digitalWrite(ch2, HIGH);
+
+    // digitalWrite(PWR_CH1, PWR_CH1_DEFAULT);
+    // digitalWrite(PWR_CH2, PWR_CH2_DEFAULT);
+    // digitalWrite(PWR_CH3, PWR_CH3_DEFAULT);
+    // digitalWrite(PWR_CH4, PWR_CH4_DEFAULT);
+    // digitalWrite(PWR_CH5, PWR_CH5_DEFAULT);
+    // digitalWrite(PWR_CH6, PWR_CH6_DEFAULT);
+
+    digitalWrite(STAT, HIGH);
+    // digitalWrite(PWR_CH2, HIGH);
 }
 
 void loop()

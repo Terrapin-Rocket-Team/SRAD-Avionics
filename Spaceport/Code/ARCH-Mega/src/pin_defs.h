@@ -3,7 +3,7 @@
 
 // User vars
 
-#define PWR_CH1_DEFAULT LOW
+#define PWR_CH1_DEFAULT HIGH
 #define PWR_CH2_DEFAULT LOW
 #define PWR_CH3_DEFAULT LOW
 #define PWR_CH4_DEFAULT LOW
@@ -12,12 +12,12 @@
 
 // system definitions
 
-#define PWR_CH1 1 // PA0
-#define PWR_CH2 2 // PA1
-#define PWR_CH3 3 // PA2
-#define PWR_CH4 4 // PA3
-#define PWR_CH5 5 // PA4
-#define PWR_CH6 6 // PA5
+#define PWR_CH1 pinNametoDigitalPin(PA_0) // PA0
+#define PWR_CH2 pinNametoDigitalPin(PA_1) // PA1
+#define PWR_CH3 pinNametoDigitalPin(PA_2) // PA2
+#define PWR_CH4 pinNametoDigitalPin(PA_3) // PA3
+#define PWR_CH5 pinNametoDigitalPin(PA_4) // PA4
+#define PWR_CH6 pinNametoDigitalPin(PA_5) // PA5
 
 #define VOLT0 7 // PA7
 #define VOLT1 6 // PA6
@@ -36,6 +36,6 @@
 #define RAIL_VOLT_MAX VOLT1_MAX
 #define CHARGE_VOLT_MAX VOLT2_MAX
 
-#define STAT 15 // PC15
+#define STAT pinNametoDigitalPin(PC_15) // PC15
 
 #endif
