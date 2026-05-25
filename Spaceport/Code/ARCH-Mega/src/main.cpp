@@ -7,14 +7,14 @@
 
 #define ADC_MAX 1023.
 
-const int PWR_CHNS[] = {PWR_CH1, PWR_CH2, PWR_CH3, PWR_CH4, PWR_CH5, PWR_CH6};
+const uint32_t PWR_CHNS[] = {PWR_CH1, PWR_CH2, PWR_CH3, PWR_CH4, PWR_CH5, PWR_CH6};
 
-HardwareSerial *s = nullptr;
+HardwareSerial Serial1A(PA_10_R, PA_9_R);
 Message m;
 GSControl cmdIn;
 Timer voltReadRate(1000);
 Timer startCH1(1 * 60 * 60 * 1000, TIMER_ONCE);
-char voltStr[100];
+char voltStr[50];
 bool hasMessage = false;
 
 void getVoltage(float &bat, float &rail, float &charge);
@@ -22,8 +22,7 @@ bool handler(char *cmd, uint16_t argc, char **argv);
 
 void setup()
 {
-    Serial.begin(115200);
-    s = (HardwareSerial *)&Serial;
+    Serial1A.begin(115200);
 
     pinMode(BAT_VOLT, INPUT);
     pinMode(RAIL_VOLT, INPUT);
@@ -37,29 +36,21 @@ void setup()
     pinMode(PWR_CH5, OUTPUT);
     pinMode(PWR_CH6, OUTPUT);
 
-    uint32_t ch1 = PA_2;
-    uint32_t ch2 = PA_1;
-    pinMode(ch1, OUTPUT);
-    pinMode(ch2, OUTPUT);
-    digitalWrite(ch1, HIGH);
-    digitalWrite(ch2, HIGH);
-
-    // digitalWrite(PWR_CH1, PWR_CH1_DEFAULT);
-    // digitalWrite(PWR_CH2, PWR_CH2_DEFAULT);
-    // digitalWrite(PWR_CH3, PWR_CH3_DEFAULT);
-    // digitalWrite(PWR_CH4, PWR_CH4_DEFAULT);
-    // digitalWrite(PWR_CH5, PWR_CH5_DEFAULT);
-    // digitalWrite(PWR_CH6, PWR_CH6_DEFAULT);
+    digitalWrite(PWR_CH1, PWR_CH1_DEFAULT);
+    digitalWrite(PWR_CH2, PWR_CH2_DEFAULT);
+    digitalWrite(PWR_CH3, PWR_CH3_DEFAULT);
+    digitalWrite(PWR_CH4, PWR_CH4_DEFAULT);
+    digitalWrite(PWR_CH5, PWR_CH5_DEFAULT);
+    digitalWrite(PWR_CH6, PWR_CH6_DEFAULT);
 
     digitalWrite(STAT, HIGH);
-    // digitalWrite(PWR_CH2, HIGH);
 }
 
 void loop()
 {
-    if (Serial.available())
+    if (Serial1A.available())
     {
-        char c = Serial.read();
+        char c = Serial1A.read();
         if (c != 0)
         {
             m.append(c);
@@ -76,21 +67,21 @@ void loop()
         bool res = cmdIn.processCmd(handler);
         m.clear();
         hasMessage = false;
-        Serial.write(res ? "ACK" : "NAK");
-        Serial.write(0);
+        Serial1A.write(res ? "ACK" : "NAK");
+        Serial1A.write(0);
     }
 
     if (voltReadRate.evaluate())
     {
         digitalWrite(STAT, HIGH);
         // get current voltages
-        float bat = 0, rail = 0, charge = 0;
+        float bat = 1, rail = 2, charge = 0;
         getVoltage(bat, rail, charge);
         // assemble data
-        snprintf(voltStr, sizeof(voltStr), "BAT=%.2f,RAIL=%.2f,CHG=%.2f", bat, rail, charge);
+        snprintf(voltStr, sizeof(voltStr), "BAT=%d,RAIL=%d,CHG=%d", (int)(bat * 1000), (int)(rail * 1000), (int)(charge * 1000));
         // write data
-        Serial.write(voltStr);
-        Serial.write(0);
+        Serial1A.write(voltStr);
+        Serial1A.write('\n');
         digitalWrite(STAT, LOW);
     }
 

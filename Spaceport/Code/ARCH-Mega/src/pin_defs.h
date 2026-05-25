@@ -24,9 +24,9 @@
 #define VOLT2 8 // PA8
 
 // TODO: tune to be exact
-#define VOLT0_MAX 8.4  // Bat voltage
-#define VOLT1_MAX 5    // 5V rail
-#define VOLT2_MAX 14.5 // Charge voltage
+#define VOLT0_MAX 8.643  // Bat voltage
+#define VOLT1_MAX 5.149  // 5V rail
+#define VOLT2_MAX 14.528 // Charge voltage
 
 #define BAT_VOLT VOLT0
 #define RAIL_VOLT VOLT1
