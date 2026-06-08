@@ -13,9 +13,32 @@
       "variant": "STM32C0xx/C011D6Y_C011F(4-6)(P-U)"
     },
     "debug": {
+      "default_tools": [
+        "stlink"
+      ],
       "jlink_device": "STM32C011F6",
       "openocd_target": "stm32c0x",
-      "svd_path": "STM32C011.svd"
+      "svd_path": "STM32C011.svd",
+      "tools": {
+        "stlink": {
+          "server": {
+            "package": "tool-openocd",
+            "executable": "bin/openocd",
+            "arguments": [
+              "-s",
+              "$PACKAGE_DIR/openocd/scripts",
+              "-s",
+              "boards",
+              "-f",
+              "interface/stlink.cfg",
+              "-c",
+              "transport select hla_swd",
+              "-f",
+              "stm32c0x.cfg"
+            ]
+          }
+        }
+      }
     },
     "frameworks": [
       "arduino",

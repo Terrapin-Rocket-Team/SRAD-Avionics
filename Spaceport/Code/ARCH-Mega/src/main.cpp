@@ -37,10 +37,15 @@ void setup()
     pinMode(PWR_CH6, OUTPUT);
 
     digitalWrite(PWR_CH1, PWR_CH1_DEFAULT);
+    delay(1000);
     digitalWrite(PWR_CH2, PWR_CH2_DEFAULT);
+    delay(1000);
     digitalWrite(PWR_CH3, PWR_CH3_DEFAULT);
+    delay(1000);
     digitalWrite(PWR_CH4, PWR_CH4_DEFAULT);
+    delay(1000);
     digitalWrite(PWR_CH5, PWR_CH5_DEFAULT);
+    delay(1000);
     digitalWrite(PWR_CH6, PWR_CH6_DEFAULT);
 
     digitalWrite(STAT, HIGH);

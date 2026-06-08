@@ -4,11 +4,11 @@
 // User vars
 
 #define PWR_CH1_DEFAULT HIGH
-#define PWR_CH2_DEFAULT LOW
-#define PWR_CH3_DEFAULT LOW
-#define PWR_CH4_DEFAULT LOW
-#define PWR_CH5_DEFAULT LOW
-#define PWR_CH6_DEFAULT LOW
+#define PWR_CH2_DEFAULT HIGH
+#define PWR_CH3_DEFAULT HIGH
+#define PWR_CH4_DEFAULT HIGH
+#define PWR_CH5_DEFAULT HIGH
+#define PWR_CH6_DEFAULT HIGH
 
 // system definitions
 
