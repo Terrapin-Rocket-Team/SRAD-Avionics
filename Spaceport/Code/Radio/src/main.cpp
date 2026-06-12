@@ -47,7 +47,8 @@ void setup()
 
 void loop()
 {
-    Serial.println("Hello world");
-    Serial1.println("Hello world");
-    delay(1000);
+    while (Serial.available())
+        Serial1.write(Serial.read());
+    while (Serial1.available())
+        Serial.write(Serial1.read());
 }

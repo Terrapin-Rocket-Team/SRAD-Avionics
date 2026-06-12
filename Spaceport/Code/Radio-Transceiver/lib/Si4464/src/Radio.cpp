@@ -60,6 +60,9 @@ void Radio::update()
         // check if there is a message to send and the rxTimeout is expired
         if (this->txMsgs.hasData() && millis() - this->rxTimer > this->rxTimeout)
         {
+            Serial1.println("sending msg");
+            Serial1.write(this->txMsgs.head->data, this->txMsgs.head->size);
+            Serial1.println();
             // reset rxTimeout
             this->rxTimer = millis();
 

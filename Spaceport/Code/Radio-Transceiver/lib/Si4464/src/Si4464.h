@@ -70,7 +70,7 @@ public:
     // length of the FIFO in default config
     static const uint8_t FIFO_LENGTH = 129; // bytes
     // RX_FIFO_FULL interrupt occurs when there are more than RX_THRESH bytes in FIFO
-    static const uint8_t RX_THRESH = 40; // bytes (max 64)
+    static const uint8_t RX_THRESH = 2; // bytes (max 64)
     // TX_FIFO_EMPTY interrupt occurs when there is more than TX_THRESH bytes of space in FIFO
     static const uint8_t TX_THRESH = 63; // bytes (max 64)
     // a Message object used to encode and decode the message
@@ -405,9 +405,11 @@ public:
     */
     void applyRadioConfig();
 
-private:
     SPIClass *spi;
+
     uint8_t _cs;
+
+private:
     // spi interface
     uint8_t _sdn;
     uint8_t _irq;

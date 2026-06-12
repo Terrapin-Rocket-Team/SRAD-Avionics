@@ -12,9 +12,14 @@ List::~List()
 
 void List::shift()
 {
-    Node *oldHead = this->head;
-    this->head = this->head->next;
-    delete oldHead;
+    if (this->head != nullptr)
+    {
+        Node *oldHead = this->head;
+        this->head = this->head->next;
+        if (this->head == nullptr)
+            this->tail = nullptr;
+        delete oldHead;
+    }
 }
 
 bool List::shift(uint8_t *data, uint16_t *size, uint16_t maxSize)
@@ -25,6 +30,8 @@ bool List::shift(uint8_t *data, uint16_t *size, uint16_t maxSize)
         *size = this->head->size;
         Node *oldHead = this->head;
         this->head = this->head->next;
+        if (this->head == nullptr)
+            this->tail = nullptr;
         delete oldHead;
 
         return true;
@@ -61,5 +68,5 @@ bool List::append(uint8_t *data, uint16_t size)
 
 bool List::hasData()
 {
-    return this->head == nullptr;
+    return this->head != nullptr;
 }

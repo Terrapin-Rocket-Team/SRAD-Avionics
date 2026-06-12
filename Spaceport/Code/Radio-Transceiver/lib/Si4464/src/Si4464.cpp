@@ -117,10 +117,6 @@ bool Si4464::begin()
     // disable interrupts
     this->setProperty(G_INT_CTL, P_INT_CTL_ENABLE, 0x00);
 
-    // set TX and RX thresholds
-    this->setTXThreshold(TX_THRESH);
-    this->setRXThreshold(RX_THRESH);
-
     // Set properties from WDS first
     this->applyRadioConfig();
     // set modem (frequency related) config
@@ -129,6 +125,10 @@ bool Si4464::begin()
     this->setPower(this->pwr);
     // turn on AFC
     // this->setAFC(true);
+
+    // set TX and RX thresholds
+    this->setTXThreshold(TX_THRESH);
+    this->setRXThreshold(RX_THRESH);
 
     // set defaults for gpio pins
     // this->setPins(PIN_TX_FIFO_EMPTY, PIN_RX_FIFO_FULL, PIN_RX_STATE, PIN_TX_STATE, PIN_CTS, false);
@@ -173,20 +173,21 @@ bool Si4464::rx(uint8_t *data, uint16_t *len, uint16_t maxLen)
             this->startRx();
         }
 
-        uint32_t rxTimer = millis();
+        // idk why this is here
+        // uint32_t rxTimer = millis();
 
-        // wait for message to be received
-        while (!this->available && millis() - rxTimer < Si4464::RX_TIMEOUT)
-        {
-            this->update();
-        }
+        // // wait for message to be received
+        // while (!this->available && millis() - rxTimer < Si4464::RX_TIMEOUT)
+        // {
+        //     this->update();
+        // }
     }
     // check if buffer is long enough and we got a message
     if (this->available && this->length <= maxLen)
     {
         // copy the message
         memcpy(data, this->buf, this->length);
-        *len = length;
+        *len = this->length;
         // message has been handed off so we no longer need to keep track of it
         this->available = false;
 
@@ -238,9 +239,9 @@ bool Si4464::startTX(const uint8_t *message, uint16_t len, uint16_t totalLen)
         while (count++ < FIFO_LENGTH - 2 && this->xfrd < this->availLen)
         {
             this->spi->transfer(this->buf[this->xfrd++]);
-            // Serial.print((char)this->buf[this->xfrd - 1]);
+            Serial1.print((char)this->buf[this->xfrd - 1]);
         }
-        // Serial.println();
+        Serial1.println();
 
         digitalWrite(this->_cs, HIGH);
 
@@ -436,17 +437,11 @@ void Si4464::handleRX()
     // this is how we read the packet until we have less than the RX FIFO THRESH left
     if (!this->RXFullFlag && this->gpio3()) // valid preamble and more than RX_THRESH bytes in FIFO
     {
-        this->RXFullFlag = true;
         // this->debugTimer = micros();
         // Serial.println("here");
         // Serial.println(this->xfrd);
         // Serial.println(this->length);
-        // uint8_t cClearFIFO[1] = {0b00000000};
-        // uint8_t rClearFIFO[2] = {0x00, 0x00};
-        // sendCommand(C_FIFO_INFO, 1, cClearFIFO, 2, rClearFIFO);
-        // Serial.println("FIFO STATUS");
-        // for (int i = 0; i < sizeof(rClearFIFO); i++)
-        //     Serial.println(rClearFIFO[i]);
+
         // rssi should be available
         if (this->xfrd == 0)
             this->rssi = this->readFRR(1);
@@ -459,7 +454,7 @@ void Si4464::handleRX()
         int lenBytes = 0;
 
         // if the internal length and xfrd variables are 0, then this is the first part of the message
-        if (this->xfrd == 0)
+        if (this->length == 0)
         {
             // so we need to read length
             uint8_t mLen[2] = {0x00, 0x00};
@@ -467,8 +462,8 @@ void Si4464::handleRX()
             mLen[1] = this->spi->transfer(0x00);
             // convert individual bytes to uint16_t
             from_bytes(this->length, 0, 0, mLen);
-            // Serial.print("len ");
-            // Serial.println(this->length);
+            // Serial1.print("len ");
+            // Serial1.println(this->length);
             lenBytes += 2;
             // make sure the message is not too long (could be erroneous transmission)
             if (this->length > Si4464::MAX_LEN || this->length == 0)
@@ -484,14 +479,25 @@ void Si4464::handleRX()
         {
             count++;
             this->buf[this->xfrd++] = this->spi->transfer(0x00);
-            // Serial.print((char)this->buf[this->xfrd - 1]);
+            Serial1.print((char)this->buf[this->xfrd - 1]);
         }
-        // Serial.println();
+        Serial1.println();
         digitalWrite(this->_cs, HIGH);
-        // Serial.print("count ");
-        // Serial.print(count);
-        // Serial.print("xfrd ");
-        // Serial.println(this->xfrd);
+        // Serial1.print("count ");
+        // Serial1.print(count);
+        // Serial1.print(" xfrd ");
+        // Serial1.println(this->xfrd);
+
+        uint8_t cClearFIFO[1] = {0b00000000};
+        uint8_t rClearFIFO[2] = {0x00, 0x00};
+        sendCommand(C_FIFO_INFO, 1, cClearFIFO, 2, rClearFIFO);
+        // Serial.println("FIFO STATUS");
+        // for (int i = 0; i < sizeof(rClearFIFO); i++)
+        //     Serial.println(rClearFIFO[i]);
+        if (rClearFIFO[0] < RX_THRESH)
+        {
+            this->RXFullFlag = true;
+        }
 
         // if we've transferred length bytes, we've received the whole message
         if (this->xfrd == this->length && this->length > 0)
@@ -533,9 +539,9 @@ void Si4464::handleRX()
             {
                 count++;
                 this->buf[this->xfrd++] = this->spi->transfer(0x00);
-                // Serial.print((char)this->buf[this->xfrd - 1]);
+                Serial1.print((char)this->buf[this->xfrd - 1]);
             }
-            // Serial.println();
+            Serial1.println();
             // Serial.print("count ");
             // Serial.print(count);
             // Serial.print("\txfrd ");
@@ -619,7 +625,7 @@ uint32_t Si4464::avail()
     // if we are not in receive mode, and there is no message available, enter receive mode
     if (this->state == STATE_IDLE && !this->available)
         this->startRx();
-    else
+    else if (this->available)
         // otherwise return the length of the message
         return this->length;
     return 0;
