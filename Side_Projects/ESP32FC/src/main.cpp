@@ -44,12 +44,14 @@ static constexpr uint32_t kFreqSwitchDelayMs = 1000;  // match the flight radio'
 static constexpr uint32_t kRevertTimeoutMs = 5000;
 static constexpr uint32_t kUplinkSlotOffsetMs = 650;
 static constexpr uint32_t kImmediateUplinkWindowMs = 900;
+static constexpr uint32_t kSelfHeartbeatMs = 1000;  // announce ourselves to the GS app over BLE
 
 static float g_curFreqMHz = kDefaultFreqMHz;
 static uint8_t g_curPhyProfile = kDefaultPhyProfile;
 static uint32_t g_lastRxMs = 0;
 static uint32_t g_lastDebugMs = 0;
 static uint32_t g_lastPollMs = 0;
+static uint32_t g_lastSelfHeartbeatMs = 0;
 static uint32_t g_irqCount = 0;
 static uint32_t g_pollCount = 0;
 static uint32_t g_downCount = 0;
@@ -98,6 +100,20 @@ static bool upDequeue(UpFrame &out) {
   out = g_upQ[g_upTail];
   g_upTail = (g_upTail + 1) % kUpQDepth;
   return true;
+}
+
+// The GS broadcasts a heartbeat ~1 Hz, but our uplink window only opens once per
+// downlink. If those periodic heartbeats shared the command FIFO they would fill
+// it and starve/drop real commands. Instead we keep only the *latest* heartbeat
+// in a single overwrite slot and send it only when no command is queued, so
+// liveness still reaches the rocket without ever crowding out commands.
+static UpFrame g_hbPending;
+static bool g_hbPendingValid = false;
+
+static void hbStore(const uint8_t *d, size_t n) {
+  memcpy(g_hbPending.data, d, n);
+  g_hbPending.len = n;
+  g_hbPendingValid = true;
 }
 
 // byte ring: BLE write task -> loop(). Guarded by a portMUX (cross-task).
@@ -245,6 +261,17 @@ static void sendStatusReportToGs(uint8_t to) {
   if (n > 0) notifyArcFrameToGs(frame, (size_t)n);
 }
 
+// Emit our own NETMGMT heartbeat to the GS app over BLE so the ground radio
+// (RADIO_G) shows up as a live node, independent of rocket downlink traffic.
+static void sendSelfHeartbeatToGs() {
+  uint8_t frame[ARC_MAX_FRAME_SIZE];
+  const int n = arc_frame_build(frame, sizeof(frame), ARC_ADDR_RADIO_G, ARC_ADDR_BROADCAST,
+                                0, g_session, g_seq++,
+                                ARC_FAMILY_NETMGMT, ARC_NETMGMT_HEARTBEAT,
+                                nullptr, 0);
+  if (n > 0) notifyArcFrameToGs(frame, (size_t)n);
+}
+
 static void waitForUplinkSlot() {
   const uint32_t elapsed = millis() - g_lastRxMs;
   if (elapsed < kUplinkSlotOffsetMs) delay(kUplinkSlotOffsetMs - elapsed);
@@ -252,8 +279,11 @@ static void waitForUplinkSlot() {
 
 // One COBS frame arrived from the GS app (uplink).
 static void handleUplinkFrame(const uint8_t *data, size_t n) {
+  bool isHeartbeat = false;
   arc_frame_t f;
   if (arc_frame_parse(data, n, &f) == ARC_OK) {
+    isHeartbeat =
+        (f.family == ARC_FAMILY_NETMGMT && f.type == ARC_NETMGMT_HEARTBEAT);
     if (f.dst == ARC_ADDR_RADIO_G) {
       if (f.flags & ARC_FLAG_RELIABLE) {
         ackLocalReliableToGs(f);
@@ -290,6 +320,13 @@ static void handleUplinkFrame(const uint8_t *data, size_t n) {
       }
     }
   }
+  // Heartbeats are deferrable liveness: hold only the latest, never queue them
+  // ahead of commands and never spend the immediate window on one.
+  if (isHeartbeat) {
+    hbStore(data, n);
+    return;
+  }
+
   if (millis() - g_lastRxMs <= kImmediateUplinkWindowMs) {
     waitForUplinkSlot();
     loraTransmit(data, n);
@@ -297,7 +334,7 @@ static void handleUplinkFrame(const uint8_t *data, size_t n) {
     radio.recieve();
     return;
   }
-  if (!upEnqueue(data, n)) USBSerial.println("[ARC] uplink queue full, dropped");
+  if (!upEnqueue(data, n)) USBSerial.println("[ARC] uplink command queue full, dropped");
 }
 
 // Feed one BLE byte into the COBS reassembler (single consumer: loop()).
@@ -368,11 +405,16 @@ static void handleDownlink() {
   notifyArcFrameToGs(raw, plen);
   USBSerial.printf("[LoRa] down %u B rssi=%.1f snr=%.1f\n", (unsigned)plen, rssi, snr);
 
-  // Command window is open now -> send one queued uplink, then resume RX.
+  // Command window is open now -> send one queued command (preferred), or fall
+  // back to the latest GS heartbeat so the rocket still learns the ground route.
   UpFrame up;
   if (upDequeue(up)) {
     waitForUplinkSlot();
     loraTransmit(up.data, up.len);
+  } else if (g_hbPendingValid) {
+    g_hbPendingValid = false;
+    waitForUplinkSlot();
+    loraTransmit(g_hbPending.data, g_hbPending.len);
   }
   g_irqFlag = false;
   radio.recieve();
@@ -509,6 +551,12 @@ void loop() {
     g_pollCount++;
   }
   if (radio.hasData()) handleDownlink();
+
+  // Announce ourselves to the GS app so RADIO_G appears as a live node.
+  if (g_notifyEnabled && now - g_lastSelfHeartbeatMs >= kSelfHeartbeatMs) {
+    g_lastSelfHeartbeatMs = now;
+    sendSelfHeartbeatToGs();
+  }
 
   // mirrored frequency hop + safety revert
   printDebug(now);
