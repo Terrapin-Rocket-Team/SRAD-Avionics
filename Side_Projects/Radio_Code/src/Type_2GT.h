@@ -23,10 +23,21 @@ public:
     size_t getPacketLength();
     int readData(uint8_t *data, size_t len);
     void respondToIrq();
+    // Retune the LoRa carrier (MHz). Both link ends must agree, so this is
+    // driven by the ARC RADIO SET_FREQUENCY flow, not called directly.
+    int setFrequency(float freqMHz);
+    int applyPhyProfile(uint8_t profileId);
+    float getRSSI();
+    float getSNR();
+    int getLastReceiveRc() const;
+    uint32_t getReceiveStartCount() const;
+    int getState() const;
 
 private:
     LR1121 rad;
     RAD_STATE state = IDLE;
+    int lastReceiveRc = RADIOLIB_ERR_NONE;
+    uint32_t receiveStartCount = 0;
 
 };
 

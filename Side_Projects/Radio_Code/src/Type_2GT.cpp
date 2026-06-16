@@ -1,5 +1,6 @@
 #ifdef STM32
 #include "Type_2GT.h"
+#include "arc_messages_radio.h"
 
 static const uint32_t rfswitch_dio_pins[] = {
     RADIOLIB_LR11X0_DIO5, RADIOLIB_LR11X0_DIO6,
@@ -17,23 +18,12 @@ static const Module::RfSwitchMode_t rfswitch_table[] = {
 Type2GT::Type2GT(uint8_t cs, uint8_t irq, uint8_t rst, uint8_t bsy, SPIClass &spi)
     : rad(new Module(cs, irq, rst, bsy, spi)) {}
 
-int Type2GT::begin()
+static int applyCommonLoRaSettings(LR1121 &rad, float bandwidthKHz)
 {
-    int rc = rad.begin();
+    int rc = rad.setSpreadingFactor(7);
     if (rc != RADIOLIB_ERR_NONE)
         return rc;
-
-    rad.setRfSwitchTable(rfswitch_dio_pins, rfswitch_table);
-    rad.setRegulatorDCDC();
-
-    // Keep PHY exactly aligned with the ESP32 receiver side.
-    rc = rad.setFrequency(915.0);
-    if (rc != RADIOLIB_ERR_NONE)
-        return rc;
-    rc = rad.setSpreadingFactor(7);
-    if (rc != RADIOLIB_ERR_NONE)
-        return rc;
-    rc = rad.setBandwidth(125.0);
+    rc = rad.setBandwidth(bandwidthKHz);
     if (rc != RADIOLIB_ERR_NONE)
         return rc;
     rc = rad.setCodingRate(5);
@@ -54,11 +44,24 @@ int Type2GT::begin()
     rc = rad.invertIQ(false);
     if (rc != RADIOLIB_ERR_NONE)
         return rc;
-    rc = rad.setOutputPower(14);
+    return rad.setOutputPower(14);
+}
+
+int Type2GT::begin()
+{
+    int rc = rad.begin();
     if (rc != RADIOLIB_ERR_NONE)
         return rc;
 
-    return rc;
+    rad.setRfSwitchTable(rfswitch_dio_pins, rfswitch_table);
+    rad.setRegulatorDCDC();
+
+    // Keep PHY exactly aligned with the ESP32 receiver side.
+    rc = rad.setFrequency(915.0);
+    if (rc != RADIOLIB_ERR_NONE)
+        return rc;
+
+    return applyPhyProfile(ARC_RADIO_PHY_PROFILE_SAFE_BW125);
 }
 
 void Type2GT::onIrq(void (*func)(void))
@@ -68,10 +71,17 @@ void Type2GT::onIrq(void (*func)(void))
 
 int Type2GT::recieve()
 {
-    state = RX;
-    int rc = rad.startReceive();
-    //Serial.printf("DBG: startReceive -> %d\n", rc);
-    return rc;
+    receiveStartCount++;
+    int rc = rad.explicitHeader();
+    if (rc != RADIOLIB_ERR_NONE)
+    {
+        lastReceiveRc = rc;
+        state = IDLE;
+        return lastReceiveRc;
+    }
+    lastReceiveRc = rad.startReceive();
+    state = (lastReceiveRc == RADIOLIB_ERR_NONE) ? RX : IDLE;
+    return lastReceiveRc;
 }
 
 int Type2GT::transmit(const char *str)
@@ -117,9 +127,50 @@ void Type2GT::respondToIrq()
     }
     else if (state == RX)
     {
-        const bool avail = rad.available();
-        //Serial.printf("DBG: IRQ RX -> available=%d\n", (int)avail);
-        state = avail ? HAS_DATA : IDLE;
+        state = HAS_DATA;
     }
+}
+
+int Type2GT::setFrequency(float freqMHz)
+{
+    return rad.setFrequency(freqMHz);
+}
+
+int Type2GT::applyPhyProfile(uint8_t profileId)
+{
+    switch (profileId)
+    {
+    case ARC_RADIO_PHY_PROFILE_SAFE_BW125:
+        return applyCommonLoRaSettings(rad, 125.0f);
+    case ARC_RADIO_PHY_PROFILE_FAST_BW500:
+        return applyCommonLoRaSettings(rad, 500.0f);
+    default:
+        return RADIOLIB_ERR_INVALID_BANDWIDTH;
+    }
+}
+
+float Type2GT::getRSSI()
+{
+    return rad.getRSSI();
+}
+
+float Type2GT::getSNR()
+{
+    return rad.getSNR();
+}
+
+int Type2GT::getLastReceiveRc() const
+{
+    return lastReceiveRc;
+}
+
+uint32_t Type2GT::getReceiveStartCount() const
+{
+    return receiveStartCount;
+}
+
+int Type2GT::getState() const
+{
+    return static_cast<int>(state);
 }
 #endif

@@ -7,10 +7,11 @@
 //
 // This radio is an ARC node (address RADIO_CMD = 0x20) and the half-duplex
 // link MASTER. Bare-bones first-light behaviour:
-//   * every kCyclePeriodMs it transmits one downlink ARC frame -- a heartbeat
-//     placeholder, or a frame queued from the host UART -- then listens, so a
-//     command window opens right after each downlink and the ground can talk
-//     back without colliding;
+//   * every kCyclePeriodMs it opens a command window: if a frame is queued from
+//     the host UART it downlinks that, otherwise (when idle) it emits a
+//     heartbeat placeholder at most every kHeartbeatPeriodMs. Either way it then
+//     listens, so the ground can talk back right after a downlink without
+//     colliding;
 //   * frames addressed to us (dst == 0x20) are handled locally. Today that is
 //     RADIO SET_FREQUENCY / SET_PHY_PROFILE: ACK on the old settings, switch
 //     after a grace delay, and revert to defaults if we then hear nothing.
@@ -70,11 +71,11 @@ namespace
 {
 // --- ARC identity / peer ---
 constexpr uint8_t kMyAddr = ARC_ADDR_RADIO_CMD;   // 0x20 (rocket command/status radio)
-constexpr uint8_t kGroundAddr = ARC_ADDR_GROUND;  // 0x01 (ground station / GS app)
 
 // --- link timing ---
 constexpr uint32_t kHostBaud = 115200;
-constexpr uint32_t kCyclePeriodMs = 1000;  // downlink cadence; the gaps are the command window
+constexpr uint32_t kCyclePeriodMs = 1000;  // command-window cadence; the gaps are the listen window
+constexpr uint32_t kHeartbeatPeriodMs = 5000;  // idle OTA heartbeat cadence (no queued telemetry)
 constexpr uint32_t kHostHeartbeatMs = 5000;
 constexpr uint32_t kHostDebugMs = 1000;   // TEMP bench UART diagnostics
 
@@ -89,6 +90,7 @@ constexpr int8_t kDefaultTxPowerDbm = 22;      // reported in STATUS_REPORT; dri
 uint8_t g_session = 1;
 uint16_t g_seq = 0;
 uint32_t g_lastCycleMs = 0;
+uint32_t g_lastHeartbeatMs = 0;
 uint32_t g_lastRxMs = 0;
 
 // --- frequency state ---
@@ -142,8 +144,10 @@ void writeFrameToHostCobs(const uint8_t *frame, size_t n)
 
 void sendHeartbeat()
 {
+  // Broadcast so any node that hears it (ground, and any future relay) learns
+  // our address and the link we arrived on; receivers track liveness by src.
   uint8_t frame[ARC_MAX_FRAME_SIZE];
-  const int n = arc_frame_build(frame, sizeof(frame), kMyAddr, kGroundAddr,
+  const int n = arc_frame_build(frame, sizeof(frame), kMyAddr, ARC_ADDR_BROADCAST,
                                 0, g_session, g_seq++,
                                 ARC_FAMILY_NETMGMT, ARC_NETMGMT_HEARTBEAT,
                                 nullptr, 0);
@@ -502,6 +506,7 @@ void setup()
   g_curFreqMHz = kDefaultFreqMHz;
   g_curPhyProfile = kDefaultPhyProfile;
   g_lastCycleMs = millis();
+  g_lastHeartbeatMs = millis();
   g_lastRxMs = millis();
   const int rxRc = radio.recieve();  // start listening between cycles
   RAD_LOG_PRINTF("RAD/DBG startReceive -> %d\n", rxRc);
@@ -539,12 +544,15 @@ void loop()
     {
       sendFrameOverLora(g_dlFrame, g_dlLen);
       g_dlPending = false;
+      g_lastHeartbeatMs = now;  // a real downlink is liveness; defer the next heartbeat
+      radio.recieve();          // reopen the command window
     }
-    else
+    else if (now - g_lastHeartbeatMs >= kHeartbeatPeriodMs)
     {
+      g_lastHeartbeatMs = now;
       sendHeartbeat();
+      radio.recieve();  // reopen the command window
     }
-    radio.recieve();  // reopen the command window
   }
 }
 #endif
