@@ -1,4 +1,4 @@
-// 220Mc0_4GFSK_100000U
+// 220Mc0_4GFSK_40000U
 
 #ifndef RADIO_CONFIG_H_
 #define RADIO_CONFIG_H_
@@ -9,11 +9,11 @@
 // INPUT DATA
 /*
 // Crys_freq(Hz): 30000000    Crys_tol(ppm): 0.5    IF_mode: 2    High_perf_Ch_Fil: 1    OSRtune: 0    Ch_Fil_Bw_AFC: 1    ANT_DIV: 0    PM_pattern: 0
-// MOD_type: 5    Rsymb(sps): 50000    Fdev(Hz): 25000    RXBW(Hz): 150000    Manchester: 0    AFC_en: 1    Rsymb_error: 0.0    Chip-Version: 3
+// MOD_type: 5    Rsymb(sps): 20000    Fdev(Hz): 10000    RXBW(Hz): 150000    Manchester: 0    AFC_en: 1    Rsymb_error: 0.0    Chip-Version: 3
 // RF Freq.(MHz): 220    API_TC: 29    fhst: 100000    inputBW: 0    BERT: 0    RAW_dout: 0    D_source: 0    Hi_pfm_div: 1
 //
 // # RX IF frequency is  -468750 Hz
-// # WB filter 2 (BW = 206.12 kHz);  NB-filter 2 (BW = 206.12 kHz)
+// # WB filter 4 (BW =  82.64 kHz);  NB-filter 4 (BW = 82.64 kHz)
 //
 // Modulation index: 1
 */
@@ -176,7 +176,7 @@
 //   MODEM_FREQ_DEV_2 - 17-bit unsigned TX frequency deviation word.
 //   MODEM_FREQ_DEV_1 - 17-bit unsigned TX frequency deviation word.
 */
-#define RF_MODEM_MOD_TYPE_12 0x11, 0x20, 0x0C, 0x00, 0x05, 0x00, 0x07, 0x0F, 0x42, 0x40, 0x09, 0xC9, 0xC3, 0x80, 0x00, 0x28
+#define RF_MODEM_MOD_TYPE_12 0x11, 0x20, 0x0C, 0x00, 0x05, 0x00, 0x07, 0x0C, 0x35, 0x00, 0x05, 0xC9, 0xC3, 0x80, 0x00, 0x10
 
 /*
 // Set properties:           RF_MODEM_FREQ_DEV_0_1
@@ -187,7 +187,7 @@
 // Descriptions:
 //   MODEM_FREQ_DEV_0 - 17-bit unsigned TX frequency deviation word.
 */
-#define RF_MODEM_FREQ_DEV_0_1 0x11, 0x20, 0x01, 0x0C, 0xF6
+#define RF_MODEM_FREQ_DEV_0_1 0x11, 0x20, 0x01, 0x0C, 0x62
 
 /*
 // Set properties:           RF_MODEM_TX_RAMP_DELAY_8
@@ -205,7 +205,7 @@
 //   MODEM_DECIMATION_CFG1 - Specifies three decimator ratios for the Cascaded Integrator Comb (CIC) filter.
 //   MODEM_DECIMATION_CFG0 - Specifies miscellaneous parameters and decimator ratios for the Cascaded Integrator Comb (CIC) filter.
 */
-#define RF_MODEM_TX_RAMP_DELAY_8 0x11, 0x20, 0x08, 0x18, 0x05, 0x00, 0x08, 0x03, 0x00, 0x00, 0x10, 0x20
+#define RF_MODEM_TX_RAMP_DELAY_8 0x11, 0x20, 0x08, 0x18, 0x05, 0x00, 0x08, 0x03, 0x00, 0x00, 0x20, 0x20
 
 /*
 // Set properties:           RF_MODEM_BCR_OSR_1_9
@@ -224,7 +224,7 @@
 //   MODEM_BCR_GEAR - RX BCR loop gear control.
 //   MODEM_BCR_MISC1 - Miscellaneous control bits for the RX BCR loop.
 */
-#define RF_MODEM_BCR_OSR_1_9 0x11, 0x20, 0x09, 0x22, 0x00, 0x96, 0x03, 0x69, 0xD0, 0x00, 0xDA, 0x02, 0x02
+#define RF_MODEM_BCR_OSR_1_9 0x11, 0x20, 0x09, 0x22, 0x00, 0xBC, 0x02, 0xBB, 0x0D, 0x00, 0xAE, 0x02, 0x02
 
 /*
 // Set properties:           RF_MODEM_AFC_GEAR_7
@@ -241,7 +241,7 @@
 //   MODEM_AFC_LIMITER_0 - Set the AFC limiter value.
 //   MODEM_AFC_MISC - Specifies miscellaneous AFC control bits.
 */
-#define RF_MODEM_AFC_GEAR_7 0x11, 0x20, 0x07, 0x2C, 0x00, 0x12, 0xC3, 0x6A, 0x03, 0x8B, 0xE0
+#define RF_MODEM_AFC_GEAR_7 0x11, 0x20, 0x07, 0x2C, 0x00, 0x12, 0xC1, 0x5E, 0x03, 0x99, 0xE0
 
 /*
 // Set properties:           RF_MODEM_AGC_CONTROL_1
@@ -271,7 +271,7 @@
 //   MODEM_FSK4_MAP - 4(G)FSK symbol mapping code.
 //   MODEM_OOK_PDTC - Configures the attack and decay times of the OOK Peak Detector.
 */
-#define RF_MODEM_AGC_WINDOW_SIZE_9 0x11, 0x20, 0x09, 0x38, 0x11, 0x21, 0x21, 0x00, 0x1A, 0x40, 0x00, 0x00, 0x29
+#define RF_MODEM_AGC_WINDOW_SIZE_9 0x11, 0x20, 0x09, 0x38, 0x11, 0x29, 0x29, 0x00, 0x1A, 0x40, 0x00, 0x00, 0x29
 
 /*
 // Set properties:           RF_MODEM_OOK_CNT1_9
@@ -290,7 +290,7 @@
 //   MODEM_ANT_DIV_CONTROL - Specifies controls for the Antenna Diversity algorithm.
 //   MODEM_RSSI_THRESH - Configures the RSSI threshold.
 */
-#define RF_MODEM_OOK_CNT1_9 0x11, 0x20, 0x09, 0x42, 0xA4, 0x03, 0xD6, 0x03, 0x01, 0x7F, 0x01, 0xF0, 0xFF
+#define RF_MODEM_OOK_CNT1_9 0x11, 0x20, 0x09, 0x42, 0xA4, 0x03, 0xD6, 0x03, 0x01, 0x33, 0x01, 0xF0, 0xFF
 
 /*
 // Set properties:           RF_MODEM_RSSI_CONTROL_1
@@ -301,7 +301,7 @@
 // Descriptions:
 //   MODEM_RSSI_CONTROL - Control of the averaging modes and latching time for reporting RSSI value(s).
 */
-#define RF_MODEM_RSSI_CONTROL_1 0x11, 0x20, 0x01, 0x4C, 0x02
+#define RF_MODEM_RSSI_CONTROL_1 0x11, 0x20, 0x01, 0x4C, 0x00
 
 /*
 // Set properties:           RF_MODEM_RSSI_COMP_1
@@ -345,7 +345,7 @@
 //   MODEM_CHFLT_RX1_CHFLT_COE3_7_0 - Filter coefficients for the first set of RX filter coefficients.
 //   MODEM_CHFLT_RX1_CHFLT_COE2_7_0 - Filter coefficients for the first set of RX filter coefficients.
 */
-#define RF_MODEM_CHFLT_RX1_CHFLT_COE13_7_0_12 0x11, 0x21, 0x0C, 0x00, 0xFF, 0xC4, 0x30, 0x7F, 0xF5, 0xB5, 0xB8, 0xDE, 0x05, 0x17, 0x16, 0x0C
+#define RF_MODEM_CHFLT_RX1_CHFLT_COE13_7_0_12 0x11, 0x21, 0x0C, 0x00, 0xA2, 0x81, 0x26, 0xAF, 0x3F, 0xEE, 0xC8, 0xC7, 0xDB, 0xF2, 0x02, 0x08
 
 /*
 // Set properties:           RF_MODEM_CHFLT_RX1_CHFLT_COE1_7_0_12
@@ -367,7 +367,7 @@
 //   MODEM_CHFLT_RX2_CHFLT_COE9_7_0 - Filter coefficients for the second set of RX filter coefficients.
 //   MODEM_CHFLT_RX2_CHFLT_COE8_7_0 - Filter coefficients for the second set of RX filter coefficients.
 */
-#define RF_MODEM_CHFLT_RX1_CHFLT_COE1_7_0_12 0x11, 0x21, 0x0C, 0x0C, 0x03, 0x00, 0x15, 0xFF, 0x00, 0x00, 0xFF, 0xC4, 0x30, 0x7F, 0xF5, 0xB5
+#define RF_MODEM_CHFLT_RX1_CHFLT_COE1_7_0_12 0x11, 0x21, 0x0C, 0x0C, 0x07, 0x03, 0x15, 0xFC, 0x0F, 0x00, 0xA2, 0x81, 0x26, 0xAF, 0x3F, 0xEE
 
 /*
 // Set properties:           RF_MODEM_CHFLT_RX2_CHFLT_COE7_7_0_12
@@ -389,7 +389,7 @@
 //   MODEM_CHFLT_RX2_CHFLT_COEM2 - Filter coefficients for the second set of RX filter coefficients.
 //   MODEM_CHFLT_RX2_CHFLT_COEM3 - Filter coefficients for the second set of RX filter coefficients.
 */
-#define RF_MODEM_CHFLT_RX2_CHFLT_COE7_7_0_12 0x11, 0x21, 0x0C, 0x18, 0xB8, 0xDE, 0x05, 0x17, 0x16, 0x0C, 0x03, 0x00, 0x15, 0xFF, 0x00, 0x00
+#define RF_MODEM_CHFLT_RX2_CHFLT_COE7_7_0_12 0x11, 0x21, 0x0C, 0x18, 0xC8, 0xC7, 0xDB, 0xF2, 0x02, 0x08, 0x07, 0x03, 0x15, 0xFC, 0x0F, 0x00
 
 /*
 // Set properties:           RF_PA_MODE_4

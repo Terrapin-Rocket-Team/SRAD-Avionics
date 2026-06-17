@@ -24,8 +24,13 @@ void List::shift()
 
 bool List::shift(uint8_t *data, uint16_t *size, uint16_t maxSize)
 {
+    // Serial.println("List.cpp");
+    // Serial.println(this->head == nullptr);
+    // Serial.flush();
     if (this->head != nullptr && this->head->size < maxSize)
     {
+        // Serial.println("List.cpp");
+        // Serial.flush();
         memcpy(data, this->head->data, this->head->size);
         *size = this->head->size;
         Node *oldHead = this->head;
@@ -37,11 +42,17 @@ bool List::shift(uint8_t *data, uint16_t *size, uint16_t maxSize)
         return true;
     }
 
+    // Serial.println("List.cpp 2");
+    // Serial.println(this->head == nullptr);
+    // Serial.flush();
     return false;
 }
 
 bool List::append(Node *n)
 {
+    // Serial1.println("List.cpp");
+    // Serial1.println(this->head == nullptr);
+    // Serial1.println(this->tail == nullptr);
     if (this->head == nullptr && this->tail == nullptr)
     {
         this->head = n;

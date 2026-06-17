@@ -21,6 +21,8 @@ public:
     // the current radio state, does not always align with hardware state
     RadioState state;
 
+    uint8_t channel = 0;
+
     virtual ~RadioDriver() {}; // Virtual descructor. Very important
     virtual bool begin() = 0;
     virtual bool tx(const uint8_t *message, uint16_t len = -1) = 0;

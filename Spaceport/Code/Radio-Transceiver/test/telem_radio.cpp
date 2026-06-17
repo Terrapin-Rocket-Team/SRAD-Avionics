@@ -6,10 +6,10 @@
 #include "RadioMessage.h"
 
 #define IS_ACTIVE_NODE true
-#define RX_TIMEOUT 200    // ms
-#define CHANNEL 36        // Freq = 220 + (CHANNEL * 0.1) MHz
-#define SERIAL_BAUD 57600 // bits/s
-#define END_CHAR 0
+#define RX_TIMEOUT 100     // ms
+#define CHANNEL 40         // Freq = 220 + (CHANNEL * 0.1) MHz
+#define SERIAL_BAUD 115200 // bits/s
+#define END_CHAR '0'
 
 const uint8_t STAT_PIN = (uint8_t)pinNametoDigitalPin(PA_11);
 
@@ -44,8 +44,7 @@ Radio radio(&radHW, IS_ACTIVE_NODE, RX_TIMEOUT);
 
 HardwareSerial Serial1(PA_10, PA_9);
 
-Message mTX;
-Message mRX;
+Message m;
 bool serialReadLock = false;
 
 uint32_t ledTimer = millis();
@@ -55,8 +54,7 @@ bool ledOn = false;
 void blink(uint8_t times, uint32_t interval);
 void updateBlink();
 
-// char testBuf[42] = "testtesttesttesttesttesttesttesttesttestt";
-// char testBuf[] = "testtesttesttesttesttesttesttesttesttest";
+uint8_t testBuf[8] = {1, 2, 3, 4, 5, 6, 7, 8};
 
 void setup()
 {
@@ -100,10 +98,10 @@ uint32_t timer = millis();
 
 void loop()
 {
-    // if (millis() - timer > 100)
+    // if (millis() - timer > 1000)
     // {
     //     timer = millis();
-    //     radHW.tx((uint8_t *)testBuf, sizeof(testBuf));
+    //     radHW.tx(testBuf, sizeof(testBuf));
     //     // Serial.println("TX");
     // }
 
@@ -111,74 +109,65 @@ void loop()
     // Serial.flush();
 
     // check for input to be transmitted
-    while (Serial1.available() && mTX.size < Message::maxSize)
+    while (Serial1.available() && m.size < Message::maxSize)
     {
         // will only occur when first getting serial data
-        // if (!serialReadLock)
-        //     serialReadLock = true;
+        if (!serialReadLock)
+            serialReadLock = true;
         // read in character
         char c = Serial1.read();
-        // Serial1.print(c);
-        // Serial1.print(" ");
-        // Serial1.println(mTX.size);
 
         // denote complete messages by \n for now (text only)
         if (c == END_CHAR)
         {
-            // Serial1.println("main.cpp Sending msg ");
-            // Serial1.write(mTX.buf, mTX.size);
-            // Serial1.println();
-            // Serial1.println(mTX.size);
-            // Serial1.flush();
-
+            Serial1.println("main.cpp Sending msg ");
+            Serial1.write(m.buf, m.size);
+            Serial1.flush();
+            delay(1000);
             // send complete message
-            radio.send(&mTX);
-            // Serial1.println("\nafter send");
-            // Serial1.flush();
+            radio.send(&m);
+            Serial1.println("\nafter send");
+            Serial1.flush();
+            delay(1000);
 
-            mTX.clear();
-            // serialReadLock = false;
+            m.clear();
+            serialReadLock = false;
             // blink(1, 100);
             break;
         }
         else
-            mTX.append(c);
+            m.append(c);
     }
 
     // Serial.println("main.cpp before rx");
     // Serial.flush();
 
     // check for received messages
-    if (radio.receive(&mRX))
-    {
-
-        // Serial.println("main.cpp");
-        // Serial.flush();
-        mRX.print(Serial1);
-        Serial1.write(END_CHAR);
-
-        // for (int i = 0; i < m.size; i++)
-        // {
-        //     Serial1.print(m.buf[i]);
-        //     Serial1.print(" ");
-        // }
-        // Serial1.println();
-        mRX.clear();
-        // Serial1.print("RSSI: ");
-        // Serial1.println(radHW.RSSI());
-        // m.fill((uint8_t *)"ACK ", sizeof("ACK "));
-        // radio.send(&m);
-        // m.clear();
-        // blink(2, 100);
-    }
+    // if (!serialReadLock && radio.receive(&m))
+    // {
+    //     // Serial.println("main.cpp");
+    //     // Serial.flush();
+    //     // m.write(Serial1);
+    //     for (int i = 0; i < m.size; i++)
+    //     {
+    //         Serial1.print(m.buf[i]);
+    //         Serial1.print(" ");
+    //     }
+    //     Serial1.println();
+    //     m.clear();
+    //     Serial1.print("RSSI: ");
+    //     Serial1.println(radHW.RSSI());
+    //     // m.fill((uint8_t *)"ACK ", sizeof("ACK "));
+    //     // radio.send(&m);
+    //     // m.clear();
+    //     // blink(2, 100);
+    // }
     // Serial.println("main.cpp after rx");
     // Serial.flush();
 
     // if somehow we reach the max message size, dump the data to prevent lockup
-    if (mTX.size == Message::maxSize)
-        mTX.clear();
-    if (mRX.size == Message::maxSize)
-        mRX.clear();
+    // if (m.size == Message::maxSize)
+    //     m.clear();
 
     // Serial.println("main.cpp before update");
     // Serial.flush();

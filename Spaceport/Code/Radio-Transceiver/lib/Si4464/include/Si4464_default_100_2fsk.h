@@ -1,4 +1,4 @@
-// 220Mc0_4GFSK_100000U
+// 220Mc0_2FSK_40000U
 
 #ifndef RADIO_CONFIG_H_
 #define RADIO_CONFIG_H_
@@ -9,7 +9,7 @@
 // INPUT DATA
 /*
 // Crys_freq(Hz): 30000000    Crys_tol(ppm): 0.5    IF_mode: 2    High_perf_Ch_Fil: 1    OSRtune: 0    Ch_Fil_Bw_AFC: 1    ANT_DIV: 0    PM_pattern: 0
-// MOD_type: 5    Rsymb(sps): 50000    Fdev(Hz): 25000    RXBW(Hz): 150000    Manchester: 0    AFC_en: 1    Rsymb_error: 0.0    Chip-Version: 3
+// MOD_type: 2    Rsymb(sps): 100000    Fdev(Hz): 50000    RXBW(Hz): 150000    Manchester: 0    AFC_en: 1    Rsymb_error: 0.0    Chip-Version: 3
 // RF Freq.(MHz): 220    API_TC: 29    fhst: 100000    inputBW: 0    BERT: 0    RAW_dout: 0    D_source: 0    Hi_pfm_div: 1
 //
 // # RX IF frequency is  -468750 Hz
@@ -52,7 +52,7 @@
 //   SYNC_BITS_15_8 - Sync word.
 //   SYNC_BITS_7_0 - Sync word.
 */
-#define RF_SYNC_CONFIG_5 0x11, 0x11, 0x05, 0x00, 0x09, 0xB4, 0x2B, 0x00, 0x00
+#define RF_SYNC_CONFIG_5 0x11, 0x11, 0x05, 0x00, 0x01, 0xB4, 0x2B, 0x00, 0x00
 
 /*
 // Set properties:           RF_PKT_CRC_CONFIG_7
@@ -69,7 +69,7 @@
 //   PKT_WHT_BIT_NUM - Selects which bit of the LFSR (used to generate the PN / data whitening sequence) is used as the output bit for data scrambling.
 //   PKT_CONFIG1 - General configuration bits for transmission or reception of a packet.
 */
-#define RF_PKT_CRC_CONFIG_7 0x11, 0x12, 0x07, 0x00, 0x84, 0x00, 0x30, 0xFF, 0xFF, 0x00, 0x22
+#define RF_PKT_CRC_CONFIG_7 0x11, 0x12, 0x07, 0x00, 0x84, 0x00, 0x30, 0xFF, 0xFF, 0x00, 0x02
 
 /*
 // Set properties:           RF_PKT_LEN_12
@@ -91,7 +91,7 @@
 //   PKT_FIELD_2_LENGTH_7_0 - Unsigned 13-bit Field 2 length value.
 //   PKT_FIELD_2_CONFIG - General data processing and packet configuration bits for Field 2.
 */
-#define RF_PKT_LEN_12 0x11, 0x12, 0x0C, 0x08, 0x00, 0x00, 0x00, 0x30, 0x30, 0x00, 0x07, 0x14, 0x80, 0x00, 0x00, 0x00
+#define RF_PKT_LEN_12 0x11, 0x12, 0x0C, 0x08, 0x00, 0x00, 0x00, 0x30, 0x30, 0x00, 0x07, 0x04, 0x80, 0x00, 0x00, 0x00
 
 /*
 // Set properties:           RF_PKT_FIELD_2_CRC_CONFIG_12
@@ -176,7 +176,7 @@
 //   MODEM_FREQ_DEV_2 - 17-bit unsigned TX frequency deviation word.
 //   MODEM_FREQ_DEV_1 - 17-bit unsigned TX frequency deviation word.
 */
-#define RF_MODEM_MOD_TYPE_12 0x11, 0x20, 0x0C, 0x00, 0x05, 0x00, 0x07, 0x0F, 0x42, 0x40, 0x09, 0xC9, 0xC3, 0x80, 0x00, 0x28
+#define RF_MODEM_MOD_TYPE_12 0x11, 0x20, 0x0C, 0x00, 0x02, 0x00, 0x07, 0x0F, 0x42, 0x40, 0x01, 0xC9, 0xC3, 0x80, 0x00, 0x1B
 
 /*
 // Set properties:           RF_MODEM_FREQ_DEV_0_1
@@ -187,7 +187,7 @@
 // Descriptions:
 //   MODEM_FREQ_DEV_0 - 17-bit unsigned TX frequency deviation word.
 */
-#define RF_MODEM_FREQ_DEV_0_1 0x11, 0x20, 0x01, 0x0C, 0xF6
+#define RF_MODEM_FREQ_DEV_0_1 0x11, 0x20, 0x01, 0x0C, 0x4F
 
 /*
 // Set properties:           RF_MODEM_TX_RAMP_DELAY_8
@@ -205,7 +205,7 @@
 //   MODEM_DECIMATION_CFG1 - Specifies three decimator ratios for the Cascaded Integrator Comb (CIC) filter.
 //   MODEM_DECIMATION_CFG0 - Specifies miscellaneous parameters and decimator ratios for the Cascaded Integrator Comb (CIC) filter.
 */
-#define RF_MODEM_TX_RAMP_DELAY_8 0x11, 0x20, 0x08, 0x18, 0x05, 0x00, 0x08, 0x03, 0x00, 0x00, 0x10, 0x20
+#define RF_MODEM_TX_RAMP_DELAY_8 0x11, 0x20, 0x08, 0x18, 0x01, 0x00, 0x08, 0x03, 0x00, 0x00, 0x10, 0x20
 
 /*
 // Set properties:           RF_MODEM_BCR_OSR_1_9
@@ -224,7 +224,7 @@
 //   MODEM_BCR_GEAR - RX BCR loop gear control.
 //   MODEM_BCR_MISC1 - Miscellaneous control bits for the RX BCR loop.
 */
-#define RF_MODEM_BCR_OSR_1_9 0x11, 0x20, 0x09, 0x22, 0x00, 0x96, 0x03, 0x69, 0xD0, 0x00, 0xDA, 0x02, 0x02
+#define RF_MODEM_BCR_OSR_1_9 0x11, 0x20, 0x09, 0x22, 0x00, 0x4B, 0x06, 0xD3, 0xA0, 0x06, 0xD4, 0x02, 0x00
 
 /*
 // Set properties:           RF_MODEM_AFC_GEAR_7
@@ -241,7 +241,7 @@
 //   MODEM_AFC_LIMITER_0 - Set the AFC limiter value.
 //   MODEM_AFC_MISC - Specifies miscellaneous AFC control bits.
 */
-#define RF_MODEM_AFC_GEAR_7 0x11, 0x20, 0x07, 0x2C, 0x00, 0x12, 0xC3, 0x6A, 0x03, 0x8B, 0xE0
+#define RF_MODEM_AFC_GEAR_7 0x11, 0x20, 0x07, 0x2C, 0x00, 0x23, 0xCD, 0xA7, 0x00, 0xD3, 0xE0
 
 /*
 // Set properties:           RF_MODEM_AGC_CONTROL_1
@@ -271,7 +271,7 @@
 //   MODEM_FSK4_MAP - 4(G)FSK symbol mapping code.
 //   MODEM_OOK_PDTC - Configures the attack and decay times of the OOK Peak Detector.
 */
-#define RF_MODEM_AGC_WINDOW_SIZE_9 0x11, 0x20, 0x09, 0x38, 0x11, 0x21, 0x21, 0x00, 0x1A, 0x40, 0x00, 0x00, 0x29
+#define RF_MODEM_AGC_WINDOW_SIZE_9 0x11, 0x20, 0x09, 0x38, 0x11, 0x10, 0x10, 0x00, 0x02, 0x40, 0x00, 0x00, 0x28
 
 /*
 // Set properties:           RF_MODEM_OOK_CNT1_9
@@ -290,7 +290,7 @@
 //   MODEM_ANT_DIV_CONTROL - Specifies controls for the Antenna Diversity algorithm.
 //   MODEM_RSSI_THRESH - Configures the RSSI threshold.
 */
-#define RF_MODEM_OOK_CNT1_9 0x11, 0x20, 0x09, 0x42, 0xA4, 0x03, 0xD6, 0x03, 0x01, 0x7F, 0x01, 0xF0, 0xFF
+#define RF_MODEM_OOK_CNT1_9 0x11, 0x20, 0x09, 0x42, 0xA4, 0x03, 0xD6, 0x03, 0x01, 0xAA, 0x01, 0x80, 0xFF
 
 /*
 // Set properties:           RF_MODEM_RSSI_CONTROL_1
@@ -301,7 +301,7 @@
 // Descriptions:
 //   MODEM_RSSI_CONTROL - Control of the averaging modes and latching time for reporting RSSI value(s).
 */
-#define RF_MODEM_RSSI_CONTROL_1 0x11, 0x20, 0x01, 0x4C, 0x02
+#define RF_MODEM_RSSI_CONTROL_1 0x11, 0x20, 0x01, 0x4C, 0x00
 
 /*
 // Set properties:           RF_MODEM_RSSI_COMP_1
@@ -420,7 +420,7 @@
 //   SYNTH_LPFILT1 - Value of capacitors C1 and C3 in feed-forward path of loop filter.
 //   SYNTH_LPFILT0 - Bias current of the active amplifier in the feed-forward loop filter.
 */
-#define RF_SYNTH_PFDCP_CPFF_7 0x11, 0x23, 0x07, 0x00, 0x2C, 0x0E, 0x0B, 0x04, 0x0C, 0x73, 0x03
+#define RF_SYNTH_PFDCP_CPFF_7 0x11, 0x23, 0x07, 0x00, 0x34, 0x04, 0x0B, 0x04, 0x07, 0x70, 0x03
 
 /*
 // Set properties:           RF_MATCH_VALUE_1_12

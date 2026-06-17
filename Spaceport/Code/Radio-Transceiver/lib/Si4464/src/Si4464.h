@@ -59,7 +59,7 @@ struct Si4464PinConfig
 class Si4464 : public RadioDriver
 {
 public:
-    static const uint16_t MAX_LEN = 0x1FFF;
+    static const uint16_t MAX_LEN = 200; // NOTE: decreased for lower mem on STM32L431
     // Si4464 part number
     static const uint16_t PART_NO = 0x4464;
     // maximum number of properties in a single get/setProperties call
@@ -70,11 +70,11 @@ public:
     // length of the FIFO in default config
     static const uint8_t FIFO_LENGTH = 129; // bytes
     // RX_FIFO_FULL interrupt occurs when there are more than RX_THRESH bytes in FIFO
-    static const uint8_t RX_THRESH = 2; // bytes (max 64)
+    static const uint8_t RX_THRESH = 40; // bytes (max 64)
     // TX_FIFO_EMPTY interrupt occurs when there is more than TX_THRESH bytes of space in FIFO
     static const uint8_t TX_THRESH = 63; // bytes (max 64)
     // a Message object used to encode and decode the message
-    Message m;
+    // Message m;
     // the buffer to store messages that are currently being sent or received
     uint8_t buf[Si4464::MAX_LEN];
     // the length of the buffer
@@ -92,7 +92,7 @@ public:
     // the current transmit/receive frequency = baseFreq + channel * channelSpacing
     uint32_t freq;
     // the current channel used to set the transmit/receive frequency
-    uint8_t channel = 0;
+    // uint8_t channel = 0;
     // the current transmit power (0-127), see datasheet
     uint8_t pwr;
     // the current preamble length in symbols

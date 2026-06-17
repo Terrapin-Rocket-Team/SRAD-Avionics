@@ -38,7 +38,7 @@ public:
     void update();
 
 private:
-    uint32_t rxTimer = millis();
+    uint32_t rxTimer = millis() - 100;
 };
 
 #endif

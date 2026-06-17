@@ -129,7 +129,6 @@ public:
     */
     void update() override;
     /*
-    /*
     Function called by update() during transmit
     */
     void handleTX();

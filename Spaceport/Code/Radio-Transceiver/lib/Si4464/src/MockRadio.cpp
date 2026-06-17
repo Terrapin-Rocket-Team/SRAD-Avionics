@@ -61,6 +61,7 @@ bool MockRadio::rx(uint8_t *data, uint16_t *len, uint16_t maxLen)
         *len = length;
         // message has been handed off so we no longer need to keep track of it
         this->available = false;
+        this->state = STATE_IDLE;
 
         return true;
     }
@@ -82,6 +83,9 @@ bool MockRadio::startTX(const uint8_t *data, uint16_t len, uint16_t totalLen)
         this->availLen = len;
         this->xfrd = 0;
         memcpy(this->buf, data, this->availLen);
+        // for (int i = 0; i < availLen; i++)
+        //     ;
+        // Serial.write()
         // Serial.println("tx");
         //  enter idle state
 
@@ -95,16 +99,20 @@ bool MockRadio::startTX(const uint8_t *data, uint16_t len, uint16_t totalLen)
         // send length
         uint8_t mLen[2] = {0};
         to_bytes(this->length, 0, 0, mLen);
-        this->bufWrite(mLen[0]);
-        this->bufWrite(mLen[1]);
+        Serial1.write(mLen[0]);
+        Serial1.write(mLen[1]);
+        // this->bufWrite(mLen[0]);
+        // this->bufWrite(mLen[1]);
 
         // send message body
         int count = 0;
-        while (count++ < FIFO_LENGTH - 2 && this->xfrd < this->availLen)
+        while (this->xfrd < this->availLen)
         {
-            this->bufWrite(this->buf[this->xfrd++]);
+            Serial1.write(this->buf[this->xfrd++]);
+            // this->bufWrite(this->buf[this->xfrd++]);
             // Serial.print((char)this->buf[this->xfrd - 1]);
         }
+        this->bufClear();
         // Serial.println();
 
         // set packet length for variable length packets
@@ -114,6 +122,9 @@ bool MockRadio::startTX(const uint8_t *data, uint16_t len, uint16_t totalLen)
         // enter rx state after tx
         this->setTXMode();
         this->state = STATE_TX;
+
+        // TEMP: switch immediately to idle since TX is now complete and we aren't doing internalUpdate
+        this->state = STATE_IDLE;
 
         return true;
     }
@@ -126,6 +137,7 @@ bool MockRadio::startRx()
     if (this->state == STATE_IDLE)
     {
         // reset availLen
+        this->xfrd = 0;
         this->availLen = 0;
         this->length = 0; // need to reset length, info in buf now lost
 
@@ -200,8 +212,12 @@ void MockRadio::handleRX()
     // }
     // assume we are in RX mode
     // this is how we read the packet until we have less than the RX FIFO THRESH left
-    if (!this->RXFullFlag && this->gpio1()) // valid preamble and more than RX_THRESH bytes in FIFO
+    // Serial.println(Serial1.available());
+    // delay(1000);
+    if (Serial1.available()) // valid preamble and more than RX_THRESH bytes in FIFO
     {
+        // Serial.println("MockRadio");
+        // Serial.println(Serial1.available());
         this->RXFullFlag = true;
         // this->debugTimer = micros();
         // Serial.println("here");
@@ -222,12 +238,12 @@ void MockRadio::handleRX()
         int lenBytes = 0;
 
         // if the internal length and xfrd variables are 0, then this is the first part of the message
-        if (this->xfrd == 0)
+        if (this->xfrd == 0 && Serial1.available() > 2)
         {
             // so we need to read length
             uint8_t mLen[2] = {0x00, 0x00};
-            mLen[0] = this->bufRead();
-            mLen[1] = this->bufRead();
+            mLen[0] = Serial1.read();
+            mLen[1] = Serial1.read();
             // convert individual bytes to uint16_t
             from_bytes(this->length, 0, 0, mLen);
             // Serial.print("len ");
@@ -241,12 +257,13 @@ void MockRadio::handleRX()
             }
         }
 
+        // Serial.println("MockRadio");
         // receive message data
         int count = lenBytes;
-        while (this->xfrd < this->length && count < RX_THRESH)
+        while (this->xfrd < this->length && count < Serial1.available())
         {
             count++;
-            this->buf[this->xfrd++] = this->bufRead();
+            this->buf[this->xfrd++] = Serial1.read();
             // Serial.print((char)this->buf[this->xfrd - 1]);
         }
         // Serial.println();
@@ -414,15 +431,20 @@ void MockRadio::update()
         this->handleRX();
     }
 
-    this->internalUpdate();
+    // this->internalUpdate();
 }
 
 uint32_t MockRadio::avail()
 {
+    // Serial.print(this->state);
+    // Serial.print(" ");
+    // Serial.print(this->available);
+    // Serial.println();
+    // delay(100);
     // if we are not in receive mode, and there is no message available, enter receive mode
     if (this->state == STATE_IDLE && !this->available)
         this->startRx();
-    else
+    else if (this->available)
         // otherwise return the length of the message
         return this->length;
     return 0;
