@@ -32,14 +32,14 @@ Message msgAirbrake;
 
 ESP32BluetoothRadio btRad(Serial2, "AVIONICS", true);
 
-Si4463HardwareConfig hwcfg = {
-    MOD_4GFSK,        // modulation
-    DR_4_8k,          // data rate
-    (uint32_t)430e6,  // frequency (Hz)
-    POWER_COTS_30dBm, // tx power (127 = ~20dBm)
-    48,               // preamble length
-    16,               // required received valid preamble
-};
+// Si4463HardwareConfig hwcfg = {
+//     MOD_4GFSK,        // modulation
+//     DR_4_8k,          // data rate
+//     (uint32_t)430e6,  // frequency (Hz)
+//     POWER_COTS_30dBm, // tx power (127 = ~20dBm)
+//     48,               // preamble length
+//     16,               // required received valid preamble
+// };
 
 Si4463PinConfig pincfg = {
     &SPI, // spi bus to use
