@@ -1,3 +1,5 @@
+#if NATIVE
+
 #include <Arduino.h>
 #include <MMFS.h>
 #include "AvionicsState.h"
@@ -7,6 +9,7 @@
 #include "Si4463.h"
 #include "Radio/ESP32BluetoothRadio.h"
 #include "VoltageSensor.h"
+#include "RadioMessage.h"
 
 #include "422Mc80_4GFSK_009600H.h"
 
@@ -298,3 +301,5 @@ void calcStuff()
         counter++;
     }
 }
+
+#endif

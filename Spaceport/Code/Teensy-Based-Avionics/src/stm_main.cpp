@@ -2,9 +2,16 @@
 
 #include <Arduino.h>
 #include <AstraRocket.h>
-#include "AviEventListener.h"
-#include "Pi.h"
-#include "VoltageSensor.h"
+#include <Sensors/HW/GPS/SAM_M10Q.h>
+#include <Sensors/HW/Baro/MS5611.h>
+#include <Sensors/HW/IMU/BMI088.h>
+#include <Sensors/HW/Mag/MMC5603NJ.h>
+#include <Sensors/HW/Accel/H3LIS331DL.h>
+#include <Sensors/VoltageSensor/VoltageSensor.h>
+#include "RadioMessage.h"
+
+
+//#include "Pi.h"
 
 #define RPI_PWR 1
 #define RPI_VIDEO 0
@@ -17,7 +24,7 @@ using namespace astra_rocket;
 // AstraRocket polls these every loop and feeds data into the Kalman filter
 // and Mahony AHRS automatically.
 SAM_M10Q gps;                                        // GPS
-MS5611 baro;                                         // Barometer
+astra::MS5611 baro;                                         // Barometer
 BMI088 imu;                                          // 6DoF IMU (accel + gyro)
 MMC5603NJ mag;                                       // Magnetometer
 H3LIS331DL highGAccel;                               // High-g accelerometer for motor burn
@@ -50,7 +57,7 @@ uint8_t encoding[] = {7, 4, 4};
 // =================== Pi Camera ===================
 // Raspberry Pi camera control - powers on at 44 minutes and starts
 // recording when liftoff is detected
-Pi pi(RPI_PWR, RPI_VIDEO);
+//Pi pi(RPI_PWR, RPI_VIDEO);
 
 void setup()
 {
@@ -59,12 +66,13 @@ void setup()
     // AstraRocket will initialize them and wire them into the
     // Kalman filter and Mahony AHRS automatically.
     rocketConfig
-        .withGPS(&gps)
-        .withBaro(&baro)
-        .with6DoFIMU(&imu)      // extracts accel + gyro from IMU
-        .withMag(&mag)
-        .withMiscSensor(&highGAccel)
-        .withMiscSensor(&vsfc);
+    .withStorageBackend(StorageBackend::SD_CARD) //ISSUE WITH THE BRANCH ASTRA ROCKET HAS, MUST CHECK
+    .withGPS(&gps)
+    .withBaro(&baro)
+    .with6DoFIMU(&imu)
+    .withMag(&mag)
+    .withMiscSensor(&highGAccel)
+    .withMiscSensor(&vsfc);
 
     // ---- AstraRocket Init ----
     // Initializes all sensors, creates RocketState with DefaultKalmanFilter
@@ -88,8 +96,8 @@ void loop()
 
     // ---- Pi Camera Power ---- MUST CHECK THIS 
     // Power on Pi camera at 44 minutes (pre-apogee buffer)
-    if (millis() > 44 * 1000 * 60 && !pi.isOn())
-        pi.setOn(true);
+    // if (millis() > 44 * 1000 * 60 && !pi.isOn())
+    //     pi.setOn(true);
 
     // ---- AstraRocket Update ----
     // Polls all sensors, runs Mahony orientation update, runs Kalman filter
@@ -102,8 +110,8 @@ void loop()
     // ---- Pi Camera Recording ---- 
     // Start recording once liftoff is detected
     // MUST CHECK THIS, IT IS DIFFERENT FROM MMFS LOGIC
-    if (!pi.isRecording() && state && state->getFlightStage() > FlightStage::PAD_IDLE)
-        pi.setRecording(true);
+    //if (!pi.isRecording() && state && state->getFlightStage() > FlightStage::PAD_IDLE)
+       // pi.setRecording(true);
 
     // ---- Incoming Radio UART ----
     // Listen for packets from radio STM32 (e.g. ground station commands)
@@ -131,23 +139,23 @@ void loop()
     {
         avionicsTimer = millis();
 
-        double orient[3] = {
-            imu.getAngularVelocity().x(),
-            imu.getAngularVelocity().y(),
-            imu.getAngularVelocity().z()
+     double orient[3] = { //ROTATABLE SENSOR, MUST CHECK 
+        imu.getAngVel().x(),
+        imu.getAngVel().y(),
+        imu.getAngVel().z()
         };
 
         // Step 1: construct with stateFlags = 0 (not packed yet)
-        APRSTelem aprs(
+       APRSTelem aprs(
             aprsConfigAvionics,
-            gps.getPos().x(),                               // lat
-            gps.getPos().y(),                               // lng
-            baro.getAGLAltFt(),                             // alt (ft AGL)
-            state ? state->getVelocity().z() * 3.28 : 0.0, // spd (vertical ft/s)
-            gps.getHeading(),                               // hdg
-            orient,                                         // orient (angular velocity x, y, z)
-            0                                               // stateFlags placeholder
-        );
+            gps.getPos().x(),                               // raw GPS lat
+            gps.getPos().y(),                               // raw GPS lng
+            state ? state->getAltitudeAGL() * 3.28084 : 0.0, // filtered alt (KF) in ft
+            state ? state->getVelocity().z() * 3.28084 : 0.0, // filtered velocity in ft/s
+            gps.getHeading(),                               // raw GPS heading
+            orient,
+            0
+            );
 
         // Step 2: define bit layout for stateFlags (7 bits temp, 4 bits stage, 4 bits fix)
         aprs.stateFlags.setEncoding(encoding, 3);
