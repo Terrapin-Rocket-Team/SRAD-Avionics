@@ -56,8 +56,9 @@ int Type2GT::begin()
     rad.setRfSwitchTable(rfswitch_dio_pins, rfswitch_table);
     rad.setRegulatorDCDC();
 
-    // Keep PHY exactly aligned with the ESP32 receiver side.
-    rc = rad.setFrequency(915.0);
+    // Keep PHY exactly aligned with the ESP32 receiver side. Boot on the shared
+    // home channel (see kDefaultFreqMHz in main.cpp); both ends must agree.
+    rc = rad.setFrequency(909.5);
     if (rc != RADIOLIB_ERR_NONE)
         return rc;
 

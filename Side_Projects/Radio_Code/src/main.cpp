@@ -12,9 +12,14 @@
 //     heartbeat placeholder at most every kHeartbeatPeriodMs. Either way it then
 //     listens, so the ground can talk back right after a downlink without
 //     colliding;
-//   * frames addressed to us (dst == 0x20) are handled locally. Today that is
-//     RADIO SET_FREQUENCY / SET_PHY_PROFILE: ACK on the old settings, switch
-//     after a grace delay, and revert to defaults if we then hear nothing.
+//   * frames addressed to us (dst == 0x20) are handled locally:
+//       - RADIO START_HOPPING: begin pseudo-random frequency hopping across the
+//         SRAD band (deterministic schedule both ends derive from a shared seed);
+//       - RADIO SET_FREQUENCY: stop hopping and park permanently on that freq;
+//       - RADIO SET_PHY_PROFILE: switch modem profile.
+//     Link-setting commands ACK on the old settings, then switch after a grace
+//     delay. A hopping link that goes silent falls back to the home channel
+//     (kDefaultFreqMHz) so the ground can re-acquire; a parked freq does not.
 //     Everything else is forwarded to the host UART, COBS-framed.
 //
 // On-air framing: a raw ARC frame is the LoRa payload (the LR1121 already
@@ -80,11 +85,29 @@ constexpr uint32_t kHostHeartbeatMs = 5000;
 constexpr uint32_t kHostDebugMs = 1000;   // TEMP bench UART diagnostics
 
 // --- frequency control ---
-constexpr float kDefaultFreqMHz = 915.0f;
+// kDefaultFreqMHz is the shared "home" channel: where we boot, and where both
+// ends fall back if a hopping link goes silent. Must match the ground radio.
+constexpr float kDefaultFreqMHz = 909.5f;
 constexpr uint32_t kFreqSwitchDelayMs = 1000;  // grace so the ACK reaches ground before we hop
-constexpr uint32_t kRevertTimeoutMs = 5000;    // no valid RX after a hop -> revert to default
+constexpr uint32_t kRevertTimeoutMs = 5000;    // hopping link silent this long -> fall back home
 constexpr uint8_t kDefaultPhyProfile = ARC_RADIO_PHY_PROFILE_SAFE_BW125;
 constexpr int8_t kDefaultTxPowerDbm = 22;      // reported in STATUS_REPORT; driver has no power readback yet
+
+// --- frequency hopping (SRAD band 902.000 - 909.000 MHz) ---
+// Pseudo-random FHSS, started/stopped by command:
+//   * boot / SET_FREQUENCY(home) -> FREQ_HOME, parked on kDefaultFreqMHz;
+//   * RADIO START_HOPPING        -> FREQ_HOPPING, retunes once per command cycle
+//     to a deterministic pseudo-random channel both ends derive from kHopSeed;
+//   * SET_FREQUENCY(<freq>)      -> FREQ_PARKED, stops hopping and stays put.
+// Channels are spaced so even a 500 kHz-wide signal stays in band with a
+// 250 kHz guard at each edge: centers 902.25 .. 908.75 MHz (14 channels).
+// No channel info goes over the air -- the ground radio computes the identical
+// sequence from the same seed + algorithm, hopping in lock-step.
+enum FreqMode { FREQ_HOME, FREQ_HOPPING, FREQ_PARKED };
+constexpr float kHopBaseFreqMHz = 902.25f;
+constexpr float kHopSpacingMHz = 0.5f;
+constexpr uint8_t kHopChannelCount = 14;
+constexpr uint32_t kHopSeed = 0xA5C0FFEEu;  // shared with the ground radio
 
 // --- per-boot ARC state ---
 uint8_t g_session = 1;
@@ -94,6 +117,8 @@ uint32_t g_lastHeartbeatMs = 0;
 uint32_t g_lastRxMs = 0;
 
 // --- frequency state ---
+FreqMode g_freqMode = FREQ_HOME;
+uint32_t g_hopStartMs = 0;  // hop index 0 begins here (set on START_HOPPING + grace)
 float g_curFreqMHz = kDefaultFreqMHz;
 bool g_freqSwitchPending = false;
 uint32_t g_freqSwitchAtMs = 0;
@@ -217,6 +242,36 @@ void sendStatusReport(uint8_t to)
   }
 }
 
+// Stateless pseudo-random channel for a given hop index. Both link ends compute
+// this identically from the shared seed (lowbias32 integer hash), so the channel
+// schedule never has to be transmitted. Adjacent indices scatter across the band.
+uint8_t hopChannelForIndex(uint32_t idx)
+{
+  uint32_t x = idx + kHopSeed;
+  x ^= x >> 16;
+  x *= 0x7feb352du;
+  x ^= x >> 15;
+  x *= 0x846ca68bu;
+  x ^= x >> 16;
+  return static_cast<uint8_t>(x % kHopChannelCount);
+}
+
+float hopFreqForIndex(uint32_t idx)
+{
+  return kHopBaseFreqMHz + static_cast<float>(hopChannelForIndex(idx)) * kHopSpacingMHz;
+}
+
+void handleStartHopping(const arc_frame_t *f)
+{
+  (void)f;  // fixed-seed: the command itself carries no parameters
+  // Anchor hop index 0 a grace period out, mirroring the SET_FREQUENCY flow, so
+  // the ACK reaches the ground and both ends start the same schedule together.
+  g_hopStartMs = millis() + kFreqSwitchDelayMs;
+  g_freqMode = FREQ_HOPPING;
+  RAD_LOG_PRINTF("RAD/Info: START_HOPPING (begins in %lu ms)\n",
+                 static_cast<unsigned long>(kFreqSwitchDelayMs));
+}
+
 void handleSetFrequency(const arc_frame_t *f)
 {
   arc_radio_set_frequency_t msg;
@@ -263,7 +318,10 @@ void applyFreqSwitch()
   if (rc == RADIOLIB_ERR_NONE)
   {
     g_curFreqMHz = g_freqSwitchTargetMHz;
-    RAD_LOG_PRINTF("RAD/Info: hopped to %.3f MHz\n", g_curFreqMHz);
+    // An explicit SET_FREQUENCY parks us here permanently: stop hopping and do
+    // not auto-revert. (Use SET_FREQUENCY(home) to return to the home channel.)
+    g_freqMode = FREQ_PARKED;
+    RAD_LOG_PRINTF("RAD/Info: parked at %.3f MHz\n", g_curFreqMHz);
   }
   else
   {
@@ -293,7 +351,11 @@ void applyPhySwitch()
 
 void maybeRevertLinkSettings()
 {
-  if (g_curFreqMHz == kDefaultFreqMHz && g_curPhyProfile == kDefaultPhyProfile)
+  // Only hopping self-heals: if the link goes silent we may have lost sync, so
+  // fall back to the home channel where the ground can re-acquire and re-issue
+  // START_HOPPING. FREQ_PARKED is intentionally permanent; FREQ_HOME is already
+  // home and has nothing to revert.
+  if (g_freqMode != FREQ_HOPPING)
   {
     return;
   }
@@ -301,13 +363,13 @@ void maybeRevertLinkSettings()
   {
     return;
   }
-  RAD_LOG_PRINTF("RAD/Warn: silent %lu ms, reverting link settings freq %.3f -> %.3f MHz profile %u -> %u\n",
-                 static_cast<unsigned long>(kRevertTimeoutMs), g_curFreqMHz, kDefaultFreqMHz,
-                 g_curPhyProfile, kDefaultPhyProfile);
+  RAD_LOG_PRINTF("RAD/Warn: hopping silent %lu ms, falling back home %.3f -> %.3f MHz\n",
+                 static_cast<unsigned long>(kRevertTimeoutMs), g_curFreqMHz, kDefaultFreqMHz);
   radio.setFrequency(kDefaultFreqMHz);
   radio.applyPhyProfile(kDefaultPhyProfile);
   g_curFreqMHz = kDefaultFreqMHz;
   g_curPhyProfile = kDefaultPhyProfile;
+  g_freqMode = FREQ_HOME;
   g_lastRxMs = millis();
   radio.recieve();
 }
@@ -381,6 +443,12 @@ void serviceRx()
       f.family == ARC_FAMILY_RADIO && f.type == ARC_RADIO_SET_PHY_PROFILE)
   {
     handleSetPhyProfile(&f);
+    return;  // consumed
+  }
+  if ((addressedToMe || f.dst == ARC_ADDR_BROADCAST) &&
+      f.family == ARC_FAMILY_RADIO && f.type == ARC_RADIO_START_HOPPING)
+  {
+    handleStartHopping(&f);
     return;  // consumed
   }
   if (addressedToMe && f.family == ARC_FAMILY_RADIO && f.type == ARC_RADIO_GET_STATUS)
@@ -540,18 +608,41 @@ void loop()
   if (now - g_lastCycleMs >= kCyclePeriodMs)
   {
     g_lastCycleMs = now;
+
+    // While hopping, retune to this cycle's channel before we talk or listen.
+    // The index is time-anchored (not a missed-cycle counter) so a skipped loop
+    // iteration can't drift us off the ground's schedule.
+    bool reopenRx = false;
+    if (g_freqMode == FREQ_HOPPING && static_cast<int32_t>(now - g_hopStartMs) >= 0)
+    {
+      const uint32_t idx = (now - g_hopStartMs) / kCyclePeriodMs;
+      const float f = hopFreqForIndex(idx);
+      if (f != g_curFreqMHz && radio.setFrequency(f) == RADIOLIB_ERR_NONE)
+      {
+        g_curFreqMHz = f;
+        reopenRx = true;  // listen on the new channel unless we TX below
+      }
+    }
+
     if (g_dlPending)
     {
       sendFrameOverLora(g_dlFrame, g_dlLen);
       g_dlPending = false;
       g_lastHeartbeatMs = now;  // a real downlink is liveness; defer the next heartbeat
       radio.recieve();          // reopen the command window
+      reopenRx = false;
     }
     else if (now - g_lastHeartbeatMs >= kHeartbeatPeriodMs)
     {
       g_lastHeartbeatMs = now;
       sendHeartbeat();
       radio.recieve();  // reopen the command window
+      reopenRx = false;
+    }
+
+    if (reopenRx)
+    {
+      radio.recieve();  // hopped this cycle without transmitting; re-arm RX here
     }
   }
 }
