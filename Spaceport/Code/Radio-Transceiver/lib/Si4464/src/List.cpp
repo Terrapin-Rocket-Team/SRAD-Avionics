@@ -1,0 +1,65 @@
+#include "List.h"
+
+List::List(Node *n)
+{
+    this->head = n;
+    this->tail = n;
+}
+
+List::~List()
+{
+}
+
+void List::shift()
+{
+    Node *oldHead = this->head;
+    this->head = this->head->next;
+    delete oldHead;
+}
+
+bool List::shift(uint8_t *data, uint16_t *size, uint16_t maxSize)
+{
+    if (this->head != nullptr && this->head->size < maxSize)
+    {
+        memcpy(data, this->head->data, this->head->size);
+        *size = this->head->size;
+        Node *oldHead = this->head;
+        this->head = this->head->next;
+        delete oldHead;
+
+        return true;
+    }
+
+    return false;
+}
+
+bool List::append(Node *n)
+{
+    if (this->head == nullptr && this->tail == nullptr)
+    {
+        this->head = n;
+        this->tail = n;
+    }
+    else
+    {
+        this->tail->next = n;
+        this->tail = n;
+    }
+
+    return true;
+}
+
+bool List::append(uint8_t *data, uint16_t size)
+{
+    Node *n = new Node(data, size);
+    if (n->errFull)
+        return false;
+    // else
+    this->append(n);
+    return true;
+}
+
+bool List::hasData()
+{
+    return this->head == nullptr;
+}
