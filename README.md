@@ -60,8 +60,13 @@ separately before flight.
 See [the 2026 consolidation status](docs/2026-consolidation-status.md) for the
 last clean build matrix. At that handoff point, ten projects passed and nine
 legacy or mixed projects had documented failures. The existing GitHub Actions
-workflow still attempts every `platformio.ini`, so a red repository-wide CI run
-does not by itself mean the maintained STM32 integration failed.
+workflow still attempts every `platformio.ini`, but its shell command does not
+reliably propagate individual project failures. A green PlatformIO workflow is
+therefore not a substitute for the documented matrix or the STM32 smoke test.
+
+The repository-wide KiCad DRC workflow is known to fail across both the
+pre-consolidation and consolidated histories. Review each board's DRC output
+before fabrication.
 
 Owner-controlled jhauerst branches were deliberately excluded from the 2026
 consolidation and should be coordinated with their owner rather than merged or

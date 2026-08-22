@@ -76,9 +76,30 @@ Known failing or mixed projects, intentionally left for future development:
 - `Spaceport/Code/STM32FC`: now resolves Astra `main`, but its old sensor adapters use the previous Astra API and reference a removed GPS header.
 - `Spaceport/Code/Teensy-Based-Avionics`: the Teensy path references a deliberately removed old Kalman implementation; the experimental STM path lacks a FatFs configuration.
 
+The PlatformIO GitHub Actions workflow uses `find ... -execdir platformio run`.
+It can report success even when an individual legacy invocation fails, so its
+green status does not supersede the matrix above.
+
+## Clean-room handoff validation
+
+The documented setup was repeated in a new Ubuntu 24.04 WSL2 distribution with
+the repositories cloned into the Linux filesystem. No Windows PlatformIO or
+compiler installation was placed on the Linux `PATH`.
+
+- Astra-Support `ecfd33a`: installed from GitHub with `pipx`; 30 Python tests passed.
+- Astra `4944eda`: four PlatformIO environments built and eight native suites passed (849 cases).
+- Astra-Rocket `0695b4c`: five PlatformIO environments built and all 125 native cases passed.
+- Consolidated SRAD-Avionics `main`: the Ground Station submodule initialized and `Side_Projects/STM32FC` built successfully against the published Astra and Astra-Rocket commits.
+- Astra-Rocket's Windows native build also passed with conditional `ws2_32` linking.
+
+The KiCad DRC GitHub Actions workflow remains failing. The same workflow also
+failed on the pre-consolidation `main`; no PCB design changes were made merely
+to clear those reports. Hardware upload, HITL, radio, sensor, deployment, and
+PCB fabrication checks remain outside this software-only validation.
+
 ## Handoff notes
 
 1. Review the PCB conflict choices before fabrication, especially the Teensy MCU project metadata and the sanitized flight-computer import.
-2. The existing all-project CI workflow was deliberately left unchanged and will fail for the known legacy projects above.
+2. The existing all-project CI workflow was deliberately left unchanged and can mask the known legacy failures above; consult the recorded matrix.
 3. Coordinate separately with jhauerst on his four preserved branch lines.
 4. Use `Side_Projects/STM32FC` as the current Astra-Rocket/Astra integration smoke test; hardware behavior is not established by a successful compile.
