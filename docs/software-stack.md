@@ -118,6 +118,11 @@ compile for the target. It does not validate:
 Record those checks in a mission-specific procedure. Never infer deployment
 success from Astra-Rocket's recovery-stage estimates.
 
+For the current STM32H723 flight-computer implementation, see the
+[source-level STM32FC integration reference](stm32fc-integration.md). Copy the
+[bench and flight readiness checklist](validation-checklist.md) into the mission
+test record and retain the resulting evidence.
+
 ## Known-good software handoff check
 
 The 2026 clean-room pass established that:

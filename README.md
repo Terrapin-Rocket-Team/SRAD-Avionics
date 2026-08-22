@@ -18,6 +18,10 @@ directory represents current flight hardware.
   verified builds, and known legacy failures.
 - `docs/software-stack.md` is the user-facing setup and integration path for
   the current Astra-based flight software.
+- `docs/stm32fc-integration.md` records the source-level STM32FC pin, sensor,
+  storage, and communications configuration.
+- `docs/validation-checklist.md` is the staged bench-to-flight verification
+  template; copy it into a mission-specific test record.
 
 KiCad boards normally consist of `.kicad_pro`, `.kicad_sch`, and `.kicad_pcb`
 files. Open the `.kicad_pro` file to work on a board.
@@ -46,7 +50,9 @@ projects.
 ## Current integration smoke test
 
 Read the [software stack and integration guide](docs/software-stack.md) before
-starting new flight-computer work.
+starting new flight-computer work. Then review the
+[STM32FC integration reference](docs/stm32fc-integration.md) and use the
+[bench and flight readiness checklist](docs/validation-checklist.md).
 
 `Side_Projects/STM32FC` is the maintained smoke test for the current
 Astra-Rocket -> Astra dependency chain:
