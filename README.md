@@ -16,6 +16,8 @@ directory represents current flight hardware.
 - `Apollo/` contains the Apollo project material organized by term.
 - `docs/2026-consolidation-status.md` records the dated branch consolidation,
   verified builds, and known legacy failures.
+- `docs/software-stack.md` is the user-facing setup and integration path for
+  the current Astra-based flight software.
 
 KiCad boards normally consist of `.kicad_pro`, `.kicad_sch`, and `.kicad_pcb`
 files. Open the `.kicad_pro` file to work on a board.
@@ -42,6 +44,9 @@ first setup check: the repository intentionally retains known-broken legacy
 projects.
 
 ## Current integration smoke test
+
+Read the [software stack and integration guide](docs/software-stack.md) before
+starting new flight-computer work.
 
 `Side_Projects/STM32FC` is the maintained smoke test for the current
 Astra-Rocket -> Astra dependency chain:
