@@ -1,37 +1,68 @@
-# SRAD_Avionics
-Code and PCBs for the avionics subteam for the SRAD flight computer and side projects.
+# SRAD-Avionics
 
-The avionics subteam manages this repo, as well as the `Multi-Mission-Flight-Software` and `Ground Station`
-repositories. Look at the *Issues* tab for tasks that need to be done, and the *Projects* tab for the current
-status of the Avionics subteam as a whole. 
+Code, KiCad projects, and supporting experiments for the Terrapin Rocket Team
+avionics subteam. The canonical branch is `main`.
 
-Most of our development for our competition rocket systems will be within the `/Spaceport/` directory. Here, the parts 
-are broken up by whether they are hardware, PCBs, or code. 
+This is a historical engineering repository as well as a source repository.
+Some PlatformIO projects are maintained integration targets; others are
+preserved prototypes and are known not to build. Do not assume that every
+directory represents current flight hardware.
 
-If writing software for the main embedded system, open the [`Teensy-Based-Avionics`](./Spaceport/Code/Teensy-Based-Avionics) 
-folder using [Platformio](https://platformio.org/) in VSCode, and make your edits there. For hardware, the files for a single 
-board come in sets of 3, with the extensions `.kicad_pro`, `.kicad_pcb`, and `.kicad_sch`. Editing these files affects the 
-PCB's layup.
+## Repository layout
 
-## Setup
-Visit the Software Training and Electronics Training modules for more information on how to start learning 
-and getting started.
+- `Spaceport/` contains competition-rocket firmware, PCBs, and mechanical work.
+- `Side_Projects/` contains flight-computer integrations, radio work, training,
+  and experiments.
+- `Apollo/` contains the Apollo project material organized by term.
+- `docs/2026-consolidation-status.md` records the dated branch consolidation,
+  verified builds, and known legacy failures.
 
-For installation, the `Ground Station` repository is submoduled on this repository. Submodules are not cloned by git by default. 
+KiCad boards normally consist of `.kicad_pro`, `.kicad_sch`, and `.kicad_pcb`
+files. Open the `.kicad_pro` file to work on a board.
 
-To clone the submodule when cloning the repo run:
-```
-git clone --recurse-submodules [url]
-```
-To clone the submodule within an existing clone of the repo run:
-```
-git submodule init
-git submodule update
-```
+## Clone and prerequisites
 
-To get the latest changes for the submodule run:
-```
-git pull
-git submodule update
+Install Git and PlatformIO Core, or VS Code with the PlatformIO extension. Clone
+the repository and its Ground Station submodule with:
+
+```bash
+git clone --recurse-submodules https://github.com/Terrapin-Rocket-Team/SRAD-Avionics.git
+cd SRAD-Avionics
 ```
 
+For an existing clone:
+
+```bash
+git submodule update --init --recursive
+```
+
+Open the specific directory containing the desired `platformio.ini` in VS Code,
+or run PlatformIO from that directory. Do not run a repository-wide build as a
+first setup check: the repository intentionally retains known-broken legacy
+projects.
+
+## Current integration smoke test
+
+`Side_Projects/STM32FC` is the maintained smoke test for the current
+Astra-Rocket -> Astra dependency chain:
+
+```bash
+cd Side_Projects/STM32FC
+pio run
+```
+
+This compiles firmware only. Uploading, hardware-in-the-loop testing, deployment
+outputs, radios, and sensors require the matching hardware and must be verified
+separately before flight.
+
+## Build status and legacy projects
+
+See [the 2026 consolidation status](docs/2026-consolidation-status.md) for the
+last clean build matrix. At that handoff point, ten projects passed and nine
+legacy or mixed projects had documented failures. The existing GitHub Actions
+workflow still attempts every `platformio.ini`, so a red repository-wide CI run
+does not by itself mean the maintained STM32 integration failed.
+
+Owner-controlled jhauerst branches were deliberately excluded from the 2026
+consolidation and should be coordinated with their owner rather than merged or
+deleted as repository cleanup.

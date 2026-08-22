@@ -4,14 +4,13 @@ Last verified: 2026-08-22
 
 This document records repository-reconciliation decisions only. It is not a claim that unfinished hardware or firmware has been completed.
 
-## Integration candidate
+## Consolidated main
 
-- Candidate branch: `codex/avionics-consolidation-no-jhauerst`
-- Reviewed implementation commit (before this report): `8175f967`
-- `main` remained at `90529e94` while this report was prepared.
-- The candidate is a descendant of `main`; no force-push of `main` is required.
+- Consolidated `main` commit: `69661d26`
+- Previous `main` commit: `90529e94`
+- `main` was fast-forwarded on 2026-08-22; no history rewrite was used.
 
-The candidate includes the current non-conflicting work from:
+The consolidated history includes the current non-conflicting work from:
 
 - `E22_breakout_board`
 - `Jack-Yeulenski-FC2.0`
@@ -31,7 +30,7 @@ The following jhauerst-owned lines were deliberately not merged or tagged. Leave
 - `mpm-telemetry`
 - `ARCH-Mega`
 
-The candidate was explicitly checked and none of those four branch tips is reachable from it.
+The consolidated `main` was explicitly checked and none of those four branch tips is reachable from it.
 
 ## Archived obsolete branch tips
 
@@ -77,9 +76,9 @@ Known failing or mixed projects, intentionally left for future development:
 - `Spaceport/Code/STM32FC`: now resolves Astra `main`, but its old sensor adapters use the previous Astra API and reference a removed GPS header.
 - `Spaceport/Code/Teensy-Based-Avionics`: the Teensy path references a deliberately removed old Kalman implementation; the experimental STM path lacks a FatFs configuration.
 
-## Before updating `main`
+## Handoff notes
 
-1. Review the candidate's PCB conflict choices, especially the Teensy MCU project metadata and the sanitized flight-computer import.
-2. Decide whether CI should build only maintained targets or whether each legacy target should be repaired/archived. The current all-project workflow will fail on `main` for the known reasons above.
-3. Coordinate separately with jhauerst on his four preserved branches.
-4. Fast-forward `main` to the reviewed candidate, then delete only branches covered by merged history or the archive tags above.
+1. Review the PCB conflict choices before fabrication, especially the Teensy MCU project metadata and the sanitized flight-computer import.
+2. The existing all-project CI workflow was deliberately left unchanged and will fail for the known legacy projects above.
+3. Coordinate separately with jhauerst on his four preserved branch lines.
+4. Use `Side_Projects/STM32FC` as the current Astra-Rocket/Astra integration smoke test; hardware behavior is not established by a successful compile.
