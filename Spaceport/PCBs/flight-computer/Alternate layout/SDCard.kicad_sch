@@ -808,6 +808,26 @@
 	)
 	(wire
 		(pts
+			(xy 96.52 90.17) (xy 97.79 90.17)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "50fa3f93-02e1-4ac9-9cb7-f76e09a41b41")
+	)
+	(wire
+		(pts
+			(xy 105.41 90.17) (xy 113.03 90.17)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "51f588b2-949a-4de0-8c4e-70a35f13c465")
+	)
+	(wire
+		(pts
 			(xy 113.03 100.33) (xy 105.41 100.33)
 		)
 		(stroke
@@ -828,6 +848,16 @@
 	)
 	(wire
 		(pts
+			(xy 87.63 92.71) (xy 113.03 92.71)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6e5e14d8-4997-4ada-9807-4170c12012f8")
+	)
+	(wire
+		(pts
 			(xy 107.95 85.09) (xy 113.03 85.09)
 		)
 		(stroke
@@ -845,16 +875,6 @@
 			(type default)
 		)
 		(uuid "727b1cf3-9e81-4f83-9db2-21ec9f28d0a7")
-	)
-	(wire
-		(pts
-			(xy 96.52 92.71) (xy 113.03 92.71)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a58e9163-340d-4ac1-bb06-2018a17f1e3f")
 	)
 	(wire
 		(pts
@@ -930,7 +950,7 @@
 	)
 	(hierarchical_label "CMD"
 		(shape input)
-		(at 113.03 90.17 180)
+		(at 96.52 90.17 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -974,7 +994,7 @@
 	)
 	(symbol
 		(lib_id "power:+3V3")
-		(at 96.52 92.71 0)
+		(at 87.63 92.71 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -984,7 +1004,7 @@
 		(dnp no)
 		(uuid "375eee68-c87f-445f-bea2-bf91d809a9df")
 		(property "Reference" "#PWR083"
-			(at 96.52 96.52 0)
+			(at 87.63 96.52 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -995,7 +1015,7 @@
 			)
 		)
 		(property "Value" "+3V3A"
-			(at 94.234 88.6459 0)
+			(at 85.344 88.6459 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -1006,7 +1026,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 96.52 92.71 0)
+			(at 87.63 92.71 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1017,7 +1037,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 96.52 92.71 0)
+			(at 87.63 92.71 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1028,7 +1048,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3V3\""
-			(at 96.52 92.71 0)
+			(at 87.63 92.71 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1127,6 +1147,88 @@
 			(project "flight-computer"
 				(path "/b419aaf0-5349-42bc-a414-d94cafbe45e9/cf915fab-afce-462a-afc9-9be0ef6a3002"
 					(reference "R29")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 101.6 90.17 270)
+		(mirror x)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "74bb163d-1103-4350-99a3-87330f2d7924")
+		(property "Reference" "R33"
+			(at 102.8701 87.63 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "10 kΩ"
+			(at 100.3301 87.63 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
+			(at 101.6 91.948 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 101.6 90.17 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 101.6 90.17 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "52f097c9-de81-4dd1-bad6-325a5f80d499")
+		)
+		(pin "2"
+			(uuid "83887d4e-a2ce-4bca-902b-499ddd13ebea")
+		)
+		(instances
+			(project "flight-computer"
+				(path "/b419aaf0-5349-42bc-a414-d94cafbe45e9/cf915fab-afce-462a-afc9-9be0ef6a3002"
+					(reference "R33")
 					(unit 1)
 				)
 			)
