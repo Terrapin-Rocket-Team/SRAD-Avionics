@@ -1,0 +1,44 @@
+{
+  "build": {
+    "cpu": "cortex-m4",
+    "extra_flags": "-DSTM32L4 -DSTM32L431xx",
+    "f_cpu": "80000000L",
+    "mcu": "stm32l431kbu6",
+    "product_line": "STM32L431xx",
+    "variant": "STM32L4xx/L431K(B-C)U"
+  },
+  "debug": {
+    "default_tools": [
+      "stlink"
+    ],
+    "jlink_device": "STM32L431KB",
+    "onboard_tools": [
+      "stlink"
+    ],
+    "openocd_target": "stm32l4x",
+    "svd_path": "STM32L4x1.svd"
+  },
+  "frameworks": [
+    "arduino",
+    "cmsis",
+    "mbed",
+    "stm32cube",
+    "libopencm3",
+    "zephyr"
+  ],
+  "name": "ST Nucleo L431KB",
+  "upload": {
+    "maximum_ram_size": 65536,
+    "maximum_size": 131072,
+    "protocol": "stlink",
+    "protocols": [
+      "jlink",
+      "cmsis-dap",
+      "stlink",
+      "blackmagic",
+      "mbed"
+    ]
+  },
+  "url": "https://developer.mbed.org/platforms/ST-Nucleo-L432KC/",
+  "vendor": "TRT"
+}
