@@ -42,12 +42,11 @@
 void setup()
 {
     Serial.begin(500000);
-    Serial1.begin(115200);
+    Serial1.begin(500000);
 }
 
 void loop()
 {
-    Serial.println("Hello world");
-    Serial1.println("Hello world");
-    delay(1000);
+    if (Serial1.available())
+        Serial.write(Serial1.read());
 }
