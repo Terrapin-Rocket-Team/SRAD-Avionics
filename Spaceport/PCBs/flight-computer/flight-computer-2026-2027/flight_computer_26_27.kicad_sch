@@ -740,6 +740,162 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Device:C_Small"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0.254)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "C"
+				(at 0.254 1.778 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "C_Small"
+				(at 0.254 -2.032 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Unpolarized capacitor, small symbol"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "capacitor cap"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "C_*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "C_Small_0_1"
+				(polyline
+					(pts
+						(xy -1.524 0.508) (xy 1.524 0.508)
+					)
+					(stroke
+						(width 0.3048)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.524 -0.508) (xy 1.524 -0.508)
+					)
+					(stroke
+						(width 0.3302)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "C_Small_1_1"
+				(pin passive line
+					(at 0 2.54 270)
+					(length 2.032)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -2.54 90)
+					(length 2.032)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Device:R"
 			(pin_numbers
 				(hide yes)
@@ -3157,6 +3313,18 @@
 		)
 		(uuid "f90b76cc-1582-4599-9daf-f36489ceb2e5")
 	)
+	(rectangle
+		(start 335.0753 15.4856)
+		(end 401.1153 37.0756)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(fill
+			(type none)
+		)
+		(uuid "fcd715f2-720b-4691-bebe-9b1d1f1571bb")
+	)
 	(text "CONNECTIONS\n	"
 		(exclude_from_sim no)
 		(at 60.96 20.32 0)
@@ -3197,6 +3365,16 @@
 		)
 		(uuid "32855b45-87a3-43c2-a014-c90d7fc6d70d")
 	)
+	(text "VDD Caps"
+		(exclude_from_sim no)
+		(at 365.76 13.97 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "80a5f3b3-6eb4-4ba5-99a8-f85e86d6753e")
+	)
 	(text "SWD CONN\n"
 		(exclude_from_sim no)
 		(at 45.974 154.178 0)
@@ -3207,11 +3385,33 @@
 		)
 		(uuid "ccb47c53-d84d-4264-9610-a979e2f0f0c3")
 	)
+	(text "1 μF ceramic and 100 nF as close as possible of the pin\n"
+		(exclude_from_sim no)
+		(at 366.014 41.148 0)
+		(effects
+			(font
+				(size 0.635 0.635)
+			)
+		)
+		(uuid "f425732c-ead6-4561-854b-7981c4ccb079")
+	)
 	(junction
 		(at 56.642 89.408)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "3f182841-d05a-4f49-8b3c-726c7b5a8b6b")
+	)
+	(junction
+		(at 376.9853 21.8356)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "57ac5653-d4e3-4352-9336-06bd55803db5")
+	)
+	(junction
+		(at 351.5853 21.8356)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "62a92910-59bb-48c0-8ea2-2411b404a7fa")
 	)
 	(junction
 		(at 56.642 79.248)
@@ -3220,10 +3420,34 @@
 		(uuid "72622a11-0b2e-40e2-aa11-ee2146c19f2f")
 	)
 	(junction
+		(at 351.5853 26.9156)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "7681586a-44eb-4c86-8ee0-4c73c846c864")
+	)
+	(junction
 		(at 46.482 91.948)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "ac22d068-c1c2-4177-b253-feabca9f3bc4")
+	)
+	(junction
+		(at 376.9853 26.9156)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "bc93b8b7-3bd0-47f3-9cf9-4921c4090dd7")
+	)
+	(junction
+		(at 364.2853 26.9156)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "def891c6-aeb5-453a-abca-0b761ec784e3")
+	)
+	(junction
+		(at 364.2853 21.8356)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "e85dfac5-6edd-4776-af83-770c8c050f33")
 	)
 	(junction
 		(at 46.482 79.248)
@@ -3340,6 +3564,26 @@
 			(type default)
 		)
 		(uuid "8230cefb-e374-4c53-9042-cf22eb8bce00")
+	)
+	(wire
+		(pts
+			(xy 338.8853 21.8356) (xy 351.5853 21.8356)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "82be253c-e57f-4db1-8acb-6e75ca0e0861")
+	)
+	(wire
+		(pts
+			(xy 376.9853 26.9156) (xy 389.6853 26.9156)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "84a1195f-28b4-4aad-add0-eaf046dd43d6")
 	)
 	(wire
 		(pts
@@ -3493,6 +3737,46 @@
 	)
 	(wire
 		(pts
+			(xy 364.2853 26.9156) (xy 376.9853 26.9156)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e0441d45-9b39-44dc-8ab6-396935b962ad")
+	)
+	(wire
+		(pts
+			(xy 338.8853 26.9156) (xy 351.5853 26.9156)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e11f7624-ec0d-4e5e-b392-8cb6edb01dd5")
+	)
+	(wire
+		(pts
+			(xy 351.5853 21.8356) (xy 364.2853 21.8356)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e320a353-fe6d-4872-b915-8f90a56e452c")
+	)
+	(wire
+		(pts
+			(xy 351.5853 26.9156) (xy 364.2853 26.9156)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e6f47f1d-8287-48ae-b03d-f676205b973b")
+	)
+	(wire
+		(pts
 			(xy 46.482 79.248) (xy 56.642 79.248)
 		)
 		(stroke
@@ -3533,6 +3817,16 @@
 	)
 	(wire
 		(pts
+			(xy 376.9853 21.8356) (xy 389.6853 21.8356)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f6546fa1-b1b7-4fbd-b2a6-2c2cb5cb40bb")
+	)
+	(wire
+		(pts
 			(xy 56.642 88.138) (xy 56.642 89.408)
 		)
 		(stroke
@@ -3550,6 +3844,16 @@
 			(type default)
 		)
 		(uuid "fa24d4b7-6797-46c2-96d5-39897c56fc80")
+	)
+	(wire
+		(pts
+			(xy 364.2853 21.8356) (xy 376.9853 21.8356)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fd1a4356-acf0-45bc-ac09-6f35bc906350")
 	)
 	(wire
 		(pts
@@ -3601,6 +3905,26 @@
 		)
 		(uuid "27bbc035-683d-476c-a345-5be9e6c2d36f")
 	)
+	(label "+3V3A"
+		(at 162.306 128.016 270)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "3eadc41e-64cd-4689-ad33-bf1b334f8bc6")
+	)
+	(label "+3V3A"
+		(at 159.766 31.496 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "40739704-77ff-499a-b3aa-cf762ca78cdb")
+	)
 	(label "SWD_DIO"
 		(at 48.006 162.814 0)
 		(effects
@@ -3631,6 +3955,36 @@
 		)
 		(uuid "8ed46d93-22a8-481f-b626-e3f7949296af")
 	)
+	(label "GND"
+		(at 162.306 31.496 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b26a0930-1205-4a5d-bb40-5a9fd9f75277")
+	)
+	(label "+3V3A"
+		(at 228.346 49.276 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b4985ab1-e285-48a3-ba2a-36b3cb155361")
+	)
+	(label "+3V3A"
+		(at 220.726 128.016 270)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "b7865f71-7830-4ad5-9163-c95666f038fb")
+	)
 	(label "SPI1_CS"
 		(at 45.212 136.906 0)
 		(effects
@@ -3651,6 +4005,26 @@
 		)
 		(uuid "d6476f2d-96ac-4b9d-af74-a4ef29cb8e81")
 	)
+	(label "GND"
+		(at 218.186 128.016 270)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "dabd10ac-de19-458d-b3ce-653a0061908f")
+	)
+	(label "GND"
+		(at 159.766 128.016 270)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "e806d440-61bf-469e-b0d3-5dbf8542e704")
+	)
 	(label "RST"
 		(at 48.006 160.274 0)
 		(effects
@@ -3660,6 +4034,115 @@
 			(justify left bottom)
 		)
 		(uuid "eb93c27e-3a27-4b7d-91aa-99be0728618d")
+	)
+	(label "GND"
+		(at 152.146 72.136 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "f44bcd97-dd12-493c-8ebe-224cd581b876")
+	)
+	(label "GND"
+		(at 228.346 51.816 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "fa1d7477-31ae-42b4-b3b3-06e453df6dbb")
+	)
+	(label "+3V3A"
+		(at 152.146 74.676 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "fd3916c8-2669-47a7-b27a-248281593762")
+	)
+	(symbol
+		(lib_id "power:+3V3")
+		(at 364.2853 21.8356 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "047554b8-0afd-4750-8dc6-278719343933")
+		(property "Reference" "#PWR041"
+			(at 364.2853 25.6456 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+3V3A"
+			(at 366.8253 20.5655 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 364.2853 21.8356 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 364.2853 21.8356 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3V3\""
+			(at 364.2853 21.8356 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "c008f855-5e24-427e-a817-3747fc9a628e")
+		)
+		(instances
+			(project "flight_computer_26_27"
+				(path "/4fd124df-e0d9-445f-9973-04852ab50770"
+					(reference "#PWR041")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Connector_Generic:Conn_01x04")
@@ -3831,6 +4314,99 @@
 			(project "flight_computer_26_27"
 				(path "/4fd124df-e0d9-445f-9973-04852ab50770"
 					(reference "#PWR092")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 376.9853 24.3756 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "12ee39d8-187f-42ea-9d58-cac14ca0a91a")
+		(property "Reference" "C15"
+			(at 379.5253 23.1118 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100 nF"
+			(at 379.5253 25.6518 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
+			(at 376.9853 24.3756 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 376.9853 24.3756 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 376.9853 24.3756 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "SNAPEDA_PACKAGE_ID" ""
+			(at 376.9853 24.3756 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "258c61f0-874c-4e6d-98f3-5bdd998fd784")
+		)
+		(pin "2"
+			(uuid "afa7c958-339f-4a9a-992a-2824abc7ef25")
+		)
+		(instances
+			(project "flight_computer_26_27"
+				(path "/4fd124df-e0d9-445f-9973-04852ab50770"
+					(reference "C15")
 					(unit 1)
 				)
 			)
@@ -4344,6 +4920,99 @@
 			(project "flight_computer_26_27"
 				(path "/4fd124df-e0d9-445f-9973-04852ab50770"
 					(reference "#PWR025")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 389.6853 24.3756 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "6a193563-c219-420a-a56a-9a44ad9ea689")
+		(property "Reference" "C16"
+			(at 392.2253 23.1118 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "4.7 µF"
+			(at 392.2253 25.6518 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
+			(at 389.6853 24.3756 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 389.6853 24.3756 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 389.6853 24.3756 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "SNAPEDA_PACKAGE_ID" ""
+			(at 389.6853 24.3756 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "1cfd73c3-3d3c-425b-9632-24ad4631449b")
+		)
+		(pin "2"
+			(uuid "dfbe30c8-b718-44d4-94ab-b31e6727ad59")
+		)
+		(instances
+			(project "flight_computer_26_27"
+				(path "/4fd124df-e0d9-445f-9973-04852ab50770"
+					(reference "C16")
 					(unit 1)
 				)
 			)
@@ -4889,6 +5558,99 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:C_Small")
+		(at 364.2853 24.3756 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "8316ef4b-727e-4392-ac6f-19f16ddd5ce2")
+		(property "Reference" "C12"
+			(at 366.8253 23.1118 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100 nF"
+			(at 366.8253 25.6518 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
+			(at 364.2853 24.3756 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 364.2853 24.3756 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 364.2853 24.3756 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "SNAPEDA_PACKAGE_ID" ""
+			(at 364.2853 24.3756 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "41dd7b2c-284b-4045-8be5-dc2ad8d968b9")
+		)
+		(pin "2"
+			(uuid "e70a68cb-c972-49f4-897c-c3e49431b63a")
+		)
+		(instances
+			(project "flight_computer_26_27"
+				(path "/4fd124df-e0d9-445f-9973-04852ab50770"
+					(reference "C12")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 74.676 54.864 0)
 		(unit 1)
@@ -5323,6 +6085,99 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:C_Small")
+		(at 338.8853 24.3756 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "bc05de04-754b-4673-ae82-1e404f9993b1")
+		(property "Reference" "C14"
+			(at 341.4253 23.1118 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100 nF"
+			(at 341.4253 25.6518 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
+			(at 338.8853 24.3756 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 338.8853 24.3756 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 338.8853 24.3756 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "SNAPEDA_PACKAGE_ID" ""
+			(at 338.8853 24.3756 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "3ff66358-6a02-4144-b944-290513e4e72e")
+		)
+		(pin "2"
+			(uuid "6be01cad-5ea3-4939-8560-cbcb8cf7393b")
+		)
+		(instances
+			(project "flight_computer_26_27"
+				(path "/4fd124df-e0d9-445f-9973-04852ab50770"
+					(reference "C14")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:+3V3")
 		(at 46.736 171.704 180)
 		(unit 1)
@@ -5395,6 +6250,84 @@
 			(project "flight_computer_26_27"
 				(path "/4fd124df-e0d9-445f-9973-04852ab50770"
 					(reference "#PWR028")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 364.2853 26.9156 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "c86152a2-fb6d-4aae-9413-267477162215")
+		(property "Reference" "#PWR042"
+			(at 364.2853 33.2656 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 364.2853 31.9956 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 364.2853 26.9156 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 364.2853 26.9156 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 364.2853 26.9156 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "f617e46f-1bf2-45bc-9016-7d333c101279")
+		)
+		(instances
+			(project "flight_computer_26_27"
+				(path "/4fd124df-e0d9-445f-9973-04852ab50770"
+					(reference "#PWR042")
 					(unit 1)
 				)
 			)
@@ -5737,6 +6670,99 @@
 			(project "flight_computer_26_27"
 				(path "/4fd124df-e0d9-445f-9973-04852ab50770"
 					(reference "R1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 351.5853 24.3756 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "f0ad60be-8423-424c-96f3-55f5a46737fe")
+		(property "Reference" "C13"
+			(at 354.1253 23.1118 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100 nF"
+			(at 354.1253 25.6518 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
+			(at 351.5853 24.3756 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 351.5853 24.3756 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 351.5853 24.3756 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "SNAPEDA_PACKAGE_ID" ""
+			(at 351.5853 24.3756 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "e218b34c-fd3e-4268-b850-c6f2035676bc")
+		)
+		(pin "2"
+			(uuid "60fb42fe-e31b-49e0-aa40-8ad35bf425e9")
+		)
+		(instances
+			(project "flight_computer_26_27"
+				(path "/4fd124df-e0d9-445f-9973-04852ab50770"
+					(reference "C13")
 					(unit 1)
 				)
 			)
