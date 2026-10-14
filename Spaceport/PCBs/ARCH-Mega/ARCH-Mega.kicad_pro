@@ -50,7 +50,23 @@
         "silk_text_thickness": 0.1,
         "silk_text_upright": false,
         "zones": {
-          "min_clearance": 0.1
+          "border_display_style": 2,
+          "border_hatch_pitch": 0.5,
+          "corner_radius": 0.0,
+          "corner_smoothing": 0,
+          "fill_mode": 0,
+          "hatch_gap": 1.5,
+          "hatch_orientation": 0.0,
+          "hatch_smoothing_level": 0,
+          "hatch_smoothing_value": 0.1,
+          "hatch_thickness": 1.0,
+          "min_clearance": 0.1,
+          "min_island_area": 10.0,
+          "min_thickness": 0.25,
+          "pad_connection": 1,
+          "remove_islands": 0,
+          "thermal_relief_gap": 0.5,
+          "thermal_relief_spoke_width": 0.5
         }
       },
       "diff_pair_dimensions": [
@@ -162,6 +178,7 @@
         {
           "td_allow_use_two_tracks": true,
           "td_curve_segcount": 0,
+          "td_enabled": false,
           "td_height_ratio": 1.0,
           "td_length_ratio": 0.5,
           "td_maxheight": 2.0,
@@ -173,6 +190,7 @@
         {
           "td_allow_use_two_tracks": true,
           "td_curve_segcount": 0,
+          "td_enabled": false,
           "td_height_ratio": 1.0,
           "td_length_ratio": 0.5,
           "td_maxheight": 2.0,
@@ -184,6 +202,7 @@
         {
           "td_allow_use_two_tracks": true,
           "td_curve_segcount": 0,
+          "td_enabled": false,
           "td_height_ratio": 1.0,
           "td_length_ratio": 0.5,
           "td_maxheight": 2.0,
@@ -474,6 +493,7 @@
       "pin_to_pin": "warning",
       "power_pin_not_driven": "error",
       "same_local_global_label": "warning",
+      "same_local_global_power": "warning",
       "similar_label_and_power": "warning",
       "similar_labels": "warning",
       "similar_power": "warning",
@@ -548,12 +568,9 @@
     "meta": {
       "version": 5
     },
-    "net_colors": null,
+    "net_colors": {},
     "netclass_assignments": {
       "3V3_MCU": [
-        "Power"
-      ],
-      "CHG_IN": [
         "Power"
       ],
       "GND": [
@@ -569,43 +586,10 @@
       "Net-(D1-A)": [
         "Power"
       ],
-      "Net-(D2-K)": [
-        "Power"
-      ],
-      "Net-(J4-CC1)": [
-        "Signal"
-      ],
-      "Net-(PWR1-K)": [
-        "Signal"
-      ],
-      "Net-(PWR2-K)": [
-        "Signal"
-      ],
-      "Net-(PWR3-K)": [
-        "Signal"
-      ],
-      "Net-(PWR4-K)": [
-        "Signal"
-      ],
-      "Net-(PWR5-K)": [
-        "Signal"
-      ],
-      "Net-(PWR6-K)": [
-        "Signal"
-      ],
-      "Net-(R10-Pad2)": [
-        "Power"
-      ],
       "Net-(STAT1-K)": [
         "Signal"
       ],
-      "Net-(U2-SW)": [
-        "Power"
-      ],
       "Net-(U3-ADJ{slash}SENSE)": [
-        "Signal"
-      ],
-      "Net-(U4-ADJ{slash}SENSE)": [
         "Signal"
       ],
       "PWR1": [
@@ -641,9 +625,6 @@
       "SWDIO": [
         "Signal"
       ],
-      "VBAT": [
-        "Power"
-      ],
       "VBUS": [
         "Power"
       ],
@@ -658,15 +639,6 @@
       ],
       "VUSB": [
         "Power"
-      ],
-      "unconnected-(U1-PB6-Pad18)": [
-        "Signal"
-      ],
-      "unconnected-(U1-PB7-Pad19)": [
-        "Signal"
-      ],
-      "unconnected-(U1-PC14-OSCX_IN-Pad20)": [
-        "Signal"
       ]
     },
     "netclass_patterns": []
@@ -865,7 +837,7 @@
         "uuid": "d9d6923d-dba0-4a51-9b4b-1871f347044f"
       }
     ],
-    "used_designators": "",
+    "used_designators": "#PWR86-99,C39-42,OPWR2,OPWR7,PWR2,PWR7,R47-50,U5,U13-15",
     "variants": []
   },
   "sheets": [
