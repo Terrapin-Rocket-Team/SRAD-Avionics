@@ -178,7 +178,6 @@
         {
           "td_allow_use_two_tracks": true,
           "td_curve_segcount": 0,
-          "td_enabled": false,
           "td_height_ratio": 1.0,
           "td_length_ratio": 0.5,
           "td_maxheight": 2.0,
@@ -190,7 +189,6 @@
         {
           "td_allow_use_two_tracks": true,
           "td_curve_segcount": 0,
-          "td_enabled": false,
           "td_height_ratio": 1.0,
           "td_length_ratio": 0.5,
           "td_maxheight": 2.0,
@@ -202,7 +200,6 @@
         {
           "td_allow_use_two_tracks": true,
           "td_curve_segcount": 0,
-          "td_enabled": false,
           "td_height_ratio": 1.0,
           "td_length_ratio": 0.5,
           "td_maxheight": 2.0,
@@ -493,7 +490,6 @@
       "pin_to_pin": "warning",
       "power_pin_not_driven": "error",
       "same_local_global_label": "warning",
-      "same_local_global_power": "warning",
       "similar_label_and_power": "warning",
       "similar_labels": "warning",
       "similar_power": "warning",
@@ -568,9 +564,12 @@
     "meta": {
       "version": 5
     },
-    "net_colors": {},
+    "net_colors": null,
     "netclass_assignments": {
       "3V3_MCU": [
+        "Power"
+      ],
+      "CHG_IN": [
         "Power"
       ],
       "GND": [
@@ -586,10 +585,43 @@
       "Net-(D1-A)": [
         "Power"
       ],
+      "Net-(D2-K)": [
+        "Power"
+      ],
+      "Net-(J4-CC1)": [
+        "Signal"
+      ],
+      "Net-(PWR1-K)": [
+        "Signal"
+      ],
+      "Net-(PWR2-K)": [
+        "Signal"
+      ],
+      "Net-(PWR3-K)": [
+        "Signal"
+      ],
+      "Net-(PWR4-K)": [
+        "Signal"
+      ],
+      "Net-(PWR5-K)": [
+        "Signal"
+      ],
+      "Net-(PWR6-K)": [
+        "Signal"
+      ],
+      "Net-(R10-Pad2)": [
+        "Power"
+      ],
       "Net-(STAT1-K)": [
         "Signal"
       ],
+      "Net-(U2-SW)": [
+        "Power"
+      ],
       "Net-(U3-ADJ{slash}SENSE)": [
+        "Signal"
+      ],
+      "Net-(U4-ADJ{slash}SENSE)": [
         "Signal"
       ],
       "PWR1": [
@@ -625,6 +657,9 @@
       "SWDIO": [
         "Signal"
       ],
+      "VBAT": [
+        "Power"
+      ],
       "VBUS": [
         "Power"
       ],
@@ -639,6 +674,15 @@
       ],
       "VUSB": [
         "Power"
+      ],
+      "unconnected-(U1-PB6-Pad18)": [
+        "Signal"
+      ],
+      "unconnected-(U1-PB7-Pad19)": [
+        "Signal"
+      ],
+      "unconnected-(U1-PC14-OSCX_IN-Pad20)": [
+        "Signal"
       ]
     },
     "netclass_patterns": []
@@ -837,7 +881,7 @@
         "uuid": "d9d6923d-dba0-4a51-9b4b-1871f347044f"
       }
     ],
-    "used_designators": "#PWR86-129,C39-58,OPWR2-8,PWR2-8,R47-54,R59-68,U5,U13-18",
+    "used_designators": "U4-9,U13-14,D3-6,#PWR86-133,C39-58,R10-11,R47-68,OPWR1-6,PWR1-6",
     "variants": []
   },
   "sheets": [
@@ -847,7 +891,15 @@
     ],
     [
       "1f696824-fb0d-4385-b375-77e82f204c9c",
-      "charge"
+      "Charge"
+    ],
+    [
+      "73629531-3e12-4c01-9442-ab15ae59c06a",
+      "Current Monitoring"
+    ],
+    [
+      "0f3f5af1-fc64-4e44-96a0-0334b7f7a35f",
+      "Power Control"
     ]
   ],
   "text_variables": {},
