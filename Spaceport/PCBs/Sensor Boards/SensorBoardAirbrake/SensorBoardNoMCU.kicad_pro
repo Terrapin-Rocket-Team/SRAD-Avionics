@@ -65,7 +65,16 @@
           "width": 0.3
         }
       ],
-      "drc_exclusions": [],
+      "drc_exclusions": [
+        [
+          "lib_footprint_issues|92249796|77545065|2048b1a4-28e3-47f6-929f-474237a8e8da|00000000-0000-0000-0000-000000000000",
+          ""
+        ],
+        [
+          "text_height|98500000|77250000|f1d05164-95de-4de7-8d30-1f895c77708c|00000000-0000-0000-0000-000000000000",
+          ""
+        ]
+      ],
       "meta": {
         "version": 2
       },
@@ -111,8 +120,8 @@
         "pth_inside_courtyard": "ignore",
         "shorting_items": "error",
         "silk_edge_clearance": "warning",
-        "silk_over_copper": "warning",
-        "silk_overlap": "warning",
+        "silk_over_copper": "ignore",
+        "silk_overlap": "ignore",
         "skew_out_of_range": "error",
         "solder_mask_bridge": "error",
         "starved_thermal": "error",
@@ -515,7 +524,7 @@
     "classes": [
       {
         "bus_width": 12,
-        "clearance": 0.2,
+        "clearance": 0.15,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
@@ -538,7 +547,12 @@
     },
     "net_colors": null,
     "netclass_assignments": null,
-    "netclass_patterns": []
+    "netclass_patterns": [
+      {
+        "netclass": "Default",
+        "pattern": "GND"
+      }
+    ]
   },
   "pcbnew": {
     "last_paths": {
@@ -716,7 +730,7 @@
         "uuid": "9ac8186e-c1e5-4a52-99a7-491d99a44aac"
       }
     ],
-    "used_designators": "",
+    "used_designators": "C7-8,#PWR6,#PWR17-18,#PWR21,U2",
     "variants": []
   },
   "sheets": [
