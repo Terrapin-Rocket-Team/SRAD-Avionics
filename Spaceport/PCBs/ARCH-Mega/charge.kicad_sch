@@ -14,29 +14,27 @@
 			(on_board yes)
 			(in_pos_files yes)
 			(duplicate_pin_numbers_are_jumpers no)
-			(property "Reference" "U"
-				(at -10.16 18.542 0)
+			(property "Reference" "U10"
+				(at 0 22.86 0)
 				(show_name no)
 				(do_not_autoplace no)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left bottom)
 				)
 			)
 			(property "Value" "BQ25306RTER"
-				(at -10.16 -25.4 0)
+				(at 0 20.32 0)
 				(show_name no)
 				(do_not_autoplace no)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left bottom)
 				)
 			)
-			(property "Footprint" "BQ25306RTER:IC_BQ25306RTER"
+			(property "Footprint" "Avionics:BQ25306RTER"
 				(at 0 0 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -120,8 +118,8 @@
 			)
 			(symbol "BQ25306RTER_0_0"
 				(rectangle
-					(start -10.16 -22.86)
-					(end 10.16 17.78)
+					(start -10.16 17.78)
+					(end 10.16 -22.86)
 					(stroke
 						(width 0.254)
 						(type default)
@@ -141,42 +139,6 @@
 						)
 					)
 					(number "1"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-				)
-				(pin output line
-					(at 15.24 -2.54 180)
-					(length 5.08)
-					(name "REGN"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-				)
-				(pin output line
-					(at 15.24 -7.62 180)
-					(length 5.08)
-					(name "STAT"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-					(number "3"
 						(effects
 							(font
 								(size 1.016 1.016)
@@ -249,24 +211,6 @@
 						)
 					)
 					(number "7"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-				)
-				(pin power_in line
-					(at 15.24 -15.24 180)
-					(length 5.08)
-					(name "FB_GND"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-					(number "8"
 						(effects
 							(font
 								(size 1.016 1.016)
@@ -347,42 +291,6 @@
 					)
 				)
 				(pin output line
-					(at 15.24 10.16 180)
-					(length 5.08)
-					(name "SW"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-					(number "13"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-				)
-				(pin output line
-					(at 15.24 7.62 180)
-					(length 5.08)
-					(name "SW__1"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-					(number "14"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-				)
-				(pin output line
 					(at 15.24 5.08 180)
 					(length 5.08)
 					(name "BTST"
@@ -437,6 +345,98 @@
 					)
 				)
 			)
+			(symbol "BQ25306RTER_1_0"
+				(pin power_out line
+					(at 15.24 -2.54 180)
+					(length 5.08)
+					(name "REGN"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+				)
+				(pin open_collector line
+					(at 15.24 -7.62 180)
+					(length 5.08)
+					(name "STAT"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 -15.24 180)
+					(length 5.08)
+					(name "FB_GND"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+					(number "8"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 10.16 180)
+					(length 5.08)
+					(name "SW"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+					(number "13"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 7.62 180)
+					(length 5.08)
+					(name "SW__1"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+					(number "14"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+				)
+			)
 			(embedded_fonts no)
 		)
 		(symbol "Avionics:BQ29200DRBR"
@@ -448,29 +448,27 @@
 			(on_board yes)
 			(in_pos_files yes)
 			(duplicate_pin_numbers_are_jumpers no)
-			(property "Reference" "U"
-				(at -10.414 16.002 0)
+			(property "Reference" "U12"
+				(at 0 20.32 0)
 				(show_name no)
 				(do_not_autoplace no)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left bottom)
 				)
 			)
 			(property "Value" "BQ29200DRBR"
-				(at -10.414 -18.034 0)
+				(at 0 17.78 0)
 				(show_name no)
 				(do_not_autoplace no)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left bottom)
 				)
 			)
-			(property "Footprint" "BQ29200DRBR:IC_DRV8601DRBT"
+			(property "Footprint" "Avionics:BQ2900DRBR"
 				(at 0 0 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -514,60 +512,6 @@
 					)
 					(fill
 						(type background)
-					)
-				)
-				(pin power_in line
-					(at 15.24 7.62 180)
-					(length 5.08)
-					(name "VC2"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-				)
-				(pin power_in line
-					(at 15.24 10.16 180)
-					(length 5.08)
-					(name "VC1"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-				)
-				(pin power_in line
-					(at 15.24 5.08 180)
-					(length 5.08)
-					(name "VC1_CB"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-					(number "3"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
 					)
 				)
 				(pin bidirectional line
@@ -679,6 +623,62 @@
 					)
 				)
 			)
+			(symbol "BQ29200DRBR_1_0"
+				(pin input line
+					(at 15.24 7.62 180)
+					(length 5.08)
+					(name "VC2"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at 15.24 10.16 180)
+					(length 5.08)
+					(name "VC1"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 5.08 180)
+					(length 5.08)
+					(name "VC1_CB"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+				)
+			)
 			(embedded_fonts no)
 		)
 		(symbol "Avionics:STUSB4500QTR"
@@ -690,8 +690,8 @@
 			(on_board yes)
 			(in_pos_files yes)
 			(duplicate_pin_numbers_are_jumpers no)
-			(property "Reference" "U"
-				(at 0 23.368 0)
+			(property "Reference" "U11"
+				(at 0 22.86 0)
 				(show_name no)
 				(do_not_autoplace no)
 				(effects
@@ -701,7 +701,7 @@
 				)
 			)
 			(property "Value" "STUSB4500QTR"
-				(at 0 20.828 0)
+				(at 0 20.32 0)
 				(show_name no)
 				(do_not_autoplace no)
 				(effects
@@ -710,7 +710,7 @@
 					)
 				)
 			)
-			(property "Footprint" "QFN24EP_4X4_STM"
+			(property "Footprint" "Avionics:STUSB4500QTR"
 				(at 0 0 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -933,24 +933,6 @@
 						)
 					)
 					(number "9"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin power_out line
-					(at -20.32 -8.89 0)
-					(length 7.62)
-					(name "GND"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "10"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1239,6 +1221,24 @@
 					)
 					(fill
 						(type background)
+					)
+				)
+				(pin passive line
+					(at -20.32 -8.89 0)
+					(length 7.62)
+					(name "GND"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "10"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
 					)
 				)
 			)
@@ -4486,6 +4486,121 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "power:PWR_FLAG"
+			(power global)
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "#FLG"
+				(at 0 1.905 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "PWR_FLAG"
+				(at 0 3.81 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Special symbol for telling ERC where power comes from"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "flag power"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "PWR_FLAG_0_0"
+				(pin power_out line
+					(at 0 0 90)
+					(length 0)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(symbol "PWR_FLAG_0_1"
+				(polyline
+					(pts
+						(xy 0 0) (xy 0 1.27) (xy -1.016 1.905) (xy 0 2.54) (xy 1.016 1.905) (xy 0 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "power:VBUS"
 			(power global)
 			(pin_numbers
@@ -4884,6 +4999,12 @@
 		(uuid "b5d9cc55-4aca-4240-9345-1af878691b63")
 	)
 	(junction
+		(at 20.32 139.7)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "bef7dfc7-4118-418f-b7e1-953505f41de6")
+	)
+	(junction
 		(at 54.61 78.74)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -4902,6 +5023,12 @@
 		(uuid "c8c1b92c-9f56-4c39-98d8-6abc816685ae")
 	)
 	(junction
+		(at 97.79 86.36)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "c8ec91f7-c4f1-4256-8313-2837b27c0dc5")
+	)
+	(junction
 		(at 24.13 139.7)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -4912,6 +5039,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "d7f06e9f-9a37-494d-ab70-396ecb0b7c73")
+	)
+	(junction
+		(at 74.93 123.19)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "ddbd657e-3ec8-4084-86a8-72fa1cc7306a")
 	)
 	(junction
 		(at 76.2 86.36)
@@ -5471,13 +5604,13 @@
 	)
 	(wire
 		(pts
-			(xy 96.52 86.36) (xy 100.33 86.36)
+			(xy 20.32 134.62) (xy 20.32 139.7)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "8470db56-c859-4a75-b0b6-48b82c4754fc")
+		(uuid "859b2da4-c4b0-46d3-a1c6-4af68ca3da2c")
 	)
 	(wire
 		(pts
@@ -5498,6 +5631,26 @@
 			(type default)
 		)
 		(uuid "8e31bf7a-916e-469f-b00b-4da92998af93")
+	)
+	(wire
+		(pts
+			(xy 73.66 123.19) (xy 74.93 123.19)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8f107535-9be0-4561-8b45-c02f666182e1")
+	)
+	(wire
+		(pts
+			(xy 96.52 86.36) (xy 100.33 86.36)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "90064d80-8dfa-4f6b-b8a8-634fa12966c8")
 	)
 	(wire
 		(pts
@@ -5701,6 +5854,16 @@
 	)
 	(wire
 		(pts
+			(xy 97.79 83.82) (xy 97.79 86.36)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cbdff196-6fe9-4a30-a5ec-7921b2ac2aa9")
+	)
+	(wire
+		(pts
 			(xy 20.32 154.94) (xy 20.32 163.83)
 		)
 		(stroke
@@ -5761,16 +5924,6 @@
 	)
 	(wire
 		(pts
-			(xy 20.32 139.7) (xy 24.13 139.7)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e255bd4e-f926-4334-9a65-d25503889f00")
-	)
-	(wire
-		(pts
 			(xy 102.87 153.67) (xy 105.41 153.67)
 		)
 		(stroke
@@ -5808,6 +5961,16 @@
 			(type default)
 		)
 		(uuid "ed812a90-3d21-4b73-9874-3616772e95b7")
+	)
+	(wire
+		(pts
+			(xy 20.32 139.7) (xy 24.13 139.7)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "edaf5454-7d14-4cf4-b454-2ccf59e99054")
 	)
 	(wire
 		(pts
@@ -6287,7 +6450,7 @@
 	)
 	(global_label "VOLT0"
 		(shape input)
-		(at 20.32 139.7 90)
+		(at 20.32 134.62 90)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -6297,7 +6460,7 @@
 		)
 		(uuid "761a8903-772c-4ef8-8c72-849cf5574ce4")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 20.32 131.0905 90)
+			(at 20.32 126.0105 90)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6672,7 +6835,7 @@
 			)
 		)
 		(property "Value" "VBUS"
-			(at 97.536 82.55 0)
+			(at 101.854 85.09 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8543,6 +8706,84 @@
 		)
 	)
 	(symbol
+		(lib_id "power:PWR_FLAG")
+		(at 73.66 123.19 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "3e8b857c-f345-4258-92b3-e15e625ca485")
+		(property "Reference" "#FLG03"
+			(at 71.755 123.19 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "PWR_FLAG"
+			(at 76.962 120.904 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Package_SO:TSSOP-28_4.4x9.7mm_P0.65mm"
+			(at 73.66 123.19 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 73.66 123.19 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Special symbol for telling ERC where power comes from"
+			(at 73.66 123.19 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "800df82b-db7a-4217-a828-da9671e8670f")
+		)
+		(instances
+			(project "ARCH-Mega"
+				(path "/d9d6923d-dba0-4a51-9b4b-1871f347044f/1f696824-fb0d-4385-b375-77e82f204c9c"
+					(reference "#FLG03")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:R")
 		(at 50.8 78.74 90)
 		(unit 1)
@@ -9976,6 +10217,84 @@
 			(project "ARCH-Mega"
 				(path "/d9d6923d-dba0-4a51-9b4b-1871f347044f/1f696824-fb0d-4385-b375-77e82f204c9c"
 					(reference "#PWR063")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:PWR_FLAG")
+		(at 97.79 83.82 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "8e10d901-d5ed-4dbc-b4ea-498aaae72c9c")
+		(property "Reference" "#FLG04"
+			(at 97.79 81.915 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "PWR_FLAG"
+			(at 97.79 78.74 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 97.79 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 97.79 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Special symbol for telling ERC where power comes from"
+			(at 97.79 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "06d01d82-6181-426a-984c-2530a5a30210")
+		)
+		(instances
+			(project "ARCH-Mega"
+				(path "/d9d6923d-dba0-4a51-9b4b-1871f347044f/1f696824-fb0d-4385-b375-77e82f204c9c"
+					(reference "#FLG04")
 					(unit 1)
 				)
 			)
