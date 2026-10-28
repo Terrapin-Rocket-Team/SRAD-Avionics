@@ -1793,6 +1793,129 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Mechanical:MountingHole_Pad"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom no)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "H"
+				(at 0 6.35 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "MountingHole_Pad"
+				(at 0 4.445 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Mounting Hole with connection"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "mounting hole"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "MountingHole*Pad*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "MountingHole_Pad_0_1"
+				(circle
+					(center 0 1.27)
+					(radius 1.27)
+					(stroke
+						(width 1.27)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "MountingHole_Pad_1_1"
+				(pin input line
+					(at 0 -2.54 90)
+					(length 2.54)
+					(name "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "NCP186AMX330TAG:NCP186AMX330TAG"
 			(pin_names
 				(offset 1.016)
@@ -2973,6 +3096,30 @@
 		)
 		(uuid "b987c2f2-2fed-4985-a80f-0182d6fbd111")
 	)
+	(rectangle
+		(start 128.778 109.982)
+		(end 188.976 152.146)
+		(stroke
+			(width 0.0254)
+			(type solid)
+			(color 0 0 0 1)
+		)
+		(fill
+			(type none)
+		)
+		(uuid "c037489e-187b-453c-9e2e-4370d971d15d")
+	)
+	(text "Mounting holes"
+		(exclude_from_sim no)
+		(at 141.986 112.522 0)
+		(effects
+			(font
+				(size 2.032 2.032)
+				(color 0 0 0 1)
+			)
+		)
+		(uuid "0e2abae5-8e62-41d5-b590-252e0b0b4e9d")
+	)
 	(text "Radio interface"
 		(exclude_from_sim no)
 		(at 24.638 112.268 0)
@@ -3121,6 +3268,12 @@
 		(uuid "b28cecbb-1847-4ee5-a559-4c1d1e1614a6")
 	)
 	(junction
+		(at 153.67 81.28)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "b41635ed-1ac0-4caf-bba9-1e51c0dd9c8f")
+	)
+	(junction
 		(at 99.06 67.31)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -3131,12 +3284,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "bcf56510-0f62-4352-8790-8a201c26c262")
-	)
-	(junction
-		(at 165.1 93.98)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "bf0942be-9c12-4a36-a99b-25b64bdd66d6")
 	)
 	(junction
 		(at 95.25 67.31)
@@ -3175,7 +3322,7 @@
 		(uuid "e57c71c5-648f-43a5-a8ae-a59b43cb36d5")
 	)
 	(junction
-		(at 165.1 96.52)
+		(at 154.94 95.25)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "e787c47c-acd2-4d9b-b361-6815462054fb")
@@ -3488,7 +3635,7 @@
 	)
 	(wire
 		(pts
-			(xy 165.1 96.52) (xy 166.37 96.52)
+			(xy 154.94 95.25) (xy 156.21 95.25)
 		)
 		(stroke
 			(width 0)
@@ -3508,7 +3655,7 @@
 	)
 	(wire
 		(pts
-			(xy 156.21 96.52) (xy 165.1 96.52)
+			(xy 146.05 95.25) (xy 154.94 95.25)
 		)
 		(stroke
 			(width 0)
@@ -3608,6 +3755,16 @@
 	)
 	(wire
 		(pts
+			(xy 148.59 81.28) (xy 153.67 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2a1cab12-f2da-4bdf-9a6c-57f71b8d39b7")
+	)
+	(wire
+		(pts
 			(xy 156.21 45.72) (xy 156.21 49.53)
 		)
 		(stroke
@@ -3658,7 +3815,7 @@
 	)
 	(wire
 		(pts
-			(xy 156.21 96.52) (xy 156.21 99.06)
+			(xy 146.05 95.25) (xy 146.05 97.79)
 		)
 		(stroke
 			(width 0)
@@ -3688,6 +3845,16 @@
 	)
 	(wire
 		(pts
+			(xy 153.67 81.28) (xy 157.48 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3dd78b29-e476-43e2-a328-eab0ef83edef")
+	)
+	(wire
+		(pts
 			(xy 81.28 179.07) (xy 81.28 184.15)
 		)
 		(stroke
@@ -3708,13 +3875,23 @@
 	)
 	(wire
 		(pts
-			(xy 156.21 93.98) (xy 165.1 93.98)
+			(xy 146.05 92.71) (xy 156.21 92.71)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "423bd87f-1f1c-435d-8a01-f344e1e4b611")
+	)
+	(wire
+		(pts
+			(xy 134.62 121.92) (xy 134.62 125.73)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "43561ba8-95ca-41bd-9687-d6bfbb20978d")
 	)
 	(wire
 		(pts
@@ -3968,6 +4145,16 @@
 	)
 	(wire
 		(pts
+			(xy 134.62 140.97) (xy 134.62 144.78)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6704d150-c6f1-4327-8ccc-f01fe3879509")
+	)
+	(wire
+		(pts
 			(xy 99.06 67.31) (xy 109.22 67.31)
 		)
 		(stroke
@@ -4125,6 +4312,16 @@
 			(type default)
 		)
 		(uuid "8286fbaa-53df-4400-b487-f5abd6ea12d1")
+	)
+	(wire
+		(pts
+			(xy 146.05 92.71) (xy 146.05 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "834ad364-525f-40fc-8ffb-c28e22e8bd66")
 	)
 	(wire
 		(pts
@@ -4308,6 +4505,16 @@
 	)
 	(wire
 		(pts
+			(xy 160.02 121.92) (xy 160.02 125.73)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b6dc77e5-b945-4c4e-b165-e26509a28577")
+	)
+	(wire
+		(pts
 			(xy 102.87 148.59) (xy 88.9 148.59)
 		)
 		(stroke
@@ -4378,16 +4585,6 @@
 	)
 	(wire
 		(pts
-			(xy 165.1 93.98) (xy 166.37 93.98)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d3c58e04-30ff-4607-bcd7-8c45308ad0ac")
-	)
-	(wire
-		(pts
 			(xy 77.47 22.86) (xy 77.47 24.13)
 		)
 		(stroke
@@ -4435,6 +4632,16 @@
 			(type default)
 		)
 		(uuid "e03a1eee-e6c5-4d69-8c1a-28b554fe48dc")
+	)
+	(wire
+		(pts
+			(xy 146.05 78.74) (xy 157.48 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e330c0dc-172a-40ad-8bac-4aecf6fe6803")
 	)
 	(wire
 		(pts
@@ -4515,6 +4722,16 @@
 			(type default)
 		)
 		(uuid "eef2a9d2-a38b-4c4e-a303-9ba0d6ca556d")
+	)
+	(wire
+		(pts
+			(xy 160.02 140.97) (xy 160.02 144.78)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f0aaa850-8a25-4604-a75b-b341a3aa16c8")
 	)
 	(wire
 		(pts
@@ -4707,7 +4924,7 @@
 		(uuid "3a981e55-3679-4942-944c-446544c12dc1")
 	)
 	(label "VBAT"
-		(at 156.21 93.98 0)
+		(at 148.59 81.28 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4785,6 +5002,16 @@
 			(justify left bottom)
 		)
 		(uuid "8352d891-880e-4d21-93c0-2b1b65f553c1")
+	)
+	(label "BAT_IN"
+		(at 148.59 92.71 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "90edd881-ce08-451f-a509-c07fd857f112")
 	)
 	(label "RADIO_NSS"
 		(at 208.28 86.36 0)
@@ -5029,6 +5256,162 @@
 			(project "radio_interface"
 				(path "/6d41c3df-4e8e-42ce-9104-87520e2501cb"
 					(reference "#PWR013")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 160.02 144.78 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "01f98f92-a915-4877-86d2-1e4b5cfb4afe")
+		(property "Reference" "#PWR024"
+			(at 160.02 151.13 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 160.02 149.86 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 160.02 144.78 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 160.02 144.78 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 160.02 144.78 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "a8fcc595-1cf8-4dd3-ab82-06df170da88b")
+		)
+		(instances
+			(project "radio_interface"
+				(path "/6d41c3df-4e8e-42ce-9104-87520e2501cb"
+					(reference "#PWR024")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 134.62 125.73 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "02c7632e-17eb-4bc8-901c-2ffb129dd88f")
+		(property "Reference" "#PWR021"
+			(at 134.62 132.08 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 134.62 130.81 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 134.62 125.73 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 134.62 125.73 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 134.62 125.73 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "12069c4c-b6ab-4a87-ab22-6a66addf6934")
+		)
+		(instances
+			(project "radio_interface"
+				(path "/6d41c3df-4e8e-42ce-9104-87520e2501cb"
+					(reference "#PWR021")
 					(unit 1)
 				)
 			)
@@ -5951,7 +6334,7 @@
 	)
 	(symbol
 		(lib_id "Connector_Generic:Conn_01x02")
-		(at 171.45 93.98 0)
+		(at 161.29 92.71 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -5962,7 +6345,7 @@
 		(fields_autoplaced yes)
 		(uuid "25aadd06-885b-4b34-8852-7bd11b51c38c")
 		(property "Reference" "J1"
-			(at 173.99 93.9799 0)
+			(at 163.83 92.7099 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5973,7 +6356,7 @@
 			)
 		)
 		(property "Value" "BATTERY_IN"
-			(at 173.99 96.5199 0)
+			(at 163.83 95.2499 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5984,7 +6367,7 @@
 			)
 		)
 		(property "Footprint" "Connector_JST:JST_XH_S2B-XH-A_1x02_P2.50mm_Horizontal"
-			(at 171.45 93.98 0)
+			(at 161.29 92.71 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5995,7 +6378,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 171.45 93.98 0)
+			(at 161.29 92.71 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6006,7 +6389,7 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 171.45 93.98 0)
+			(at 161.29 92.71 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6189,7 +6572,7 @@
 	)
 	(symbol
 		(lib_id "power:PWR_FLAG")
-		(at 165.1 96.52 180)
+		(at 154.94 95.25 180)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -6200,7 +6583,7 @@
 		(fields_autoplaced yes)
 		(uuid "39a24d87-5fd2-422b-8ae6-af63b5b23c19")
 		(property "Reference" "#FLG02"
-			(at 165.1 98.425 0)
+			(at 154.94 97.155 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6211,7 +6594,7 @@
 			)
 		)
 		(property "Value" "PWR_FLAG"
-			(at 165.1 101.6 0)
+			(at 154.94 100.33 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6221,7 +6604,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 165.1 96.52 0)
+			(at 154.94 95.25 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6232,7 +6615,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 165.1 96.52 0)
+			(at 154.94 95.25 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6243,7 +6626,7 @@
 			)
 		)
 		(property "Description" "Special symbol for telling ERC where power comes from"
-			(at 165.1 96.52 0)
+			(at 154.94 95.25 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6584,6 +6967,84 @@
 			(project "radio_interface"
 				(path "/6d41c3df-4e8e-42ce-9104-87520e2501cb"
 					(reference "C9")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 160.02 125.73 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "54f4f162-6d3a-49c1-9be2-3d0f36175ae9")
+		(property "Reference" "#PWR022"
+			(at 160.02 132.08 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 160.02 130.81 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 160.02 125.73 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 160.02 125.73 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 160.02 125.73 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "e0ef8204-b012-47b8-88ea-8c6fc2141e8d")
+		)
+		(instances
+			(project "radio_interface"
+				(path "/6d41c3df-4e8e-42ce-9104-87520e2501cb"
+					(reference "#PWR022")
 					(unit 1)
 				)
 			)
@@ -6982,6 +7443,85 @@
 			(project "radio_interface"
 				(path "/6d41c3df-4e8e-42ce-9104-87520e2501cb"
 					(reference "#PWR017")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole_Pad")
+		(at 160.02 138.43 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "688b4d06-5a17-4e8f-959e-07e27b60b19b")
+		(property "Reference" "H4"
+			(at 162.56 135.8899 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole_Pad"
+			(at 162.56 138.4299 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_Pad"
+			(at 160.02 138.43 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 160.02 138.43 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Mounting Hole with connection"
+			(at 160.02 138.43 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "261d7d86-f866-4436-9d8e-4605d2cbf81f")
+		)
+		(instances
+			(project "radio_interface"
+				(path "/6d41c3df-4e8e-42ce-9104-87520e2501cb"
+					(reference "H4")
 					(unit 1)
 				)
 			)
@@ -7686,6 +8226,85 @@
 		)
 	)
 	(symbol
+		(lib_id "Mechanical:MountingHole_Pad")
+		(at 134.62 138.43 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "96b0d17b-d7ca-48b4-be97-63614684877c")
+		(property "Reference" "H3"
+			(at 137.16 135.8899 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole_Pad"
+			(at 137.16 138.4299 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_Pad"
+			(at 134.62 138.43 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 134.62 138.43 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Mounting Hole with connection"
+			(at 134.62 138.43 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "cc39e28a-f41c-4308-9cb4-73ac728131cf")
+		)
+		(instances
+			(project "radio_interface"
+				(path "/6d41c3df-4e8e-42ce-9104-87520e2501cb"
+					(reference "H3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 41.91 45.72 0)
 		(unit 1)
@@ -8012,6 +8631,85 @@
 		)
 	)
 	(symbol
+		(lib_id "Mechanical:MountingHole_Pad")
+		(at 134.62 119.38 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "b5219e08-e4fa-46a9-9881-24915c3658c6")
+		(property "Reference" "H1"
+			(at 137.16 116.8399 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole_Pad"
+			(at 137.16 119.3799 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_Pad"
+			(at 134.62 119.38 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 134.62 119.38 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Mounting Hole with connection"
+			(at 134.62 119.38 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "81aa872f-8c98-452c-8926-118fbe6cf9c1")
+		)
+		(instances
+			(project "radio_interface"
+				(path "/6d41c3df-4e8e-42ce-9104-87520e2501cb"
+					(reference "H1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 41.91 90.17 0)
 		(unit 1)
@@ -8168,6 +8866,163 @@
 		)
 	)
 	(symbol
+		(lib_id "Mechanical:MountingHole_Pad")
+		(at 160.02 119.38 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "c31102d1-f7f4-4dee-8331-2dc571615787")
+		(property "Reference" "H2"
+			(at 162.56 116.8399 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole_Pad"
+			(at 162.56 119.3799 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_Pad"
+			(at 160.02 119.38 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 160.02 119.38 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Mounting Hole with connection"
+			(at 160.02 119.38 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "9f7c4f5a-3c96-4950-a098-c659424a31d5")
+		)
+		(instances
+			(project "radio_interface"
+				(path "/6d41c3df-4e8e-42ce-9104-87520e2501cb"
+					(reference "H2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 134.62 144.78 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "c32c2174-4787-48c1-9238-a246c2aec181")
+		(property "Reference" "#PWR023"
+			(at 134.62 151.13 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 134.62 149.86 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 134.62 144.78 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 134.62 144.78 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 134.62 144.78 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "b4c9ac65-c892-47a0-afb5-3177d34cd8bb")
+		)
+		(instances
+			(project "radio_interface"
+				(path "/6d41c3df-4e8e-42ce-9104-87520e2501cb"
+					(reference "#PWR023")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:LED")
 		(at 95.25 181.61 90)
 		(unit 1)
@@ -8262,7 +9117,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 156.21 99.06 0)
+		(at 146.05 97.79 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -8273,7 +9128,7 @@
 		(fields_autoplaced yes)
 		(uuid "c5f599c0-82dd-4036-979d-9ca90809bb5f")
 		(property "Reference" "#PWR020"
-			(at 156.21 105.41 0)
+			(at 146.05 104.14 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8284,7 +9139,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 156.21 104.14 0)
+			(at 146.05 102.87 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8294,7 +9149,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 156.21 99.06 0)
+			(at 146.05 97.79 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8305,7 +9160,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 156.21 99.06 0)
+			(at 146.05 97.79 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8316,7 +9171,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 156.21 99.06 0)
+			(at 146.05 97.79 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8447,9 +9302,8 @@
 				)
 			)
 		)
-		(property "Footprint" "Avionics:Teensy_4.1"
+		(property "Footprint" "Avionics:Teensy_4.1_Compact"
 			(at 234.95 87.63 0)
-			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8635,7 +9489,7 @@
 	)
 	(symbol
 		(lib_id "power:PWR_FLAG")
-		(at 165.1 93.98 0)
+		(at 153.67 81.28 180)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -8643,10 +9497,9 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "d8291fa0-c4f1-48ef-bfd2-278f5940a4e7")
 		(property "Reference" "#FLG01"
-			(at 165.1 92.075 0)
+			(at 153.67 83.185 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8657,17 +9510,18 @@
 			)
 		)
 		(property "Value" "PWR_FLAG"
-			(at 165.1 88.9 0)
+			(at 151.892 85.344 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify right)
 			)
 		)
 		(property "Footprint" ""
-			(at 165.1 93.98 0)
+			(at 153.67 81.28 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8678,7 +9532,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 165.1 93.98 0)
+			(at 153.67 81.28 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8689,7 +9543,7 @@
 			)
 		)
 		(property "Description" "Special symbol for telling ERC where power comes from"
-			(at 165.1 93.98 0)
+			(at 153.67 81.28 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9529,6 +10383,88 @@
 			(project "radio_interface"
 				(path "/6d41c3df-4e8e-42ce-9104-87520e2501cb"
 					(reference "C6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector_Generic:Conn_01x02")
+		(at 162.56 78.74 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "f5be54e8-c855-4f4f-b712-42e3510d7633")
+		(property "Reference" "J2"
+			(at 165.1 78.7399 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "POWER_SWITCH"
+			(at 165.1 81.2799 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_JST:JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical"
+			(at 162.56 78.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 162.56 78.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 162.56 78.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "14d3df6b-a693-4a0f-b719-c4598bde841b")
+		)
+		(pin "2"
+			(uuid "756d1239-3f7f-449b-860b-2db383bf206b")
+		)
+		(instances
+			(project "radio_interface"
+				(path "/6d41c3df-4e8e-42ce-9104-87520e2501cb"
+					(reference "J2")
 					(unit 1)
 				)
 			)
