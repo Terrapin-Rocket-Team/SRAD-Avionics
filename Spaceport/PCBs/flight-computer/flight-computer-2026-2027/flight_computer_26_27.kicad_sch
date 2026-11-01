@@ -4209,6 +4209,18 @@
 		(uuid "7251282e-44b9-4e71-aa3d-ced7606ff2c8")
 	)
 	(rectangle
+		(start 122.428 60.198)
+		(end 184.15 101.854)
+		(stroke
+			(width 0)
+			(type dash)
+		)
+		(fill
+			(type none)
+		)
+		(uuid "7d8977a4-522b-48ef-a745-a3944f049c30")
+	)
+	(rectangle
 		(start 315.214 140.97)
 		(end 356.362 173.228)
 		(stroke
@@ -4297,7 +4309,7 @@
 		(end 401.1153 37.0756)
 		(stroke
 			(width 0)
-			(type default)
+			(type dash)
 		)
 		(fill
 			(type none)
@@ -11393,8 +11405,8 @@
 		)
 	)
 	(sheet
-		(at 147.955 259.715)
-		(size 12.7 11.43)
+		(at 143.256 71.12)
+		(size 19.05 13.462)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
@@ -11407,9 +11419,54 @@
 		(fill
 			(color 0 0 0 0)
 		)
+		(uuid "47686ccb-4eb9-457c-803d-a4237486a776")
+		(property "Sheetname" "ldo"
+			(at 143.256 70.4084 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "ldo.kicad_sch"
+			(at 143.256 85.1666 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "flight_computer_26_27"
+				(path "/4fd124df-e0d9-445f-9973-04852ab50770"
+					(page "8")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 147.955 259.715)
+		(size 12.7 11.43)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0)
+		)
 		(uuid "620043f8-9a4a-4c44-9660-9fa99a790876")
 		(property "Sheetname" "baro"
-			(at 147.955 259.0034 0)
+			(at 146.812 264.414 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -11454,7 +11511,7 @@
 		)
 		(uuid "6280f0fd-f4d0-47d1-be33-f13de21f14b1")
 		(property "Sheetname" "high-g-accel"
-			(at 152.654 228.854 0)
+			(at 135.128 242.316 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -11629,52 +11686,6 @@
 		)
 	)
 	(sheet
-		(at 104.775 258.445)
-		(size 13.97 12.7)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(stroke
-			(width 0.1524)
-			(type solid)
-		)
-		(fill
-			(color 0 0 0 0)
-		)
-		(uuid "913582b5-ea37-4eda-aba8-b92fdd4bde78")
-		(property "Sheetname" "magnet"
-			(at 104.775 257.7334 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left bottom)
-			)
-		)
-		(property "Sheetfile" "magnet.kicad_sch"
-			(at 104.775 271.7296 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-			)
-		)
-		(instances
-			(project "flight_computer_26_27"
-				(path "/4fd124df-e0d9-445f-9973-04852ab50770"
-					(page "7")
-				)
-			)
-		)
-	)
-	(sheet
 		(at 102.87 229.87)
 		(size 29.21 17.78)
 		(exclude_from_sim no)
@@ -11690,7 +11701,7 @@
 		)
 		(uuid "a14f8403-15fe-4bfa-a826-a892b2271dab")
 		(property "Sheetname" "6-dof-imu"
-			(at 119.126 227.33 0)
+			(at 101.6 240.792 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -11805,6 +11816,101 @@
 			(project "flight_computer_26_27"
 				(path "/4fd124df-e0d9-445f-9973-04852ab50770"
 					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 102.108 260.35)
+		(size 17.526 11.938)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0)
+		)
+		(uuid "fe65a856-dca6-4bee-a452-0b3aa6478d3d")
+		(property "Sheetname" "magnetometer"
+			(at 101.092 271.78 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "magnetometer.kicad_sch"
+			(at 102.108 272.8726 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "spi_cs" input
+			(at 104.4983 260.35 90)
+			(uuid "9ef5a869-13c7-40ac-9537-b7a1adcc8797")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "spi_mosi" input
+			(at 106.934 260.35 90)
+			(uuid "4c7bc5dc-d25b-4517-884a-658cc929de67")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "spi_miso" input
+			(at 109.22 260.35 90)
+			(uuid "bc0eac25-6f02-4be7-94cc-1e1401cc958e")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "int" input
+			(at 111.252 260.35 90)
+			(uuid "8aae62fa-1f15-457c-a9ca-79ca0d1c17b7")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "spi_sck" input
+			(at 113.284 260.35 90)
+			(uuid "251b6dd3-2997-4201-abb8-d6a2ffaed48d")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(instances
+			(project "flight_computer_26_27"
+				(path "/4fd124df-e0d9-445f-9973-04852ab50770"
+					(page "7")
 				)
 			)
 		)
