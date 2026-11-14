@@ -867,6 +867,12 @@
 		)
 	)
 	(junction
+		(at 136.398 55.88)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "0d9f4e47-4575-44b6-ba6b-a2e0c229f54d")
+	)
+	(junction
 		(at 136.398 60.96)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -877,6 +883,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "8249c6a5-a240-48b2-af48-3201ab19229a")
+	)
+	(junction
+		(at 115.57 60.96)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "c5e79b6b-1fb9-41ee-8326-0ee68655401c")
 	)
 	(no_connect
 		(at 138.938 127.508)
@@ -944,6 +956,26 @@
 	)
 	(wire
 		(pts
+			(xy 92.71 60.96) (xy 115.57 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "214a61bb-f15c-4679-bc51-0090f0390c7f")
+	)
+	(wire
+		(pts
+			(xy 126.492 55.88) (xy 115.57 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3d305856-a269-4bb4-8860-b6ac618be4e9")
+	)
+	(wire
+		(pts
 			(xy 133.858 127.508) (xy 133.858 134.874)
 		)
 		(stroke
@@ -964,16 +996,6 @@
 	)
 	(wire
 		(pts
-			(xy 136.398 48.514) (xy 136.398 60.96)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "5b7f1c2c-d995-4fa7-a0c8-6cc824a21a56")
-	)
-	(wire
-		(pts
 			(xy 133.858 142.24) (xy 133.858 144.018)
 		)
 		(stroke
@@ -981,6 +1003,26 @@
 			(type default)
 		)
 		(uuid "6fab6c20-d16e-463e-969c-0c00f997d986")
+	)
+	(wire
+		(pts
+			(xy 115.57 60.96) (xy 121.666 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "84ec9dfa-c877-48a4-b7c5-60b57985bf6a")
+	)
+	(wire
+		(pts
+			(xy 126.746 60.96) (xy 136.398 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8be519a2-e76d-44ce-8de0-aa5cabf9c54d")
 	)
 	(wire
 		(pts
@@ -1004,6 +1046,26 @@
 	)
 	(wire
 		(pts
+			(xy 115.57 55.88) (xy 115.57 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c17014fc-c280-408c-b15e-ac8c7b45deb3")
+	)
+	(wire
+		(pts
+			(xy 131.572 55.88) (xy 136.398 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cf863891-9ca6-48ab-a238-2029eb182942")
+	)
+	(wire
+		(pts
 			(xy 169.672 60.96) (xy 136.398 60.96)
 		)
 		(stroke
@@ -1011,6 +1073,26 @@
 			(type default)
 		)
 		(uuid "e54531b0-14db-41bb-9617-d5b856ac0604")
+	)
+	(wire
+		(pts
+			(xy 136.398 55.88) (xy 136.398 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f31dc006-7e46-46ec-bb00-67a4ff2ced85")
+	)
+	(wire
+		(pts
+			(xy 136.398 48.514) (xy 136.398 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f3554332-cec1-4fb8-af45-89529e5ae0bf")
 	)
 	(image
 		(at 223.266 94.742)
@@ -4118,7 +4200,7 @@
 	)
 	(symbol
 		(lib_id "Device:C_Small")
-		(at 133.858 60.96 90)
+		(at 124.206 60.96 90)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -4126,10 +4208,9 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "55c37066-6471-4b95-a16d-132fe69f9b89")
 		(property "Reference" "C22"
-			(at 133.8643 54.102 90)
+			(at 124.714 65.024 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4139,7 +4220,7 @@
 			)
 		)
 		(property "Value" "1uF"
-			(at 133.8643 56.642 90)
+			(at 124.714 67.564 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4149,7 +4230,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
-			(at 133.858 60.96 0)
+			(at 124.206 60.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4160,7 +4241,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 133.858 60.96 0)
+			(at 124.206 60.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4171,7 +4252,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor, small symbol"
-			(at 133.858 60.96 0)
+			(at 124.206 60.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4406,7 +4487,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 131.318 60.96 270)
+		(at 92.71 60.96 270)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -4417,7 +4498,7 @@
 		(fields_autoplaced yes)
 		(uuid "bd8fda4b-cb57-42a2-8e3a-de16fb21a91d")
 		(property "Reference" "#PWR046"
-			(at 124.968 60.96 0)
+			(at 86.36 60.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4428,7 +4509,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 127 60.9599 90)
+			(at 88.392 60.9599 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4439,7 +4520,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 131.318 60.96 0)
+			(at 92.71 60.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4450,7 +4531,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 131.318 60.96 0)
+			(at 92.71 60.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4461,7 +4542,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 131.318 60.96 0)
+			(at 92.71 60.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4478,6 +4559,86 @@
 			(project "flight_computer_26_27"
 				(path "/4fd124df-e0d9-445f-9973-04852ab50770/fe65a856-dca6-4bee-a452-0b3aa6478d3d"
 					(reference "#PWR046")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 129.032 55.88 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "cea889c3-d459-4c51-ac60-78b6a11f5a9e")
+		(property "Reference" "C29"
+			(at 129.0383 49.53 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 129.0383 52.07 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
+			(at 129.032 55.88 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 129.032 55.88 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 129.032 55.88 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "0d31641e-5960-4eb9-8e27-dec15b8a3f8a")
+		)
+		(pin "2"
+			(uuid "a442f602-2465-46cf-a38d-d639089dd302")
+		)
+		(instances
+			(project "flight_computer_26_27"
+				(path "/4fd124df-e0d9-445f-9973-04852ab50770/fe65a856-dca6-4bee-a452-0b3aa6478d3d"
+					(reference "C29")
 					(unit 1)
 				)
 			)
