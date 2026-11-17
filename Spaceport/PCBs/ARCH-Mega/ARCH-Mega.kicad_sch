@@ -3172,6 +3172,12 @@
 		(uuid "990a6c62-17c7-4aac-90a4-b125a893247d")
 	)
 	(junction
+		(at 33.02 133.35)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "a2d85475-e1ca-4af6-8221-a4ded03821d0")
+	)
+	(junction
 		(at 185.42 124.46)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -3392,6 +3398,16 @@
 			(type default)
 		)
 		(uuid "29772231-da46-436a-aff1-d8a97077c475")
+	)
+	(wire
+		(pts
+			(xy 33.02 133.35) (xy 33.02 129.54)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2b3f045b-42ce-42a2-816a-a82f1c0bec85")
 	)
 	(wire
 		(pts
@@ -3625,7 +3641,7 @@
 	)
 	(wire
 		(pts
-			(xy 33.02 130.81) (xy 33.02 129.54)
+			(xy 33.02 134.62) (xy 33.02 133.35)
 		)
 		(stroke
 			(width 0)
@@ -3995,7 +4011,7 @@
 	)
 	(wire
 		(pts
-			(xy 139.7 116.84) (xy 139.7 124.46)
+			(xy 139.7 121.92) (xy 139.7 124.46)
 		)
 		(stroke
 			(width 0)
@@ -6143,6 +6159,84 @@
 			(project "ARCH-Mega"
 				(path "/d9d6923d-dba0-4a51-9b4b-1871f347044f"
 					(reference "C6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:PWR_FLAG")
+		(at 33.02 133.35 270)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "2328accd-e26d-42d3-bf87-0cc019225a86")
+		(property "Reference" "#FLG07"
+			(at 34.925 133.35 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "PWR_FLAG"
+			(at 35.56 134.874 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 33.02 133.35 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 33.02 133.35 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Special symbol for telling ERC where power comes from"
+			(at 33.02 133.35 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "c4abfb5e-07a0-4974-97a7-6b43388b073b")
+		)
+		(instances
+			(project "ARCH-Mega"
+				(path "/d9d6923d-dba0-4a51-9b4b-1871f347044f"
+					(reference "#FLG07")
 					(unit 1)
 				)
 			)
@@ -8594,7 +8688,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 33.02 130.81 0)
+		(at 33.02 134.62 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -8605,7 +8699,7 @@
 		(fields_autoplaced yes)
 		(uuid "857815d0-25d5-4b40-ba9e-db9f810ebf22")
 		(property "Reference" "#PWR01"
-			(at 33.02 137.16 0)
+			(at 33.02 140.97 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8616,7 +8710,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 33.02 135.89 0)
+			(at 33.02 139.7 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8626,7 +8720,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 33.02 130.81 0)
+			(at 33.02 134.62 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8637,7 +8731,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 33.02 130.81 0)
+			(at 33.02 134.62 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8648,7 +8742,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 33.02 130.81 0)
+			(at 33.02 134.62 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9254,7 +9348,7 @@
 	)
 	(symbol
 		(lib_id "power:PWR_FLAG")
-		(at 139.7 116.84 0)
+		(at 139.7 121.92 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -9265,7 +9359,7 @@
 		(fields_autoplaced yes)
 		(uuid "9b65d7e8-2ab3-4d07-9fec-9002ae0e6daf")
 		(property "Reference" "#FLG02"
-			(at 139.7 114.935 0)
+			(at 139.7 120.015 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9276,7 +9370,7 @@
 			)
 		)
 		(property "Value" "PWR_FLAG"
-			(at 139.7 111.76 0)
+			(at 139.7 116.84 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -9286,7 +9380,7 @@
 			)
 		)
 		(property "Footprint" "Package_SO:TSSOP-28_4.4x9.7mm_P0.65mm"
-			(at 139.7 116.84 0)
+			(at 139.7 121.92 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9297,7 +9391,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 139.7 116.84 0)
+			(at 139.7 121.92 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9308,7 +9402,7 @@
 			)
 		)
 		(property "Description" "Special symbol for telling ERC where power comes from"
-			(at 139.7 116.84 0)
+			(at 139.7 121.92 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
