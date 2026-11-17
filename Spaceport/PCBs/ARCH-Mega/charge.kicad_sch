@@ -778,42 +778,6 @@
 				)
 			)
 			(symbol "STUSB4500QTR_0_1"
-				(pin unspecified line
-					(at -20.32 13.97 0)
-					(length 7.62)
-					(name "CC1DB"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin unspecified line
-					(at -20.32 11.43 0)
-					(length 7.62)
-					(name "CC1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
 				(pin no_connect line
 					(at -20.32 8.89 0)
 					(length 7.62)
@@ -825,42 +789,6 @@
 						)
 					)
 					(number "3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin unspecified line
-					(at -20.32 6.35 0)
-					(length 7.62)
-					(name "CC2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "4"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin unspecified line
-					(at -20.32 3.81 0)
-					(length 7.62)
-					(name "CC2DB"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "5"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1167,6 +1095,78 @@
 					)
 					(fill
 						(type background)
+					)
+				)
+				(pin bidirectional line
+					(at -20.32 13.97 0)
+					(length 7.62)
+					(name "CC1DB"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin bidirectional line
+					(at -20.32 11.43 0)
+					(length 7.62)
+					(name "CC1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin bidirectional line
+					(at -20.32 6.35 0)
+					(length 7.62)
+					(name "CC2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin bidirectional line
+					(at -20.32 3.81 0)
+					(length 7.62)
+					(name "CC2DB"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
 					)
 				)
 				(pin power_in line
@@ -5196,16 +5196,6 @@
 	)
 	(wire
 		(pts
-			(xy 64.77 35.56) (xy 64.77 33.02)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "132d4cbb-31f4-430a-b136-811faca07872")
-	)
-	(wire
-		(pts
 			(xy 203.2 139.7) (xy 203.2 125.73)
 		)
 		(stroke
@@ -5736,16 +5726,6 @@
 	)
 	(wire
 		(pts
-			(xy 64.77 33.02) (xy 62.23 33.02)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "8285b19d-5150-4ba6-b7ef-26f7b1cddf65")
-	)
-	(wire
-		(pts
 			(xy 96.52 86.36) (xy 99.06 86.36)
 		)
 		(stroke
@@ -6053,16 +6033,6 @@
 			(type default)
 		)
 		(uuid "da3b009a-ead1-4afc-9fed-1d1269363c29")
-	)
-	(wire
-		(pts
-			(xy 67.31 35.56) (xy 64.77 35.56)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "db192b52-bd4f-4f91-887d-017ff7387b32")
 	)
 	(wire
 		(pts
@@ -13580,84 +13550,6 @@
 			(project "ARCH-Mega"
 				(path "/d9d6923d-dba0-4a51-9b4b-1871f347044f/1f696824-fb0d-4385-b375-77e82f204c9c"
 					(reference "R26")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 62.23 33.02 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "c9c75d7e-3529-4d57-8f0d-92a99d98f14d")
-		(property "Reference" "#PWR056"
-			(at 62.23 39.37 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "GND"
-			(at 60.198 37.084 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" ""
-			(at 62.23 33.02 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 62.23 33.02 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 62.23 33.02 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "eddceb4a-3f44-4d38-b6bf-4190346b142d")
-		)
-		(instances
-			(project "ARCH-Mega"
-				(path "/d9d6923d-dba0-4a51-9b4b-1871f347044f/1f696824-fb0d-4385-b375-77e82f204c9c"
-					(reference "#PWR056")
 					(unit 1)
 				)
 			)

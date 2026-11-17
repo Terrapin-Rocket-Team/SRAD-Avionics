@@ -39,9 +39,9 @@
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 1.8,
-          "height": 3.5,
-          "width": 3.5
+          "drill": 0.2,
+          "height": 0.4,
+          "width": 0.4
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -280,7 +280,16 @@
     "equivalence_files": []
   },
   "erc": {
-    "erc_exclusions": [],
+    "erc_exclusions": [
+      [
+        "multiple_net_names|1511300|1244600|666b969e-fbcc-44d0-af84-bb495d942f2c|da465c2d-078e-4c77-b9e5-3ef07dfc1302|/d9d6923d-dba0-4a51-9b4b-1871f347044f|/d9d6923d-dba0-4a51-9b4b-1871f347044f|/d9d6923d-dba0-4a51-9b4b-1871f347044f",
+        ""
+      ],
+      [
+        "multiple_net_names|1993900|723900|1964db13-95b7-4c3e-9773-beb2f01499ef|74753a07-9545-45d4-bc4d-5c8a0f5ac276|/d9d6923d-dba0-4a51-9b4b-1871f347044f/1f696824-fb0d-4385-b375-77e82f204c9c|/d9d6923d-dba0-4a51-9b4b-1871f347044f/1f696824-fb0d-4385-b375-77e82f204c9c|/d9d6923d-dba0-4a51-9b4b-1871f347044f/1f696824-fb0d-4385-b375-77e82f204c9c",
+        ""
+      ]
+    ],
     "meta": {
       "version": 0
     },
@@ -476,7 +485,7 @@
       "label_dangling": "error",
       "label_multiple_wires": "warning",
       "lib_symbol_issues": "warning",
-      "lib_symbol_mismatch": "warning",
+      "lib_symbol_mismatch": "ignore",
       "missing_bidi_pin": "warning",
       "missing_input_pin": "warning",
       "missing_power_pin": "error",
