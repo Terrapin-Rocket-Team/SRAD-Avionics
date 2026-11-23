@@ -371,6 +371,146 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Device:R"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "R"
+				(at 2.032 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "R"
+				(at 0 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at -1.778 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Resistor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "R res resistor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "R_*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "R_0_1"
+				(rectangle
+					(start -1.016 -2.54)
+					(end 1.016 2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "R_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 1.27)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "power:+3V3"
 			(power global)
 			(pin_numbers
@@ -491,6 +631,157 @@
 			(symbol "+3V3_1_1"
 				(pin power_in line
 					(at 0 0 90)
+					(length 0)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "power:Earth"
+			(power global)
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "#PWR"
+				(at 0 -6.35 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Earth"
+				(at 0 -3.81 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Power symbol creates a global label with name \"Earth\""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "global ground gnd"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "Earth_0_1"
+				(polyline
+					(pts
+						(xy -0.635 -1.905) (xy 0.635 -1.905)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.127 -2.54) (xy 0.127 -2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 -1.27) (xy 0 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 -1.27) (xy -1.27 -1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "Earth_1_1"
+				(pin power_in line
+					(at 0 0 270)
 					(length 0)
 					(name ""
 						(effects
@@ -636,6 +927,22 @@
 		)
 		(uuid "0bd0987e-5d71-463e-b980-c89958d48a2a")
 	)
+	(text "Miso needs a weak pullup, which the STM32 internal pullup can provide (30-50k Ohm),\nI believe this needs to be set during code initialization though so adding a physical\none may be safer practice, I won't make that decision for now"
+		(exclude_from_sim no)
+		(at 95.504 158.242 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "55547715-660d-4a2a-88c8-d85d4fd88cd1")
+	)
+	(junction
+		(at 90.17 123.19)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "a8f29280-e376-4270-a127-e54728aa1e70")
+	)
 	(no_connect
 		(at 93.98 138.43)
 		(uuid "04af7d22-9e94-4f83-9ad4-23967fff6da5")
@@ -646,7 +953,7 @@
 	)
 	(wire
 		(pts
-			(xy 93.98 133.35) (xy 82.55 133.35)
+			(xy 93.98 133.35) (xy 76.2 133.35)
 		)
 		(stroke
 			(width 0)
@@ -676,7 +983,7 @@
 	)
 	(wire
 		(pts
-			(xy 93.98 128.27) (xy 82.55 128.27)
+			(xy 93.98 128.27) (xy 74.93 128.27)
 		)
 		(stroke
 			(width 0)
@@ -686,7 +993,7 @@
 	)
 	(wire
 		(pts
-			(xy 91.44 123.19) (xy 93.98 123.19)
+			(xy 85.09 123.19) (xy 90.17 123.19)
 		)
 		(stroke
 			(width 0)
@@ -696,13 +1003,23 @@
 	)
 	(wire
 		(pts
-			(xy 82.55 128.27) (xy 82.55 125.73)
+			(xy 90.17 123.19) (xy 90.17 118.11)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "8ed80a9c-8a31-4a1b-9e3c-3660f87fe644")
+		(uuid "c177aab1-fe8c-442b-8574-5b2c987002c6")
+	)
+	(wire
+		(pts
+			(xy 82.55 118.11) (xy 78.74 118.11)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d7fd3510-d2af-4b8a-8f08-d5c8426ca975")
 	)
 	(wire
 		(pts
@@ -716,13 +1033,13 @@
 	)
 	(wire
 		(pts
-			(xy 82.55 133.35) (xy 82.55 137.16)
+			(xy 90.17 123.19) (xy 93.98 123.19)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "f832392a-2de0-48bd-9a94-636ca0a795d8")
+		(uuid "d8761ce7-be1f-4cb9-91ae-66f7d9a18139")
 	)
 	(image
 		(at 119.38 61.976)
@@ -3859,7 +4176,7 @@
 	)
 	(hierarchical_label "CS"
 		(shape input)
-		(at 91.44 123.19 180)
+		(at 85.09 123.19 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3903,7 +4220,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 82.55 137.16 0)
+		(at 76.2 133.35 270)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -3911,10 +4228,9 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "2b1efcce-24c6-4200-b539-0f308c184feb")
 		(property "Reference" "#PWR033"
-			(at 82.55 143.51 0)
+			(at 69.85 133.35 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3925,7 +4241,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 82.55 142.24 0)
+			(at 72.136 131.572 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3935,7 +4251,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 82.55 137.16 0)
+			(at 76.2 133.35 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3946,7 +4262,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 82.55 137.16 0)
+			(at 76.2 133.35 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3957,7 +4273,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 82.55 137.16 0)
+			(at 76.2 133.35 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3981,7 +4297,7 @@
 	)
 	(symbol
 		(lib_id "power:+3V3")
-		(at 82.55 125.73 0)
+		(at 74.93 128.27 90)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -3989,10 +4305,9 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "6fad2121-5bb8-41d9-b04c-663708d05eb0")
 		(property "Reference" "#PWR034"
-			(at 82.55 129.54 0)
+			(at 78.74 128.27 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4003,7 +4318,7 @@
 			)
 		)
 		(property "Value" "+3V3A"
-			(at 82.55 120.65 0)
+			(at 69.088 126.492 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4013,7 +4328,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 82.55 125.73 0)
+			(at 74.93 128.27 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4024,7 +4339,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 82.55 125.73 0)
+			(at 74.93 128.27 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4035,7 +4350,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3V3\""
-			(at 82.55 125.73 0)
+			(at 74.93 128.27 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4058,8 +4373,8 @@
 		)
 	)
 	(symbol
-		(lib_id "power:GND")
-		(at 137.16 143.51 90)
+		(lib_id "power:+3V3")
+		(at 78.74 118.11 90)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -4068,9 +4383,9 @@
 		(in_pos_files yes)
 		(dnp no)
 		(fields_autoplaced yes)
-		(uuid "7ad4cd31-aea3-4889-b220-a80ebd14934a")
-		(property "Reference" "#PWR035"
-			(at 143.51 143.51 0)
+		(uuid "77d4bcda-cfd6-45a0-9d26-6a520fff17ca")
+		(property "Reference" "#PWR075"
+			(at 82.55 118.11 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4080,19 +4395,19 @@
 				)
 			)
 		)
-		(property "Value" "GND"
-			(at 141.478 143.5099 90)
+		(property "Value" "+3V3A"
+			(at 74.93 118.1101 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
+				(justify left)
 			)
 		)
-		(property "Footprint" ""
-			(at 137.16 143.51 0)
+		(property "Footprint" "Package_DFN_QFN:Diodes_UDFN3810-9_TYPE_B"
+			(at 78.74 118.11 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4103,7 +4418,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 137.16 143.51 0)
+			(at 78.74 118.11 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4113,8 +4428,8 @@
 				)
 			)
 		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 137.16 143.51 0)
+		(property "Description" "Power symbol creates a global label with name \"+3V3\""
+			(at 78.74 118.11 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4125,12 +4440,92 @@
 			)
 		)
 		(pin "1"
-			(uuid "5d2d4d74-da44-4d45-9713-d2888d312099")
+			(uuid "9f82a818-21c1-4a4d-8b90-7c8dd7dc5cf9")
 		)
 		(instances
 			(project "flight_computer_26_27"
 				(path "/4fd124df-e0d9-445f-9973-04852ab50770/88deb6df-fe76-4392-9e52-36d4a226c1a5"
-					(reference "#PWR035")
+					(reference "#PWR075")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 86.36 118.11 270)
+		(mirror x)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "969f63f1-94f6-449c-9490-db8c58a3436e")
+		(property "Reference" "R16"
+			(at 86.36 112.268 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "5.1k Ohm"
+			(at 86.36 115.57 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 86.36 119.888 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 86.36 118.11 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 86.36 118.11 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "e24e8044-9d7c-497b-99e4-4dd0bf12cefb")
+		)
+		(pin "2"
+			(uuid "98bc57f2-2c40-4090-9936-51bbe9d676be")
+		)
+		(instances
+			(project "flight_computer_26_27"
+				(path "/4fd124df-e0d9-445f-9973-04852ab50770/88deb6df-fe76-4392-9e52-36d4a226c1a5"
+					(reference "R16")
 					(unit 1)
 				)
 			)
@@ -4180,7 +4575,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "kicad-embed://sdcard.pdf"
+		(property "Datasheet" "https://www.we-online.com/components/products/datasheet/693072010801.pdf"
 			(at 116.84 128.27 0)
 			(hide yes)
 			(show_name no)
@@ -4233,6 +4628,85 @@
 			(project "flight_computer_26_27"
 				(path "/4fd124df-e0d9-445f-9973-04852ab50770/88deb6df-fe76-4392-9e52-36d4a226c1a5"
 					(reference "J8")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:Earth")
+		(at 137.16 143.51 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "fcbe521f-57cc-4617-9ec1-fbed4ffc4bd0")
+		(property "Reference" "#PWR035"
+			(at 143.51 143.51 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "Earth"
+			(at 140.97 143.5099 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" ""
+			(at 137.16 143.51 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 137.16 143.51 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"Earth\""
+			(at 137.16 143.51 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "3f5eb5a0-281e-476d-883e-4d0ae48e0903")
+		)
+		(instances
+			(project "flight_computer_26_27"
+				(path "/4fd124df-e0d9-445f-9973-04852ab50770/88deb6df-fe76-4392-9e52-36d4a226c1a5"
+					(reference "#PWR035")
 					(unit 1)
 				)
 			)
