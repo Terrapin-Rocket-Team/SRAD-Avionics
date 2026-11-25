@@ -866,7 +866,7 @@
 			(embedded_fonts no)
 		)
 	)
-	(text "Main issue is finding two resistors that \nwork according to this equation and also \nare widely available (don't want to just \nbuy a bunch of resistors we will never \nuse again)."
+	(text "Main issue is finding two resistors that \nwork according to this equation and also \nare widely available (don't want to just \nbuy a bunch of resistors we will never \nuse again). NEED TO SIMULATE WITH \nLTSPICE (voltage ripples)."
 		(exclude_from_sim no)
 		(at 56.134 81.788 0)
 		(effects
@@ -884,6 +884,12 @@
 		(uuid "5e8668da-26e9-4a4f-a905-1c8a96987928")
 	)
 	(junction
+		(at 194.056 111.506)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "7f34df46-d263-472b-bf89-3b7348a691db")
+	)
+	(junction
 		(at 82.296 91.44)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -894,12 +900,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "9a276cdc-5b3d-47df-aa8a-633676294401")
-	)
-	(junction
-		(at 194.056 111.506)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "ce5f1fb0-509e-43e0-9db5-a3522003aacf")
 	)
 	(wire
 		(pts
@@ -1010,6 +1010,16 @@
 			(type default)
 		)
 		(uuid "e6aa2211-721c-464c-9a9a-013528572cc3")
+	)
+	(wire
+		(pts
+			(xy 194.056 119.126) (xy 194.056 111.506)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ea58aa49-db28-462b-bffc-4e21ae6d14c7")
 	)
 	(wire
 		(pts
@@ -2429,7 +2439,7 @@
 		)
 		(uuid "b2e27750-c383-4d67-9a7f-4f93f44820a9")
 	)
-	(hierarchical_label "+4V"
+	(hierarchical_label "+3.5V"
 		(shape output)
 		(at 57.912 91.44 180)
 		(effects
@@ -2609,7 +2619,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 194.056 116.586 0)
+		(at 194.056 124.206 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -2620,7 +2630,7 @@
 		(fields_autoplaced yes)
 		(uuid "187efe15-4f3b-460b-ab1c-60ed58a6f26b")
 		(property "Reference" "#PWR050"
-			(at 194.056 122.936 0)
+			(at 194.056 130.556 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2631,7 +2641,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 194.056 121.666 0)
+			(at 194.056 129.286 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -2641,7 +2651,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 194.056 116.586 0)
+			(at 194.056 124.206 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2652,7 +2662,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 194.056 116.586 0)
+			(at 194.056 124.206 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2663,7 +2673,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 194.056 116.586 0)
+			(at 194.056 124.206 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2949,7 +2959,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "560kΩ"
+		(property "Value" "499kΩ"
 			(at 83.82 99.0599 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3188,7 +3198,7 @@
 	)
 	(symbol
 		(lib_id "Device:C_Small")
-		(at 194.056 114.046 0)
+		(at 194.056 121.666 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -3199,7 +3209,7 @@
 		(fields_autoplaced yes)
 		(uuid "e62188c4-dccf-4722-9df8-83b5c22fd9ea")
 		(property "Reference" "C25"
-			(at 196.85 112.7822 0)
+			(at 196.85 120.4022 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3210,7 +3220,7 @@
 			)
 		)
 		(property "Value" "10uF"
-			(at 196.85 115.3222 0)
+			(at 196.85 122.9422 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3221,7 +3231,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
-			(at 194.056 114.046 0)
+			(at 194.056 121.666 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3232,7 +3242,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 194.056 114.046 0)
+			(at 194.056 121.666 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3243,7 +3253,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor, small symbol"
-			(at 194.056 114.046 0)
+			(at 194.056 121.666 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)

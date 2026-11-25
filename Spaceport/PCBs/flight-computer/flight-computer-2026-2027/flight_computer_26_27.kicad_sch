@@ -15281,9 +15281,9 @@
 				(justify right)
 			)
 		)
-		(pin "+4V" input
+		(pin "+3.5V" input
 			(at 148.082 69.596 0)
-			(uuid "36107980-b205-4975-8d23-4736ac87f76c")
+			(uuid "ad0ccacd-fe0c-47f9-bca9-efe9bfd364b2")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15517,16 +15517,6 @@
 				(justify left top)
 			)
 		)
-		(pin "+4V" output
-			(at 158.242 69.596 180)
-			(uuid "8956c880-07b9-444b-a72d-c5d675850d3b")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
 		(pin "+5V" input
 			(at 176.53 70.104 0)
 			(uuid "6c214f93-3779-46b7-851a-fb5aba787f7a")
@@ -15535,6 +15525,16 @@
 					(size 1.27 1.27)
 				)
 				(justify right)
+			)
+		)
+		(pin "+3.5V" output
+			(at 158.242 69.596 180)
+			(uuid "e40e0a46-4d16-4611-b412-8b975760f336")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
 			)
 		)
 		(instances
@@ -15741,6 +15741,52 @@
 			(project "flight_computer_26_27"
 				(path "/4fd124df-e0d9-445f-9973-04852ab50770"
 					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 74.168 154.94)
+		(size 21.844 29.718)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0)
+		)
+		(uuid "d7f36f27-197b-448b-a63d-036dce5acb9f")
+		(property "Sheetname" "usb-c"
+			(at 74.168 154.2284 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "usb-c.kicad_sch"
+			(at 74.168 185.2426 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "flight_computer_26_27"
+				(path "/4fd124df-e0d9-445f-9973-04852ab50770"
+					(page "10")
 				)
 			)
 		)
