@@ -161,6 +161,172 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Device:D_Schottky"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "D"
+				(at 0 2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "D_Schottky"
+				(at 0 -2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Schottky diode"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "diode Schottky"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "TO-???* *_Diode_* *SingleDiode* D_*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "D_Schottky_0_1"
+				(polyline
+					(pts
+						(xy -1.905 0.635) (xy -1.905 1.27) (xy -1.27 1.27) (xy -1.27 -1.27) (xy -0.635 -1.27) (xy -0.635 -0.635)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 1.27) (xy 1.27 -1.27) (xy -1.27 0) (xy 1.27 1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 0) (xy -1.27 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "D_Schottky_1_1"
+				(pin passive line
+					(at -3.81 0 0)
+					(length 2.54)
+					(name "K"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 3.81 0 180)
+					(length 2.54)
+					(name "A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Device:L"
 			(pin_numbers
 				(hide yes)
@@ -884,12 +1050,6 @@
 		(uuid "5e8668da-26e9-4a4f-a905-1c8a96987928")
 	)
 	(junction
-		(at 194.056 111.506)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "7f34df46-d263-472b-bf89-3b7348a691db")
-	)
-	(junction
 		(at 82.296 91.44)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -901,6 +1061,12 @@
 		(color 0 0 0 0)
 		(uuid "9a276cdc-5b3d-47df-aa8a-633676294401")
 	)
+	(junction
+		(at 194.056 111.506)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "b023a379-2aae-4e50-b2ff-114a47ce8f5d")
+	)
 	(wire
 		(pts
 			(xy 57.912 91.44) (xy 82.296 91.44)
@@ -910,16 +1076,6 @@
 			(type default)
 		)
 		(uuid "03970988-db7a-4d10-a748-c2e4b6bd8d37")
-	)
-	(wire
-		(pts
-			(xy 194.056 111.506) (xy 200.152 111.506)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "0b9f635b-0827-4bf0-ae86-cd6d96615e0d")
 	)
 	(wire
 		(pts
@@ -953,6 +1109,16 @@
 	)
 	(wire
 		(pts
+			(xy 194.056 111.506) (xy 214.376 111.506)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "44010d8d-cf75-424e-9c70-d54294c07108")
+	)
+	(wire
+		(pts
 			(xy 82.296 100.33) (xy 82.296 108.204)
 		)
 		(stroke
@@ -980,6 +1146,16 @@
 			(type default)
 		)
 		(uuid "9dbbf1bf-4501-449b-b91d-ac78906346f3")
+	)
+	(wire
+		(pts
+			(xy 221.996 111.506) (xy 228.346 111.506)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bd07ad5e-defd-4e48-bad5-fb58f3c8bb39")
 	)
 	(wire
 		(pts
@@ -2452,7 +2628,7 @@
 	)
 	(hierarchical_label "+5V"
 		(shape input)
-		(at 200.152 111.506 0)
+		(at 228.346 111.506 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2460,6 +2636,17 @@
 			(justify left)
 		)
 		(uuid "9e92481e-8772-4f8c-a75e-5a2069f3aab6")
+	)
+	(hierarchical_label "+Vbus"
+		(shape input)
+		(at 205.74 111.506 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "c97f31ec-a217-4b20-af87-0c2570051496")
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -2612,6 +2799,96 @@
 			(project "flight_computer_26_27"
 				(path "/4fd124df-e0d9-445f-9973-04852ab50770/84f00d07-b248-43df-b45b-93fad02158f3"
 					(reference "#PWR054")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:D_Schottky")
+		(at 218.186 111.506 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "17f919bb-8a3e-4c54-bb03-49a80b16d453")
+		(property "Reference" "D9"
+			(at 218.186 108.712 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "D_Schottky"
+			(at 218.186 106.172 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Diode_SMD:D_0805_2012Metric_Pad1.15x1.40mm_HandSolder"
+			(at 218.186 111.506 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 218.186 111.506 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 218.186 111.506 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "SNAPEDA_PACKAGE_ID" ""
+			(at 218.186 111.506 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "091a5779-803f-4aff-8915-d1beca7cb5b7")
+		)
+		(pin "1"
+			(uuid "e2aa75ee-1564-49ad-ae22-cd8a172b3bfa")
+		)
+		(instances
+			(project "flight_computer_26_27"
+				(path "/4fd124df-e0d9-445f-9973-04852ab50770/84f00d07-b248-43df-b45b-93fad02158f3"
+					(reference "D9")
 					(unit 1)
 				)
 			)
